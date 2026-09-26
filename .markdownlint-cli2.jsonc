@@ -1,0 +1,14 @@
+{
+  // All rules enabled by default; MD007 indent already defaults to 2.
+  "config": {
+    "default": true, // Enable every rule not listed below.
+    "MD013": false, // line-length: allow long lines.
+    "MD024": false, // no-duplicate-heading: allow repeated heading text.
+    "MD025": false, // single-h1: allow multiple top-level headings.
+    "MD031": false, // blanks-around-fences: no blank line required around code fences.
+    "MD032": false, // blanks-around-lists: no blank line required around lists.
+    "MD033": false, // no-inline-html: allow inline HTML.
+    "MD041": false // first-line-h1: first line need not be a top-level heading.
+  },
+  "gitignore": true // Skip files matched by .gitignore.
+}

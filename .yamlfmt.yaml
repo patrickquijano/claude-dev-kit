@@ -1,0 +1,7 @@
+---
+# Aligned with .yamllint.yaml: document-start, comments min-spaces-from-content 2.
+gitignore_excludes: true
+formatter:
+  include_document_start: true
+  pad_line_comments: 2
+  retain_line_breaks: true

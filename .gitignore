@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/*.local.md
+.remember/
+graphify-out/
+.claude/prompts/
+
+# Plugin eval output
+evals/results/
