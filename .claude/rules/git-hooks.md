@@ -11,6 +11,6 @@ paths:
 - `.mjs` MUST use Node stdlib only and be Windows-safe: no shell-only syntax, `spawnSync` with argument arrays.
 - Print one `✅`/`❌` status line per check.
 - Exit non-zero only in blocking hooks (e.g. `commit-msg`); `post-commit` cannot block, so always exit 0.
-- `HUSKY=0` skips hooks (CI).
-- Commitlint config is `.commitlintrc.json`.
+- `HUSKY=0` skips hooks (CI only; see `git.md`).
+- Verify: `node .husky/commit-msg.mjs <msg-file>` prints ✅/❌ lines; exit code matches result.
 - Docs: <https://typicode.github.io/husky/>, <https://git-scm.com/docs/githooks>

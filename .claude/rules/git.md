@@ -9,6 +9,7 @@
 - MUST NOT contain attribution (no `Co-Authored-By`, no "Generated with").
 - MUST be signed and verified (SSH signing is configured locally; check with `git log --show-signature -1`).
 - MUST be atomic: one logical change per commit, related files grouped together.
+- Never commit secrets or credentials; read them from env vars.
 
 ## Branches
 
@@ -18,5 +19,5 @@
 
 ## Git hooks
 
-- Hooks live in `.husky/`; see `.claude/rules/git-hooks.md`.
-- MUST NOT bypass hooks with `--no-verify`.
+- MUST NOT bypass hooks with `--no-verify` or a local `HUSKY=0`; `HUSKY=0` is for CI only.
+- Verify: `npx commitlint --edit <file>`, then `git log --show-signature -1` after commit.

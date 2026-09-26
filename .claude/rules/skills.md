@@ -11,5 +11,5 @@ paths:
 - Set `disable-model-invocation: true` for skills with side effects that should only run on `/` command.
 - Pre-approve only the tools the skill needs with `allowed-tools`.
 - Use `$ARGUMENTS` / `${CLAUDE_SKILL_DIR}` substitutions instead of hard-coded paths.
-- Review with the `plugin-dev:skill-reviewer` agent after changes.
+- Verify: `plugin-dev:skill-reviewer` agent + `claude plugin eval .`.
 - Docs: <https://code.claude.com/docs/en/skills>
