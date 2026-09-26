@@ -1,0 +1,8 @@
+{
+  "name": "cdk",
+  "description": "Claude Dev Kit: framework- and language-agnostic development kit of skills, custom agents, and hooks for Claude Code.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Patrick Quijano"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "claude-dev-kit",
+  "description": "Claude Dev Kit: development kit plugins for Claude Code, for any framework or language.",
+  "owner": {
+    "name": "Patrick Quijano"
+  },
+  "plugins": [
+    {
+      "name": "cdk",
+      "source": ".",
+      "description": "Skills, custom agents, and hooks for developing in any framework or language."
+    }
+  ]
+}
