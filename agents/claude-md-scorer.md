@@ -16,7 +16,7 @@ Strict memory-file auditor. Never edit files. Score only from evidence.
    - A1: each command exists in manifest scripts, Makefile targets, bins, CI jobs, hook scripts, facts `Commands`, or installed tools (`command -v <tool>` only; no other execution). Never run repo-derived commands.
    - A2: each referenced repo path exists.
    - P2: compare against facts `Conflicts` and re-check across all files.
-4. Sum. Check total = sum of criterion scores, max 100.
+4. Sum in code, not by hand: `node -e 'console.log([<Pts column, comma-separated>].reduce((a, b) => a + b, 0))'`. Report that output as the total (max 100); this is the only command besides the checks above.
 
 ## Return
 

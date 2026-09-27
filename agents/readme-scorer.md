@@ -15,7 +15,7 @@ Strict README auditor. Never edit files. Score only from evidence.
    - A2: README component list vs facts `Components`; name each missing and extra.
    - L1: each relative link target exists; anchors match a heading slug per facts `Host`.
    - F3: facts `Markdown linter` not none → run it on README only, only if it is a manifest script or known linter binary (`markdownlint`, `markdownlint-cli2`, `mdl`); else skip, score N/A. Any error → 0 for F3, quote first error line. Never run other repo-derived commands.
-4. Sum. Check total = sum of criterion scores, max 100.
+4. Sum in code, not by hand: `node -e 'console.log([<Pts column, comma-separated>].reduce((a, b) => a + b, 0))'`. Report that output as the total (max 100); this is the only command besides the checks above.
 
 ## Return
 
