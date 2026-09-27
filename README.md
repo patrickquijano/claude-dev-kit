@@ -30,6 +30,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.    |
 | `/cdk:build-skill`                  | Interview, then create or update a skill, orchestrator + subagents, or subagent.             |
 | `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.      |
+| `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).      |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.         |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled inline and summary comments, request changes or approve.    |
 | `/cdk:run-spec-kit`                 | Split a feature brief, run Spec Kit from constitution to converge, gate before implement.    |
