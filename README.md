@@ -11,6 +11,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - [Claude Code](https://code.claude.com/docs) CLI (`claude`).
 - Git; commit, rebase, and review-address skills sign commits when signing is configured.
 - [`glab`](https://gitlab.com/gitlab-org/cli) CLI, authenticated, for the merge request skills.
+- [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
 - Development only: Node.js with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
 
 ## Install
@@ -31,6 +32,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.      |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.         |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled inline and summary comments, request changes or approve.    |
+| `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.    |
 | `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.     |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                          |
 | `/cdk:write-claude-md`              | Merge input guidelines into CLAUDE.md and `.claude/rules`, score it /100, iterate until ≥95. |
