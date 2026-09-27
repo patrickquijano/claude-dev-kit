@@ -28,6 +28,7 @@ claude plugin install cdk@claude-dev-kit
 | Skill                               | Purpose                                                                                      |
 | ----------------------------------- | -------------------------------------------------------------------------------------------- |
 | `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.    |
+| `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit.                 |
 | `/cdk:build-skill`                  | Interview, then create or update a skill, orchestrator + subagents, or subagent.             |
 | `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.      |
 | `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).      |
