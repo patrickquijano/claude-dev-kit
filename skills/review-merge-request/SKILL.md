@@ -65,4 +65,4 @@ Merged: yes | no (<error or reason>) | not offered (<blockers>) | not requested
 
 ## Known issues
 
-- none
+- Merge blocked by `discussions_not_resolved` after publish: inline praise creates resolvable self-started threads → resolve own no-action threads (praise) in step 10 before step 11 merge.
