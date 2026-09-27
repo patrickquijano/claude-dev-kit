@@ -59,4 +59,5 @@ Review re-requested: @<user>, … | no
 
 ## Known issues
 
-- none
+- Self-reviewed MR (self is author and reviewer): step 4 drops every thread as self-started and stops with "no open threads" → AskUserQuestion: include self-started threads | stop; on include, triage them as reviewer threads.
+- Replying to a non-resolvable overall note turns it into a resolvable, unresolved thread that blocks merge (`discussions_not_resolved`) → after posting, list it as a resolve candidate when the reply is a Fix meeting the resolve rule.
