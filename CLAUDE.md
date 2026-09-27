@@ -9,7 +9,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Subagents: `agents/` — read-only workers (analyzers, scorers, MR reviewer) spawned by skills; return results to the skill.
 - Plugin hook: `hooks/hooks.json` → `hooks/scripts/format-lint.mjs` — `PostToolUse` format then lint each file Claude edits, in any project.
 - Evals: `evals/<case>/` — `prompt.md` + `graders/`, run by `claude plugin eval .` against skills.
-- Project Claude config: `.claude/settings.json` hooks — `compress-reminder.mjs` ask Claude run `caveman:caveman-compress` on edited `CLAUDE.md`/`.claude/rules/**`; `task-completed.mjs` gate `TaskCompleted` on `npm run format` + `npm run lint`. Project skill `.claude/skills/caveman-learn/`; rules `.claude/rules/`.
+- Project Claude config: `.claude/settings.json` hooks — `compress-reminder.mjs` ask Claude run `caveman:caveman-compress` on edited `CLAUDE.md`/`.claude/rules/**`; `task-completed.mjs` gate `TaskCompleted` on `npm run format` + `npm run lint`. Rules `.claude/rules/`.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`.
 - GitLab: `.gitlab-ci.yml` runs SAST + secret detection only (no lint/validate/eval); MR template `.gitlab/merge_request_templates/Default.md`.
 
