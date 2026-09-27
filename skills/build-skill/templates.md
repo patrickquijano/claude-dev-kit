@@ -12,7 +12,7 @@
 name: <kebab-case, = dir name>
 description: <what it does>. Use when <trigger phrases/situations>.
 argument-hint: '<args>'
-disable-model-invocation: true # only if side effects must be user-triggered
+disable-model-invocation: true # only if the user chose Disable in SKILL.md step 2
 allowed-tools: <minimal list> # only if pre-approval needed
 ---
 

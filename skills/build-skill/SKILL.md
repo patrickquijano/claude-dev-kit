@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → ask or omit.
-- No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask.
+- No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask, except `disable-model-invocation`, which is always asked (step 2).
 - Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → sibling files.
 - Known issues: before fixing, check this skill's and target's `## Known issues`; reuse match. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, never plugin cache).
 - Platform facts:
@@ -27,6 +27,7 @@ Input: $ARGUMENTS
    - Mode: target exists → update, else create.
    - Type: **skill** (linear task, user interaction, small context) | **orchestrator + subagents** (parallelizable steps, large reads/outputs to isolate, distinct tool scopes) | **subagent only**.
    - Location (root): personal `~/.claude/` | project `.claude/` | plugin root.
+   - Model invocation (skills and orchestrators, not subagents; always ask, on create and on update; on update show the current value): the user decides, since it changes who can start the skill. Options: Disable (`disable-model-invocation: true`; only `/<name>` starts it and its description leaves Claude's context) | Allow (field omitted; Claude may invoke it when a request matches the description). Recommend Disable when the skill has side effects (writes files, commits, pushes, posts, deploys), so it never runs unasked; else recommend Allow, so Claude can use it when relevant. Put the reason in the recommended option's description.
 3. **Clarify loop.** Fill every item from step 1; per subagent also: task, tools, model, return shape, parallel-safe? Missing/ambiguous → AskUserQuestion (≤4 per batch). Repeat until complete.
 4. **Draft.** Create → [templates.md](templates.md). Update → edit in place; keep existing sections + all Known issues entries; change only confirmed items.
 5. **Approve.** Show plan (files + one-line purpose each) → AskUserQuestion: Write (Recommended) | Revise. Revise → back to step 3.
