@@ -9,8 +9,9 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Subagents: `agents/` — read-only workers (analyzers, scorers, MR reviewer) spawned by skills; return results to the skill.
 - Plugin hook: `hooks/hooks.json` → `hooks/scripts/format-lint.mjs` — `PostToolUse` format then lint each file Claude edits, in any project.
 - Evals: `evals/<case>/` — `prompt.md` + `graders/`, run by `claude plugin eval .` against skills.
-- Project Claude config: `.claude/settings.json` hooks — `compress-reminder.mjs` ask Claude run `caveman:caveman-compress` on edited `CLAUDE.md`/`.claude/rules/**`; `task-completed.mjs` gate `TaskCompleted` on `npm run format` + `npm run lint`. Rules `.claude/rules/`.
-- Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`.
+- Project Claude config: `.claude/settings.json` `Stop` hook → `.claude/hooks/plugin-eval.mjs` — when files under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/` changed since its last run, runs `claude plugin validate --strict .` and the full `claude plugin eval .`; blocks Claude from finishing on any error, warning, or failing case. Rules `.claude/rules/`.
+- Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
+- Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks, `setup-test-hook` `run-tests.mjs`).
 - GitLab: `.gitlab-ci.yml` runs SAST + secret detection only (no lint/validate/eval); MR template `.gitlab/merge_request_templates/Default.md`.
 
 ## Commands
@@ -18,10 +19,11 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Lint: `npm run lint`
 - Format: `npm run format`
 - Validate plugin: `claude plugin validate --strict .`
-- Evals: `claude plugin eval .` (cheap smoke: `--runs 1 --ablation none --no-publish`)
+- Evals: run automatically by the `Stop` hook; never run the full suite by hand. Targeted check while working: `claude plugin eval . --case <name> --runs 1 --ablation none --scaffold --no-publish`
 - Test local: `claude --plugin-dir .`, then `/reload-plugins` after edits
 - Commit msg check: `npx commitlint --edit <file>`
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint.mjs`
+- Eval hook guard test: `echo '{}' | CDK_PLUGIN_EVAL=1 node .claude/hooks/plugin-eval.mjs` (exit 0, no run)
 
 ## Precedence
 
@@ -44,7 +46,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - [ ] `npm run format`, then `npm run lint` pass.
 - [ ] `claude plugin validate --strict .` passes.
-- [ ] Skills or evals changed: `claude plugin eval . --runs 1 --ablation none --no-publish` passes.
+- [ ] Plugin validate and full eval run in the `Stop` hook when plugin files changed; fix everything it reports.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
 
 ## Maintenance
@@ -60,5 +62,6 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - prettier silently skip files in `.prettierignore` (exit 0) → route YAML to yamlfmt only.
 - Plugin hook blocked edits in projects without ESLint/Stylelint config → gate those steps on config file (`configs`).
 - hadolint ANSI colors leak into hook `reason` → run every hook step with `NO_COLOR=1`.
+- hadolint parse error on heredoc Dockerfiles (`RUN <<EOF`) blocked edits → `format-lint.mjs` skips hadolint when the file has a heredoc.
 - ESLint `no-undef` on `process` in `.mjs` → add `globals.node` to `eslint.config.mjs`.
 - `npm run format` renumbers nested list under 2-digit ordered step (steps restart at 1) → keep steps ≥10 as single paragraphs.
