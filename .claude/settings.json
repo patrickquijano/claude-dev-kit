@@ -1,44 +1,13 @@
 {
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "if": "Write(CLAUDE.md)",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/compress-reminder.mjs\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "if": "Edit(CLAUDE.md)",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/compress-reminder.mjs\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "if": "Write(.claude/rules/**)",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/compress-reminder.mjs\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "if": "Edit(.claude/rules/**)",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/compress-reminder.mjs\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "TaskCompleted": [
+    "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/task-completed.mjs\"",
-            "timeout": 300,
-            "statusMessage": "Formatting and linting"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/plugin-eval.mjs\"",
+            "timeout": 3600,
+            "statusMessage": "Running plugin validate and eval"
           }
         ]
       }
