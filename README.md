@@ -39,6 +39,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.     |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                          |
 | `/cdk:write-claude-md`              | Merge input guidelines into CLAUDE.md and `.claude/rules`, score it /100, iterate until ≥95. |
+| `/cdk:write-prompt`                 | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.    |
 | `/cdk:write-readme`                 | Create or update README.md from templates, score it /100, iterate until ≥95.                 |
 
 ### Agents
