@@ -61,8 +61,4 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Plugin hook blocked edits in projects without ESLint/Stylelint config → gate those steps on config file (`configs`).
 - hadolint ANSI colors leak into hook `reason` → run every hook step with `NO_COLOR=1`.
 - ESLint `no-undef` on `process` in `.mjs` → add `globals.node` to `eslint.config.mjs`.
-- `caveman doctor claude` shows `degraded` → run `caveman doctor claude --fix`; if refuses "MCP entry changed", rewrite `mcpServers.caveman` in `~/.claude.json` key order `type, command, args, env`. `drifted` alone (byte hash) harmless.
-- `claude:degraded` returns, `--fix` refuses "Caveman hook changed after enable": lean-ctx MCP startup re-sorts all `~/.claude/settings.json` keys; caveman compares hooks key-order-sensitive → set `LEAN_CTX_HEADLESS=1` in `mcpServers["lean-ctx"].env` (`~/.claude.json`), then rewrite caveman hook entries in `settings.json` key order `type, command, timeout`.
-- Bash prompts in plan mode, deny rules bypassed: `lean-ctx hook rewrite` wraps commands as `lean-ctx -c '…'` → remove that `PreToolUse` hook from `~/.claude/settings.json`; `LEAN_CTX_HEADLESS=1` stops lean-ctx startup re-adding; use `ctx_shell`.
 - `npm run format` renumbers nested list under 2-digit ordered step (steps restart at 1) → keep steps ≥10 as single paragraphs.
-- Status line `saved:0tok`, proxy log `derived cache epoch prefix diverged` → set `CLAUDE_CODE_ATTRIBUTION_HEADER=0` in `~/.claude/settings.json` `env`.
