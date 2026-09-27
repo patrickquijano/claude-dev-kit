@@ -1,14 +1,14 @@
 // PostToolUse hook: format and lint the file Claude just wrote or edited.
 // Prints one JSON object; failures block with the tool output so Claude can fix them.
 import { spawnSync } from 'node:child_process';
-import { realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 const win = process.platform === 'win32';
 const FILE = '{file}';
 
-// Step: {kind, cmd, args, npx?, probe?, configs?, stdout?}; `alt` runs the first available candidate.
-// `configs` skips the step unless one of those files exists in the project root.
+// Step: {kind, cmd, args, npx?, probe?, configs?, stdout?, skip?}; `alt` runs the first available candidate.
+// `configs` skips the step unless one of those files exists in the project root; `skip(text)` skips it by file content.
 const prettier = { kind: 'Format', npx: true, cmd: 'prettier', args: ['-w', '--ignore-unknown'] };
 const eslint = {
   kind: 'Lint',
@@ -34,7 +34,11 @@ const groups = [
     ['md', 'markdown'],
     [prettier, { kind: 'Lint', npx: true, cmd: 'markdownlint-cli2', args: ['--fix'] }]
   ],
-  [['dockerfile'], [{ kind: 'Lint', cmd: 'hadolint', args: [] }]],
+  // hadolint cannot parse heredocs (`RUN <<EOF`), so it would block valid Dockerfiles.
+  [
+    ['dockerfile'],
+    [{ kind: 'Lint', cmd: 'hadolint', args: [], skip: (text) => /^\s*(RUN|COPY|ADD)\b.*<<-?["']?\w+/im.test(text) }]
+  ],
   [
     ['js', 'mjs', 'cjs', 'jsx', 'ts', 'mts', 'cts', 'tsx', 'html', 'htm'],
     [prettier, eslint]
@@ -88,7 +92,7 @@ const isFile = (p) => {
 };
 
 function run(cmd, args, cwd) {
-  const opts = { cwd, encoding: 'utf8', timeout: 60_000, env: { ...process.env, NO_COLOR: '1' } };
+  const opts = { cwd, encoding: 'utf8', timeout: 60_000, maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } };
   if (!win) return spawnSync(cmd, args, opts);
   const quoted = [path.normalize(cmd), ...args].map((a) => `"${a}"`);
   return spawnSync(quoted[0], quoted.slice(1), { ...opts, shell: true });
@@ -143,6 +147,7 @@ async function main() {
   for (const entry of TABLE[key] || []) {
     const step = entry.alt ? entry.alt.find((c) => available(c, projectDir)) : entry;
     if (!step || !available(step, projectDir)) continue;
+    if (step.skip?.(readFileSync(abs, 'utf8'))) continue;
     const args = step.args.includes(FILE) ? step.args.map((a) => (a === FILE ? target : a)) : [...step.args, target];
     const [cmd, argv] = step.npx ? ['npx', ['--yes', step.cmd, ...args]] : [step.cmd, args];
     const r = run(cmd, argv, projectDir);
