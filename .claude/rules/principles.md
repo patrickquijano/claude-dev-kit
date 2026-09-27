@@ -1,11 +1,10 @@
 # Principles
 
-- MUST NOT hallucinate: verify each fact against official docs or the code before stating or using it.
-- MUST NOT assume. Missing or ambiguous information → ask the user with options, a recommendation, and why.
-- MUST self-heal: on a failed check, find the root cause, fix it, and re-run that check until it passes.
-- Comments MUST be brief, max 2 sentences.
+- Verify each fact against official docs or the code before stating or using it.
+- Missing or ambiguous information → ask the user with options, a recommendation, and why; don't assume.
+- On a failed check, find the root cause, fix it, and re-run that check until it passes.
+- Keep comments brief: max 2 sentences.
 - Review, validate and test each changed component before committing, using the `Verify:` line in its `.claude/rules/` file.
-- Spawn multiple subagents, in parallel when tasks are independent, if feasible.
 - Verify: Definition of done checklist in `CLAUDE.md`.
 
 ## Design principles
