@@ -50,4 +50,4 @@ New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records 
 
 ## Known issues
 
-- none
+- zsh `git show $H:path` fails "ambiguous argument" (`:t` read as history modifier) → brace the variable: `git show "${H}:path"`
