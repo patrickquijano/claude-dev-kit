@@ -3,8 +3,12 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const isWindows = process.platform === 'win32';
+// Package dir (parent of .husky/), so commitlint finds its config when the package is not at the git root.
+const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
 // Imperative verbs that end in -ed/-ing.
 const IMPERATIVE_EXCEPTIONS = new Set([
@@ -44,10 +48,14 @@ function readSubject(file) {
 function runCommitlint(file) {
   try {
     const cli = createRequire(import.meta.url).resolve('@commitlint/cli/cli.js');
-    return spawnSync(process.execPath, [cli, '--edit', file], { encoding: 'utf8' });
+    return spawnSync(process.execPath, [cli, '--edit', file], { encoding: 'utf8', cwd: packageDir });
   } catch {
     const arg = isWindows ? `"${file}"` : file;
-    return spawnSync('npx', ['--no', 'commitlint', '--edit', arg], { encoding: 'utf8', shell: isWindows });
+    return spawnSync('npx', ['--no', 'commitlint', '--edit', arg], {
+      encoding: 'utf8',
+      shell: isWindows,
+      cwd: packageDir
+    });
   }
 }
 
@@ -122,7 +130,7 @@ function report(ok, label, subject, details) {
   }
 }
 
-const file = process.argv[2];
+const file = process.argv[2] && resolve(process.argv[2]);
 if (!file) {
   console.error('usage: node .husky/commit-msg.mjs <message-file>');
   process.exit(1);
