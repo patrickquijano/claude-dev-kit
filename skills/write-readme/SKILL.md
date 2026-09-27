@@ -12,6 +12,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - User interaction (AskUserQuestion) only here; subagents can't ask.
+- AskUserQuestion or Write unavailable → still ask: end the turn with the step's question and options as plain text, never a finished README in its place, so the user approves before anything is written.
 - Never invent facts: license, URLs, versions, contacts, badges. Not derivable → ask; user omits → leave out.
 - Every command in README MUST exist in repo (scripts, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, author voice. Change only stale, wrong, or missing items.
