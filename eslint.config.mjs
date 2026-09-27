@@ -3,7 +3,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
 export default defineConfig([
-  globalIgnores(['.remember/', 'graphify-out/']),
+  globalIgnores(['.remember/', 'graphify-out/', '.husky/_/']),
   {
     files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },

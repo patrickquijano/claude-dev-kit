@@ -1,0 +1,3 @@
+# POSIX sh hook stubs break on CRLF checkouts.
+.husky/* text eol=lf
+skills/setup-husky/assets/* text eol=lf
