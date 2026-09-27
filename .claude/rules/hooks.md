@@ -10,7 +10,7 @@ paths:
 - Define plugin hooks in `hooks/hooks.json` (`{"hooks": {"<Event>": [{"matcher": "...", "hooks": [...]}]}}`).
 - Write scripts as `.mjs` run via `node "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/<name>.mjs"`; no exec bit needed.
 - Project hooks live in `.claude/settings.json`, scripts in `.claude/hooks/*.mjs`, run via `node "$CLAUDE_PROJECT_DIR/.claude/hooks/<name>.mjs"`.
-- Use narrow `matcher` patterns; avoid `*` unless required. `MultiEdit` no longer exists: match `Write|Edit`.
+- Use narrow `matcher` patterns; avoid `*` unless required. Match file edits with `Write|Edit`.
 - Always set `timeout` (seconds, default 600).
 - Exit codes: `0` success, `2` block (stderr shown to Claude), other = non-blocking error.
 - Stdout MUST be a single JSON object (on exit 0).
