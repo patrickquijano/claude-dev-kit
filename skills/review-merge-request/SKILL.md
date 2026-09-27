@@ -17,7 +17,7 @@ Input: $ARGUMENTS
 - Comment bodies in plain English, full sentences; never compressed style.
 - JSON request bodies via file + `--input`; never inline user text in shell args. `-f` only for API-sourced values (SHAs).
 - Never change MR reviewers without step 8 consent; never remove existing reviewers.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → `agents/mr-reviewer.md`. Not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → `agents/mr-reviewer.md`. Not writable → print line for user.
 
 ## Workflow
 

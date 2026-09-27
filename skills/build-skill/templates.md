@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - <constraint>
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
 
 ## Workflow
 
@@ -52,7 +52,7 @@ Input: $ARGUMENTS
 - User interaction (AskUserQuestion) only here; subagents can't ask.
 - Independent steps → spawn subagents in parallel (one message, many Agent calls).
 - Pass each subagent only needed context; require concise return.
-- Issue → check `## Known issues` first. New fix (incl. subagent "Known issue:" lines) → append `- <symptom> → <fix>` to source SKILL.md; not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue (incl. subagent "Known issue:" lines) → append `- <symptom> → <fix>` to source SKILL.md; not writable → print line for user.
 
 ## Workflow
 

@@ -14,7 +14,7 @@ Input: $ARGUMENTS
 - Name: `<type>/<short-description>`. Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert.
 - Whole name (incl. `<type>/`) max 72 chars. Imperative verb first in description ("add-", not "added-"). Lowercase, hyphen-separated, `[a-z0-9-]` only.
 - Always new branch; uncommitted changes carry over untouched. Never commit, stash, reset, or `--force`.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
 
 ## Workflow
 

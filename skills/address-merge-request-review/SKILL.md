@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 - Reply and summary bodies in plain English, full sentences; never compressed style.
 - Model text (JSON bodies, commit subjects) via scratch file (`--input`, `git commit -F`); never inline in shell args. `-f` only for API-sourced values.
 - Reads only via `glab api --paginate …` (pre-approved). Writes (POST, PUT, graphql, commit, push) stay permission-prompted.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
 
 ## Workflow
 

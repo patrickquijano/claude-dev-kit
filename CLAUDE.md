@@ -50,7 +50,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Maintenance
 
 - Update this file, `.claude/rules/`, and `README.md` skills/agents tables in the same change that adds or alters a component, command, path, or convention.
-- Record each resolved issue below as `- <symptom> → <fix>`; check list before debug; reuse same fix for same issue.
+- Record a resolved issue below as `- <symptom> → <fix>` only when it recurs or blocks the workflow; check list before debug; reuse same fix for same issue.
 
 ## Known issues and fixes
 

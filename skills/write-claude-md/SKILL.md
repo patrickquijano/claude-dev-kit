@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Conflict → never resolve silently; ask.
 - Pass score = 95/100. Improve rounds max 3. Never re-ask an omitted item.
 - Formatter runs prompt for permission; expected.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → that agent's file in `agents/`. Not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → that agent's file in `agents/`. Not writable → print line for user.
 
 ## Workflow
 

@@ -15,7 +15,7 @@ Input: $ARGUMENTS
 - `glab mr update` `--remove-source-branch`/`--squash-before-merge` are toggles: never use them. Set both via `glab api projects/:id/merge_requests/<iid> -X PUT -F remove_source_branch=<bool> -F squash=<bool>`.
 - Description always via `--description-file -` + quoted heredoc (`<<'EOF'`); backticks and `$` stay literal.
 - Never `--force`, `--no-verify`, commit, stash, or reset. Never clear existing reviewers or assignees silently.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
 
 ## Workflow
 

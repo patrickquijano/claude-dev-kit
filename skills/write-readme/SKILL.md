@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 - Never drop a rubric required section. No facts for it → ask in step 3, else write one explicit line ("No configuration.").
 - Pass score = 95/100. Improve rounds max 3. Never re-ask an omitted item.
 - Formatter and linter runs prompt for permission; expected.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → that agent's file in `agents/`. Not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, not plugin cache): skill issue → this SKILL.md; subagent "Known issue:" line → that agent's file in `agents/`. Not writable → print line for user.
 
 ## Workflow
 

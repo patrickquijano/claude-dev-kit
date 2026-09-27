@@ -17,7 +17,7 @@ Input: $ARGUMENTS
 - Signed: always `-S`. Never `--no-gpg-sign`, `--no-verify`, `--force`; never amend existing commits.
 - Atomic: one logical change per commit. Group related files; config goes with the files it configures. Rename (`D` old + `??` new) stays in one commit.
 - Secrets never committed: check file names (`.env`, keys) and diff content (`-----BEGIN`, `AKIA`, `ghp_`, `glpat-`, `xox[bp]-`). Match → leave unstaged, list under Excluded, warn user.
-- Issue → check `## Known issues` first. New fix → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
 
 ## Workflow
 

@@ -13,7 +13,7 @@ Input: $ARGUMENTS
 - No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → ask or omit.
 - No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask.
 - Token-efficient: omit default-valued frontmatter; body caveman-style (terse fragments, no filler); details → sibling files.
-- Known issues: before fixing, check this skill's and target's `## Known issues`; reuse match. New fix → append `- <symptom> → <fix>` to source file (repo path, never plugin cache).
+- Known issues: before fixing, check this skill's and target's `## Known issues`; reuse match. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, never plugin cache).
 - Platform facts:
   - Subagents never get AskUserQuestion → all user interaction in main-thread skill.
   - Orchestrator skill must NOT set `context: fork` (runs as subagent → loses AskUserQuestion).
