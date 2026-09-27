@@ -32,6 +32,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.      |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.         |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled inline and summary comments, request changes or approve.    |
+| `/cdk:run-spec-kit`                 | Split a feature brief, run Spec Kit from constitution to converge, gate before implement.    |
 | `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.    |
 | `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.     |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                          |
