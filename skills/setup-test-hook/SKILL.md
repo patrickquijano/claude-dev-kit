@@ -60,4 +60,5 @@ Stopped: <step>: <reason>   # only when stopped
 
 ## Known issues
 
-- none
+- Project Prettier config (e.g. `printWidth: 160`) reformats the copied `run-tests.mjs`, failing `prettier --check .` → add `/.claude/hooks/run-tests.mjs` to `.prettierignore`; keep the asset byte for byte.
+- Smoke test crashes `Error: spawn ENOEXEC` (Homebrew pnpm 12 ships `/opt/homebrew/bin/pnpm` as a shebang-less placeholder script) → asset now catches the synchronous spawn throw; for the suite, run the runner through Node (`cmd: 'node'`, `args: ['node_modules/vitest/vitest.mjs', 'run', …]`) instead of `pnpm exec`.
