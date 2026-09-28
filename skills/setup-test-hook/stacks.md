@@ -5,7 +5,7 @@ Detection signals, runners, and hook commands per stack. Commands call the runne
 - `<x>` = package exec prefix: npm `npx --no-install`, pnpm `pnpm exec`, yarn `yarn`, bun `bunx --no-install`. `--no-install` stops an npx/bunx download when the runner is missing.
 - Feasible = runner in dependencies (or on `PATH` for system tools), its config or default layout present, and at least one matching test file.
 - `warn` = RegExp literal for the `warn` suite field (`m` flag, never `g`); set it only when no flag turns warnings into failures. Match a line start so test names do not trigger it.
-- Kind: unit, integration, e2e, other (type check, component, contract, static checks the project already uses).
+- Kind: unit, integration, e2e, other (type check, component, contract, static checks the project already uses). Only unit suites go into the hook; every detected kind goes into the project-context note and VS Code tasks.
 
 ## JavaScript / TypeScript
 

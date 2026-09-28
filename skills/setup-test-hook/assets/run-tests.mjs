@@ -1,8 +1,8 @@
-// Stop hook: run the project's test suites before Claude can finish a turn.
+// Stop hook: run the project's unit test suites before Claude can finish a turn.
 // Groups run in order, suites in a group run in parallel; the first failure or warning stops all and blocks Claude.
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve as resolvePath } from 'node:path';
 
@@ -15,11 +15,10 @@ const MAX = 8000;
 // Claude Code caps systemMessage at 10,000 characters.
 const MESSAGE_MAX = 10_000;
 // Total budget for all groups in ms: the hook `timeout` minus 60 s, so this script reports the timeout itself.
-// Written by /cdk:setup-test-hook from the chosen hook timeout (default 600 s).
-const TIMEOUT = 540_000;
+// Written by /cdk:setup-test-hook from the chosen hook timeout (default 180 s).
+const TIMEOUT = 120_000;
 // Live progress for `tail -f`; hook output is shown only after the hook exits.
 const LOG = '.claude/hooks/run-tests.log';
-const NOT_LOG = `:(exclude)${LOG}`;
 const deadline = Date.now() + TIMEOUT;
 const children = new Set();
 const lines = [];
@@ -55,16 +54,6 @@ function hashFiles(hash, cwd, files) {
 
 const list = (res) => res.stdout.toString().split('\0').filter(Boolean);
 
-// Hash of uncommitted changes plus untracked files; null outside git (or before the first commit).
-function fingerprint(cwd) {
-  const diff = git(cwd, 'diff', 'HEAD', '--binary', '--', '.', NOT_LOG);
-  const untracked = git(cwd, 'ls-files', '-o', '--exclude-standard', '-z', '--', '.', NOT_LOG);
-  if (diff.error || diff.status !== 0 || untracked.status !== 0) return null;
-  const files = list(untracked);
-  if (!diff.stdout.length && !files.length) return '';
-  return hashFiles(createHash('sha256').update(diff.stdout), cwd, files);
-}
-
 // Hash of the suite definition plus the content of every tracked or untracked file its inputs match; null outside git.
 function suiteHash(suite, cwd) {
   const dir = resolvePath(cwd, suite.cwd ?? '.');
@@ -73,6 +62,18 @@ function suiteHash(suite, cwd) {
   if (res.error || res.status !== 0) return null;
   const def = JSON.stringify([suite.cmd, suite.args, suite.cwd, suite.env, String(suite.warn), inputs]);
   return hashFiles(createHash('sha256').update(def), dir, list(res));
+}
+
+// Loop guard over the affected tests only: hash of every suite's inputs, so edits outside them never run the hook.
+// null outside git.
+function fingerprint(cwd) {
+  const hash = createHash('sha256');
+  for (const suite of GROUPS.flat()) {
+    const one = suiteHash(suite, cwd);
+    if (one === null) return null;
+    hash.update(`${suite.name}\0${one}\0`);
+  }
+  return hash.digest('hex');
 }
 
 function commandLine(suite) {
@@ -169,7 +170,8 @@ function runGroup(group, cwd, cache, force) {
     if (!left) resolve(null);
     for (const { suite, hash } of todo) {
       run(suite, cwd, ctrl.signal).then((r) => {
-        if (r.ok && r.reason !== 'aborted' && hash !== null) cache[suite.name] = hash;
+        // Re-hash after the pass, so untracked files the suite writes into its inputs do not miss the cache next time.
+        if (r.ok && r.reason !== 'aborted' && hash !== null) cache[suite.name] = suiteHash(suite, cwd) ?? hash;
         if (!r.ok) delete cache[suite.name];
         if (!r.ok && !ctrl.signal.aborted) {
           ctrl.abort();
@@ -195,10 +197,17 @@ async function main() {
   const event = await readEvent();
   const cwd = process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const force = process.env.CDK_RUN_TESTS_FORCE === '1';
-  // Stop fires every turn: skip when nothing changed since the last run, so Q&A turns cost nothing
+  // Stop fires every turn: skip when no suite input changed since the last run, so Q&A and non-test edits cost nothing
   // and Claude can stop once it makes no further edits (the docs warn a Stop hook can loop forever).
   const fp = fingerprint(cwd);
-  const id = createHash('sha256').update(cwd).digest('hex').slice(0, 16);
+  // Real path, so symlinked spellings of one project (/tmp vs /private/tmp) share state and cache.
+  let real = cwd;
+  try {
+    real = realpathSync(cwd);
+  } catch {
+    // Missing dir; hash the given path.
+  }
+  const id = createHash('sha256').update(real).digest('hex').slice(0, 16);
   const state = join(tmpdir(), `cdk-run-tests-${id}`);
   const cacheFile = join(tmpdir(), `cdk-run-tests-${id}.json`);
   let last = null;
@@ -208,7 +217,7 @@ async function main() {
     // First run.
   }
   // CDK_RUN_TESTS_FORCE=1 runs every suite regardless of changes and cache, for smoke tests.
-  const skip = fp === null ? event.stop_hook_active === true : fp === last || (last === null && fp === '');
+  const skip = fp === null ? event.stop_hook_active === true : fp === last;
   if (skip && !force) return;
   let cache = {};
   try {
@@ -233,7 +242,7 @@ async function main() {
     record();
     const reason =
       `Test suite "${fail.suite.name}" failed (${fail.reason}): ${commandLine(fail.suite)}\n${fail.out.trim()}\n` +
-      `Fix every failing test, error, and warning; run only the affected tests. This hook re-runs the failed suite and any suite whose inputs changed when you finish.`;
+      `Fix every failing test, error, and warning; run only the affected unit tests. When you finish, this hook re-runs only the failed suite and suites whose inputs changed.`;
     process.stdout.write(JSON.stringify({ decision: 'block', reason, systemMessage: cap(lines.join('\n')) }));
     return;
   }
