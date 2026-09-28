@@ -91,7 +91,7 @@ npm install                        # also installs Husky git hooks via prepare
 npm run format
 npm run lint                       # eslint, markdownlint-cli2, yamllint, yamlfmt, prettier
 claude plugin validate --strict .
-claude plugin eval .               # eval suite in evals/
+claude plugin eval .               # LLM-graded eval suite in evals/; manual only, not run by hooks
 claude --plugin-dir .              # test local checkout; /reload-plugins after edits
 ```
 

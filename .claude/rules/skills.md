@@ -11,5 +11,5 @@ paths:
 - Set `disable-model-invocation` only as the user decides; ask each time a skill is built or updated, recommending `true` for skills with side effects so they run only on `/` command.
 - Pre-approve only the tools the skill needs with `allowed-tools`.
 - Use `$ARGUMENTS` / `${CLAUDE_SKILL_DIR}` substitutions instead of hard-coded paths.
-- Verify: `plugin-dev:skill-reviewer` agent; the full `claude plugin eval .` runs in the project `Stop` hook.
+- Verify: `plugin-dev:skill-reviewer` agent + `claude plugin validate --strict .`; never run the LLM-graded `claude plugin eval`.
 - Docs: <https://code.claude.com/docs/en/skills>

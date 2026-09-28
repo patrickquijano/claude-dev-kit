@@ -1,13 +1,14 @@
 {
   "hooks": {
-    "Stop": [
+    "PostToolUse": [
       {
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/plugin-eval.mjs\"",
-            "timeout": 3600,
-            "statusMessage": "Running plugin validate and eval"
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/plugin-validate.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Validating plugin"
           }
         ]
       }

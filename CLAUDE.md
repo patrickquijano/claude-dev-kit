@@ -8,8 +8,8 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction.
 - Subagents: `agents/` — read-only workers (analyzers, scorers, MR reviewer) spawned by skills; return results to the skill.
 - Plugin hooks: `hooks/hooks.json` → `hooks/scripts/format-lint.mjs` (`PostToolUse`, format then lint each file Claude edits) and `format-lint-repo.mjs` (`Stop`, format then lint the whole repo per file-type group whose files changed since its last run; blocks on errors and warnings), in any project. Shared tool table: `hooks/scripts/tools.mjs`.
-- Evals: `evals/<case>/` — `prompt.md` + `graders/`, run by `claude plugin eval .` against skills.
-- Project Claude config: `.claude/settings.json` `Stop` hook → `.claude/hooks/plugin-eval.mjs` — when files under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/` changed since its last run, runs `claude plugin validate --strict .` and the full `claude plugin eval .`; blocks Claude from finishing on any error, warning, or failing case. Rules `.claude/rules/`.
+- Evals: `evals/<case>/` — `prompt.md` + `graders/`, LLM-graded behavioral cases for `claude plugin eval .`; the user runs them by hand, never Claude or a hook.
+- Project Claude config: `.claude/settings.json` `PostToolUse` hook → `.claude/hooks/plugin-validate.mjs` — after Claude edits a file under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/`, runs structural `claude plugin validate --strict .`; exits 2 on any error or warning so Claude fixes it. Rules `.claude/rules/`.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
 - Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks, `setup-test-hook` `run-tests.mjs`).
 - GitLab: `.gitlab-ci.yml` runs SAST + secret detection only (no lint/validate/eval); MR template `.gitlab/merge_request_templates/Default.md`.
@@ -19,12 +19,12 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Lint: `npm run lint`
 - Format: `npm run format`
 - Validate plugin: `claude plugin validate --strict .`
-- Evals: run automatically by the `Stop` hook; never run the full suite by hand. Targeted check while working: `claude plugin eval . --case <name> --runs 1 --ablation none --scaffold --no-publish`
+- Never run `claude plugin eval` (LLM-graded behavioral evals); structural validation only.
 - Test local: `claude --plugin-dir .`, then `/reload-plugins` after edits
 - Commit msg check: `npx commitlint --edit <file>`
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint.mjs`
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint-repo.mjs` (no output when no covered file changed since its last run)
-- Eval hook guard test: `echo '{}' | CDK_PLUGIN_EVAL=1 node .claude/hooks/plugin-eval.mjs` (exit 0, no run)
+- Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/skills/build-skill/SKILL.md"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/plugin-validate.mjs` (exit 0 and no output when valid)
 
 ## Precedence
 
@@ -47,7 +47,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - [ ] `npm run format`, then `npm run lint` pass.
 - [ ] `claude plugin validate --strict .` passes.
-- [ ] Plugin validate and full eval run in the `Stop` hook when plugin files changed; fix everything it reports.
+- [ ] The `PostToolUse` validate hook reports no error or warning; fix everything it reports.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
 
 ## Maintenance
