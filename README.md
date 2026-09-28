@@ -65,9 +65,10 @@ Spawned by skills; not meant for direct use.
 
 ### Hooks
 
-| Event                      | Script                          | Purpose                                                                    |
-| -------------------------- | ------------------------------- | -------------------------------------------------------------------------- |
-| `PostToolUse` (Write/Edit) | `hooks/scripts/format-lint.mjs` | Format, then lint each file Claude edits with the repo's configured tools. |
+| Event                      | Script                               | Purpose                                                                                                                                                      |
+| -------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PostToolUse` (Write/Edit) | `hooks/scripts/format-lint.mjs`      | Format, then lint each file Claude edits with the repo's configured tools.                                                                                   |
+| `Stop`                     | `hooks/scripts/format-lint-repo.mjs` | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; blocks Claude until errors and warnings are fixed. |
 
 ### Example
 

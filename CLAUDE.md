@@ -7,7 +7,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Manifest: `.claude-plugin/` — `plugin.json` + `marketplace.json`; components live at repo root.
 - Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction.
 - Subagents: `agents/` — read-only workers (analyzers, scorers, MR reviewer) spawned by skills; return results to the skill.
-- Plugin hook: `hooks/hooks.json` → `hooks/scripts/format-lint.mjs` — `PostToolUse` format then lint each file Claude edits, in any project.
+- Plugin hooks: `hooks/hooks.json` → `hooks/scripts/format-lint.mjs` (`PostToolUse`, format then lint each file Claude edits) and `format-lint-repo.mjs` (`Stop`, format then lint the whole repo per file-type group whose files changed since its last run; blocks on errors and warnings), in any project. Shared tool table: `hooks/scripts/tools.mjs`.
 - Evals: `evals/<case>/` — `prompt.md` + `graders/`, run by `claude plugin eval .` against skills.
 - Project Claude config: `.claude/settings.json` `Stop` hook → `.claude/hooks/plugin-eval.mjs` — when files under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/` changed since its last run, runs `claude plugin validate --strict .` and the full `claude plugin eval .`; blocks Claude from finishing on any error, warning, or failing case. Rules `.claude/rules/`.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
@@ -23,6 +23,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Test local: `claude --plugin-dir .`, then `/reload-plugins` after edits
 - Commit msg check: `npx commitlint --edit <file>`
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint.mjs`
+- Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint-repo.mjs` (no output when no covered file changed since its last run)
 - Eval hook guard test: `echo '{}' | CDK_PLUGIN_EVAL=1 node .claude/hooks/plugin-eval.mjs` (exit 0, no run)
 
 ## Precedence
