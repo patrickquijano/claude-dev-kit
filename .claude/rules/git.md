@@ -2,24 +2,24 @@
 
 ## Commits
 
-The `commit-msg` hook rejects messages that break these rules.
+`commit-msg` hook reject msgs breaking rules.
 
 - Conventional Commits: `<type>(<optional scope>): <subject>`.
-- At most 72 characters.
+- Max 72 chars.
 - Imperative ("add", not "added").
-- Subject line only: no body, no footer.
+- Subject only: no body, no footer.
 - No attribution (no `Co-Authored-By`, no "Generated with").
-- Signed and verified (SSH signing is configured locally; check with `git log --show-signature -1`).
-- Atomic: one logical change per commit, related files grouped together.
-- Never commit secrets or credentials; read them from env vars.
+- Signed + verified (SSH signing set locally; check `git log --show-signature -1`).
+- Atomic: one logical change per commit, related files grouped.
+- Never commit secrets/creds; read from env vars.
 
 ## Branches
 
 - Conventional Branch: `<type>/<short-description>` (e.g. `feat/add-build-skill`).
-- At most 72 characters.
+- Max 72 chars.
 - Imperative, lowercase, hyphen-separated.
 
 ## Git hooks
 
-- Never bypass hooks with `--no-verify` or a local `HUSKY=0`; `HUSKY=0` is for CI only.
+- Never bypass hooks with `--no-verify` or local `HUSKY=0`; `HUSKY=0` CI only.
 - Verify: `npx commitlint --edit <file>`, then `git log --show-signature -1` after commit.
