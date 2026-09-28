@@ -85,10 +85,10 @@ export const groups = [
 ];
 export const TABLE = Object.fromEntries(groups.flatMap(([exts, steps]) => exts.map((e) => [e, steps])));
 
-// Table key of a path: `dockerfile` for Dockerfile and Dockerfile.*, else the lowercased extension.
+// Table key of a path: `dockerfile` for Dockerfile and Dockerfile.* (not *.dockerignore), else the lowercased extension.
 export function keyOf(file) {
   const base = path.basename(file);
-  return base === 'Dockerfile' || base.startsWith('Dockerfile.')
+  return base === 'Dockerfile' || (base.startsWith('Dockerfile.') && !base.endsWith('.dockerignore'))
     ? 'dockerfile'
     : path.extname(base).slice(1).toLowerCase();
 }
