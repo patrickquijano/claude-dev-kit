@@ -34,4 +34,5 @@ New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records 
 
 ## Known issues
 
-- none
+- zsh: `echo ==` fails "(eval):1: = not found" → use `echo '---'` as a separator
+- `grep -r` over `node_modules/` denied by permission policy → use `npm view <pkg>@<version> <field>` for package metadata

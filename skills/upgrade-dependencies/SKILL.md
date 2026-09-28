@@ -52,4 +52,4 @@ Stopped: <step>: <reason>   # only when stopped
 
 ## Known issues
 
-- none
+- pnpm 12: `pnpm -s <script>` fails "Usage: pnpm [OPTIONS] <COMMAND>" (exit 2) → use `pnpm run <script>`

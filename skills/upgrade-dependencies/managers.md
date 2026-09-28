@@ -7,7 +7,7 @@ Verified 2026-09-28 against each tool's `--help` or official docs. A row marked 
 Format: manager — detect files — list outdated (read-only) — upgrade one package (updates manifest + lockfile) — notes.
 
 - npm — `package.json` + `package-lock.json` — `npm outdated --json` (Current/Wanted/Latest) — `npm install <pkg>@<version>` — a major bump needs the explicit version or `@latest`. <https://docs.npmjs.com/cli/commands/npm-outdated>
-- pnpm — `package.json` + `pnpm-lock.yaml` — `pnpm outdated --format json` — `pnpm add <pkg>@<version>` — `pnpm update --latest <pkg>` rewrites the range. <https://pnpm.io/cli/outdated>
+- pnpm — `package.json` + `pnpm-lock.yaml` — `pnpm outdated --format json` — `pnpm add <pkg>@<version>` — `pnpm update --latest <pkg>` rewrites the range. Exact pin (no `^`/`~`) → `pnpm add -E <pkg>@<version>` (`-D` for devDependencies), else the range widens to `^`. Overrides live in `pnpm-workspace.yaml` `overrides:`; to drop one, check `pnpm why <pkg>`, remove the entry, then `pnpm install` to relock. Run scripts with `pnpm run <script>`; pnpm 12 rejects `pnpm -s <script>`. <https://pnpm.io/cli/outdated>
 - Yarn 1 — `yarn.lock`, no `.yarnrc.yml` — `yarn outdated --json` (JSON lines) — `yarn upgrade <pkg>@<version>` (_verify_ it updates `package.json`) — <https://classic.yarnpkg.com/en/docs/cli/outdated>
 - Yarn 2+ — `yarn.lock` + `.yarnrc.yml` — no outdated command; use the registry lookup below — `yarn up <pkg>@<version>` — <https://yarnpkg.com/cli/up>
 - Bun — `bun.lock` (older `bun.lockb`) — `bun outdated` (no JSON) — `bun add <pkg>@<version>` — <https://bun.com/docs/cli/outdated>
