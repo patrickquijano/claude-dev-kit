@@ -52,3 +52,4 @@ Stopped: <step>: <reason>   # only when stopped
 ## Known issues
 
 - hadolint fails on heredoc `RUN <<EOF` ("unexpected … expecting a new line") → skip hadolint for heredoc Dockerfiles; rely on `docker build --check`.
+- `docker build --check` fails "failed to authorize" on a private base image → re-run with `--build-arg <composite FROM ARG>=alpine:3` (checks need base metadata only); report the base swap and the unverified digest.
