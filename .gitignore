@@ -11,7 +11,8 @@ Thumbs.db
 
 # Editors
 .idea/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
 *.swp
 
 # Claude Code local state
