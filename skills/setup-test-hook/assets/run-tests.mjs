@@ -120,9 +120,17 @@ function run(suite, cwd, signal) {
     const start = Date.now();
     progress(`▶ started ${suite.name}: ${commandLine(suite)}`);
     // POSIX: own process group so kill() reaches the whole tree.
-    const child = win
-      ? spawn(winLine(suite.cmd, args), { ...opts, shell: true })
-      : spawn(suite.cmd, args, { ...opts, detached: true });
+    let child;
+    try {
+      child = win
+        ? spawn(winLine(suite.cmd, args), { ...opts, shell: true })
+        : spawn(suite.cmd, args, { ...opts, detached: true });
+    } catch (err) {
+      // Some failures (ENOEXEC: a script with no shebang) throw synchronously instead of emitting 'error'.
+      progress(`✖ failed ${suite.name} (${err.message}) after 0.0s: ${commandLine(suite)}`);
+      resolve({ suite, ok: false, reason: err.message, out: '' });
+      return;
+    }
     children.add(child);
     let out = '';
     let done = false;
