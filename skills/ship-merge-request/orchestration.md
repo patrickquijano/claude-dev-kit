@@ -1,6 +1,6 @@
 # Orchestration
 
-Shared by orchestrator skills that chain `cdk:` skills: `cdk:ship-merge-request`, `cdk:ship-spec-kit-bug`, `cdk:ship-spec-kit-idea`, `cdk:setup-project`.
+Shared by orchestrator skills that chain `cdk:` skills: `cdk:ship-merge-request`, `cdk:ship-spec-kit-bug`, `cdk:ship-spec-kit-idea`, `cdk:setup-project`, `cdk:scan-vulnerabilities`.
 
 - Orchestrator only; each step runs a `cdk:` skill via the Skill tool, in this main thread. Sub-skills ask the user via AskUserQuestion, so never fork or delegate them to subagents.
 - Invoking the orchestrator counts as the user's explicit request for every chained skill; their "use only when the user explicitly asks" clause is met.

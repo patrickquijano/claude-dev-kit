@@ -7,6 +7,7 @@ paths:
 
 - One subagent per `agents/<name>.md`; `name` unique, kebab-case, no `:`.
 - `description` = when delegate; keep short (all descriptions share context).
+- Read-only by default. Exception: `security-scanner` has `Write` and Docker, for redacted reports under `.vulnerability-reports/` only.
 - Restrict `tools` to minimum; omit = inherit all tools.
 - Set `model` only when needed (`haiku` cheap lookups, `inherit` otherwise).
 - Subagents never get `AskUserQuestion`; missing info → return question to calling skill, skill asks user.
