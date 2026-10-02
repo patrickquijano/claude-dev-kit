@@ -9,7 +9,7 @@ paths:
 # Git hooks
 
 - Hook file (`.husky/<hook>`) POSIX `sh`: no shebang, no `husky.sh` sourcing (deprecated; newer Husky fail on it).
-- Hook file only runs `node .husky/<hook>.mjs "$@"`; logic in `.mjs`.
+- Hook file only runs `node .husky/<hook>.mjs "$@"` (commit-msg may add `--skip-message`/`--skip-signing`/`--pm=<pm>` per setup-husky step 5); logic in `.mjs`.
 - Hook files stay LF (`.gitattributes` `eol=lf`); CRLF breaks `sh`.
 - `.husky/` and `skills/setup-husky/assets/` copies byte-identical; change both together.
 - `.mjs` MUST use Node stdlib only, Windows-safe: no shell-only syntax, `spawnSync` with arg arrays.

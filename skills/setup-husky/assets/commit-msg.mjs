@@ -1,28 +1,58 @@
 // Validates the commit message (commitlint + imperative heuristic) and pre-checks signing config.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const isWindows = process.platform === 'win32';
 // Package dir (parent of .husky/), so commitlint finds its config when the package is not at the git root.
 const packageDir = fileURLToPath(new URL('..', import.meta.url));
 
-// Imperative verbs that end in -ed/-ing.
+// Commitlint command per package manager, from the commitlint local setup guide.
+const COMMITLINT = {
+  npm: ['npx', ['--no', '--', 'commitlint']],
+  pnpm: ['pnpm', ['commitlint']],
+  yarn: ['yarn', ['commitlint']],
+  bun: ['bun', ['commitlint']]
+};
+const LOCKFILES = [
+  ['pnpm-lock.yaml', 'pnpm'],
+  ['yarn.lock', 'yarn'],
+  ['bun.lock', 'bun'],
+  ['bun.lockb', 'bun'],
+  ['package-lock.json', 'npm']
+];
+
+// Imperative verbs that end in -ed/-ing, so the past-tense heuristic skips them.
 const IMPERATIVE_EXCEPTIONS = new Set([
+  'bleed',
+  'breed',
   'bring',
+  'cling',
   'embed',
   'exceed',
   'feed',
+  'fling',
+  'heed',
   'need',
+  'ping',
   'proceed',
+  'ring',
   'seed',
   'shed',
+  'shred',
+  'sing',
+  'sling',
   'speed',
+  'spring',
+  'sting',
   'string',
-  'succeed'
+  'succeed',
+  'swing',
+  'wed',
+  'weed',
+  'wring'
 ]);
 
 // Returns a git config value, or "" when unset.
@@ -44,19 +74,28 @@ function readSubject(file) {
   return lines.find((line) => !line.startsWith(prefix) && line.trim() !== '')?.trim() ?? '';
 }
 
-// Runs the local commitlint binary with node; falls back to `npx --no` if it cannot be resolved.
-function runCommitlint(file) {
+// Returns the `packageManager` name, else the first lockfile match in the package dir or git root; npm by default.
+function packageManager() {
+  if (pmFlag) return pmFlag;
   try {
-    const cli = createRequire(import.meta.url).resolve('@commitlint/cli/cli.js');
-    return spawnSync(process.execPath, [cli, '--edit', file], { encoding: 'utf8', cwd: packageDir });
+    const name = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')).packageManager?.split('@')[0];
+    if (COMMITLINT[name]) return name;
   } catch {
-    const arg = isWindows ? `"${file}"` : file;
-    return spawnSync('npx', ['--no', 'commitlint', '--edit', arg], {
-      encoding: 'utf8',
-      shell: isWindows,
-      cwd: packageDir
-    });
+    // Missing or invalid package.json falls through to lockfiles.
   }
+  const root = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout?.trim();
+  for (const dir of [packageDir, root].filter(Boolean)) {
+    const match = LOCKFILES.find(([lockfile]) => existsSync(join(dir, lockfile)));
+    if (match) return match[1];
+  }
+  return 'npm';
+}
+
+// Runs commitlint with the package manager's command from the commitlint docs.
+function runCommitlint(file) {
+  const [cmd, args] = COMMITLINT[packageManager()];
+  const arg = isWindows ? `"${file}"` : file;
+  return spawnSync(cmd, [...args, '--edit', arg], { encoding: 'utf8', shell: isWindows, cwd: packageDir });
 }
 
 // Returns an error when the description's first word looks past tense or progressive.
@@ -130,17 +169,25 @@ function report(ok, label, subject, details) {
   }
 }
 
-const file = process.argv[2] && resolve(process.argv[2]);
-if (!file) {
-  console.error('usage: node .husky/commit-msg.mjs <message-file>');
+// The stub may pass --skip-message, --skip-signing, or --pm=<name> to apply the choices made at setup.
+const args = process.argv.slice(2);
+const flags = new Set(args.filter((arg) => arg.startsWith('--') && !arg.startsWith('--pm=')));
+const pmFlag = args.find((arg) => arg.startsWith('--pm='))?.slice(5);
+const fileArg = args.find((arg) => !arg.startsWith('--'));
+const file = fileArg && resolve(fileArg);
+const unknownFlag = [...flags].some((flag) => flag !== '--skip-message' && flag !== '--skip-signing');
+if (!file || unknownFlag || (pmFlag !== undefined && !COMMITLINT[pmFlag])) {
+  console.error(
+    'usage: node .husky/commit-msg.mjs [--skip-message] [--skip-signing] [--pm=npm|pnpm|yarn|bun] <message-file>'
+  );
   process.exit(1);
 }
 
 const subject = readSubject(file);
-const messageErrors = checkMessage(file, subject);
-report(messageErrors.length === 0, 'Commit Message', subject, messageErrors);
+const messageErrors = flags.has('--skip-message') ? [] : checkMessage(file, subject);
+if (!flags.has('--skip-message')) report(messageErrors.length === 0, 'Commit Message', subject, messageErrors);
 
-const signError = signingError();
-report(!signError, 'Signed', subject, signError ? [signError] : []);
+const signError = flags.has('--skip-signing') ? '' : signingError();
+if (!flags.has('--skip-signing')) report(!signError, 'Signed', subject, signError ? [signError] : []);
 
 process.exit(messageErrors.length || signError ? 1 : 0);
