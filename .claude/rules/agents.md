@@ -12,8 +12,9 @@ paths:
 - Set `model` only when needed (`haiku` cheap lookups, `inherit` otherwise).
 - Subagents never get `AskUserQuestion`; missing info → return question to calling skill, skill asks user.
 - Subagent spawns subagents only if `tools` has `Agent` (max 3 layers).
-- Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`.
+- Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`, `initialPrompt`.
 - Return concise results; parent sees only final message.
 - Issue hit + fix → return a `Known issue: <symptom> → <fix>` line; parent skill decides whether to save it to auto memory. No `## Known issues` section.
+- Build or update with `/cdk:build-agent`; field and tool details in `skills/build-agent/practices.md`.
 - Verify: `plugin-dev:plugin-validator` agent + `claude plugin validate --strict .`.
 - Docs: <https://code.claude.com/docs/en/sub-agents>

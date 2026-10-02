@@ -1,5 +1,5 @@
 ---
-description: Subagent request triggers build-skill and gets a plan or questions, not unconfirmed files.
+description: Subagent request triggers build-agent or build-skill and gets a plan or questions, not unconfirmed files.
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

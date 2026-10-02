@@ -16,6 +16,6 @@ paths:
 - Shared rules: third occurrence → sibling file, linked `${CLAUDE_SKILL_DIR}/../<skill>/<file>` (e.g. `commit-changes/conventions.md`).
 - Use `$ARGUMENTS` / `${CLAUDE_SKILL_DIR}` substitutions, not hard-coded paths.
 - Known issues live in Claude auto memory (`feedback` memory + `MEMORY.md` pointer), never in `SKILL.md`; no `## Known issues` section. Each Rules section links `build-skill/known-issues.md` with its slug.
-- Shared files: `build-skill/known-issues.md`, `build-skill/fallbacks.md` (no AskUserQuestion/Write), `ship-merge-request/orchestration.md` (skills chaining `cdk:` skills), `commit-changes/conventions.md` (git), `submit-merge-request/gitlab.md` (glab pre-flight, MR reads), `setup-spec-kit/speckit-chain.md`, `setup-husky/package-manager.md`. Link them; never copy their rules.
+- Shared files: `build-skill/known-issues.md`, `build-skill/fallbacks.md` (no AskUserQuestion/Write), `build-agent/practices.md` (subagent drafting), `ship-merge-request/orchestration.md` (skills chaining `cdk:` skills), `commit-changes/conventions.md` (git), `submit-merge-request/gitlab.md` (glab pre-flight, MR reads), `setup-spec-kit/speckit-chain.md`, `setup-husky/package-manager.md`. Link them; never copy their rules.
 - Verify: `plugin-dev:skill-reviewer` + `cdk:skill-auditor` agents + `claude plugin validate --strict .`; never run LLM-graded `claude plugin eval`.
 - Docs: <https://code.claude.com/docs/en/skills>
