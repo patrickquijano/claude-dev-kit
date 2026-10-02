@@ -15,6 +15,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
 - Node.js for `/cdk:setup-test-hook` (the hook script runs on Node); the project's own test runners.
 - The project's package manager for `/cdk:upgrade-dependencies`.
+- The project's own test runners for the `/cdk:write-*-tests` skills; Docker for containerized integration dependencies.
 - Docker for `/cdk:write-dockerfile` build checks; `hadolint` optional.
 - Docker for `/cdk:scan-vulnerabilities` (every scanner runs as a pinned container) and Spec Kit (`/cdk:setup-spec-kit`) for its remediation.
 - Development only: Node.js with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
@@ -57,8 +58,11 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                        |
 | `/cdk:write-claude-md`              | Merge guidelines and engineering principles into CLAUDE.md and `.claude/rules`; score /100 until ≥95.          |
 | `/cdk:write-dockerfile`             | Write a multi-stage, digest-pinned Dockerfile and `.dockerignore` from input and repo facts.                   |
+| `/cdk:write-e2e-tests`              | Write AAA, faker-based end-to-end tests for critical journeys; run-fix until new tests pass (max 3).           |
+| `/cdk:write-integration-tests`      | Write AAA, faker-based integration tests per boundary with containers, stubs, or fakes (max 3 fix rounds).     |
 | `/cdk:write-prompt`                 | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.                      |
 | `/cdk:write-readme`                 | Create or update README.md from templates, score it /100, iterate until ≥95.                                   |
+| `/cdk:write-unit-tests`             | Write AAA, faker-based unit tests (≥2 positive, ≥2 negative each) until coverage target (default 90%, max 5).  |
 
 ### Agents
 
@@ -78,6 +82,7 @@ Spawned by skills; not meant for direct use.
 | `cdk:security-scanner`      | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.     |
 | `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.  |
 | `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                |
+| `cdk:test-gap-analyzer`     | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.           |
 | `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                     |
 
 ### Hooks
