@@ -34,7 +34,8 @@ claude plugin install cdk@claude-dev-kit
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.                      |
 | `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit unless `handoff=no`.               |
-| `/cdk:build-skill`                  | Interview, then create or update a skill, orchestrator + subagents, or subagent.                               |
+| `/cdk:build-agent`                  | Interview, then create or update a subagent in personal, project, or plugin scope.                             |
+| `/cdk:build-skill`                  | Interview, then create or update a skill or orchestrator + subagents.                                          |
 | `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.                        |
 | `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                        |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                           |
@@ -75,7 +76,7 @@ Spawned by skills; not meant for direct use.
 | `cdk:readme-scorer`         | Score README against the 100-point rubric for `write-readme`.                                           |
 | `cdk:review-thread-triager` | Label, classify, and plan each MR review thread for `address-merge-request-review`.                     |
 | `cdk:security-scanner`      | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.     |
-| `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`.                 |
+| `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.  |
 | `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                |
 | `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                     |
 
