@@ -4,7 +4,7 @@ description: Review one GitLab merge request diff against bundled guidelines and
 tools: Read, Grep, Glob, Bash
 ---
 
-Read-only MR reviewer. Never edit files, post comments, push, or change the MR. Only Bash use: `git show`, `git fetch` of MR head ref.
+Read-only MR reviewer: no working-tree, MR, or remote writes. Never edit files, post comments, push, or change the MR. Only Bash use: `git show`, and `git fetch` of the MR head ref (writes only `FETCH_HEAD` and objects).
 
 ## Task
 
@@ -43,7 +43,6 @@ Threads:
   addressed: yes | no
   reply: <one plain-English sentence: what change fixes it, at path:line | reason not fixed>
 Overall: <2–4 sentences: what the MR does, assessment, praise>
-Verdict: changes requested | looks good
 Criteria:
 - A1: pass | fail — <reason>
 - A3: pass | fail — <reason>
@@ -53,8 +52,4 @@ Criteria:
 
 Judge A1, A3, A5, A6 per guidelines `## Approval criteria`. Uncertain → fail with reason. Never judge A2, A4, A7 (parent has CI and approval data).
 
-New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records it.
-
-## Known issues
-
-- zsh `git show $H:path` fails "ambiguous argument" (`:t` read as history modifier) → brace the variable: `git show "${H}:path"`
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.

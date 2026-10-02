@@ -13,5 +13,6 @@ paths:
 - Subagent spawns subagents only if `tools` has `Agent` (max 3 layers).
 - Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`.
 - Return concise results; parent sees only final message.
+- Issue hit + fix → return a `Known issue: <symptom> → <fix>` line; parent skill decides whether to save it to auto memory. No `## Known issues` section.
 - Verify: `plugin-dev:plugin-validator` agent + `claude plugin validate --strict .`.
 - Docs: <https://code.claude.com/docs/en/sub-agents>

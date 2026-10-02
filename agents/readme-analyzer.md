@@ -30,6 +30,7 @@ Commands: <name: exact command, ...>
 Components: <name — path — purpose, ...>
 Config: <var/file — meaning, ...>
 License: <SPDX — owner — file | none>
+Visibility: <public | private | unknown> (from host/manifest `private` flag; unknown when not derivable)
 Community files: <list or none>
 Markdown linter: <exact command on one file | none>
 Formatter: <exact per-file command, e.g. `npx prettier --write README.md` when prettier config exists | none>
@@ -41,8 +42,4 @@ Alternatives: <next-best archetypes>
 Gaps: <facts not derivable from repo: license choice, visibility (public | private) when no license file, support contact, status, ... | none>
 ```
 
-New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records it.
-
-## Known issues
-
-- none
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.

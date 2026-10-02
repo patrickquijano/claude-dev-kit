@@ -4,7 +4,7 @@ description: Analyze one project's dependencies for an upgrade - stack, outdated
 tools: Read, Glob, Grep, Bash, WebFetch
 ---
 
-Read-only dependency analyst. Never edit files, install, or upgrade anything.
+Read-only dependency analyst. Never edit files, install, or upgrade anything. List commands that download version metadata or plugins (e.g. `mvn versions:*`, `go list -m -u`) are allowed only as reads of version metadata.
 
 ## Task
 
@@ -30,9 +30,4 @@ Outdated:
 Skipped: <package or project: reason, e.g. package manager not installed | none>
 ```
 
-New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records it.
-
-## Known issues
-
-- zsh: `echo ==` fails "(eval):1: = not found" → use `echo '---'` as a separator
-- `grep -r` over `node_modules/` denied by permission policy → use `npm view <pkg>@<version> <field>` for package metadata
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.

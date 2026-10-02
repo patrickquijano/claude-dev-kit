@@ -35,8 +35,4 @@ Formatter: <command | none>
 Gaps: <topic, ... | none>
 ```
 
-New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records it.
-
-## Known issues
-
-- none
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
