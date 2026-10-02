@@ -50,7 +50,7 @@ N/A → full points; evidence states rule. Use only these rules and the per-crit
 
 ## Required sections
 
-Match headings case-insensitive. Synonyms: Install = Installation = Getting started; Usage = Examples = Quickstart; Development = Contributing; Components = Skills/Commands/Features table; Owner = Contact = Maintainers. Title = the H1. Description = one-line text under H1.
+Match headings case-insensitive. Synonyms: Install = Installation = Getting started; Usage = Examples = Quickstart; Development = Contributing; Components = Skills/Commands/Features table; Packages table = Packages; Owner = Contact = Maintainers. Title = the H1. Description = one-line text under H1.
 
 | Archetype   | Required                                                        |
 | ----------- | --------------------------------------------------------------- |

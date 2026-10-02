@@ -54,14 +54,17 @@ function hashFiles(hash, cwd, files) {
 
 const list = (res) => res.stdout.toString().split('\0').filter(Boolean);
 
-// Hash of the suite definition plus the content of every tracked or untracked file its inputs match; null outside git.
+// Hash of the suite definition, the index blob ids of its tracked inputs, and the content of only the modified or
+// untracked inputs, so unchanged files are never read. null outside git.
 function suiteHash(suite, cwd) {
   const dir = resolvePath(cwd, suite.cwd ?? '.');
   const inputs = suite.inputs?.length ? suite.inputs : ['.'];
-  const res = git(dir, 'ls-files', '-co', '--exclude-standard', '-z', '--', ...inputs, `:(top,exclude)${LOG}`);
-  if (res.error || res.status !== 0) return null;
+  const spec = ['--', ...inputs, `:(top,exclude)${LOG}`];
+  const staged = git(dir, 'ls-files', '-s', '-z', ...spec);
+  const changed = git(dir, 'ls-files', '-mo', '--exclude-standard', '-z', ...spec);
+  if (staged.error || staged.status !== 0 || changed.error || changed.status !== 0) return null;
   const def = JSON.stringify([suite.cmd, suite.args, suite.cwd, suite.env, String(suite.warn), inputs]);
-  return hashFiles(createHash('sha256').update(def), dir, list(res));
+  return hashFiles(createHash('sha256').update(def).update(staged.stdout), dir, list(changed));
 }
 
 // Loop guard over the affected tests only: hash of every suite's inputs, so edits outside them never run the hook.
@@ -154,7 +157,12 @@ function run(suite, cwd, signal) {
     );
     signal.addEventListener('abort', onAbort);
     const onData = (chunk) => {
-      out = (out + chunk).slice(-MAX * 4);
+      out += chunk;
+      if (out.length > MAX * 4) {
+        // Trim to a line start, so a cut line never matches a `^` warning pattern.
+        out = out.slice(-MAX * 4);
+        out = out.slice(out.indexOf('\n') + 1);
+      }
       if (suite.warn?.test(out)) finish(false, 'warning in output');
     };
     child.stdout.setEncoding('utf8').on('data', onData);
@@ -233,6 +241,7 @@ async function main() {
   } catch {
     // No cache yet.
   }
+  if (!cache || typeof cache !== 'object' || Array.isArray(cache)) cache = {};
   logPath = join(cwd, LOG);
   try {
     writeFileSync(logPath, '');
@@ -240,9 +249,14 @@ async function main() {
     logPath = null;
   }
   // Record the state after the run, so untracked files the suites write do not trigger a rerun.
+  // A write failure must not crash the hook, or a failing suite would never block.
   const record = () => {
-    if (fp !== null) writeFileSync(state, fingerprint(cwd) ?? '');
-    writeFileSync(cacheFile, JSON.stringify(cache));
+    try {
+      if (fp !== null) writeFileSync(state, fingerprint(cwd) ?? '');
+      writeFileSync(cacheFile, JSON.stringify(cache));
+    } catch {
+      // Temp dir not writable; the next Stop re-runs the suites.
+    }
   };
   for (const group of GROUPS) {
     const fail = await runGroup(group, cwd, cache, force);
@@ -250,7 +264,7 @@ async function main() {
     record();
     const reason =
       `Test suite "${fail.suite.name}" failed (${fail.reason}): ${commandLine(fail.suite)}\n${fail.out.trim()}\n` +
-      `Fix every failing test, error, and warning; run only the affected unit tests. When you finish, this hook re-runs only the failed suite and suites whose inputs changed.`;
+      `Fix every failing test, error, and warning; run only the affected unit tests. This hook runs again only after you edit a suite input; it then reruns the failed suite and suites whose inputs changed.`;
     process.stdout.write(JSON.stringify({ decision: 'block', reason, systemMessage: cap(lines.join('\n')) }));
     return;
   }

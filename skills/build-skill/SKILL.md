@@ -2,6 +2,7 @@
 name: build-skill
 description: Create or update Claude Code skills, orchestrator skills, and custom subagents (SKILL.md, agents/*.md). Use when the user asks to make, build, scaffold, fix, improve, or update a skill, slash command, orchestrator/workflow skill, or custom subagent/agent.
 argument-hint: '[description of skill/orchestrator/subagent, or path to existing one]'
+disable-model-invocation: true
 ---
 
 # Build Skill
@@ -13,32 +14,37 @@ Input: $ARGUMENTS
 - No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → ask or omit.
 - No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask, except `disable-model-invocation`, which is always asked (step 2).
 - Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → sibling files.
-- Known issues: before fixing, check this skill's and target's `## Known issues`; reuse match. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source file (repo path, never plugin cache).
+- Loops: clarify (step 3) max 3 rounds; verify-fix (step 8) max 3 attempts; still incomplete or failing → print the Output with `Stopped: <step>: <reason>` and end. Revise (step 5) runs until the user picks Write or Stop.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/fallbacks.md`.
+- Never run `claude plugin eval` (LLM-graded); structural validation only.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/known-issues.md` with slug `build-skill`, or the target skill when the issue belongs to it.
 - Platform facts:
   - Subagents never get AskUserQuestion → all user interaction in main-thread skill.
   - Orchestrator skill must NOT set `context: fork` (runs as subagent → loses AskUserQuestion).
   - Subagent spawns subagents only if `tools` includes `Agent`; max 3 layers.
   - Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`.
+  - `disable-model-invocation: true` blocks Skill-tool invocation, so an orchestrator chaining that skill breaks.
 
 ## Workflow
 
-1. **Extract.** From input (+ existing files if updating) pull: goal, trigger phrases, args, steps, tools, side effects, outputs.
+1. **Extract.** Mode: input names an existing skill or agent path or name → update, read its files; else create. Update with nothing to change → print the Output, `Result: nothing-to-do`. From input (+ those files) pull: goal, trigger phrases, args, steps, tools, side effects, outputs.
 2. **Decide.** Infer first; AskUserQuestion only for what stays ambiguous, recommend w/ justification:
-   - Mode: target exists → update, else create.
    - Type: **skill** (linear task, user interaction, small context) | **orchestrator + subagents** (parallelizable steps, large reads/outputs to isolate, distinct tool scopes) | **subagent only**.
    - Location (root): personal `~/.claude/` | project `.claude/` | plugin root.
-   - Model invocation (skills and orchestrators, not subagents; always ask, on create and on update; on update show the current value): the user decides, since it changes who can start the skill. Options: Disable (`disable-model-invocation: true`; only `/<name>` starts it and its description leaves Claude's context) | Allow (field omitted; Claude may invoke it when a request matches the description). Recommend Disable when the skill has side effects (writes files, commits, pushes, posts, deploys), so it never runs unasked; else recommend Allow, so Claude can use it when relevant. Put the reason in the recommended option's description.
-3. **Clarify loop.** Fill every item from step 1; per subagent also: task, tools, model, return shape, parallel-safe? Missing/ambiguous → AskUserQuestion (≤4 per batch). Repeat until complete.
-4. **Draft.** Create → [templates.md](templates.md). Update → edit in place; keep existing sections + all Known issues entries; change only confirmed items.
-5. **Approve.** Show plan (files + one-line purpose each) → AskUserQuestion: Write (Recommended) | Revise. Revise → back to step 3.
+   - Model invocation (skills and orchestrators, not subagents; always ask, on create and on update; on update show the current value): the user decides, since it changes who can start the skill. Options: Disable (`disable-model-invocation: true`; only `/<name>` starts it and its description leaves Claude's context) | Allow (field omitted; Claude may invoke it when a request matches the description). Recommend Disable when the skill has side effects (writes files, commits, pushes, posts, deploys) and no other skill chains it, so it never runs unasked; else recommend Allow, so Claude can use it when relevant. Skill invoked by an orchestrator via the Skill tool → recommend Allow and say Disable breaks that chain. Put the reason in the recommended option's description.
+3. **Clarify loop.** Fill every item from step 1; per subagent also: task, tools, model, return shape, parallel-safe? Missing/ambiguous → AskUserQuestion (≤4 per batch); each batch's first question also offers Stop. Repeat until complete, max 3 rounds. Stop → end, `Result: cancelled`.
+4. **Draft.** Create → `${CLAUDE_SKILL_DIR}/templates.md`. Update → edit in place; keep existing sections; change only confirmed items.
+5. **Approve.** Show plan (files + one-line purpose each, incl. step 7 files) → AskUserQuestion: Write (Recommended) | Revise | Stop. Revise → back to step 3; Revise resets the step 3 round counter. Stop → end, `Result: cancelled`.
 6. **Write** files.
-7. **Verify.**
-   - Skill: valid YAML; `name` kebab-case = dir name; `description` + `when_to_use` ≤1,536 chars; SKILL.md <500 lines.
-   - Agent: `name` unique, kebab-case, no `:`; `tools` names valid.
+7. **Maintain.** Location is a plugin root (`.claude-plugin/plugin.json` exists) → in the same change update its `README.md` skills/agents tables, `CLAUDE.md`, and `.claude/rules/` for the added or changed component, per its CLAUDE.md Maintenance rule.
+8. **Verify.**
+   - Self-check: valid YAML; skill `name` kebab-case = dir name; `description` + `when_to_use` ≤1,536 chars; SKILL.md <500 lines; agent `name` unique, kebab-case, no `:`; `tools` names valid.
    - Plugin root → `claude plugin validate --strict .`.
-   - Fail → fix, record in Known issues, re-verify.
+   - Spawn in one message, in parallel: `plugin-dev:skill-reviewer` per skill written (its SKILL.md path); `plugin-dev:plugin-validator` when an agent was written (plugin root, agent paths); `cdk:skill-auditor` with location root (`~/.claude`, `<repo>/.claude`, or plugin root), repo root (for `.claude/rules/`; none for `~/.claude`), and every written path.
+   - plugin-dev agents unavailable → skip them, note in Output `Checks`.
+   - Merge all findings, deduplicated by file:line; collect agents' `Known issue:` lines. Any error or warning → fix; recurring or blocking → save per Known issues rule; re-verify (max 3 attempts).
 
-## Output format
+## Output
 
 ```text
 Type: skill | orchestrator + subagents | subagent
@@ -47,9 +53,8 @@ Location: <root>
 Files:
 - <path> — <purpose>
 Invoke: /[<plugin>:]<name> <args>
-Known issues: <count or none>
+Checks: validate --strict <pass | fail | n/a>, skill-reviewer <pass | n findings | skipped — reason>, plugin-validator <pass | n findings | skipped — reason>, skill-auditor <pass | n findings>
+Known issues: <saved memory file | printed line>, … | none
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
 ```
-
-## Known issues
-
-- none

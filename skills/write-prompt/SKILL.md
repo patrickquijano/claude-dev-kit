@@ -10,42 +10,25 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Check every item in [checks.md](checks.md); each missed item is a known failure mode for agents.
+- Check every item in `${CLAUDE_SKILL_DIR}/checks.md`; each missed item is a known failure mode for agents.
+- Draft in the shape of `${CLAUDE_SKILL_DIR}/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
 - Never invent paths, commands, versions, or APIs; unverified → ask or omit, since a wrong fact in a prompt misleads the agent.
 - Input holds several tasks → AskUserQuestion which one first; list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
-- Claude Code target only; no image-model advice.
-- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Claude Code target only.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Loops: clarify (step 3) max 2 batches; Revise (step 6) runs until the user picks Accept or Stop.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt`.
 
 ## Workflow
 
-1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → list failed checks with fixes; review-only request → print them, stop. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
-2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths exist.
-3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps.
-4. **Draft** with the structure below.
-5. **Check.** Walk checks.md against the draft; fix each failure. Print the output below.
-6. **Approve.** AskUserQuestion: Accept (Recommended) | Revise. Revise → collect change, back to step 4.
-
-## Prompt structure
-
-```markdown
-Role: <one line>
-
-Context: <project, stack + versions, starting state, prior failures>
-
-Task: <one verb + target state>
-
-Scope: <in-scope paths>. Do not touch <out-of-scope>. Allowed commands: <list>.
-
-Constraints: <keep X; no new dependencies; ground facts in code/docs, say "unknown" if unsure>
-
-Done when: <verifiable checks, e.g. `npm test` passes>
-
-Stop and ask before: <review triggers>. Stop after 3 failed attempts and report.
-
-Output: <format, audience, length bound>. Report at <checkpoints>; list assumptions. <Multi-slice: log progress to <file>.>
-```
+1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → review it; request is review-only → review-only mode. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
+2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; print the review-only Output, `Result: done`, stop.
+3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps. Existing prompt → also fix each failed check.
+4. **Draft** per structure.md.
+5. **Check.** Walk checks.md against the draft; fix each failure. Show the draft prompt, checks n/a, and open gaps.
+6. **Approve.** AskUserQuestion: Accept (Recommended) | Revise | Stop. Accept → print the Output, `Result: done`. Revise → collect change, back to step 4. Stop → print the Output without the prompt, `Result: cancelled`.
 
 ## Output
 
@@ -56,8 +39,14 @@ Output: <format, audience, length bound>. Report at <checkpoints>; list assumpti
 Checks n/a: <list or none>
 Open gaps: <list or none>
 Follow-ups: <split-off tasks or none>
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
 ````
 
-## Known issues
+Review-only:
 
-- none
+```text
+Failed checks: <check — fix>, … | none
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
+```

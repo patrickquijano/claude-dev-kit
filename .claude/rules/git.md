@@ -19,6 +19,10 @@
 - Max 72 chars.
 - Imperative, lowercase, hyphen-separated.
 
+## Push
+
+- Never force-push. Only exception: `cdk:rebase-onto` uses an explicit lease (`--force-with-lease=<branch>:<pre-rebase sha>`) after explicit confirmation.
+
 ## Git hooks
 
 - Never bypass hooks with `--no-verify` or local `HUSKY=0`; `HUSKY=0` CI only.

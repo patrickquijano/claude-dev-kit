@@ -1,6 +1,6 @@
 # Package managers
 
-Verified 2026-09-28 against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs, then add a row in step 10.
+Verified 2026-09-28 against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs and use them from step 2 of `SKILL.md` on; save the missing row to auto memory per its Known issues rule (never edit this file from a run).
 
 ## Detect, list, upgrade
 
@@ -8,12 +8,12 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 
 - npm — `package.json` + `package-lock.json` — `npm outdated --json` (Current/Wanted/Latest) — `npm install <pkg>@<version>` — a major bump needs the explicit version or `@latest`. <https://docs.npmjs.com/cli/commands/npm-outdated>
 - pnpm — `package.json` + `pnpm-lock.yaml` — `pnpm outdated --format json` — `pnpm add <pkg>@<version>` — `pnpm update --latest <pkg>` rewrites the range. Exact pin (no `^`/`~`) → `pnpm add -E <pkg>@<version>` (`-D` for devDependencies), else the range widens to `^`. Overrides live in `pnpm-workspace.yaml` `overrides:`; to drop one, check `pnpm why <pkg>`, remove the entry, then `pnpm install` to relock. Run scripts with `pnpm run <script>`; pnpm 12 rejects `pnpm -s <script>`. <https://pnpm.io/cli/outdated>
-- Yarn 1 — `yarn.lock`, no `.yarnrc.yml` — `yarn outdated --json` (JSON lines) — `yarn upgrade <pkg>@<version>` (_verify_ it updates `package.json`) — <https://classic.yarnpkg.com/en/docs/cli/outdated>
+- Yarn 1 — `yarn.lock`, no `.yarnrc.yml` — `yarn outdated --json` (JSON lines; `--json` is a global flag in `yarn --help`) — `yarn upgrade <pkg>@<version>` — the `package.json` reference changes to match the given version. <https://classic.yarnpkg.com/en/docs/cli/upgrade>
 - Yarn 2+ — `yarn.lock` + `.yarnrc.yml` — no outdated command; use the registry lookup below — `yarn up <pkg>@<version>` — <https://yarnpkg.com/cli/up>
 - Bun — `bun.lock` (older `bun.lockb`) — `bun outdated` (no JSON) — `bun add <pkg>@<version>` — <https://bun.com/docs/cli/outdated>
 - Composer — `composer.json` + `composer.lock` — `composer outdated --direct --format=json` — `composer require <vendor/pkg>:^<version> -W` — a major bump needs a new constraint. <https://getcomposer.org/doc/03-cli.md>
 - pip — `requirements*.txt`, no lockfile — `pip list --outdated --format=json` — set `<pkg>==<version>` in the requirements file, then `pip install -r <file>` — no lockfile, so the requirements file is edited directly. <https://pip.pypa.io/en/stable/cli/pip_list/>
-- uv — `pyproject.toml` + `uv.lock` — `uv tree --outdated` — `uv add "<pkg>>=<version>"` — `uv lock --upgrade-package <pkg>` stays within the existing constraint. <https://docs.astral.sh/uv/reference/cli/>
+- uv — `pyproject.toml` + `uv.lock` — `uv tree --outdated --frozen` (`--frozen` keeps `uv.lock` untouched) — `uv add "<pkg>>=<version>"` — `uv lock --upgrade-package <pkg>` stays within the existing constraint. <https://docs.astral.sh/uv/reference/cli/>
 - Poetry — `pyproject.toml` + `poetry.lock` — `poetry show --outdated --top-level --format json` — `poetry add <pkg>@^<version>` — `poetry update` never edits `pyproject.toml`. <https://python-poetry.org/docs/cli/>
 - Bundler — `Gemfile` + `Gemfile.lock` — `bundle outdated --parseable` — set the `Gemfile` constraint, then `bundle update --conservative <gem>` — <https://bundler.io/man/bundle-outdated.1.html>
 - Cargo — `Cargo.toml` + `Cargo.lock` — no stable outdated command; `cargo update --dry-run` shows compatible updates, registry lookup for the rest — `cargo add <crate>@<version>` — `cargo outdated` and `cargo upgrade` are third-party; use only when installed. <https://doc.rust-lang.org/cargo/commands/>
@@ -24,6 +24,15 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 - Dart / Flutter — `pubspec.yaml` + `pubspec.lock` — `dart pub outdated --json` — `dart pub add <pkg>:^<version>` — <https://dart.dev/tools/pub/cmd/pub-outdated>
 - Swift PM — `Package.swift` + `Package.resolved` — `swift package update --dry-run` — edit `Package.swift`, then `swift package update <pkg>` — <https://www.swift.org/documentation/package-manager/>
 - Mix — `mix.exs` + `mix.lock` — `mix hex.outdated` — edit `mix.exs`, then `mix deps.update <pkg>` — <https://hexdocs.pm/hex/Mix.Tasks.Hex.Outdated.html>
+
+## Workspace members
+
+Upgrade a package in the member that declares it, never the root, unless the root declares it.
+
+- npm — `npm install <pkg>@<version> -w <workspace>` — <https://docs.npmjs.com/cli/using-npm/workspaces>
+- pnpm — `pnpm --filter <workspace> add <pkg>@<version>` — <https://pnpm.io/filtering>
+- Yarn — `yarn workspace <workspace> add <pkg>@<version>` — <https://yarnpkg.com/cli/workspace>
+- Bun — run `bun add <pkg>@<version>` in the member directory — <https://bun.com/docs/install/workspaces>
 
 ## Latest stable version
 

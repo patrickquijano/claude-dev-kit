@@ -2,14 +2,14 @@
 
 Detection signals, runners, and hook commands per stack. Commands call the runner directly, never a project script, so strict flags stay in the hook.
 
-- `<x>` = package exec prefix: npm `npx --no-install`, pnpm `pnpm exec`, yarn `yarn`, bun `bunx --no-install`. `--no-install` stops an npx/bunx download when the runner is missing.
+- `<x>` = package exec prefix, the package-manager.md "binary must be installed" form: npm `npx --no-install`, pnpm `pnpm exec`, yarn `yarn`, bun `bunx --no-install`. `--no-install` stops an npx/bunx download when the runner is missing.
 - Feasible = runner in dependencies (or on `PATH` for system tools), its config or default layout present, and at least one matching test file.
 - `warn` = RegExp literal for the `warn` suite field (`m` flag, never `g`); set it only when no flag turns warnings into failures. Match a line start so test names do not trigger it.
 - Kind: unit, integration, e2e, other (type check, component, contract, static checks the project already uses). Only unit suites go into the hook; every detected kind goes into the project-context note and VS Code tasks.
 
 ## JavaScript / TypeScript
 
-Signals: `package.json`; lockfile picks the package manager (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package-lock.json`) or the `packageManager` field.
+Signals: `package.json`. Package manager: detected per `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md` (`packageManager` field, else lockfile); the skill passes it to the analyzer.
 
 | Runner     | Kind              | Signal                                             | Command                                                | Warnings                                              |
 | ---------- | ----------------- | -------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- |
@@ -81,7 +81,7 @@ Signals: `Gemfile`.
 
 ## JVM
 
-Signals: `pom.xml` (Maven), `build.gradle*` (Gradle). `<mvn>` / `<gradle>` = wrapper when present (`./mvnw`, `./gradlew`), else `mvn` / `gradle` on `PATH`. The script maps `/` to `\` on Windows; use `mvnw.cmd` / `gradlew.bat` there.
+Signals: `pom.xml` (Maven), `build.gradle*` (Gradle). `<mvn>` / `<gradle>` = wrapper when present (`./mvnw`, `./gradlew`), else `mvn` / `gradle` on `PATH`. `GROUPS` holds one `cmd` per suite and the script maps only `/` to `\`, so when the hook runs on Windows write the Windows form (`mvnw.cmd`, `gradlew.bat`, `.venv\Scripts\python.exe`).
 
 | Runner | Kind              | Signal                                               | Command                                                                                 | Warnings |
 | ------ | ----------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- | -------- |

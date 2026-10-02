@@ -4,16 +4,18 @@
 - `<plugin>:` prefix only for plugin targets.
 - Omit frontmatter keys not confirmed or equal to default.
 - Strip all `# ...` template comments from output.
+- Target outside the `cdk` plugin (no `skills/build-skill/` sibling) → replace each `${CLAUDE_SKILL_DIR}/../build-skill/<file>` link line with that file's rules inline.
 
 ## Skill — `<root>/skills/<name>/SKILL.md`
 
-```markdown
+````markdown
 ---
 name: <kebab-case, = dir name>
 description: <what it does>. Use when <trigger phrases/situations>.
+# Side-effect skill → description: <what it does>. Use only when the user explicitly asks to <action>, e.g. "<phrase>", "<phrase>". Do not use on your own after finishing a task.
 argument-hint: '<args>'
-disable-model-invocation: true # only if the user chose Disable in SKILL.md step 2
 allowed-tools: <minimal list> # only if pre-approval needed
+disable-model-invocation: true # only if the user chose Disable in build-skill step 2; never on a skill an orchestrator chains
 ---
 
 # <Title>
@@ -23,26 +25,30 @@ Input: $ARGUMENTS
 ## Rules
 
 - <constraint>
-- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue → append `- <symptom> → <fix>` to source SKILL.md (repo path, not plugin cache); not writable → print line for user.
+- Reference files: `${CLAUDE_SKILL_DIR}/<file>`.
+- <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`. # only if the skill asks the user or writes files
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`.
 
 ## Workflow
 
-1. <step>
+1. **Pre-flight.** <step>
+2. **<Label>.** <step>
 
 ## Output
 
+```text
 <fixed structure>
-
-## Known issues
-
-- none
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
 ```
+````
 
 ## Orchestrator — `<root>/skills/<name>/SKILL.md`
 
 Same frontmatter as Skill; never `context: fork`. Body:
 
-```markdown
+````markdown
 # <Title>
 
 Input: $ARGUMENTS
@@ -52,31 +58,33 @@ Input: $ARGUMENTS
 - User interaction (AskUserQuestion) only here; subagents can't ask.
 - Independent steps → spawn subagents in parallel (one message, many Agent calls).
 - Pass each subagent only needed context; require concise return.
-- Issue → check `## Known issues` first. Fix for a recurring or workflow-blocking issue (incl. subagent "Known issue:" lines) → append `- <symptom> → <fix>` to source SKILL.md; not writable → print line for user.
+- <Loop> capped at <n> rounds; then print the Output with `Stopped: <step>: <reason>` and end.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`; it covers subagent `Known issue:` lines.
 
 ## Workflow
 
-1. Clarify w/ user until inputs complete.
-2. Spawn `[<plugin>:]<agent-a>` + `[<plugin>:]<agent-b>` in parallel: <task each>.
-3. Merge results → <next step>.
+1. **Clarify.** Ask user until inputs complete.
+2. **Spawn.** `[<plugin>:]<agent-a>` + `[<plugin>:]<agent-b>` in parallel: <task each>.
+3. **Merge.** Results → <next step>.
 
 ## Output
 
+```text
 <fixed structure>
-
-## Known issues
-
-- none
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
 ```
+````
 
 ## Subagent — `<root>/agents/<name>.md`
 
 ```markdown
 ---
 name: <kebab-case, no ":">
-description: <when to delegate>. <one-line scope>.
+description: <when to delegate>. <one-line scope>. Read-only. Spawned by the [<plugin>:]<skill> skill; do not use directly. # "Read-only." only when tools are read-only; "Spawned by …" only when a skill spawns the agent
 tools: <minimal comma list>
-model: <haiku|sonnet|opus|inherit> # only if not default
+model: <haiku|inherit> # only when needed: haiku cheap lookups, inherit otherwise
 ---
 
 <Role, one line.>
@@ -88,9 +96,5 @@ model: <haiku|sonnet|opus|inherit> # only if not default
 ## Return
 
 <concise fixed structure; parent sees only this>
-New issue + fix → add line `Known issue: <symptom> → <fix>`; parent records it.
-
-## Known issues
-
-- none
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
 ```
