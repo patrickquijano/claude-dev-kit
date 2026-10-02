@@ -1,6 +1,6 @@
 # Package Manager
 
-Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, and `setup-test-hook` (and its `test-suite-analyzer` agent). `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
+Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, `setup-test-hook` (and its `test-suite-analyzer` agent), and the `write-*-tests` skills (and their `test-gap-analyzer` agent). `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
 
 ## Package dir
 
