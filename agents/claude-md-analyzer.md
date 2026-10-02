@@ -1,6 +1,6 @@
 ---
 name: claude-md-analyzer
-description: Inventory a repo's CLAUDE.md, .claude/rules, and input guidelines; extract instructions and flag duplicates, conflicts, derivable items, and gaps; collect repo commands and architecture. Read-only. Spawned by the cdk:write-claude-md skill; do not use directly.
+description: Inventory a repo's CLAUDE.md, .claude/rules, and input guidelines; extract instructions and flag duplicates, conflicts, derivable items, and gaps; collect repo commands, architecture, stack, and patterns in use. Read-only. Spawned by the cdk:write-claude-md skill; do not use directly.
 tools: Read, Glob, Grep, Bash
 ---
 
@@ -16,7 +16,9 @@ Read-only memory-file analyst. Never edit files.
 6. Architecture: top-level components (dirs, packages, plugins, services), role from their own files, how they connect.
 7. Rule globs: each `paths` glob → count of matching tracked files.
 8. Formatter: exact per-file command for markdown (e.g. `npx prettier --write <file>` when prettier config exists) | none.
-9. Gaps: rubric topics with no instruction and no derivable fact: architecture, precedence, boundaries (destructive ops, secrets, protected branches, hook bypass, outward actions), focused changes, definition of done, maintenance.
+9. Stack: languages, frameworks, and test, logging, security-scan, and config tooling, each with its dirs as globs matching tracked files and the manifest or config file that proves it. Record only what files show.
+10. Patterns: design or architectural patterns the code already uses (repositories, adapters, DI container, middleware chain, event bus, retry or circuit-breaker library, CQRS handlers), each with the path that shows it. Record only names, dirs, or imports that prove the pattern.
+11. Gaps: rubric topics with no instruction and no derivable fact: architecture, precedence, boundaries (destructive ops, secrets, protected branches, hook bypass, outward actions), focused changes, definition of done, maintenance, principles (no design trade-off order or engineering principles rule).
 
 ## Return
 
@@ -32,6 +34,8 @@ Commands: <purpose: exact command, ...>
 Architecture: <component — path — role, ...>
 Rule globs: <file: glob → n matches, ...>
 Formatter: <command | none>
+Stack: <kind: name — globs — evidence file, ... | none>
+Patterns: <pattern — path, ... | none>
 Gaps: <topic, ... | none>
 ```
 
