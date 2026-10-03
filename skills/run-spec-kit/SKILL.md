@@ -20,15 +20,15 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Run the speckit-chain pre-flight for core; missing core dirs → also name `specify integration install claude` as an alternative. Input empty → AskUserQuestion for the feature brief.
-2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion for it; `speckit-specify` needs it. Implementation detail missing → AskUserQuestion: Let plan infer from the repo (Recommended) | Provide now. User gives no what and why or cancels a question → `Result: cancelled`, `Stopped: <step>: user cancelled`, report, stop. Show the three parts in a short list.
+2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion for it; `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. User gives no what and why or cancels a question → `Result: cancelled`, `Stopped: <step>: user cancelled`, report, stop. Show the three parts in a short list.
 3. **Constitution.** Read `.specify/memory/constitution.md`. Unfilled means the file is missing or has placeholder tokens matching `\[[A-Z0-9_]+\]`.
    - Unfilled, principles extracted → run `speckit-constitution <principles>`.
-   - Unfilled, no principles → AskUserQuestion: Infer from the repo (Recommended) | Skip; plan checks against the constitution, so placeholders weaken that check. Infer → run `speckit-constitution` with no argument.
-   - Filled, extracted principles add to or conflict with it → AskUserQuestion: Update constitution (Recommended) | Keep. Update → run `speckit-constitution <principles>`.
+   - Unfilled, no principles → infer from the repo, no ask: run `speckit-constitution` with no argument; plan checks against the constitution, so placeholders weaken that check.
+   - Filled, extracted principles add to or conflict with it → update, no ask: run `speckit-constitution <principles>`.
    - Filled, principles already covered or none → skip.
 4. **Specify.** Run `speckit-specify <what-and-why>`. Take the feature directory from its report. A git hook created a branch → tell the user the branch name.
 5. **Clarify.** `speckit-specify` already asks about its own `[NEEDS CLARIFICATION` markers, so check what is left: `spec.md` still has markers, or `checklists/requirements.md` has unchecked items → run `speckit-clarify <marker topics and unchecked items>`. Else skip.
-6. **Plan.** Run `speckit-plan <implementation-detail>`; empty argument when the user chose to let plan infer.
+6. **Plan.** Run `speckit-plan <implementation-detail>`; empty argument when implementation detail is missing.
 7. **Checklist.** Run `speckit-checklist <domain>`: the one or two words naming the area the what-and-why part mostly concerns (e.g. `ux`, `api`, `security`, `performance`).
 8. **Tasks.** Run `speckit-tasks`.
 9. **Analyze.** Run `speckit-analyze`. Findings with remediations → accept its remediation offer; analyze is read-only, so this skill applies the edits to `spec.md`, `plan.md`, and `tasks.md`, then run `speckit-analyze` once more to confirm. Findings left after the second run → list them, CRITICAL first, and carry them into step 10; implementation proceeds without a gate.
@@ -38,7 +38,7 @@ Input: $ARGUMENTS
 
 ```text
 Feature: specs/<feature> (branch <name> | no branch)
-Constitution: created | updated | inferred | unchanged | skipped
+Constitution: created | updated | inferred | unchanged
 Clarify: ran | skipped
 Analyze: <first-run findings> found, <remediated> remediated, <left after second run> open
 Implement: <rounds> round(s), converged | not converged (<k> tasks left)

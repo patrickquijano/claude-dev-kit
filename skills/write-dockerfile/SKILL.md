@@ -1,6 +1,6 @@
 ---
 name: write-dockerfile
-description: Write, improve, or review a Dockerfile and .dockerignore for the repo's stack per Docker's official best practices (multi-stage, digest-pinned base images, cache and secret mounts, optional non-root user), verified by docker build --check and hadolint. Use when the user asks to write, create, dockerize, optimize, or review a Dockerfile or container image build.
+description: Write, improve, or review a Dockerfile and .dockerignore for the repo's stack per Docker's official best practices (multi-stage, digest-pinned base images, cache and secret mounts, optional non-root user), verified by docker build --check and hadolint. Use only when the user explicitly asks to write, create, dockerize, optimize, or review a Dockerfile or container image build. Do not use on your own after finishing a task.
 argument-hint: '<app description | path | existing Dockerfile>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker buildx imagetools inspect *) WebFetch(domain:hub.docker.com)
 ---
@@ -18,9 +18,9 @@ Input: $ARGUMENTS
 - Multi-line `RUN` → heredoc (`RUN <<EOF` … `EOF`) starting with `set -eux` (`set -eu` when it uses a secret, so `-x` never prints it), so a failing line stops the build. Consecutive `RUN` instructions in a stage with the same cache inputs → merge into one, so the image has fewer layers. Never merge across a `COPY` or across different inputs (system packages vs lockfile vs source); that would rerun installs on every source edit.
 - Checks: `docker build --check` is the primary check. hadolint runs only on a heredoc-free Dockerfile, since it cannot parse heredocs, so under the heredoc rule it usually reports `skipped (heredoc)`.
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
-- Never overwrite a user file without showing the diff and asking. Fixes after the step 5 approval included: show the diff, ask again before writing.
-- Loops: clarify (step 3) max 3 AskUserQuestion calls, then Stopped with the facts still missing; verify-fix (step 7) max 3 attempts, still failing → Stopped. Revise (step 5) runs until the user picks Write or Stop.
-- Stop at step 5 → print the Output, `Result: cancelled`. Stop at step 3 or 7, or any failure → print the Output, `Result: stopped`, `Stopped: <step>: <reason>`, and end.
+- Every write to an existing file (step 6 and step 7 fixes) prints its diff; no approval asked, since the files are local and the diff is reviewable.
+- Loops: clarify (step 3) max 3 AskUserQuestion calls, then Stopped with the facts still missing; verify-fix (step 7) max 3 attempts, still failing → Stopped.
+- Step 3 cap hit, step 7 cap hit, or any failure → print the Output, `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-dockerfile`.
 
 ## Workflow
@@ -31,11 +31,11 @@ Input: $ARGUMENTS
    - Copy application files into the image? Yes, only needed files (Recommended; self-contained image) | No (app mounted or supplied at run time).
    - Create a non-root user and group? Yes (Recommended; limits damage if the app is compromised) | No, run as root. Yes → ask the defaults for `APP_USER` (same name for user and group), `APP_UID`, `APP_GID`: `app`, `10001`, `10001` (Recommended; above the range distros assign to system and login accounts) | other values the user gives.
 4. **Draft.** Build the `Dockerfile` from practices.md: syntax line, image `ARG`s with tag and digest (look up each digest per practices.md; never guess), build stages, runtime stage, cache mounts for the detected package manager, unversioned package installs, explicit `COPY` of needed paths only (when chosen), user and group from `ARG`s (when chosen), heredoc multi-line `RUN`s, merged `RUN`s, `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice; list each change with its reason.
-5. **Approve.** Show the Dockerfile, `.dockerignore`, and the change list (diff for existing files). AskUserQuestion: Write (Recommended) | Revise | Stop. Revise → apply feedback, re-show. Stop → `Result: cancelled`.
+5. **Plan.** Print the Dockerfile, `.dockerignore`, and the change list (diff for existing files), then write without asking.
 6. **Write** `Dockerfile` in the app dir and `.dockerignore` at the build context root (existing `.dockerignore` → append only missing entries).
 7. **Verify.** Spawn `cdk:dockerfile-reviewer` with: Dockerfile path(s), `.dockerignore` path (or none), practices path `${CLAUDE_SKILL_DIR}/practices.md`, build context dir. Use its `Findings`, `Checks`, `Tool output`.
    - Review mode → report its findings; write nothing.
-   - Create or update → each `error` or `warning` finding → fix, show the diff, AskUserQuestion: Write fixes (Recommended) | Stop; re-run this step. `info` findings → list only.
+   - Create or update → each `error` or `warning` finding → fix, print the diff, write the fixes without asking; re-run this step (cap in Rules). `info` findings → list only.
    - Full `docker build` only when the user asks (it downloads images and runs build commands).
 8. **Report** the output below.
 

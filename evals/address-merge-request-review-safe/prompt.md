@@ -1,5 +1,5 @@
 ---
-description: MR feedback request triggers address-merge-request-review, which never commits or pushes without confirmation and posts replies without a confirmation gate.
+description: MR feedback request triggers address-merge-request-review, which never pushes without confirmation and commits locally and posts replies without a confirmation gate.
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Bash]
 ---

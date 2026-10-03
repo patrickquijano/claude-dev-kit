@@ -19,8 +19,8 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** `git status --porcelain` non-empty → AskUserQuestion: Cancel (Recommended, commit or stash first) | Continue (uncommitted changes ship with the fix). Cancel → `Result: cancelled`, `Stopped: Pre-flight: uncommitted changes`, report, stop.
 2. **Fix.** Invoke `cdk:fix-spec-kit-bug` with `$ARGUMENTS`. Take `<slug>` from its `Bug:` line: the segment after `.specify/bugs/`, without the trailing `/`.
-3. **Gate.** Read the Output block. `Verdict:` starts with `invalid` → `Stopped: Gate: invalid`, report, stop; no fix exists to ship. Any other verdict → check Fix and Test. `Fix: applied` and `Test:` `verified` or `partial (accepted)` → continue. Every other combination → AskUserQuestion: Stop (Recommended) | Commit + push + open MR anyway; an unverified fix should not reach an MR unasked. Stop → `Stopped: Gate: <Fix> / <Test>`, report, stop.
-4. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (gitlab row, else fallback list) → skip, no ask; ship-merge-request switches off it with `fix <slug>`. Else not `fix/*` → AskUserQuestion: New branch for this fix (Recommended) | Keep `<current>`. New → invoke `cdk:switch-branch` with `fix <slug>`; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`, report, stop.
+3. **Gate.** Read the Output block. `Verdict:` starts with `invalid` → `Stopped: Gate: invalid`, report, stop; no fix exists to ship. Any other verdict → check Fix and Test. `Fix: applied` and `Test: verified` → continue. Every other combination → AskUserQuestion: Stop (Recommended) | Commit + push + open MR anyway; an unverified fix should not reach an MR unasked. Stop → `Stopped: Gate: <Fix> / <Test>`, report, stop.
+4. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (gitlab row, else fallback list) → skip, no ask; ship-merge-request switches off it with `fix <slug>`. Else not `fix/*` → invoke `cdk:switch-branch` with `fix <slug>`, no ask; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`, report, stop.
 5. **Ship.** Invoke `cdk:ship-merge-request` with `fix <slug>` as the branch hint, so cdk:switch-branch picks the `fix/` type. Its `Result: stopped | cancelled` → `Stopped: Ship: <its Stopped>`; `nothing-to-do` → `Result: nothing-to-do`. Report, end.
 
 ## Output
@@ -31,7 +31,8 @@ Verdict: <verdict>; severity <level>
 Fix: <status> (<passes> pass(es), <n> re-assess)
 Test: <result>
 Branch: <name> | none
-Commits: <count> pushed | none
+Commits: <count> new (pushed | not pushed) | none
+Excluded: <files> | none
 MR: !<iid> <web_url> | none
 Rounds: <r> of 5 | none
 Last review: <n> inline, <m> general (<b> blocking, <p> praise) | none

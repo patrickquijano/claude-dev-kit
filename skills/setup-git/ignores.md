@@ -1,6 +1,6 @@
 # Ignore Catalog
 
-A stack is detected when any of its markers is found by step 10. Always-on groups need no marker. Recommended groups are listed first in step 11. Step 12 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
+A stack is detected when any of its markers is found by step 10. Always-on groups need no marker. Step 11 takes the Recommended groups. Step 12 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
 
 | Group            | Markers                                                   | Patterns                                                                                                                                 | Why                                     | Recommended |
 | ---------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------- |
@@ -19,4 +19,4 @@ A stack is detected when any of its markers is found by step 10. Always-on group
 | Editors (always) | —                                                         | `.idea/`, `.vscode/*`, `*.swp`, `*~`                                                                                                     | personal editor state                   | yes         |
 | Claude Code      | `.claude/*`                                               | `.claude/settings.local.json`                                                                                                            | personal Claude Code settings           | yes         |
 
-Stacks not listed get only the always-on groups; name them as uncovered in the step 11 question so the user can add patterns with Other.
+Stacks not listed get only the always-on groups; name them as uncovered in the step 14 report so the user can add patterns.

@@ -12,9 +12,9 @@ Input: $ARGUMENTS
 
 - Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/speckit-chain.md` with prefix `speckit-bug-` and group `bug`.
 - Pass `slug=<slug>` to every step after assess. All three commands share the slug and write only to `.specify/bugs/<slug>/`.
-- Pre-approved exception to relaying questions: on pass 2 and later, answer yes to overwriting `assessment.md`, `fix.md`, and `test.md` in the current slug.
+- Pre-approved exceptions to relaying questions: on pass 2 and later, answer yes to overwriting `assessment.md`, `fix.md`, and `test.md` in the current slug; in step 5, answer yes to running skipped or not-run checks.
 - Passes: one pass = fix, then test; the first fix + test is pass 1. A re-assess uses up a pass (re-assess, fix, test count as one). Every step 6 entry starts a new pass, whether test runs or not. Max 3 passes.
-- Test re-runs (step 5 Run them): max 3 per pass.
+- Test re-runs (step 5 skipped checks): max 3 per pass.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `fix-spec-kit-bug`.
 
@@ -31,7 +31,7 @@ Input: $ARGUMENTS
 5. **Test.** Run `speckit-bug-test slug=<slug>`. Read the Result in `test.md`:
    - `verified` → report, done.
    - `failed`, or `partial` with a failing check or regression → step 6 (failing checks).
-   - `partial` with only `skipped` or `not-run` checks → list them. AskUserQuestion: Run them (Recommended) | Accept as is. Run → re-run test with consent, then read the Result again. 3 re-runs done → offer only Accept as is | Stop; Stop → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, report, stop. Accept → report, done.
+   - `partial` with only `skipped` or `not-run` checks → list them, re-run test with consent to run them, no ask, then read the Result again. 3 re-runs done → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, report, stop.
 6. **Iterate.** 3 passes done → `Result: stopped`, `Stopped: Iterate: 3 passes`, list the failing checks from `test.md` (or the blockers from `fix.md`), report, stop; repeated misses point to a wrong root cause. Else start the next pass by entry:
    - Re-assess (from step 4, Deviations say the assessment is wrong) → run `speckit-bug-assess slug=<slug> <extracted evidence> Evidence from .specify/bugs/<slug>/test.md and fix.md`. Verdict `invalid` → `Result: stopped`, `Stopped: Iterate: re-assess verdict invalid`, report, stop. Else step 4.
    - Retry (from step 4, Retry with my input) → run `speckit-bug-fix slug=<slug> <user input>`, then branch on its Status as in step 4.
@@ -43,7 +43,7 @@ Input: $ARGUMENTS
 Bug: .specify/bugs/<slug>/
 Verdict: <valid | likely valid, needs reproduction | invalid>; severity <level>
 Fix: <applied | partial | not-applied> (<passes> pass(es), <n> re-assess)
-Test: verified | partial (accepted) | partial (<k> not run) | failed (<k> checks failing) | not run
+Test: verified | partial (<k> not run) | failed (<k> checks failing) | not run
 Result: done | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -30,7 +30,7 @@ Hook sentences (drop them when no unit suite is in any hook, and state instead t
 Then two lists, one line per suite:
 
 - "Targeted unit tests:" each unit suite's real `cmd` and `args`, prefixed with `cd <cwd> &&` and its `env` vars when set, plus the stacks.md Targeted runs argument as a placeholder (for example `npx --no-install vitest run --bail=1 <test file>`).
-- "Other suites (user runs them):" the full command of each integration, e2e, and other suite, plus each unit suite not in the hook (not selected or not feasible), same format; omit the list when empty.
+- "Other suites (user runs them):" the full command of each integration, e2e, and other suite, plus each unit suite not in the hook (not feasible), same format; omit the list when empty.
 
 Existing hook kept in step 5 → name its file and command in place of `.claude/hooks/run-tests.mjs`.
 

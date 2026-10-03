@@ -7,7 +7,7 @@ Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, `setup-t
 For skills that install repo tooling into one package (Husky, formatters, linters):
 
 - Git root `package.json` has `workspaces`, or git root has `pnpm-workspace.yaml` → git root (monorepo: repo tooling belongs at the root).
-- Else nearest `package.json` from cwd up to the git root. It is not the git root → AskUserQuestion: `<nearest dir>` (Recommended; that package owns the tooling) | Git root.
+- Else nearest `package.json` from cwd up to the git root, no question (that package owns the tooling).
 - None → git root.
 - `<pkg>` = package dir relative to the git root (`.` at the root).
 
@@ -36,6 +36,6 @@ Use the "binary must be installed" form in checks and hooks, so a missing tool f
 
 ## Missing package.json
 
-- Never create it unasked. AskUserQuestion: Create `{ "name": "<name>", "private": true }` (Recommended; npm tools need it) | the caller's alternative (skip npm tools, or Stop).
+- Create `{ "name": "<name>", "private": true }` in the package dir, no question (npm tools need it).
 - `<name>` = package dir name, lowercased; each run of characters outside `a-z`, `0-9`, `-`, `.`, `_` → `-`; leading `.`, `_`, and `-` trimmed; empty → `project`. npm names must be lowercase, URL-safe, and not start with `.` or `_`.
 - Never run `<pm> init`: `bun init` and `yarn init` scaffold extra files, and `npm init` copies every package in an existing `node_modules/` into `dependencies`.

@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Loops: clarify (step 3) max 2 batches; Revise (step 6) runs until the user picks Accept or Stop.
+- Loops: clarify (step 3) max 2 batches.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt`.
 
 ## Workflow
@@ -27,8 +27,8 @@ Input: $ARGUMENTS
 2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; print the review-only Output, `Result: done`, stop.
 3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps. Existing prompt → also fix each failed check.
 4. **Draft** per structure.md.
-5. **Check.** Walk checks.md against the draft; fix each failure. Show the draft prompt, checks n/a, and open gaps.
-6. **Approve.** AskUserQuestion: Accept (Recommended) | Revise | Stop. Accept → print the Output, `Result: done`. Revise → collect change, back to step 4. Stop → print the Output without the prompt, `Result: cancelled`.
+5. **Check.** Walk checks.md against the draft; fix each failure.
+6. **Report.** Print the Output, `Result: done`; no approval asked, since nothing is written.
 
 ## Output
 

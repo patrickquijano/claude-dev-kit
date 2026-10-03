@@ -1,6 +1,6 @@
 ---
 name: write-claude-md
-description: Create, update, or score a project's CLAUDE.md and .claude/rules/*.md from input guidelines plus existing memory files, adding repo-adapted engineering principles, using bundled Claude Code best practices and a 100-point rubric (pass ≥95), iterating improvements with user confirmation. Use only when the user explicitly asks to write, update, merge, improve, audit, or score CLAUDE.md or project rules, e.g. "update CLAUDE.md", "merge these guidelines into CLAUDE.md", "improve my project rules", "score my CLAUDE.md". Do not use on your own after finishing a task.
+description: Create, update, or score a project's CLAUDE.md and .claude/rules/*.md from input guidelines plus existing memory files, adding repo-adapted engineering principles, using bundled Claude Code best practices and a 100-point rubric (pass ≥95), iterating improvements up to 3 rounds. Use only when the user explicitly asks to write, update, merge, improve, audit, or score CLAUDE.md or project rules, e.g. "update CLAUDE.md", "merge these guidelines into CLAUDE.md", "improve my project rules", "score my CLAUDE.md". Do not use on your own after finishing a task.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *)
 ---
@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Never invent commands, paths, or policies. Not derivable → ask; user omits → leave out, add to `Omitted:`.
 - Update mode: keep correct content, author voice, every Known issues entry. Change only stale, wrong, duplicate, conflicting, or missing items.
 - Conflict → never resolve silently; ask.
-- Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each time the user picks Improve (step 7). Revise (step 4) runs until the user picks Write or Stop. Never re-ask an omitted item.
+- Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Revise (step 4, update mode) runs until the user picks Write or Stop. Never re-ask an omitted item.
 - Score-only never writes; only an explicit Switch to update mode (step 7) or Switch to create mode (step 1) answer leaves score-only.
 - Formatter runs prompt for permission; expected.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-claude-md`.
@@ -37,19 +37,19 @@ Input: $ARGUMENTS
    - `stale` → fix from facts `Commands`/paths; no match → ask. `vague` → rewrite from facts; else ask with "Omit" option.
    - Each facts `Conflicts:` item → one question: keep A | keep B | merge; recommend input (newer) unless it breaks a verified fact. One side unwritable (`CLAUDE.local.md`, ancestor) → options: override in project file (name winner) | keep unwritable side; say it can't be edited.
    - Each facts `Gaps:` item (architecture, precedence, boundaries, focused changes, done, maintenance) → one question with "Omit" option. Precedence → offer template order as "(Recommended)".
-   - `principles` gap → no question; draft from `principles.md` (step 4 approval covers it). Default requirement with no repo support (e.g. no test runner) → one question with "Omit" option.
+   - `principles` gap → no question; draft from `principles.md` (step 4 plan lists it). Default requirement with no repo support (e.g. no test runner) → one question with "Omit" option.
    - Max 4 per AskUserQuestion; more → next call. Record omitted items as `Omitted:` list. Nothing to ask → skip.
 4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/template.md`. Update → edit existing files in place. Place each instruction per rubric `## Placement rules`.
    - Place principles per `principles.md` `## Placement`, using facts `Stack` for path-scoped rules and facts `Patterns` for in-use pattern lines.
    - Always-loaded non-blank lines stay <200; overflow → move component guidance to path-scoped rules.
-   - Show file list (new | changed | deleted), outline per file, design trade-off order, dropped and moved items, suggested hooks for hard requirements → AskUserQuestion: Write (Recommended) | Revise | Stop. Revise → apply feedback, re-show; removing principles or a default requirement → add it to `Omitted:`. Stop → end, `Result: cancelled`.
+   - Show file list (new | changed | deleted), outline per file, design trade-off order, dropped and moved items, suggested hooks for hard requirements. Create mode with no existing file changed or deleted → write without asking. Update mode, or any existing file changed or deleted (rewrites the user's rules) → AskUserQuestion: Write (Recommended) | Revise | Stop. Revise → apply feedback, re-show; removing principles or a default requirement → add it to `Omitted:`. Stop → end, `Result: cancelled`.
 5. **Write** files. Facts `Formatter` not none → run it on written files.
 6. **Score.** Spawn `cdk:claude-md-scorer` with: file paths (target memory file, its `@imports`, every file written in step 5, and every `.claude/rules/**/*.md` from facts `Memory files`, so Z1, P2, and E1 see all files), rubric path `${CLAUDE_SKILL_DIR}/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/principles.md`, facts block (answers merged), `Omitted:` list.
 7. **Gate.**
    - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing. AskUserQuestion: Done (Recommended) | Switch to update mode. Done → print the Output, `Result: done`. Switch to update mode → leave score-only; go to step 3 in update mode, then steps 4–7.
    - Total ≥95 → print the Output, `Result: done`.
    - <95 and rounds = 3 → print the Output with remaining gaps, `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-   - <95 and rounds < 3 → show deductions table (criterion, lost pts, fix). AskUserQuestion: Improve (Recommended) | Stop. Stop → print the Output, `Result: stopped`, `Stopped: 7: user stopped below 95`. Improve → rounds + 1; apply fixes; fix needs non-derivable fact not omitted → ask first. Write + format (step 5), back to step 6.
+   - <95 and rounds < 3 → show deductions table (criterion, lost pts, fix), then improve without asking: rounds + 1; apply fixes; fix needs non-derivable fact not omitted → ask first. Write + format (step 5), back to step 6.
 
 ## Output
 

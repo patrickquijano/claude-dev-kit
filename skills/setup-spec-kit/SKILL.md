@@ -1,6 +1,6 @@
 ---
 name: setup-spec-kit
-description: Install GitHub Spec Kit (`specify-cli`) if missing, initialize the current project with the Claude integration, install the agent-context, assess, and bug extensions with set priorities, and add Spec Kit paths to git, linter, and formatter ignores. Use when the user asks to set up, install, or initialize Spec Kit in a project.
+description: Install GitHub Spec Kit (`specify-cli`) if missing, initialize the current project with the Claude integration, install the agent-context, assess, and bug extensions with set priorities, and add Spec Kit paths to git, linter, and formatter ignores. Use only when the user explicitly asks to set up, install, or initialize Spec Kit in a project. Do not use on your own after finishing a task.
 allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify init --here *) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension add *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
 ---
 
@@ -16,6 +16,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/required-skills.md`.
 - Step 3: add or set-priority runs once per extension in the list (3), no retries. Only exception: one user-approved reinstall per extension whose skill dirs are missing.
 - `specify extension remove` is deliberately not in `allowed-tools`: the reinstall deletes extension files, so its permission prompt is a second guard after the AskUserQuestion.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-spec-kit`.
 
 ## Workflow
@@ -24,7 +25,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 2. **Init.** Spec Kit treats a project with `.specify/` as initialized.
    - `.specify/` and every required skill dir exist → skip.
    - `.specify/` and every core dir exist, extension dirs missing → skip; step 3 adds them.
-   - `.specify/` exists, any core dir missing (initialized for another agent) → AskUserQuestion: Add Claude integration (Recommended) | Stop. Add → `specify integration install claude`.
+   - `.specify/` exists, any core dir missing (initialized for another agent) → run `specify integration install claude`, no question.
    - No `.specify/` → tell the user init merges into the current directory: it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`. AskUserQuestion: Init (Recommended) | Stop. Init → `specify init --here --integration claude --force --non-interactive` (`--force` is required in a non-empty directory; `--non-interactive` prevents a hang on prompts).
    - Stop → `Init: declined`, `Result: cancelled`, `Stopped: Init: declined`; report, end the workflow.
    - Command fails → quote the error line, stop.
