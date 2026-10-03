@@ -3,7 +3,6 @@ name: write-claude-md
 description: Create, update, or score a project's CLAUDE.md and .claude/rules/*.md from input guidelines plus existing memory files, adding repo-adapted engineering principles, using bundled Claude Code best practices and a 100-point rubric (pass ≥95), iterating improvements with user confirmation. Use only when the user explicitly asks to write, update, merge, improve, audit, or score CLAUDE.md or project rules, e.g. "update CLAUDE.md", "merge these guidelines into CLAUDE.md", "improve my project rules", "score my CLAUDE.md". Do not use on your own after finishing a task.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *)
-disable-model-invocation: true
 ---
 
 # Write CLAUDE.md

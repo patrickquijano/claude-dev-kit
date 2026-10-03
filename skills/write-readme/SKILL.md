@@ -3,7 +3,6 @@ name: write-readme
 description: Create, update, or score a repository README.md using best-practice templates (library, CLI, application, plugin, monorepo, minimal, docs) and a 100-point rubric (pass ≥95), iterating improvements with user confirmation. Use only when the user explicitly asks to write, generate, create, rewrite, update, improve, review, audit, or score a README, e.g. "write a README", "update the README", "improve my README", "score my README". Do not use on your own after finishing a task.
 argument-hint: '[optional archetype | score]'
 allowed-tools: Bash(git rev-parse *)
-disable-model-invocation: true
 ---
 
 # Write README

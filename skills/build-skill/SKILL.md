@@ -2,7 +2,6 @@
 name: build-skill
 description: Create or update Claude Code skills and orchestrator skills with their subagents (SKILL.md, agents/*.md). Use when the user asks to make, build, scaffold, fix, improve, or update a skill, slash command, or orchestrator/workflow skill. A standalone subagent goes to /cdk:build-agent.
 argument-hint: '[description of skill/orchestrator, or path to existing one]'
-disable-model-invocation: true
 ---
 
 # Build Skill

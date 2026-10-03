@@ -3,7 +3,6 @@ name: ship-spec-kit-idea
 description: Take an idea from assessment to a reviewed GitLab merge request. Run cdk:assess-spec-kit-idea, on a go verdict run cdk:run-spec-kit with its handoff summary, then run cdk:ship-merge-request to branch, commit, open the MR, and loop review and address rounds. Kill or unresolved needs-clarification stops before shipping. Use only when the user explicitly asks to assess and ship an idea, or to take a Spec Kit idea all the way to a merge request. Do not use on your own after finishing a task.
 argument-hint: '<idea text | URL | ticket | codebase pointer>'
 allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(glab api --paginate projects/:id/protected_branches)
-disable-model-invocation: true
 ---
 
 # Ship Spec Kit Idea

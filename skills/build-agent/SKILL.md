@@ -2,7 +2,6 @@
 name: build-agent
 description: Create or update a Claude Code custom subagent (agents/<name>.md) in a personal, project, or plugin scope. Interview for task, tools, model, return shape, and only the optional fields the task needs, check fit and the spawning skill's contract, then write and verify. Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a subagent or custom agent, e.g. "create a subagent that reviews Python security", "update the mr-reviewer agent". Do not use on your own after finishing a task.
 argument-hint: '[description of the subagent, or name/path of an existing one]'
-disable-model-invocation: true
 ---
 
 # Build Agent

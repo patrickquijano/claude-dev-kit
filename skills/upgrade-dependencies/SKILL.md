@@ -3,7 +3,6 @@ name: upgrade-dependencies
 description: Upgrade a project's outdated dependencies to their latest stable versions. Detect the tech stack and every project in the repo, list outdated packages, look up breaking changes, find the code and config each upgrade affects, plan and apply the fixes, then build, lint, and test until everything passes. Use only when the user explicitly asks to upgrade, update, or bump dependencies or packages, check for outdated packages, or migrate to a newer framework or library version, e.g. "upgrade my dependencies", "update outdated packages", "bump everything to latest". Do not use on your own after finishing a task.
 argument-hint: '[optional package names | project path | patch-minor-only]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(command -v *)
-disable-model-invocation: true
 ---
 
 # Upgrade Dependencies

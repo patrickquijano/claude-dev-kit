@@ -3,7 +3,6 @@ name: scan-vulnerabilities
 description: Scan the repository for security vulnerabilities with pinned, Docker-only free scanners (Semgrep, Trivy, Gitleaks, OSV-Scanner, Checkov, and others, chosen by the detected stack). Consolidate, deduplicate, and prioritize redacted findings. Then loop remediate via cdk:run-spec-kit, validate with the project's builds and tests, roll back failures, and rescan, up to `max-iterations` (default 5). Finish with a full rescan and a before-and-after report in .vulnerability-reports/. Use only when the user explicitly asks to scan for, find, or fix security vulnerabilities, e.g. "scan for vulnerabilities", "run a security scan", "find and fix CVEs", "check for leaked secrets". Do not use on your own after finishing a task.
 argument-hint: '[max-iterations=<n>] [image=<ref>]... [zap-target=<local url>] [zap-mode=baseline|api|full] [zap-spec=<openapi path or local url>]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git stash create) Bash(docker info *) Bash(command -v *)
-disable-model-invocation: true
 ---
 
 # Scan Vulnerabilities

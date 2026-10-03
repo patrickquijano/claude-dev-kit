@@ -3,7 +3,6 @@ name: ship-spec-kit-bug
 description: Take a bug from evidence to a reviewed GitLab merge request. Run cdk:fix-spec-kit-bug to assess, fix, and test it, then run cdk:ship-merge-request to branch, commit, open the MR, and loop review and address rounds. An invalid verdict stops before shipping; an unverified fix asks first. Use only when the user explicitly asks to fix and ship a bug, or to take a bug all the way to a merge request. Do not use on your own after finishing a task.
 argument-hint: '<stack trace | error | URL | bug report>'
 allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(glab api --paginate projects/:id/protected_branches)
-disable-model-invocation: true
 ---
 
 # Ship Spec Kit Bug
