@@ -15,7 +15,7 @@ description: <what it does>. Use when <trigger phrases/situations>.
 # Side-effect skill → description: <what it does>. Use only when the user explicitly asks to <action>, e.g. "<phrase>", "<phrase>". Do not use on your own after finishing a task.
 argument-hint: '<args>'
 allowed-tools: <minimal list> # only if pre-approval needed
-disable-model-invocation: true # only if the user chose Disable in build-skill step 2; never on a skill an orchestrator chains
+disable-model-invocation: true # only if the user explicitly asked to disable model invocation (build-skill step 2)
 ---
 
 # <Title>

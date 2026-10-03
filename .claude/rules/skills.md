@@ -8,7 +8,7 @@ paths:
 - One skill per `skills/<name>/SKILL.md`; `name` = directory, kebab-case.
 - `description` = trigger: what it does + when to use, key use case first. Description + `when_to_use` max 1,536 chars.
 - `SKILL.md` under 500 lines. Reference material → sibling files, link them (progressive disclosure).
-- `disable-model-invocation` only per user decision; ask each time skill built/updated, recommend `true` for side-effect skills so run only on `/` command. Skills chained by other skills via the Skill tool never set it (blocks the chain).
+- Never set `disable-model-invocation`, never ask about it or offer it as an option; side-effect skills gate on description (`Use only when the user explicitly asks ...`). Only exception: user explicitly asks to disable model invocation for that skill. Skills chained by other skills via the Skill tool never set it (blocks the chain).
 - Pre-approve only needed tools via `allowed-tools`. Never pre-approve `git push`, MR create/update, or comment, approve, resolve, merge endpoints; permission prompt = second guard.
 - Frontmatter order: `name`, `description`, `argument-hint`, `allowed-tools`, `disable-model-invocation`.
 - Body: `Input: $ARGUMENTS` (omit when no input), `## Rules`, `## Workflow` (numbered steps, bold labels `**Pre-flight.**`), `## Output` (fenced `text`, ends `Result: done | nothing-to-do | stopped | cancelled` + `Stopped: <step>: <reason> | none`).
