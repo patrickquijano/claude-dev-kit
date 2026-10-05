@@ -37,7 +37,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit unless `handoff=no`.               |
 | `/cdk:build-agent`                  | Interview, then create or update a subagent in personal, project, or plugin scope.                             |
 | `/cdk:build-skill`                  | Interview, then create or update a skill or orchestrator + subagents.                                          |
-| `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, ask before push.             |
+| `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.                        |
 | `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                        |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                           |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled comments, resolve addressed own threads, approve and merge.                   |
