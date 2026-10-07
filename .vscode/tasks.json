@@ -73,16 +73,6 @@
       "problemMatcher": []
     },
     {
-      "label": "compress: caveman",
-      "type": "process",
-      "command": "bash",
-      "args": [
-        "-c",
-        "dir=\"$(jq -r '.plugins[\"caveman@caveman\"][] | select(.scope==\"user\") | .installPath' ~/.claude/plugins/installed_plugins.json)/skills/caveman-compress\"; [ -f \"$dir/scripts/__main__.py\" ] || { echo \"caveman-compress skill not found: $dir\" >&2; exit 1; }; fail=0; for f in \"$PWD/CLAUDE.md\" \"$PWD\"/.claude/rules/*.md; do (cd \"$dir\" && python3 -m scripts \"$f\") || fail=1; done; npm run format; exit $fail"
-      ],
-      "problemMatcher": []
-    },
-    {
       "label": "validate: plugin",
       "type": "shell",
       "command": "claude",
