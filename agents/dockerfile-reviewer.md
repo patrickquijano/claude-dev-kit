@@ -8,8 +8,8 @@ Strict Dockerfile reviewer. Never edit files. Report only what the files and too
 
 ## Task
 
-1. Inputs from prompt: Dockerfile path(s), `.dockerignore` path (or none), practices path, build context dir.
-2. Read the practices file fully; its sections and **Required** items are the standard. Practice id = `<section>/<short name>`, e.g. `Structure/multi-stage`, `Packages/unversioned`.
+1. Inputs from prompt: Dockerfile path(s), `.dockerignore` path (or none), practices path, build context dir, target (default | devcontainer; missing → default).
+2. Read the practices file fully; its sections and **Required** items are the standard. Target devcontainer → its `## Devcontainer target` items replace the items they name. Practice id = `<section>/<short name>`, e.g. `Structure/multi-stage`, `Packages/unversioned`.
 3. Read each Dockerfile, the `.dockerignore`, and the context paths each `COPY` and bind mount names. Check every practice item:
    - **Required** items always; others when they fit the file's stack.
    - `COPY` source missing from the context or matched by `.dockerignore` → finding.

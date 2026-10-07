@@ -1,6 +1,6 @@
 # Dockerfile practices
 
-Verified 2026-09-28 against docs.docker.com. Items marked **Required** always apply. Apply every other item that fits the app; skip one only with a reason in the Output.
+Verified 2026-09-28 against docs.docker.com; `## Devcontainer target` verified 2026-10-06 against containers.dev and github.com/devcontainers. Items marked **Required** always apply. Apply every other item that fits the app; skip one only with a reason in the Output.
 
 ## Structure
 
@@ -83,6 +83,16 @@ Verified 2026-09-28 against docs.docker.com. Items marked **Required** always ap
 - `CMD` and `ENTRYPOINT` in exec form (`["node", "server.js"]`): shell form makes `/bin/sh` PID 1, so the app misses `SIGTERM` from `docker stop` (check `JSONArgsRecommended`). <https://docs.docker.com/reference/dockerfile/#entrypoint>
 - `EXPOSE` the app's port; it documents, it does not publish. <https://docs.docker.com/reference/dockerfile/#expose>
 - `HEALTHCHECK` only when the app has a health endpoint or command and the runtime image has the tool to call it; exit 0 healthy, 1 unhealthy. <https://docs.docker.com/reference/dockerfile/#healthcheck>
+
+## Devcontainer target
+
+Input `target=devcontainer` (from `cdk:setup-devcontainer`) builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
+
+- Replaces `Structure/multi-stage`: single stage `FROM … AS dev` on the given `mcr.microsoft.com/devcontainers/<image>` base. Multi-stage only pays off when a runtime stage receives build artifacts. <https://containers.dev/guide/dockerfile>
+- `Structure/pinned` still applies: the caller passes an exact full tag; the digest comes from `docker buildx imagetools inspect` (the Docker Hub fallback does not cover `mcr.microsoft.com`). No docker → never ask; stop with `Stopped: 4: digest lookup needs docker`, since a dev container needs Docker anyway.
+- Replaces `Cache/application files`, `Runtime/CMD`, `Runtime/EXPOSE`, `Runtime/HEALTHCHECK`: no application `COPY`, `CMD`, `ENTRYPOINT`, `EXPOSE`, or `HEALTHCHECK`; the workspace is bind-mounted and devcontainer.json owns commands and ports. Each `copy=<src>:<dest>` file → `COPY --chmod=0755 <src> <dest>`. <https://docs.docker.com/reference/dockerfile/#copy---chmod>
+- Replaces `Runtime/non-root user`, its no-`sudo` clause included: no user creation and no `USER`. The base image ships a non-root user with `sudo`, set as the remote user through its metadata. Every instruction runs as root (the build's default); a `sudoers=` line goes to `/etc/sudoers.d/<name>` with mode `0440`.
+- `.dockerignore` at the context root is an allowlist: `*`, then `!<src>` per `copy=` file. The context also holds devcontainer.json, compose files, and `.env`; ignoring all of it keeps credentials out of the build, and the exceptions satisfy `CopyIgnoredFile`. <https://docs.docker.com/build/concepts/context/#dockerignore-files>
 
 ## Checks
 
