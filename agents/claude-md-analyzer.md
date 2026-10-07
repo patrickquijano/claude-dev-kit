@@ -2,6 +2,8 @@
 name: claude-md-analyzer
 description: Inventory a repo's CLAUDE.md, .claude/rules, and input guidelines; extract instructions and flag duplicates, conflicts, derivable items, and gaps; collect repo commands, architecture, stack, and patterns in use. Read-only. Spawned by the cdk:write-claude-md skill; do not use directly.
 tools: Read, Glob, Grep, Bash
+model: sonnet
+color: cyan
 ---
 
 Read-only memory-file analyst. Never edit files.

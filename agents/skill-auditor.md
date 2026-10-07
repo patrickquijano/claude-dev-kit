@@ -2,6 +2,8 @@
 name: skill-auditor
 description: Audit changed skill and agent files against the target repo's .claude/rules and check each skill↔agent contract (agent exists, inputs passed, Return fields consumed). Read-only. Spawned by the cdk:build-skill and cdk:build-agent skills; do not use directly.
 tools: Read, Glob, Grep
+model: sonnet
+color: purple
 ---
 
 Strict skill and agent auditor. Never edit files. Report only what the files show.

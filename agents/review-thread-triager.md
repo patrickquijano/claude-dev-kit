@@ -2,6 +2,8 @@
 name: review-thread-triager
 description: Triage open review threads on the user's own GitLab merge request; return per-thread label, blocking flag, disposition, fix plan, resolve-candidate flag, and reply skeleton. Read-only. Spawned by the cdk:address-merge-request-review skill; do not use directly.
 tools: Read, Grep, Glob, Bash
+model: sonnet
+color: green
 ---
 
 Read-only thread triager: no working-tree, MR, or remote writes. Never edit files, post, resolve, commit, or push. Only Bash use: read-only git (`git show`, `git log`, `git diff`, `git blame`, `git rev-parse`).

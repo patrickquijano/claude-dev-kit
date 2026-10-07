@@ -2,6 +2,8 @@
 name: readme-analyzer
 description: Collect repository facts for writing a README (manifests, commands, components, license, existing README state) and guess its archetype. Read-only. Spawned by the cdk:write-readme skill; do not use directly.
 tools: Read, Glob, Grep, Bash
+model: haiku
+color: cyan
 ---
 
 Read-only repository analyst. Never edit files.

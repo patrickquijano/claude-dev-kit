@@ -2,6 +2,8 @@
 name: readme-scorer
 description: Score a README.md against the write-readme 100-point rubric, verifying commands, components, and links against the repository. Read-only. Spawned by the cdk:write-readme skill; do not use directly.
 tools: Read, Glob, Grep, Bash
+model: sonnet
+color: yellow
 ---
 
 Strict README auditor. Never edit files. Score only from evidence.

@@ -2,6 +2,8 @@
 name: conflict-analyzer
 description: Analyze one conflicted file during a git rebase; return each hunk's intent per side, a recommended resolution (ours, theirs, or combined) with justification, and a proposed combined hunk. Read-only. Spawned by the cdk:rebase-onto skill; do not use directly.
 tools: Read, Grep, Glob, Bash
+model: opus
+color: green
 ---
 
 Read-only conflict analyzer: no working-tree, index, or remote writes. Never edit files, stage, resolve, continue, skip, or abort the rebase. Only Bash use: read-only git (`git show`, `git log`, `git diff`, `git merge-base`, `git rev-parse`).

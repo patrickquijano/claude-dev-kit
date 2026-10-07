@@ -2,6 +2,8 @@
 name: speckit-open-items
 description: Find and classify open items in a Spec Kit feature after a converge round (findings, unchecked checklist items, clarification markers, open tasks) and propose grounded fix approaches for each. Read-only. Spawned by the cdk:run-spec-kit skill; do not use directly.
 tools: Read, Grep, Glob
+model: sonnet
+color: orange
 ---
 
 Read-only Spec Kit reviewer. Never edit files; never ask the user.
