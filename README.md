@@ -70,23 +70,25 @@ claude plugin install cdk@claude-dev-kit
 
 Spawned by skills; not meant for direct use.
 
-| Agent                       | Purpose                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `cdk:claude-md-analyzer`    | Extract and flag memory-file instructions; collect commands, stack, and patterns for `write-claude-md`. |
-| `cdk:claude-md-scorer`      | Score CLAUDE.md and rules against the 100-point rubric for `write-claude-md`.                           |
-| `cdk:conflict-analyzer`     | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                 |
-| `cdk:dependency-analyzer`   | Find outdated packages, breaking changes, and affected code for `upgrade-dependencies`.                 |
-| `cdk:devcontainer-analyzer` | Detect stacks, versions, services, ports, and existing Docker files for `setup-devcontainer`.           |
-| `cdk:dockerfile-reviewer`   | Check a Dockerfile against practices, `docker build --check`, hadolint for `write-dockerfile`.          |
-| `cdk:mr-reviewer`           | Review an MR diff against guidelines for `review-merge-request`.                                        |
-| `cdk:readme-analyzer`       | Collect repo facts and guess README archetype for `write-readme`.                                       |
-| `cdk:readme-scorer`         | Score README against the 100-point rubric for `write-readme`.                                           |
-| `cdk:review-thread-triager` | Label, classify, and plan each MR review thread for `address-merge-request-review`.                     |
-| `cdk:security-scanner`      | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.     |
-| `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.  |
-| `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                |
-| `cdk:test-gap-analyzer`     | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.           |
-| `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                     |
+| Agent                       | Purpose                                                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cdk:change-analyzer`       | Read changes; draft atomic commit groups, a branch name, or an MR title and description for `commit-changes`, `switch-branch`, `submit-merge-request`. |
+| `cdk:claude-md-analyzer`    | Extract and flag memory-file instructions; collect commands, stack, and patterns for `write-claude-md`.                                                |
+| `cdk:claude-md-scorer`      | Score CLAUDE.md and rules against the 100-point rubric for `write-claude-md`.                                                                          |
+| `cdk:conflict-analyzer`     | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                                                                |
+| `cdk:dependency-analyzer`   | Find outdated packages, breaking changes, and affected code for `upgrade-dependencies`.                                                                |
+| `cdk:devcontainer-analyzer` | Detect stacks, versions, services, ports, and existing Docker files for `setup-devcontainer`.                                                          |
+| `cdk:dockerfile-reviewer`   | Check a Dockerfile against practices, `docker build --check`, hadolint for `write-dockerfile`.                                                         |
+| `cdk:format-lint-analyzer`  | Detect file types, filled roles, candidates, and package manager, or run checks for `setup-format-lint`.                                               |
+| `cdk:mr-reviewer`           | Review an MR diff against guidelines for `review-merge-request`.                                                                                       |
+| `cdk:readme-analyzer`       | Collect repo facts and guess README archetype for `write-readme`.                                                                                      |
+| `cdk:readme-scorer`         | Score README against the 100-point rubric for `write-readme`.                                                                                          |
+| `cdk:review-thread-triager` | Label, classify, and plan each MR review thread for `address-merge-request-review`.                                                                    |
+| `cdk:security-scanner`      | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                    |
+| `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.                                                 |
+| `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                               |
+| `cdk:test-gap-analyzer`     | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.                                                          |
+| `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                                                                    |
 
 ### Hooks
 
