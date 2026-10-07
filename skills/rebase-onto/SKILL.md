@@ -17,7 +17,7 @@ Input: $ARGUMENTS
 - Push never automatic: always ask first. Push commands stay out of `allowed-tools` on purpose (second guard on history rewrite).
 - Every `git rm`, `git checkout --ours/--theirs`, and abort runs only after the AskUserQuestion option that names its effect; empty-commit skip (step 6) runs without asking; `git rm` stays out of `allowed-tools`.
 - Conflict analysis: ≥3 conflicted files → one `cdk:conflict-analyzer` per file, spawned in batches of ≤4 in one message; fewer → analyze inline. Agents only propose; every AskUserQuestion and git write stays here.
-- Caps: Merge both Revise loop 5 rounds per file; conflict loop runs once per replayed commit (bounded by the commit count). Cap hit → stop, tell user the rebase is still in progress (`git rebase --abort` undoes it).
+- Caps: Revise loop 5 rounds per file; conflict loop runs once per replayed commit (bounded by the commit count). Cap hit → stop, tell user the rebase is still in progress (`git rebase --abort` undoes it).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `rebase-onto`.
 
@@ -30,13 +30,13 @@ Input: $ARGUMENTS
 5. **Rebase.** `git rev-parse --abbrev-ref @{u}` = `origin/<current>` → pre-rebase sha = `git rev-parse @{u}` (record before rebasing; step 8 lease). `git rebase -S [--rebase-merges] <target>`. Success → step 7. Fails on signing → stop per conventions.md `## Signing`; tell user the rebase is still in progress (`git rebase --abort` undoes it).
 6. **Conflict loop.**
    - Files: `git diff --name-only --diff-filter=U`. Commit replayed: `git log -1 --format='%h %s' REBASE_HEAD`. Merge-base = `git merge-base <target> REBASE_HEAD`.
-   - Analysis: ≥3 files → spawn `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, merge-base (≤4 per message); keep each `Hunks:` and `Recommendation:` block; `Known issue:` lines per Rules. Fewer → inline: read conflict hunks; mine `git show REBASE_HEAD -- <file>`; ours `git log -p <merge-base>..HEAD -- <file>` (target commits plus already-replayed commits).
+   - Analysis: ≥3 files → spawn `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, merge-base (≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block; `Known issue:` lines per Rules. Fewer → inline: read conflict hunks; mine `git show REBASE_HEAD -- <file>`; ours `git log -p <merge-base>..HEAD -- <file>` (target commits plus already-replayed commits).
    - AskUserQuestion per file (≤4 per batch). Recommend per analysis (default Merge both unless one side clearly supersedes the other); give its justification:
-     - Merge both — combine hunks (analyzer `combined` text or by hand); keeps both sides. Show combined hunks, AskUserQuestion: Accept (Recommended) | Revise | Pick other option; only Accept writes the file and continues to `git add`.
+     - Merge both — combine hunks (analyzer `combined` text or by hand); keeps both sides. Show the proposed combined hunk in the per-file question itself; choosing Merge both writes it and continues to `git add`. Revise (an option in that same question, max 5 rounds) lets the user edit the combined hunk, then re-asks; no second Accept ask.
      - Keep target — `git checkout --ours -- <file>` (`HEAD`: target plus your already-replayed commits). Whole file: discards all your changes to it from this commit.
      - Keep mine — `git checkout --theirs -- <file>`. Whole file: discards all target changes to it (may undo upstream fixes).
      - Abort rebase — `git rebase --abort`, stop, `Result: cancelled` (conflict too broad / needs author).
-   - Delete/modify conflict → AskUserQuestion, recommend per analysis: Delete file (`git rm -- <file>`; drops the other side's changes) | Keep file (`git add -- <file>`; keeps the modified version, undoes the deletion) | Abort rebase (`git rebase --abort`).
+   - `Conflict:` `delete/modify` (inline: file deleted on one side, modified on the other) → this AskUserQuestion instead of the one above, recommend per analysis: Delete file (`git rm -- <file>`; drops the other side's changes) | Keep file (`git add -- <file>`; keeps the modified version, undoes the deletion) | Abort rebase (`git rebase --abort`).
    - Resolved file: no `<<<<<<<`/`>>>>>>>` markers left, then `git add -- <file>`.
    - `git diff --cached --quiet` exit 0 (commit now empty; change already in target) → `git rebase --skip` without asking; list it under Skipped.
    - Else `git -c core.editor=true rebase --continue`. New conflicts → repeat step 6.

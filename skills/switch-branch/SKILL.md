@@ -13,9 +13,8 @@ Input: $ARGUMENTS
 
 - Name follows `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Branch name`.
 - Always new branch; uncommitted changes carry over untouched. Never commit, stash, reset, or `--force`.
-- Switch without asking. Push only after the step 8 option that names it. `git push` stays out of `allowed-tools`, so the permission prompt is a second guard.
+- Switch and push without asking; the request to switch counts as consent to a normal push. `git push` stays out of `allowed-tools`, so the permission prompt is a second guard.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `switch-branch`.
 
 ## Workflow
@@ -27,7 +26,7 @@ Input: $ARGUMENTS
 5. **Name.** Draft name from steps 3–4: dominant change type + imperative summary. Exists (`git show-ref --verify --quiet refs/heads/<name>` exit 0, or `git ls-remote --heads origin refs/heads/<name>` non-empty) → append `-2`, `-3`, …. `ls-remote` error → treat as not on remote; push step reports real failure.
 6. **Show.** Show `Branch: <current> → <name>` + one-line reason; no confirmation.
 7. **Switch.** `git switch -c <name>`; fail → report exact error line, stop (nothing pushed).
-8. **Push.** No origin → skip. AskUserQuestion: Push to origin/<name> (Recommended) | Don't push. Push → `git push -u origin <name>`; fail → report exact error line, stop.
+8. **Push.** No origin → skip. `git push -u origin <name>` without asking; fail → report exact error line, stop.
 
 ## Output
 
@@ -36,6 +35,6 @@ Branch: <name> → origin/<name> | not pushed
 Switched from: <previous branch>
 Unstaged: <files or none>
 Changes carried: <count> files
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
