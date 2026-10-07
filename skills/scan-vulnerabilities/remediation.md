@@ -35,7 +35,7 @@ Protected paths = files that were dirty or untracked at pre-flight. A remediatio
 
 ## Brief for cdk:run-spec-kit
 
-Pass the brief below. It has no guiding-principles part, so run-spec-kit does not ask to update a filled constitution. An unfilled constitution makes the first attempt ask Infer | Skip; Infer writes it, and `.specify/memory/` survives rollback, so later attempts do not ask again. Skip makes every attempt ask again. The constraints sit in the what-and-why part instead. Never include a secret value; cite file, line, and rule.
+Pass the brief below. It has no guiding-principles part, so run-spec-kit does not ask to update a filled constitution. An unfilled constitution is inferred without asking; it is written once and `.specify/memory/` survives rollback. The constraints sit in the what-and-why part instead. Never include a secret value; cite file, line, and rule.
 
 ```text
 What and why: Remediate <title> (<ids>, <severity>) at <file:lines | package@version via manifest>. Risk: <one line>. Done when <scanners> no longer report <rule or id> there and the existing build and tests pass. Constraints: smallest atomic change; preserve existing behavior, architecture, public interfaces, data contracts, backward compatibility, and security controls; do not modify generated, vendored, compiled, minified, or third-party files; no breaking dependency upgrades; do not weaken, skip, or delete tests; do not add or run linters, formatters, or code-style tools.

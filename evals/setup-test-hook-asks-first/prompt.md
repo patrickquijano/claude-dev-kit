@@ -1,5 +1,5 @@
 ---
-description: /cdk:setup-test-hook in a repo whose .claude/settings.json already runs tests on Stop asks before replacing or duplicating that hook.
+description: /cdk:setup-test-hook in a repo whose .claude/settings.json already runs tests on Stop keeps that hook instead of replacing or duplicating it.
 max_turns: 20
 allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
 ---

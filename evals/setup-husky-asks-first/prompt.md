@@ -1,5 +1,5 @@
 ---
-description: Husky setup request in a repo with a custom commit-msg hook triggers setup-husky, which asks before overwriting it.
+description: Husky setup request in a repo with a custom commit-msg hook triggers setup-husky, which keeps it.
 max_turns: 20
 allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
 ---

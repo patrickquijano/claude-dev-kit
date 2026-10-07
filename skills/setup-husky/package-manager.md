@@ -19,7 +19,7 @@ Order, first match wins:
 
 1. `packageManager` field in the package's `package.json` → name before `@` (`pnpm@9.1.0+sha…` → pnpm).
 2. Lockfile in the package dir, then the git root: `pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm.
-3. None, or several lockfiles in the same dir → AskUserQuestion: npm (Recommended; ships with Node) | pnpm | yarn | bun. A subagent cannot ask: it reports `unknown` and the calling skill asks.
+3. No lockfile → npm (ships with Node), no question. Several lockfiles in the same dir → AskUserQuestion: npm (Recommended) | pnpm | yarn | bun. A subagent cannot ask: it reports `unknown` for conflicting lockfiles and the calling skill asks.
 
 `command -v <pm>` fails → stop ("install <pm>").
 

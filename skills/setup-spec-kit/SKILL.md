@@ -1,7 +1,7 @@
 ---
 name: setup-spec-kit
 description: Install GitHub Spec Kit (`specify-cli`) if missing, initialize the current project with the Claude integration, install the agent-context, assess, and bug extensions with set priorities, and add Spec Kit paths to git, linter, and formatter ignores. Use only when the user explicitly asks to set up, install, or initialize Spec Kit in a project. Do not use on your own after finishing a task.
-allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify init --here *) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension add *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
+allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension add *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
 ---
 
 # Setup Spec Kit
@@ -26,8 +26,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
    - `.specify/` and every required skill dir exist → skip.
    - `.specify/` and every core dir exist, extension dirs missing → skip; step 3 adds them.
    - `.specify/` exists, any core dir missing (initialized for another agent) → run `specify integration install claude`, no question.
-   - No `.specify/` → tell the user init merges into the current directory: it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`. AskUserQuestion: Init (Recommended) | Stop. Init → `specify init --here --integration claude --force --non-interactive` (`--force` is required in a non-empty directory; `--non-interactive` prevents a hang on prompts).
-   - Stop → `Init: declined`, `Result: cancelled`, `Stopped: Init: declined`; report, end the workflow.
+   - No `.specify/` → tell the user init merges into the current directory (it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`), then run `specify init --here --integration claude --force --non-interactive` (`--force` is required in a non-empty directory; `--non-interactive` prevents a hang on prompts); the permission prompt guards it (not pre-approved), no question.
    - Command fails → quote the error line, stop.
 3. **Extensions.** Parse `specify extension list --json` (array of objects with `id`, `priority`). For each extension in Rules: absent → `specify extension add <id> --priority <n>`; priority differs → `specify extension set-priority <id> <n>`; else ok. Fail → quote the error line, continue with the next extension. Then check every required skill dir. Extension listed but any of its dirs missing → AskUserQuestion: Reinstall `<id>` (Recommended; runs `specify extension remove <id> --keep-config --force && specify extension add <id> --priority <n>`, keeps its config) | Stop. Reinstall → run it, re-check its dirs; still missing or fail → quote the error line, record them for the report. Stop → `Result: stopped`, `Stopped: Extensions: skill dirs missing`. Record any other missing dirs for the report.
 4. **Git ignore.** Append missing lines to root `.gitignore`. No `.gitignore` → create it only when `git rev-parse --is-inside-work-tree` prints `true`; else skip. Lines, from the Spec Kit extension user guide:
@@ -53,11 +52,11 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 
 ```text
 specify-cli: installed <version> | present <version>
-Init: done | Claude integration added | skipped (already initialized) | declined
+Init: done | Claude integration added | skipped (already initialized)
 Extensions: agent-context <added|priority N→10|ok|failed>, assess <…>, bug <…>
 Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo)
 Lint/format ignores: <file: added paths>, … | none found
 Required skills: all present | missing <dirs>
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
