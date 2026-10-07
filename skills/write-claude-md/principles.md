@@ -4,7 +4,7 @@ Default content for every generated set of memory files, in create and update mo
 
 ## Trade-off order
 
-Correctness > security > clarity > simplicity > maintainability > testability > measured performance. Goes in the `CLAUDE.md` Precedence section as one line, stated once; the user may change it in step 4.
+Correctness > security > clarity > simplicity > maintainability > testability > measured performance. Goes in the `CLAUDE.md` Precedence section as one line, stated once.
 
 ## Adaptation
 
@@ -12,7 +12,7 @@ Correctness > security > clarity > simplicity > maintainability > testability > 
 - Emit an item only where the repo has a place it applies (facts `Architecture`, `Stack`, `Patterns`, `Commands`). Example: idempotency only when the repo has retries, jobs, migrations, or deploy scripts.
 - Write each item as a repo-specific action, not a definition. Name the repo's own tool, path, or command when facts show one ("validate input with zod in `src/api/`"); else keep a short generic line. Claude knows the definitions.
 - Never invent requirements, tools, thresholds, coverage targets, log formats, or commands.
-- Repo lacks the concept (e.g. no services → no operational readiness) → skip silently. Concept present but no tool (e.g. code but no test runner, no issue tracker for tech debt) → step 3 question with "Omit" option.
+- Repo lacks the concept (e.g. no services → no operational readiness) → skip silently. Concept present but no tool (e.g. code but no test runner, no issue tracker for tech debt) → omit and list under `Omitted:`.
 - Never restate a line owned by `CLAUDE.md` Changes, Boundaries, Commands, or Definition of done; Z3 penalizes the duplicate.
 - Preserve the repo's existing architecture, conventions, and tooling. Never tell Claude to rewrite working code only to satisfy a principle or pattern. Example: framework built on base classes → "prefer composition outside framework base classes", not "never inherit". Conflict with an existing instruction → step 3 conflict question.
 - Input guideline that mandates a pattern with no trigger from `## Patterns` in facts or verified requirements → step 3 question: keep as stated | apply only when the trigger appears | omit.

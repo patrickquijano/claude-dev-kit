@@ -24,13 +24,13 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** Project dir = `git rev-parse --show-toplevel`, else cwd. From the input extract scope (paths, journeys, or a feature description; absent → `all`, the whole code base). Scope matches nothing → AskUserQuestion with the closest fits.
 2. **Packages.** List files with `git ls-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); find manifests from `${CLAUDE_SKILL_DIR}/../setup-test-hook/stacks.md` Signals. Monorepo → one package per app with a UI, API, or CLI entry point; else the project dir. Limit to packages the scope touches. JS packages: package manager per `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md` Detect; ambiguous → ask here.
-3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `e2e`, scope, package manager (`n/a` for non-JS), and the paths of stacks.md and `${CLAUDE_SKILL_DIR}/../write-unit-tests/conventions.md`. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers (cap in Rules). `Known issue:` lines → known-issues rule.
-4. **Decide.** Per `Missing:` line and per decision with several fitting answers: framework per journey type (conventions.md End to end), how the app starts (framework-managed server from the repo's start command, or an already running URL the user confirms is local or safe), browsers or devices, test data strategy (API seed, seed script), sign-in reuse. App start `unknown` → ask; never assume a URL or port. AskUserQuestion per conventions.md (at most 4 questions per call). Install picked tools and browsers; install fails → stop.
+3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `e2e`, scope, package manager (`n/a` for non-JS), and the paths of stacks.md and `${CLAUDE_SKILL_DIR}/../write-unit-tests/conventions.md`. Use its `Runner:`, `Faker:`, and `Conventions:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers (cap in Rules). `Known issue:` lines → known-issues rule.
+4. **Decide.** Per `Missing:` line and per decision with several fitting answers: framework per journey type (conventions.md End to end), how the app starts (framework-managed server from the repo's start command, or an already running URL the user confirms is local or safe), browsers or devices, test data strategy (API seed, seed script), sign-in reuse. Take the Recommended pick for each and report it. App start `unknown` or an already running URL → ask whether it is local or safe; never assume a URL or port. AskUserQuestion only for that and to install a missing tool (at most 4 questions per call). Install picked tools and browsers; install fails → stop.
 5. **Practices.** WebFetch the picked framework's official docs per conventions.md Best practices rule; note framework-specific rules to apply.
 6. **Baseline.** Run the existing e2e suite, if any, with the app started per step 4. Failures → note them for the Output and continue without them (not this skill's to fix). Every journey already covered → `Result: nothing-to-do`.
 7. **Plan.** Table per package: journey, entry `file:line`, steps, assertions, data setup; critical journeys first. Print it and continue to step 8 without asking.
 8. **Write.** Per journey, in the project's conventions (style sample) and conventions.md End to end: AAA blocks, seeded faker data created per test, user-facing locators, retrying assertions, independent tests.
-9. **Run.** Run the e2e suite with the app started per step 4. Failure in a new test → test, locator, or setup bug: fix it; app behavior looks wrong → conventions.md production-bug question. Re-run until every new test passes, except tests under a production-bug decision (cap in Rules).
+9. **Run.** Run the e2e suite with the app started per step 4. Failure in a new test → test, locator, or setup bug: fix it; app behavior looks wrong → conventions.md production-bug rule (keep failing, report). Re-run until every new test passes, except tests kept failing under the production-bug rule (cap in Rules).
 10. **Report** the output below.
 
 ## Output
@@ -48,7 +48,7 @@ Run: <suite command>
 Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none
-Suspected bugs: <journey step — kept failing | skipped | user fixes>, … | none
+Suspected bugs: <journey step — kept failing>, … | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

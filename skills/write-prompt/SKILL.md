@@ -13,8 +13,8 @@ Input: $ARGUMENTS
 - Check every item in `${CLAUDE_SKILL_DIR}/checks.md`; each missed item is a known failure mode for agents.
 - Draft in the shape of `${CLAUDE_SKILL_DIR}/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
-- Never invent paths, commands, versions, or APIs; unverified → ask or omit, since a wrong fact in a prompt misleads the agent.
-- Input holds several tasks → AskUserQuestion which one first; list the rest as follow-ups.
+- Never invent paths, commands, versions, or APIs; unverified → omit and report, since a wrong fact in a prompt misleads the agent.
+- Input holds several tasks → draft the first and list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.

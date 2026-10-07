@@ -1,5 +1,5 @@
 ---
-description: CLAUDE.md request triggers write-claude-md, which asks about gaps, conflicts, or missing facts before writing memory files, and confirms before rewriting existing ones.
+description: CLAUDE.md request triggers write-claude-md, which asks about conflicts or missing facts before writing memory files, never inventing commands or policies.
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill, Agent, Write, Edit]
 ---

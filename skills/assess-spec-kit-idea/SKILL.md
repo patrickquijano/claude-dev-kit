@@ -1,6 +1,6 @@
 ---
 name: assess-spec-kit-idea
-description: Assess an idea with the GitHub Spec Kit assess extension before building it. Extract the idea from the input, then chain speckit-assess-intake, research, define, shape, and decide under one slug. A go verdict hands the decision.md handoff summary to run-spec-kit (handoff=no stops at go instead); needs-clarification re-runs the named stage after the user answers; kill stops. Use when the user asks to assess, evaluate, or vet an idea with Spec Kit.
+description: Assess an idea with the GitHub Spec Kit assess extension before building it. Extract the idea from the input, then chain speckit-assess-intake, research, define, shape, and decide under one slug. A go verdict hands the decision.md handoff summary to run-spec-kit (handoff=no stops at go instead); needs-clarification re-runs the named stage after the user answers; kill stops. Use only when the user explicitly asks to assess, evaluate, or vet an idea with Spec Kit. Do not use on your own after finishing a task.
 argument-hint: '<idea text | URL | ticket | codebase pointer> [handoff=no]'
 ---
 
@@ -12,9 +12,11 @@ Input: $ARGUMENTS
 
 - Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/speckit-chain.md` with prefix `speckit-assess-` and groups core and `assess`.
 - Pass `slug=<slug>` to every step after intake. All five commands share the slug and write only to `.specify/assessments/<slug>/`.
-- Pre-approved exception to relaying questions: during step 7 re-runs only, answer yes to overwriting artifacts in the current slug; on the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
+- Pre-approved exceptions to relaying questions: accept the slug intake suggests (step 3); during step 7 re-runs only, answer yes to overwriting artifacts in the current slug; on the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - `handoff=no` in the input (any position) → strip it from the idea; a go verdict then stops at step 6 without invoking run-spec-kit. Default: hand off.
 - Clarify loop (step 7): max 2 re-runs, then stop.
+- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `assess-spec-kit-idea`.
 
@@ -22,14 +24,14 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** Run the speckit-chain pre-flight for core and `assess`; core is checked now so a go handoff to run-spec-kit does not fail after the assessment. Input empty (after stripping `handoff=no`) → AskUserQuestion for the idea.
 2. **Extract** the idea: what it is, who asked, and any URLs, tickets, or codebase paths. Keep URLs verbatim; intake fetches them under its own trust policy. No idea found → AskUserQuestion for one. User gives none or cancels a question → `Result: cancelled`, `Stopped: <step>: user cancelled`, report, stop. Show the idea in one or two lines.
-3. **Intake.** Run `speckit-assess-intake <idea>`. Intake asks for a slug and suggests one; relay it. Take the slug from its `Slug:` line.
+3. **Intake.** Run `speckit-assess-intake <idea>`. Intake asks for a slug and suggests one; accept the suggestion. Take the slug from its `Slug:` line.
 4. **Research, define, shape.** Run `speckit-assess-research slug=<slug>`, then `speckit-assess-define slug=<slug>`, then `speckit-assess-shape slug=<slug>`.
 5. **Decide.** Run `speckit-assess-decide slug=<slug>`. Read the `**Verdict**` line in `.specify/assessments/<slug>/decision.md`. File missing or verdict not `go`, `needs-clarification`, or `kill` → `Verdict: unknown`, `Result: stopped`, `Stopped: Decide: verdict unknown`, report the output below, stop.
    - `go` → step 6.
    - `needs-clarification` → step 7.
    - `kill` → show the decisive reason from `## Verdict & Rationale`, report the output below with `Result: done`, end.
 6. **Hand off.** Read the section whose heading starts with `## If go`, up to the next `##` heading. Section missing → `Next: none`, `Result: stopped`, `Stopped: Hand off: no If go section`, report, stop. `handoff=no` → `Next: handoff ready`, `Result: done`, report, end. Else report the output below first, since run-spec-kit output would bury it, then invoke the `cdk:run-spec-kit` skill with that section body verbatim as its argument; run-spec-kit owns the rest, including its post-converge review of open items.
-7. **Clarify.** 2 re-runs done → list the blocking questions, `Result: stopped`, `Stopped: Clarify: 2 re-runs, blocking questions open`, report, stop; repeated blocks point to missing evidence only the user can gather. Else show the `**Blocking questions**` and `**Revisit stage**` from `decision.md`. AskUserQuestion: Answer and re-run (Recommended) | Stop. Answer → collect answers to each blocking question, run `speckit-assess-<revisit stage> slug=<slug> <answers>` (intake also gets the idea from step 2), run every later stage through decide with `slug=<slug>`, then read the verdict again as in step 5. Stop → `Result: stopped`, `Stopped: Clarify: user stopped`, report, end.
+7. **Clarify.** 2 re-runs done → list the blocking questions, `Result: stopped`, `Stopped: Clarify: 2 re-runs, blocking questions open`, report, stop; repeated blocks point to missing evidence only the user can gather. Else show the `**Blocking questions**` and `**Revisit stage**` from `decision.md`. Collect answers with AskUserQuestion, one question per blocking question, each with a Stop option (free text via Other). Answers → run `speckit-assess-<revisit stage> slug=<slug> <answers>` (intake also gets the idea from step 2), run every later stage through decide with `slug=<slug>`, then read the verdict again as in step 5. Any Stop → `Result: stopped`, `Stopped: Clarify: user stopped`, report, end.
 
 ## Output
 

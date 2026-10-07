@@ -1,6 +1,6 @@
 ---
 name: fix-spec-kit-bug
-description: Fix a bug with the GitHub Spec Kit bug extension from a stack trace, error or warning, URL, or bug report. Extract the evidence, then chain speckit-bug-assess, speckit-bug-fix, and speckit-bug-test, re-running fix (or assess when the assessment proves wrong) until the test verifies the fix, up to 3 passes. Use when the user asks to fix, triage, or assess a bug with Spec Kit.
+description: Fix a bug with the GitHub Spec Kit bug extension from a stack trace, error or warning, URL, or bug report. Extract the evidence, then chain speckit-bug-assess, speckit-bug-fix, and speckit-bug-test, re-running fix (or assess when the assessment proves wrong) until the test verifies the fix, up to 3 passes. Use only when the user explicitly asks to fix, triage, or assess a bug with Spec Kit. Do not use on your own after finishing a task.
 argument-hint: '<stack trace | error | URL | bug report>'
 ---
 
@@ -15,6 +15,7 @@ Input: $ARGUMENTS
 - Pre-approved exceptions to relaying questions: on pass 2 and later, answer yes to overwriting `assessment.md`, `fix.md`, and `test.md` in the current slug; in step 5, answer yes to running skipped or not-run checks.
 - Passes: one pass = fix, then test; the first fix + test is pass 1. A re-assess uses up a pass (re-assess, fix, test count as one). Every step 6 entry starts a new pass, whether test runs or not. Max 3 passes.
 - Test re-runs (step 5 skipped checks): max 3 per pass.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `fix-spec-kit-bug`.
 
@@ -27,14 +28,14 @@ Input: $ARGUMENTS
    - `applied` → step 5.
    - `not-applied` or `partial`, Deviations say the assessment is wrong → step 6 (re-assess).
    - `partial`, other reason → step 5; the test shows what the applied part fixes.
-   - `not-applied`, other reason → list the blockers from `fix.md`. AskUserQuestion: Retry with my input (Recommended) | Stop. Retry → collect the input with a follow-up AskUserQuestion: one option per blocker (option text = how to resolve it), free text via Other; then step 6 (retry) with that answer as `<user input>`. Stop → `Test: not run`, `Result: stopped`, `Stopped: Fix: not-applied, user stopped`, report, stop.
+   - `not-applied`, other reason → list the blockers from `fix.md`. Collect the input with AskUserQuestion: one option per blocker (option text = how to resolve it), plus Stop, free text via Other; then step 6 (retry) with that answer as `<user input>`. Stop → `Test: not run`, `Result: stopped`, `Stopped: Fix: not-applied, user stopped`, report, stop.
 5. **Test.** Run `speckit-bug-test slug=<slug>`. Read the Result in `test.md`:
    - `verified` → report, done.
    - `failed`, or `partial` with a failing check or regression → step 6 (failing checks).
    - `partial` with only `skipped` or `not-run` checks → list them, re-run test with consent to run them, no ask, then read the Result again. 3 re-runs done → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, report, stop.
 6. **Iterate.** 3 passes done → `Result: stopped`, `Stopped: Iterate: 3 passes`, list the failing checks from `test.md` (or the blockers from `fix.md`), report, stop; repeated misses point to a wrong root cause. Else start the next pass by entry:
    - Re-assess (from step 4, Deviations say the assessment is wrong) → run `speckit-bug-assess slug=<slug> <extracted evidence> Evidence from .specify/bugs/<slug>/test.md and fix.md`. Verdict `invalid` → `Result: stopped`, `Stopped: Iterate: re-assess verdict invalid`, report, stop. Else step 4.
-   - Retry (from step 4, Retry with my input) → run `speckit-bug-fix slug=<slug> <user input>`, then branch on its Status as in step 4.
+   - Retry (from step 4, user input collected) → run `speckit-bug-fix slug=<slug> <user input>`, then branch on its Status as in step 4.
    - Failing checks (from step 5, `failed` or failing `partial`) → tell the user which checks failed, run `speckit-bug-fix slug=<slug> Address the failing checks in .specify/bugs/<slug>/test.md`, then branch on its Status as in step 4.
 
 ## Output
