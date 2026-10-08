@@ -12,7 +12,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Project Claude config: `.claude/settings.json` `PostToolUse` hook → `.claude/hooks/plugin-validate.mjs` — after Claude edits a file under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/`, runs structural `claude plugin validate --strict .`; exits 2 on any error or warning so Claude fixes it. Rules `.claude/rules/`.
 - VS Code tasks: `.vscode/tasks.json` (only tracked file in `.vscode/`) — lint, format, per-tool checks, plugin validate.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint via detected package manager, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
-- Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks, `setup-test-hook` `run-tests.mjs`).
+- Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks, `setup-test-hook` `run-tests.mjs`, `setup-graphify` `graphify-rules.md`).
 - GitLab: `.gitlab-ci.yml` runs SAST + secret detection only (no lint/validate/eval); MR template `.gitlab/merge_request_templates/Default.md`.
 
 ## Commands

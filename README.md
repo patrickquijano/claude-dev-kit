@@ -12,6 +12,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - Git; commit, rebase, and review-address skills sign commits when signing is configured. `/cdk:setup-git` SSH signing needs Git 2.34+; OpenPGP needs GnuPG.
 - [`glab`](https://gitlab.com/gitlab-org/cli) CLI, authenticated, for the merge request skills.
 - [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
+- [`uv`](https://docs.astral.sh/uv/) or `pipx` (Python 3.10+) for `/cdk:setup-graphify` when `graphify` is not installed.
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
 - Node.js for `/cdk:setup-test-hook` (the hook script runs on Node); the project's own test runners.
 - The project's package manager for `/cdk:upgrade-dependencies`.
@@ -48,6 +49,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:setup-editorconfig`           | Detect file types; create .editorconfig with per-type indentation and line-ending defaults.                         |
 | `/cdk:setup-format-lint`            | Detect file types; pick, install, configure formatters and linters with defaults and ignores.                       |
 | `/cdk:setup-git`                    | Init repo; ask identity and signing key, default SSH signing, test a signature; .gitignore.                         |
+| `/cdk:setup-graphify`               | Install graphify, add Claude and git hooks, build the graph, share graph and report, add ignores and rules.         |
 | `/cdk:setup-husky`                  | Install Husky; add commit message and signing checks on recommended events; LF endings, ignores.                    |
 | `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.          |
 | `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                           |
