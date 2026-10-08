@@ -70,7 +70,7 @@ claude plugin install cdk@claude-dev-kit
 
 ### Agents
 
-Spawned by skills; not meant for direct use.
+Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 
 | Agent                       | Purpose                                                                                                                                                |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -91,6 +91,7 @@ Spawned by skills; not meant for direct use.
 | `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                               |
 | `cdk:test-gap-analyzer`     | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.                                                          |
 | `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                                                                    |
+| `cdk:topic-researcher`      | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                    |
 
 ### Hooks
 
