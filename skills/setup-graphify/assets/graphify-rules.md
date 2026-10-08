@@ -19,6 +19,7 @@ The repo has a knowledge graph in `graphify-out/` (`graph.json`, `GRAPH_REPORT.m
 
 - After editing code, run `graphify update .` (AST only, no API cost).
 - Docs, papers, and images need a full `/graphify .`; it spends session tokens, so run it only when those changed.
+- `Community N` placeholder names in `GRAPH_REPORT.md` → `graphify label . --missing-only`; it spends LLM tokens, so run it only when placeholders exist.
 - Never edit `graphify-out/` by hand.
 
 ## Sharing
