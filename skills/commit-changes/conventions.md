@@ -1,6 +1,6 @@
 # Git conventions
 
-Shared by `cdk:commit-changes`, `cdk:switch-branch`, `cdk:submit-merge-request`, `cdk:rebase-onto`, `cdk:address-merge-request-review`, `cdk:ship-merge-request`, `cdk:ship-spec-kit-bug`, and `cdk:ship-spec-kit-idea`. A repo commitlint config wins over these rules.
+Shared by `cdk:commit-changes`, `cdk:switch-branch`, `cdk:submit-merge-request`, `cdk:rebase-onto`, `cdk:address-merge-request-review`, `cdk:address-pull-request-review`, `cdk:ship-merge-request`, `cdk:ship-spec-kit-bug`, and `cdk:ship-spec-kit-idea`. A repo commitlint config wins over these rules.
 
 ## Commit subject
 
