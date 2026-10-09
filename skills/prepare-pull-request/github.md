@@ -1,6 +1,6 @@
 # GitHub conventions
 
-Used by `cdk:prepare-pull-request`, `cdk:review-pull-request`, and `cdk:address-pull-request-review` (`## Pre-flight`, `## Command rules`).
+Used by `cdk:prepare-pull-request`, `cdk:review-pull-request`, and `cdk:address-pull-request-review` (`## Pre-flight`, `## Command rules`); `cdk:ship-changes` uses `## Pre-flight` steps 5–6.
 
 ## Pre-flight
 

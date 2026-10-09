@@ -8,7 +8,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 
 ## Rules
 
-- Orchestration: follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`. Detection here is read-only; every write belongs to a chained skill.
+- Orchestration: follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`. Detection here is read-only; every write belongs to a chained skill.
 - Fixed order: `cdk:setup-git` > `cdk:setup-editorconfig` > `cdk:setup-format-lint` > `cdk:setup-husky` > `cdk:setup-test-hook`. The later skills need a git repo; Prettier and shfmt read `.editorconfig`; Husky adds its paths to the formatter and linter configs that exist; the test hook goes last so it gates the finished tooling.
 - One selection call: AskUserQuestion allows at most 4 options per question, so the 5 skills split into two multiSelect questions in that one call: "Repository" (git, EditorConfig) and "Tooling" (formatters and linters, Husky, test hook). Missing or partial setups get "(Recommended)" with the reason. Husky selected → git is also Recommended, its description noting that allowed signers (setup-git step 8) must be set or `cdk:setup-husky` stops.
 - Selection is asked once. No loops or retries.

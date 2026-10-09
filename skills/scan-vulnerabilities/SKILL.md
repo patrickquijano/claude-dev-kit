@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Verify each finding's applicability before changing code; never apply a scanner recommendation blindly. Exclude only conclusive false positives, logging evidence and justification. A low or medium accepted risk needs logged evidence and justification; a high or critical one needs approval.
 - One finding, or one tightly related group (same package, or same rule in the same file), per remediation. Never combine unrelated fixes. Fix rules, checkpoint, validation, and rollback: `${CLAUDE_SKILL_DIR}/remediation.md`.
 - Never modify generated, vendored, compiled, minified, or third-party code. Never weaken tests or security controls, delete a failing test, or use a destructive or forceful git command. Never commit or push, except through step 10 after explicit approval.
-- Remediate through `cdk:run-spec-kit`, the Build step of `cdk:ship-spec-kit-idea`. Never invoke `cdk:assess-spec-kit-idea` or `cdk:ship-spec-kit-idea`. Chaining: follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`; a run-spec-kit `stopped` or `cancelled` fails only that attempt, not the chain.
+- Remediate through `cdk:run-spec-kit`, the Build step of `cdk:ship-spec-kit-idea`. Never invoke `cdk:assess-spec-kit-idea` or `cdk:ship-spec-kit-idea`. Chaining: follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`; a run-spec-kit `stopped` or `cancelled` fails only that attempt, not the chain.
 - Agent spawns pass root, run dir, `iteration`, `mode`, images, the ZAP decision, `${CLAUDE_SKILL_DIR}/scanners.md`, and `${CLAUDE_SKILL_DIR}/reports.md`; rescans add `rescan=<k>`, scanners, changed paths, and finding ids; every spawn adds `retry-used=<scanners>`.
 - Statuses carry forward by `F-id`: the skill owns `status`, `attempts`, and `asked` in `manifest.json` `findings`, and writes them after each triage decision, attempt, and approval question (steps 5–7). The agent copies them into each `findings.json`. Only `open` findings are triaged again.
 - Never claim the code is secure, bug-free, or free of vulnerabilities. State only what the listed builds, tests, and rescans verified.
@@ -38,7 +38,7 @@ Input: $ARGUMENTS
 7. **Continue or stop.** Stop the loop when: no confirmed remediable finding is left; only approval-bound, manual, false-positive, or accepted findings are left; a scanner, build, or test dependency needed for reliable validation is unavailable; every remaining remediable finding has used its 2 attempts; `i` = max iterations; or more changes risk regressions (for example, repeated failures across unrelated fixes). Before stopping on approval-bound findings, ask every not-yet-asked `needs-approval` item, 4 per call; an approval with iterations left cancels the stop. No stop condition met → `i += 1`, back to step 4.
 8. **Final rescan.** Spawn the agent with `mode=final` as iteration `i + 1`.
 9. **Report.** Write `summary.md` per `reports.md` `## summary.md`, and finalize `manifest.json` `result`. Initial counts come from iteration 1, final counts from the final rescan. Remove the `cdk-vuln-scan/*` image tags this run built.
-10. **Ship.** Fixed count = 0 → skip. Protected paths still dirty → skip, and tell the user that shipping would also commit their earlier uncommitted changes. Else AskUserQuestion, listing the modified files, the `specs/` folders, and the current branch: Leave changes uncommitted (Recommended; review the diff first) | Commit + push + open MR via cdk:ship-merge-request. Ship → invoke the `cdk:ship-merge-request` skill via the Skill tool with `fix vulnerability remediations`; its `stopped` or ship-merge-request `cancelled` → `Stopped: Ship: <its Stopped>`. Each file in its `Excluded:` line → one `Manual actions:` line (held back from commit; review it).
+10. **Ship.** Fixed count = 0 → skip. Protected paths still dirty → skip, and tell the user that shipping would also commit their earlier uncommitted changes. Else AskUserQuestion, listing the modified files, the `specs/` folders, and the current branch: Leave changes uncommitted (Recommended; review the diff first) | Commit + push + open MR or PR via cdk:ship-changes. Ship → invoke the `cdk:ship-changes` skill via the Skill tool with `fix vulnerability remediations`; its `stopped` or ship-changes `cancelled` → `Stopped: Ship: <its Stopped>`. Each file in its `Excluded:` line → one `Manual actions:` line (held back from commit; review it).
 
 ## Output
 
@@ -58,9 +58,9 @@ Manual actions: <one per line, e.g. rotate credential> | none
 Branches: <branch at start> → <branch now>; created: <names> | unchanged
 Iterations: <k> of <max>
 Stop reason: <condition from step 7, or the pre-flight reason>
-MR: !<iid> <url> | none
+MR: !<iid> <url> | PR: #<n> <url> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the loop or a scan-only run ended on a step 7 condition, `validation unavailable`, or a scan-only run because `.specify/` is missing. `nothing-to-do` = every scanner completed with zero findings. `stopped` = pre-flight or an agent failure ended the run early. `cancelled` = ship-merge-request cancelled. A ship-merge-request `stopped` sets `stopped`.
+`done` = the loop or a scan-only run ended on a step 7 condition, `validation unavailable`, or a scan-only run because `.specify/` is missing. `nothing-to-do` = every scanner completed with zero findings. `stopped` = pre-flight or an agent failure ended the run early. `cancelled` = ship-changes cancelled. A ship-changes `stopped` sets `stopped`.

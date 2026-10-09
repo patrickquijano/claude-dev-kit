@@ -11,7 +11,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
 - Not pre-approved on purpose: `graphify install --project`, `graphify claude install --project`, `graphify hook install`, `graphify label`. The first three write `.claude/settings.json` and `.git/hooks`; `label` spends LLM tokens and rewrites `graphify-out/`. The permission prompt is the second guard.
-- Chaining the `graphify` skill: follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`.
+- Chaining the `graphify` skill: follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`.
 - Ignore files: append only missing entries; keep existing entries, order, and syntax form.
 - Edit only linter and formatter configs that already exist. Only `.gitignore` and `.claude/rules/graphify.md` may be created.
 - Each command runs once, no retries. The step 7 question is asked once.

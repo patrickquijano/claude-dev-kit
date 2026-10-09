@@ -15,7 +15,7 @@ Input: $ARGUMENTS
 - Pre-approved exceptions to relaying questions: accept the slug intake suggests (step 3); during step 7 re-runs only, answer yes to overwriting artifacts in the current slug; on the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - `handoff=no` in the input (any position) → strip it from the idea; a go verdict then stops at step 6 without invoking run-spec-kit. Default: hand off.
 - Clarify loop (step 7): max 2 re-runs, then stop.
-- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`.
+- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `assess-spec-kit-idea`.

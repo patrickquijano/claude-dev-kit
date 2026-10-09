@@ -57,9 +57,9 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                        |
 | `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                         |
 | `/cdk:setup-test-hook`              | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                                 |
-| `/cdk:ship-merge-request`           | Branch, commit, push, open the MR, then loop review and address rounds until clean (max 5).                                       |
-| `/cdk:ship-spec-kit-bug`            | Fix a bug with fix-spec-kit-bug, then ship and review the MR; ask before shipping unverified.                                     |
-| `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR.                                     |
+| `/cdk:ship-changes`                 | Branch, commit, push, open the GitLab MR or GitHub PR, then loop review and address rounds until clean (max 5).                   |
+| `/cdk:ship-spec-kit-bug`            | Fix a bug with fix-spec-kit-bug, then ship and review the MR or PR; ask before shipping unverified.                               |
+| `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR or PR.                               |
 | `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.                                          |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                                                               |
 | `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                           |
