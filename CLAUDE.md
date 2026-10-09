@@ -13,7 +13,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - VS Code tasks: `.vscode/tasks.json` (only tracked file in `.vscode/`) — lint, format, per-tool checks, plugin validate, local branch cleanup.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint via detected package manager, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
 - Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks, `setup-test-hook` `run-tests.mjs`, `setup-graphify` `graphify-rules.md`).
-- GitLab: `.gitlab-ci.yml` runs SAST + secret detection only (no lint/validate/eval); MR template `.gitlab/merge_request_templates/Default.md`.
+- GitHub: PR template `.github/pull_request_template.md`.
 
 ## Commands
 

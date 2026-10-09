@@ -131,7 +131,7 @@ claude --plugin-dir .              # test local checkout; /reload-plugins after 
 - Commits: signed, Conventional Commits subject only, ≤72 characters. Husky `commit-msg` runs commitlint; check a message with `npx commitlint --edit <file>`.
 - Branches: `<type>/<short-description>`.
 - Never bypass hooks with `--no-verify`.
-- Open merge requests with the [default template](.gitlab/merge_request_templates/Default.md).
+- Open pull requests with the [default template](.github/pull_request_template.md).
 
 ## License
 
