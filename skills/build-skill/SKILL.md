@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Known issues: follow `${CLAUDE_SKILL_DIR}/known-issues.md` with slug `build-skill`, or the target skill when the issue belongs to it.
 - Platform facts:
   - Subagents never get AskUserQuestion → all user interaction in main-thread skill.
-  - Orchestrator skill must NOT set `context: fork` (runs as subagent → loses AskUserQuestion).
+  - Orchestrator skill and every skill it chains must NOT set `context: fork` (runs as subagent → loses AskUserQuestion, nests spawns). Chain via the Skill tool in the main thread, never the Agent tool.
   - Subagent fields, tools, and limits: `${CLAUDE_SKILL_DIR}/../build-agent/practices.md`.
   - `disable-model-invocation: true` blocks Skill-tool invocation, so an orchestrator chaining that skill breaks.
 
