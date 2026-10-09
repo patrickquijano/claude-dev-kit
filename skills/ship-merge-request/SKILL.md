@@ -20,13 +20,13 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Steps 1–2 of `${CLAUDE_SKILL_DIR}/../submit-merge-request/gitlab.md` `## Pre-flight`; keep `default_branch`.
-2. **Protected check.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (incl. its fallback list, default branch, and detached `HEAD`). Protected → invoke `cdk:switch-branch` with `$ARGUMENTS`; `Result: nothing-to-do` → stop, `Stopped: 2: on protected branch with nothing to branch`.
-3. **Commit.** Invoke `cdk:commit-changes` with no input. Keep its commit count, whether its `Branch:` line says pushed, and its `Excluded:` files (held-back secrets the user must see). `Result: nothing-to-do` and current branch not protected (step 2 rule) → `git fetch --prune origin`; `git rev-list --count origin/<default_branch>..HEAD` = 0 → stop, report "nothing to ship"; else continue with the commits already on the branch. `nothing-to-do` on a protected branch → stop, report "nothing to ship".
-4. **MR.** `glab mr list --source-branch <current> -F json` (re-read current branch first). Open MR found → keep iid, skip. Else invoke `cdk:submit-merge-request` with `source=<current> target=<default_branch>` (presets skip its branch question); keep the created iid. Its `Result: nothing-to-do` (no changes vs target) → stop, report "nothing to ship", `Result: nothing-to-do`.
+2. **Protected check.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (incl. its fallback list, default branch, and detached `HEAD`). Protected → invoke the `cdk:switch-branch` skill via the Skill tool with `$ARGUMENTS`; `Result: nothing-to-do` → stop, `Stopped: 2: on protected branch with nothing to branch`.
+3. **Commit.** Invoke the `cdk:commit-changes` skill via the Skill tool with no input. Keep its commit count, whether its `Branch:` line says pushed, and its `Excluded:` files (held-back secrets the user must see). `Result: nothing-to-do` and current branch not protected (step 2 rule) → `git fetch --prune origin`; `git rev-list --count origin/<default_branch>..HEAD` = 0 → stop, report "nothing to ship"; else continue with the commits already on the branch. `nothing-to-do` on a protected branch → stop, report "nothing to ship".
+4. **MR.** `glab mr list --source-branch <current> -F json` (re-read current branch first). Open MR found → keep iid, skip. Else invoke the `cdk:submit-merge-request` skill via the Skill tool with `source=<current> target=<default_branch>` (presets skip its branch question); keep the created iid. Its `Result: nothing-to-do` (no changes vs target) → stop, report "nothing to ship", `Result: nothing-to-do`.
 5. **Review loop.** Round = 1..5:
-   1. Invoke `cdk:review-merge-request` with `<iid>`.
+   1. Invoke the `cdk:review-merge-request` skill via the Skill tool with `<iid>`.
    2. Read its Output `Findings: <n> inline, <m> general (<b> blocking, <p> praise)` and `Threads resolved: <r> of <o>` (own unresolved threads). `Merged: yes`, or `n + m − p` = 0 and `o − r` = 0 → exit loop; else continue (own threads still open count as findings).
-   3. Invoke `cdk:address-merge-request-review` with `<iid> self-review` (keeps threads self opened in sub-step 1, the review). `Result: nothing-to-do` → exit loop, report remaining findings as open.
+   3. Invoke the `cdk:address-merge-request-review` skill via the Skill tool with `<iid> self-review` (keeps threads self opened in sub-step 1, the review). `Result: nothing-to-do` → exit loop, report remaining findings as open.
    4. Round 5 done with findings or own threads left → exit loop, list them as open.
 
 ## Output
