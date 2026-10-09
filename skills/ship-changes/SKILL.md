@@ -15,7 +15,7 @@ Input: $ARGUMENTS
 - Host = `github` when `git remote get-url origin` has host `github.com`, else `gitlab`. Steps below name the host they apply to; unmarked steps run on both.
 - Input = branch hint or description, passed only to `cdk:switch-branch` (callers such as `cdk:ship-spec-kit-bug` pass `fix <slug>`); `cdk:commit-changes` runs without input and groups from the diff.
 - Review loop capped at 5 rounds, on both hosts.
-- Never merge on GitHub; only the GitLab review skill merges, after its own confirmation.
+- Never merge directly; only the review skills merge (`cdk:review-merge-request`, `cdk:review-pull-request`), each after its own confirmation.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-changes`.
 
@@ -29,7 +29,7 @@ Input: $ARGUMENTS
    - github: `gh pr list --head <current> --state open --json number,url,headRepositoryOwner` (re-read current branch first), keeping heads owned by Repo's owner. One found → keep its number, skip. Else invoke the `cdk:prepare-pull-request` skill via the Skill tool with `--target <default_branch>` (presets skip its target question); keep the number from its `PR:` line. Its `Result: nothing-to-do` → stop, report "nothing to ship", `Result: nothing-to-do`; `stopped` (e.g. gating findings) → `Stopped: 4: <its Stopped>`.
 5. **Review loop.** Round = 1..5:
    1. gitlab: invoke the `cdk:review-merge-request` skill via the Skill tool with `<iid>`. github: invoke the `cdk:review-pull-request` skill via the Skill tool with `<n>`.
-   2. gitlab: read its Output `Findings: <n> inline, <m> general (<b> blocking, <p> praise)` and `Threads resolved: <r> of <o>` (own unresolved threads). `Merged: yes`, or `n + m − p` = 0 and `o − r` = 0 → exit loop; else continue (own threads still open count as findings). github: read `Findings: <b> blocking, <s> suggestions, …` and `Comments:`. `Findings: none`, or `b + s` = 0 → exit loop. `Comments: prepared, not posted` (the user declined to post) → exit loop, list the findings as open; the address step has nothing to collect.
+   2. gitlab: read its Output `Findings: <n> inline, <m> general (<b> blocking, <p> praise)` and `Threads resolved: <r> of <o>` (own unresolved threads). `Merged: yes`, or `n + m − p` = 0 and `o − r` = 0 → exit loop; else continue (own threads still open count as findings). github: read `Findings: <b> blocking, <s> suggestions, …` and `Comments:`. Its `Merged: yes`, `Findings: none`, or `b + s` = 0 → exit loop. `Comments: prepared, not posted` (the user declined to post) → exit loop, list the findings as open; the address step has nothing to collect.
    3. gitlab: invoke the `cdk:address-merge-request-review` skill via the Skill tool with `<iid> self-review` (keeps threads self opened in sub-step 1, the review). github: invoke the `cdk:address-pull-request-review` skill via the Skill tool with `<n> self-review`. `Result: nothing-to-do` → exit loop, report remaining findings as open.
       Any chained `Result: stopped | cancelled` in sub-steps 1 or 3 → `Stopped: 5: <its Stopped>`; a review `Result: nothing-to-do` (no open MR or PR) → exit loop, report "nothing to review".
    4. The address Output shows `Commits: none` or `Pushed: no` → exit loop, list the findings as open (a repeat review would see the same head).
