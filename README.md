@@ -45,7 +45,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:prepare-pull-request`         | Pick a target branch, review with five read-only agents, then create or update a GitHub PR with a filled template.                |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                                              |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled comments, resolve addressed own threads, approve and merge.                                      |
-| `/cdk:review-pull-request`          | Review a GitHub PR with four read-only agents, run safe checks, and post one review only after you approve.                       |
+| `/cdk:review-pull-request`          | Review a GitHub PR with four read-only agents, run safe checks, post one review only after you approve, and optionally merge.     |
 | `/cdk:run-spec-kit`                 | Split a feature brief, run Spec Kit from constitution to converge, address open items after.                                      |
 | `/cdk:scan-vulnerabilities`         | Run pinned Docker security scanners, fix via run-spec-kit, validate, roll back, rescan (default 5 iterations).                    |
 | `/cdk:setup-devcontainer`           | Detect stack and services, ask services and Claude Code, write a pinned image, Dockerfile, or Compose devcontainer.               |
