@@ -27,3 +27,23 @@ evals/results/
 
 # Husky generated hooks
 .husky/_/
+
+# Node
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+coverage/
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# OS
+Desktop.ini
+
+# Editors
+*~
