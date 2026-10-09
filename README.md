@@ -33,65 +33,79 @@ claude plugin install cdk@claude-dev-kit
 
 ### Skills
 
-| Skill                               | Purpose                                                                                                                       |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.                                     |
-| `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit unless `handoff=no`.                              |
-| `/cdk:build-agent`                  | Interview, then create or update a subagent in personal, project, or plugin scope.                                            |
-| `/cdk:build-skill`                  | Interview, then create or update a skill or orchestrator + subagents.                                                         |
-| `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.                                       |
-| `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                                       |
-| `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                                          |
-| `/cdk:review-merge-request`         | Review a GitLab MR; post labeled comments, resolve addressed own threads, approve and merge.                                  |
-| `/cdk:run-spec-kit`                 | Split a feature brief, run Spec Kit from constitution to converge, address open items after.                                  |
-| `/cdk:scan-vulnerabilities`         | Run pinned Docker security scanners, fix via run-spec-kit, validate, roll back, rescan (default 5 iterations).                |
-| `/cdk:setup-devcontainer`           | Detect stack and services, ask services and Claude Code, write a pinned image, Dockerfile, or Compose devcontainer.           |
-| `/cdk:setup-editorconfig`           | Detect file types; create .editorconfig with per-type indentation and line-ending defaults.                                   |
-| `/cdk:setup-format-lint`            | Detect file types; pick, install, configure formatters and linters with defaults and ignores.                                 |
-| `/cdk:setup-git`                    | Init repo; ask identity and signing key, default SSH signing, test a signature; .gitignore.                                   |
-| `/cdk:setup-graphify`               | Install graphify, add Claude and git hooks, build the graph, name communities, share graph and report, add ignores and rules. |
-| `/cdk:setup-husky`                  | Install Husky; add commit message and signing checks on recommended events; LF endings, ignores.                              |
-| `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                    |
-| `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                     |
-| `/cdk:setup-test-hook`              | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                             |
-| `/cdk:ship-merge-request`           | Branch, commit, push, open the MR, then loop review and address rounds until clean (max 5).                                   |
-| `/cdk:ship-spec-kit-bug`            | Fix a bug with fix-spec-kit-bug, then ship and review the MR; ask before shipping unverified.                                 |
-| `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR.                                 |
-| `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.                                      |
-| `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                                                           |
-| `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                       |
-| `/cdk:write-claude-md`              | Merge guidelines and engineering principles into CLAUDE.md and `.claude/rules`; score /100 until ≥95.                         |
-| `/cdk:write-dockerfile`             | Write a multi-stage, digest-pinned Dockerfile and `.dockerignore` from input and repo facts.                                  |
-| `/cdk:write-e2e-tests`              | Write AAA, faker-based end-to-end tests for critical journeys; run-fix until new tests pass (max 3).                          |
-| `/cdk:write-integration-tests`      | Write AAA, faker-based integration tests per boundary with containers, stubs, or fakes (max 3 fix rounds).                    |
-| `/cdk:write-prompt`                 | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.                                     |
-| `/cdk:write-readme`                 | Create or update README.md from templates, score it /100, iterate until ≥95.                                                  |
-| `/cdk:write-unit-tests`             | Write AAA, faker-based unit tests (≥2 positive, ≥2 negative each) until coverage target (default 90%, max 5).                 |
+| Skill                               | Purpose                                                                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.                                         |
+| `/cdk:address-pull-request-review`  | Address GitHub PR review feedback: classify, fix, validate, verify, then commit, push, reply, resolve, re-request after approval. |
+| `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit unless `handoff=no`.                                  |
+| `/cdk:build-agent`                  | Interview, then create or update a subagent in personal, project, or plugin scope.                                                |
+| `/cdk:build-skill`                  | Interview, then create or update a skill or orchestrator + subagents.                                                             |
+| `/cdk:commit-changes`               | Group changes into atomic, signed Conventional Commits, leave protected branches, push.                                           |
+| `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                                           |
+| `/cdk:prepare-pull-request`         | Pick a target branch, review with five read-only agents, then create or update a GitHub PR with a filled template.                |
+| `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                                              |
+| `/cdk:review-merge-request`         | Review a GitLab MR; post labeled comments, resolve addressed own threads, approve and merge.                                      |
+| `/cdk:review-pull-request`          | Review a GitHub PR with four read-only agents, run safe checks, and post one review only after you approve.                       |
+| `/cdk:run-spec-kit`                 | Split a feature brief, run Spec Kit from constitution to converge, address open items after.                                      |
+| `/cdk:scan-vulnerabilities`         | Run pinned Docker security scanners, fix via run-spec-kit, validate, roll back, rescan (default 5 iterations).                    |
+| `/cdk:setup-devcontainer`           | Detect stack and services, ask services and Claude Code, write a pinned image, Dockerfile, or Compose devcontainer.               |
+| `/cdk:setup-editorconfig`           | Detect file types; create .editorconfig with per-type indentation and line-ending defaults.                                       |
+| `/cdk:setup-format-lint`            | Detect file types; pick, install, configure formatters and linters with defaults and ignores.                                     |
+| `/cdk:setup-git`                    | Init repo; ask identity and signing key, default SSH signing, test a signature; .gitignore.                                       |
+| `/cdk:setup-graphify`               | Install graphify, add Claude and git hooks, build the graph, name communities, share graph and report, add ignores and rules.     |
+| `/cdk:setup-husky`                  | Install Husky; add commit message and signing checks on recommended events; LF endings, ignores.                                  |
+| `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                        |
+| `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                         |
+| `/cdk:setup-test-hook`              | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                                 |
+| `/cdk:ship-merge-request`           | Branch, commit, push, open the MR, then loop review and address rounds until clean (max 5).                                       |
+| `/cdk:ship-spec-kit-bug`            | Fix a bug with fix-spec-kit-bug, then ship and review the MR; ask before shipping unverified.                                     |
+| `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR.                                     |
+| `/cdk:submit-merge-request`         | Create or update a GitLab MR with template, reviewers, delete-source and squash options.                                          |
+| `/cdk:switch-branch`                | Derive a Conventional Branch name from changes, switch to it, push.                                                               |
+| `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                           |
+| `/cdk:write-claude-md`              | Merge guidelines and engineering principles into CLAUDE.md and `.claude/rules`; score /100 until ≥95.                             |
+| `/cdk:write-dockerfile`             | Write a multi-stage, digest-pinned Dockerfile and `.dockerignore` from input and repo facts.                                      |
+| `/cdk:write-e2e-tests`              | Write AAA, faker-based end-to-end tests for critical journeys; run-fix until new tests pass (max 3).                              |
+| `/cdk:write-integration-tests`      | Write AAA, faker-based integration tests per boundary with containers, stubs, or fakes (max 3 fix rounds).                        |
+| `/cdk:write-prompt`                 | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.                                         |
+| `/cdk:write-readme`                 | Create or update README.md from templates, score it /100, iterate until ≥95.                                                      |
+| `/cdk:write-unit-tests`             | Write AAA, faker-based unit tests (≥2 positive, ≥2 negative each) until coverage target (default 90%, max 5).                     |
 
 ### Agents
 
 Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 
-| Agent                       | Purpose                                                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `cdk:change-analyzer`       | Read changes; draft atomic commit groups, a branch name, or an MR title and description for `commit-changes`, `switch-branch`, `submit-merge-request`. |
-| `cdk:claude-md-analyzer`    | Extract and flag memory-file instructions; collect commands, stack, and patterns for `write-claude-md`.                                                |
-| `cdk:claude-md-scorer`      | Score CLAUDE.md and rules against the 100-point rubric for `write-claude-md`.                                                                          |
-| `cdk:conflict-analyzer`     | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                                                                |
-| `cdk:dependency-analyzer`   | Find outdated packages, breaking changes, and affected code for `upgrade-dependencies`.                                                                |
-| `cdk:devcontainer-analyzer` | Detect stacks, versions, services, ports, and existing Docker files for `setup-devcontainer`.                                                          |
-| `cdk:dockerfile-reviewer`   | Check a Dockerfile against practices, `docker build --check`, hadolint for `write-dockerfile`.                                                         |
-| `cdk:format-lint-analyzer`  | Detect file types, filled roles, candidates, and package manager, or run checks for `setup-format-lint`.                                               |
-| `cdk:mr-reviewer`           | Review an MR diff against guidelines for `review-merge-request`.                                                                                       |
-| `cdk:readme-analyzer`       | Collect repo facts and guess README archetype for `write-readme`.                                                                                      |
-| `cdk:readme-scorer`         | Score README against the 100-point rubric for `write-readme`.                                                                                          |
-| `cdk:review-thread-triager` | Label, classify, and plan each MR review thread for `address-merge-request-review`.                                                                    |
-| `cdk:security-scanner`      | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                    |
-| `cdk:skill-auditor`         | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.                                                 |
-| `cdk:speckit-open-items`    | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                               |
-| `cdk:test-gap-analyzer`     | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.                                                          |
-| `cdk:test-suite-analyzer`   | Detect one package's test suites and runners for `setup-test-hook`.                                                                                    |
-| `cdk:topic-researcher`      | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                    |
+| Agent                             | Purpose                                                                                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cdk:change-analyzer`             | Read changes; draft atomic commit groups, a branch name, or an MR title and description for `commit-changes`, `switch-branch`, `submit-merge-request`. |
+| `cdk:claude-md-analyzer`          | Extract and flag memory-file instructions; collect commands, stack, and patterns for `write-claude-md`.                                                |
+| `cdk:claude-md-scorer`            | Score CLAUDE.md and rules against the 100-point rubric for `write-claude-md`.                                                                          |
+| `cdk:conflict-analyzer`           | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                                                                |
+| `cdk:dependency-analyzer`         | Find outdated packages, breaking changes, and affected code for `upgrade-dependencies`.                                                                |
+| `cdk:devcontainer-analyzer`       | Detect stacks, versions, services, ports, and existing Docker files for `setup-devcontainer`.                                                          |
+| `cdk:dockerfile-reviewer`         | Check a Dockerfile against practices, `docker build --check`, hadolint for `write-dockerfile`.                                                         |
+| `cdk:format-lint-analyzer`        | Detect file types, filled roles, candidates, and package manager, or run checks for `setup-format-lint`.                                               |
+| `cdk:mr-reviewer`                 | Review an MR diff against guidelines for `review-merge-request`.                                                                                       |
+| `cdk:pr-feedback-collector`       | Rank open PRs by unresolved feedback or normalize raw review data for `address-pull-request-review`.                                                   |
+| `cdk:pr-feedback-implementer`     | Apply one planned group of review fixes to the working tree for `address-pull-request-review`.                                                         |
+| `cdk:pr-feedback-planner`         | Classify feedback items, group them, detect conflicts, and plan changes for `address-pull-request-review`.                                             |
+| `cdk:pr-feedback-replier`         | Draft per-item replies with commit and validation evidence for `address-pull-request-review`.                                                          |
+| `cdk:pr-feedback-validator`       | Run the repo's documented checks in check mode for `address-pull-request-review`.                                                                      |
+| `cdk:pr-feedback-verifier`        | Verify each feedback item against the final diff and validation for `address-pull-request-review`.                                                     |
+| `cdk:pr-correctness-reviewer`     | Review the branch diff for bugs, regressions, and unintended changes for `prepare-pull-request`, `review-pull-request`.                                |
+| `cdk:pr-docs-reviewer`            | Review the branch diff for documentation, configuration, migration, and changelog needs for `prepare-pull-request`.                                    |
+| `cdk:pr-maintainability-reviewer` | Review the branch diff for duplication, dead code, naming, layering, and convention drift for `prepare-pull-request`, `review-pull-request`.           |
+| `cdk:pr-security-reviewer`        | Review the branch diff for secrets, authorization, validation, injection, and dependency risks for `prepare-pull-request`, `review-pull-request`.      |
+| `cdk:pr-test-reviewer`            | Review test coverage and run the documented checks for `prepare-pull-request`, `review-pull-request`.                                                  |
+| `cdk:readme-analyzer`             | Collect repo facts and guess README archetype for `write-readme`.                                                                                      |
+| `cdk:readme-scorer`               | Score README against the 100-point rubric for `write-readme`.                                                                                          |
+| `cdk:review-thread-triager`       | Label, classify, and plan each MR review thread for `address-merge-request-review`.                                                                    |
+| `cdk:security-scanner`            | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                    |
+| `cdk:skill-auditor`               | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.                                                 |
+| `cdk:speckit-open-items`          | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                               |
+| `cdk:test-gap-analyzer`           | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.                                                          |
+| `cdk:test-suite-analyzer`         | Detect one package's test suites and runners for `setup-test-hook`.                                                                                    |
+| `cdk:topic-researcher`            | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                    |
 
 ### Hooks
 
