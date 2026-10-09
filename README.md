@@ -25,7 +25,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 ## Install
 
 ```sh
-claude plugin marketplace add https://gitlab.com/patrickquijano/claude-dev-kit.git
+claude plugin marketplace add https://github.com/patrickquijano/claude-dev-kit.git
 claude plugin install cdk@claude-dev-kit
 ```
 
