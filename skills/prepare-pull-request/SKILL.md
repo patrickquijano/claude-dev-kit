@@ -1,7 +1,7 @@
 ---
 name: prepare-pull-request
 description: Review a branch with five parallel read-only reviewers, then create or update a GitHub pull request for a target branch you select, with a filled template, the current gh user as assignee, and only a managed section of the body updated. Use only when the user explicitly asks to prepare, open, create, submit, or update a GitHub pull request, e.g. "prepare a PR", "open a pull request", "create a PR to main", "update my pull request". Do not use on your own after finishing a task.
-argument-hint: '[--template <name|path>] [--draft] [--dry-run]'
+argument-hint: '[--target <branch>] [--template <name|path>] [--draft] [--dry-run]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git for-each-ref *) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *)
 ---
 
@@ -12,7 +12,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - User interaction (AskUserQuestion) only here; subagents cannot ask. Missing or ambiguous repository state, target, template, check result, or PR identity → stop with the reason; never guess.
-- Always ask for the target branch from the fetched remote branches, even when a default branch is detectable; never preselect or mark an option recommended for it.
+- Always ask for the target branch from the fetched remote branches, even when a default branch is detectable; never preselect or mark an option recommended for it. Only `--target <branch>` (set by `cdk:ship-changes`) skips the ask; it must be a branch in the filtered list, else stop.
 - Review only the committed range `merge-base..HEAD`; uncommitted changes are out of scope, so reviewers and the PR never describe them.
 - Only this skill writes: `git push`, `gh pr create`, `gh pr edit`, `gh pr ready`, and only in step 13 after the step 12 confirmation. They stay out of `allowed-tools`, so the permission prompt is a second guard. The five reviewers (`cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`) have no write tools and a read-only command allowlist.
 - Reviewers return the block in `${CLAUDE_SKILL_DIR}/findings.md`; parse, validate, deduplicate, and gate per its `## Parent validation`. Pass each reviewer only root, base ref, merge-base, HEAD SHA, scratch file paths, and that path.
@@ -30,10 +30,10 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Args.** Parse `$ARGUMENTS`: `--template <value>`, `--draft`, `--dry-run`. Unknown flag or `--template` without a value → stop.
+1. **Args.** Parse `$ARGUMENTS`: `--target <value>`, `--template <value>`, `--draft`, `--dry-run`. Unknown flag or `--target` or `--template` without a value → stop.
 2. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/github.md` `## Pre-flight`; keep Repo, Root, Branch, Self, Scratch.
 3. **Remote branches.** Per `github.md` `## Remote branches`; keep the filtered list.
-4. **Target.** Print the whole list. AskUserQuestion with the four most recent branches plus Other (typed value must be in the list, else re-ask within the cap); none marked recommended. Selected ref's remote must match Repo (`github.md`). Target = its branch part.
+4. **Target.** `--target <b>` → the list must hold exactly one ref whose branch part is `<b>` (several remotes → stop, name them); none → stop; skip the ask. Else print the whole list. AskUserQuestion with the four most recent branches plus Other (typed value must be in the list, else re-ask within the cap); none marked recommended. Selected ref's remote must match Repo (`github.md`). Target = its branch part.
 5. **Range.** `mb = git merge-base <target ref> HEAD`; none → stop. `git rev-list --count <mb>..HEAD` = 0 → report "no commits vs <target>", `Result: nothing-to-do`. With the Write tool (scratch path only; Bash redirects would not match `allowed-tools`) save the output of `git diff <mb>..HEAD`, `git diff --name-status <mb>..HEAD`, and `git log --format='%h %s' <mb>..HEAD` to `<scratch>/diff.patch`, `name-status.txt`, `log.txt`. Push need: no upstream, upstream not on the target's remote, or `git rev-list --count @{u}..HEAD` > 0 → push required (`git push -u <remote> HEAD:<branch>`), else none.
 6. **Review.** One message, five parallel Agent calls: `cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`, each with root, `<target ref>`, `<mb>`, HEAD SHA, the three scratch paths, and `${CLAUDE_SKILL_DIR}/findings.md`.
 7. **Aggregate.** Per `findings.md` `## Parent validation`: parse, respawn once on a malformed block, drop invalid findings (keep their list), deduplicate. Print findings sorted by severity with roles, evidence, and recommendations.

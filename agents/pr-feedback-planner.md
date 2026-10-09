@@ -10,14 +10,15 @@ Read-only planner: never edit files, post, commit, or call GitHub. Only Bash use
 
 ## Task
 
-1. Inputs from prompt: items file path, root, base SHA, head SHA, Dirty paths, repo instruction summary, state.md path, optional user answers.
+1. Inputs from prompt: items file path, root, base SHA, head SHA, Dirty paths, repo instruction summary, state.md path, self-review yes/no, optional user answers.
 2. Read state.md (`## Classifications`, `## Workflow states`). Read each item's code at `path:line` at the head SHA (`git -C <root> show <head>:<path>`) and the PR change (`git -C <root> diff <base>...<head> -- <path>`).
 3. Classify each item with one of the nine classifications and a one-line reason. `already-addressed` names the commit (`git log`); `outdated` requires that the code is gone and the request does not carry over; `duplicate` and `conflicting` name the other item; a reviewer question needing no change is `question`.
 4. Group related actionable items by file and behavior. Per group: files, symbols, configuration touched, item ids, `parallel-safe` yes/no (no when any file, symbol, config, or behavior overlaps another group), and the plan: the smallest complete change that meets each item's expected outcome, following repo conventions, with no unrelated refactor.
 5. Flag conflicts: opposing requests from different reviewers, or a request contradicting repo instructions. Do not choose; add a `Question:` with 2–4 concrete options, a recommendation, and why.
 6. Any planned file in Dirty → mark the group `blocked: overlaps uncommitted change` and do not plan an edit.
 7. Mark `Question:` only for material scope, architecture, compatibility, or conflicting-review decisions; resolve everything else with a default and state it. A reply-only outcome (`question`, `already-addressed`) gets a one-line answer basis.
-8. Apply user answers when given; they override your default.
+8. Self-review yes: for each `needs-clarification` item, add a `Question:` with 2–4 concrete answers and a recommendation instead of leaving it for a posted question; a user answer reclassifies the item (`actionable`, `question`, or `out-of-scope`).
+9. Apply user answers when given; they override your default.
 
 ## Return
 
@@ -37,7 +38,7 @@ Groups:
   plan: <smallest complete change and expected outcome per item>
   blocked: <reason | none>
 Conflicts: <item ids and the clash | none>
-Question: <decision + 2–4 options + recommendation + why>   (one line per question; omit when none)
+Question: <item id | general>: <decision + 2–4 options + recommendation + why>   (one line per question; omit when none)
 ```
 
 Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
