@@ -36,7 +36,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Boundaries
 
-- Never force-push. Only exception: `cdk:rebase-onto` pushes rewritten history with an explicit lease (`--force-with-lease=<branch>:<pre-rebase sha>`) after explicit confirmation. Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files.
+- Force-push: see `.claude/rules/git.md` `## Push`. Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files.
 - Never commit or push directly to `main`; work on a Conventional Branch.
 - Ask first before `git push` (an explicit commit or push request to a cdk git skill counts as consent to a normal, non-force push), creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Local commits, review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 - Secrets and hook bypass: see `.claude/rules/git.md`.
