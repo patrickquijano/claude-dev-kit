@@ -52,7 +52,7 @@ Input: $ARGUMENTS
 
    Fail → fix and re-check (cap in Rules); still failing → run step 9 on the failed checks without re-entering this step (nothing was written, so step 9 edits nothing), then print the Output with `Stopped: 6: <reason>` and end.
 
-7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`, and run step 9 on `Skipped:`, `Conflicting:`, `Reclassified:` items (else `Resolution: none`).
+7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`, and run step 9 on `Skipped:`, `Conflicting:`, `Reclassified:` items (else `Resolution: not run (nothing-to-do)`).
 8. **Write.** Write the validated JSON to the target, creating the directory if missing. The write touches a protected path, so Claude Code prompts. Re-read the file and repeat the step 6 checks on it; a failure → run step 9 on the failed checks, then print the Output with `Stopped: 8: <reason>` and end.
 9. **Resolve findings.** Per resolve-findings.md. Fix only rules this run added, then re-run the step 6 validation after any edit; never remove, reorder, or rewrite an existing rule. Entries the user already decided in a question are `accepted`.
 10. **Report** the output below (`Settings: unchanged` when nothing was written), plus: `claude doctor` lists any rule Claude Code rejected, and `/permissions` shows the active rules.

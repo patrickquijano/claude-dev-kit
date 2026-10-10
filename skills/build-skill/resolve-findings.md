@@ -4,7 +4,7 @@ Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed 
 
 - `scope: edit` = the skill may change files it already owns or writes (its own outputs, configs, tests). `scope: ask-only` = the skill never edits or posts anything in this step (reviews, posting, rebase, orchestrators): it analyzes, reports each item's recommended fix and who acts, and asks only for a choice no earlier step already offered.
 - `sources` = the Output fields and agent returns that carry findings: failed or skipped checks, remaining gaps, suspected bugs, blockers, skipped or reverted items, open review findings, unresolved decisions, open threads, and warnings.
-- No source holds an item → skip the step; print `Resolution: not run (nothing-to-do)` when the run is a `nothing-to-do` exit, else `Resolution: none`; `none` is only for a run of the step that found no item.
+- No source holds an item → skip the step; print `Resolution: not run (<cancelled | stopped | nothing-to-do>)` matching `Result:`, or `Resolution: none` when `Result: done`; `none` is only for a completed run with no item.
 
 ## Early exits
 
