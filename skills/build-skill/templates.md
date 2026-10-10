@@ -28,17 +28,20 @@ Input: $ARGUMENTS
 - Reference files: `${CLAUDE_SKILL_DIR}/<file>`.
 - <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`. # only if the skill asks the user or writes files
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`.
 
 ## Workflow
 
 1. **Pre-flight.** <step>
 2. **<Label>.** <step>
+3. **Resolve findings.** Per resolve-findings.md. # last step; only if the skill reports findings
 
 ## Output
 
 ```text
 <fixed structure>
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
@@ -60,6 +63,7 @@ Input: $ARGUMENTS
 - Pass each subagent only needed context; require concise return.
 - <Loop> capped at <n> rounds; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields and agent returns>). # only if the Output reports findings
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`; it covers subagent `Known issue:` lines.
 
 ## Workflow
@@ -67,11 +71,13 @@ Input: $ARGUMENTS
 1. **Clarify.** Ask user until inputs complete.
 2. **Spawn.** `[<plugin>:]<agent-a>` + `[<plugin>:]<agent-b>` in parallel: <task each>.
 3. **Merge.** Results → <next step>.
+4. **Resolve findings.** Per resolve-findings.md. # last step; only if the skill reports findings
 
 ## Output
 
 ```text
 <fixed structure>
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
