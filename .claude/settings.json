@@ -1,5 +1,37 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/hooks/scripts/release-check.mjs\" hook",
+            "timeout": 60,
+            "statusMessage": "Checking changelog and version",
+            "if": "Bash(gh *)"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/hooks/scripts/release-check.mjs\" hook",
+            "timeout": 60,
+            "statusMessage": "Checking changelog and version",
+            "if": "Bash(glab *)"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_gitlab_gitlab__save_merge_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/hooks/scripts/release-check.mjs\" hook",
+            "timeout": 60,
+            "statusMessage": "Checking changelog and version"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
