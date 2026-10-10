@@ -22,7 +22,7 @@ Input: $ARGUMENTS
 - Never run a workflow, push, open a PR, or change repository or organization settings.
 - Every write to an existing file prints its diff; no approval asked, since the files are local and reviewable.
 - Loops: clarify (step 3) max 3 rounds; verify-fix (step 9) max 3 attempts; clarify cap hit, or a failure before findings exist → print the Output with `Stopped: <step>: <reason>` and end; verify cap hit, or a failure after findings exist → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>` and end.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Checks:` findings, fail, or not installed).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Skipped practices:`, `Retained constraints:`, `Checks:` findings, fail, or not installed).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-github-workflows`; it covers subagent `Known issue:` lines.
 
 ## Workflow
