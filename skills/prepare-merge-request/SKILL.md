@@ -2,7 +2,7 @@
 name: prepare-merge-request
 description: Create or update a GitLab merge request for a chosen source and target branch, fill the best-fit MR template (repository first, bundled Default/Release/Bugfix/Hotfix/Documentation fallback), set assignee, reviewers, delete-source-branch and squash options. Use only when the user explicitly asks to open, create, submit, or update a GitLab merge request, e.g. "open an MR", "create a merge request", "submit MR to main", "update my merge request". Do not use on your own after finishing a task.
 argument-hint: '[optional target branch or template] [source=<branch> target=<branch>] [squash=<yes|no>] [delete-source=<yes|no>] [auto]'
-allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref *) Bash(git log *) Bash(git rev-list *) Bash(mktemp *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api --paginate projects/:id/members/all) Bash(glab api --paginate projects/:id/protected_branches) Bash(glab api projects/:id/templates/merge_requests*) Bash(glab mr list *)
+allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref *) Bash(git log *) Bash(git rev-list *) Bash(mktemp *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api --paginate projects/:id/members/all) Bash(glab api --paginate projects/:id/protected_branches) Bash(glab api projects/:id/templates/merge_requests) Bash(glab mr list *)
 ---
 
 # Prepare Merge Request
