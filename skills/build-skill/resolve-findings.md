@@ -4,11 +4,11 @@ Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed 
 
 - `scope: edit` = the skill may change files it already owns or writes (its own outputs, configs, tests). `scope: ask-only` = the skill never edits or posts anything in this step (reviews, posting, rebase, orchestrators): it analyzes, reports each item's recommended fix and who acts, and asks only for a choice no earlier step already offered.
 - `sources` = the Output fields and agent returns that carry findings: failed or skipped checks, remaining gaps, suspected bugs, blockers, skipped or reverted items, open review findings, unresolved decisions, open threads, and warnings.
-- No source holds an item → skip the step; print `Resolution: none`.
+- No source holds an item → skip the step; print `Resolution: none` (a `nothing-to-do` run with no item prints the same).
 
 ## Early exits
 
-A stop after the skill produced items (a capped-loop stop, a failed check, a blocker, a gate stop) runs this step once on what is left, without re-entering the loop, then prints the Output with `Stopped:`; this overrides a skill's "print the Output and end" for those stops. Pre-flight stops, cancels, and `nothing-to-do` skip it and print `Resolution: not run (…)`.
+A stop after the skill produced items (a capped-loop stop, a failed check, a blocker, a gate stop) runs this step once on what is left, without re-entering the loop, then prints the Output with `Stopped:`; each skill states this on its own stop paths. Pre-flight stops and cancels skip it and print `Resolution: not run (…)`. `nothing-to-do` skips the step only when no source holds an item; a `nothing-to-do` with items (baseline failures, `Skipped:`, `Skipped practices:`, `Gaps:`) runs the step.
 
 ## Collect
 
@@ -41,4 +41,4 @@ One Collect, one Analyze, one Resolve pass; at most 2 fix attempts per item; one
 
 ## Output
 
-Add one line before `Result:`: `Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)`; a run that ends early prints `not run (nothing-to-do | cancelled | stopped)`; on `stopped`, the stop reason, its recommended fix, and who acts go in `Stopped:`. Existing Output lines keep reporting their own data, updated to the final status; `Resolution:` carries only resolution status. Open items never change `Result:`; the skill's own rules decide it.
+Add one line before `Result:`: `Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)`; a run that ends early prints `not run (cancelled | stopped)` for a cancel or pre-flight stop, and `nothing-to-do` with no item prints `none`; on `stopped`, the stop reason, its recommended fix, and who acts go in `Stopped:`. Existing Output lines keep reporting their own data, updated to the final status; `Resolution:` carries only resolution status. Open items never change `Result:`; the skill's own rules decide it.
