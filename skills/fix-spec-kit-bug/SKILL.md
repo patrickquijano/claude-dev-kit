@@ -29,16 +29,16 @@ Input: $ARGUMENTS
    - `applied` → step 5.
    - `not-applied` or `partial`, Deviations say the assessment is wrong → step 6 (re-assess).
    - `partial`, other reason → step 5; the test shows what the applied part fixes.
-   - `not-applied`, other reason → list the blockers from `fix.md`. Collect the input with AskUserQuestion: one option per blocker (option text = how to resolve it), plus Stop, free text via Other; then step 6 (retry) with that answer as `<user input>`. Stop → `Test: not run`, `Result: stopped`, `Stopped: Fix: not-applied, user stopped`, report, stop.
+   - `not-applied`, other reason → list the blockers from `fix.md`. Collect the input with AskUserQuestion: one option per blocker (option text = how to resolve it), plus Stop, free text via Other; then step 6 (retry) with that answer as `<user input>`. Stop → `Test: not run`, `Result: stopped`; run step 7 on the `fix.md` blockers without re-entering the loop, then print the Output with `Stopped: Fix: not-applied, user stopped` and end.
 5. **Test.** Run `speckit-bug-test slug=<slug>`. Read the Result in `test.md`:
    - `verified` → report, done.
    - `failed`, or `partial` with a failing check or regression → step 6 (failing checks).
-   - `partial` with only `skipped` or `not-run` checks → list them, re-run test with consent to run them, no ask, then read the Result again. 3 re-runs done → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, report, stop.
+   - `partial` with only `skipped` or `not-run` checks → list them, re-run test with consent to run them, no ask, then read the Result again. 3 re-runs done → `Test: partial (<k> not run)`, `Result: stopped`; run step 7 on the not-run checks without re-entering the loop, then print the Output with `Stopped: Test: <k> checks not run` and end.
 6. **Iterate.** 3 passes done → `Result: stopped`, `Stopped: Iterate: 3 passes`, list the failing checks from `test.md` (or the blockers from `fix.md`), then step 7, stop; repeated misses point to a wrong root cause. Else start the next pass by entry:
-   - Re-assess (from step 4, Deviations say the assessment is wrong) → run `speckit-bug-assess slug=<slug> <extracted evidence> Evidence from .specify/bugs/<slug>/test.md and fix.md`. Verdict `invalid` → `Result: stopped`, `Stopped: Iterate: re-assess verdict invalid`, report, stop. Else step 4.
+   - Re-assess (from step 4, Deviations say the assessment is wrong) → run `speckit-bug-assess slug=<slug> <extracted evidence> Evidence from .specify/bugs/<slug>/test.md and fix.md`. Verdict `invalid` → `Result: stopped`; run step 7 on the failing checks from `test.md` and the blockers from `fix.md` without re-entering the loop, then print the Output with `Stopped: Iterate: re-assess verdict invalid` and end. Else step 4.
    - Retry (from step 4, user input collected) → run `speckit-bug-fix slug=<slug> <user input>`, then branch on its Status as in step 4.
    - Failing checks (from step 5, `failed` or failing `partial`) → tell the user which checks failed, run `speckit-bug-fix slug=<slug> Address the failing checks in .specify/bugs/<slug>/test.md`, then branch on its Status as in step 4.
-7. **Resolve findings.** Per resolve-findings.md, once when the run ends after assess with `Fix:` or `Test:` not clean (a `verified` test skips it); the step itemizes the failing or not-run checks from `test.md` and the blockers from `fix.md`, and never re-runs the fix or test passes. The verdict `invalid` stop has no items.
+7. **Resolve findings.** Per resolve-findings.md, once when the run ends after assess with `Fix:` or `Test:` not clean (a `verified` test skips it), including every step 4, 5, and 6 stop above, then print the Output with `Stopped:`; the step itemizes the failing or not-run checks from `test.md` and the blockers from `fix.md`, and never re-runs the fix or test passes. The step 3 verdict `invalid` stop has no items and prints `Resolution: not run (stopped)`; a step 2 cancel prints `Resolution: not run (cancelled)`.
 
 ## Output
 
