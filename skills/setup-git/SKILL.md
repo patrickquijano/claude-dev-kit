@@ -65,7 +65,7 @@ Smoke test: ✅ Signed | ✅ Signed (not verifiable locally) | ❌ Signed: <erro
 Ignores: <file: added groups>, … | up to date (skipped not-Recommended groups: <names> | none; uncovered stacks: <names> | none)
 Tracked but ignored: <files> (<kept | untracked>) | none
 Next: upload the signing public key to your forge account | none
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -64,7 +64,7 @@ Settings: .claude/settings.json (<added | updated | already present>)[, removed 
 Context: <file> (<added | updated | already present | skipped>)
 Tasks: .vscode/tasks.json (<added N | already present>)[, unignored]
 Smoke test: pass | blocks: <first reason line>
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

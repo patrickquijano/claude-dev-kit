@@ -76,7 +76,7 @@ Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, … | up to date
 Smoke test: <✅/❌ lines>
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

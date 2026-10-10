@@ -59,7 +59,7 @@ Extensions: agent-context <added|priority N→10|ok|failed>, assess <…>, bug <
 Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo)
 Lint/format ignores: <file: added paths>, … | none found
 Required skills: all present | missing <dirs>
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

@@ -53,7 +53,7 @@ Comments: <n> inline + summary posted | prepared, not posted
 Merged: yes (<squash | merge commit>; branch <deleted | kept>[; local branch deleted][; admin, only when `--admin` was passed]) | no (<reason>) | not offered (<blockers>) | not requested
 Decision: REQUEST_CHANGES | COMMENT | APPROVE (<posted | proposed only>)
 Uncertainty: <list> | none
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

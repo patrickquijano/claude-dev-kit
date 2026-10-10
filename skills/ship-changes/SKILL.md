@@ -58,7 +58,7 @@ Settings: target <branch>, squash <yes | no | enforced>, delete source <yes | no
 Loops: <l> (rounds <r> of 5 in the last)
 Last review: gitlab: <n> inline, <m> general (<b> blocking, <p> praise) | github: <b> blocking, <s> suggestions
 Merged: yes (<squash | merge commit>; branch <deleted | kept>) | no (<every blocker or open finding>)
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

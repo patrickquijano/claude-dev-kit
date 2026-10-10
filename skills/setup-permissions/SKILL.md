@@ -72,7 +72,7 @@ Skipped: <rule — reason>, … | none
 Conflicting: <rule — resolution>, … | none
 Reclassified: <command: from → to — reason>, … | none
 Validation: pass | fail: <reason>
-Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
