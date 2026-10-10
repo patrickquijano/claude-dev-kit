@@ -10,15 +10,15 @@ Inputs from the caller: target branch, `unattended` (`--yes` or `auto`), `dry-ru
    - `skipped` (no policy, or only exempt or non-user-facing changes) → `Release: skipped (<note>)`; done.
    - `ok` → `Release: ok (<level> → <required>)`; done.
    - `failures` with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → stop with the failure's `message` and `fix`; remediation cannot help.
-2. **Remediable?** Only `changelog-*` and `version-*` codes are remediable here. `uncommitted` → stop (the run has unreviewed generated or manual edits; fix: `/cdk:commit-changes`). `dry-run` → `Release: failed (<codes>)` with each `fix`, change nothing, and return to the caller.
-3. **Clean tree.** `git status --porcelain=v1 --untracked-files=all` non-empty → stop, `uncommitted changes block the release gate; run /cdk:commit-changes first`. `cdk:commit-changes` commits everything dirty, so never remediate over unrelated edits.
+2. **Dry run.** `dry-run` → `Release: failed (<codes>)` with each `fix`, change nothing, and return to the caller.
+3. **Clean tree.** Only `changelog-*` and `version-*` codes are remediable here; any `uncommitted` code also takes this step's stop. `git status --porcelain=v1 --untracked-files=all` non-empty → stop, `uncommitted changes block the release gate; run /cdk:commit-changes first`. `cdk:commit-changes` commits everything dirty, so never remediate over unrelated edits.
 4. **Consent.** Not `unattended` → one AskUserQuestion: `Update changelog and version, commit, push (Recommended)` (objective reason: the check blocks PR/MR creation and CI until they exist) | `Stop`. `Stop` → stop. `unattended` → no ask; the caller's consent covers it.
 5. **Remediate**, chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`:
    - any `changelog-*` → `cdk:write-changelog base <target>`.
    - any `version-*` → `cdk:bump-version target <target>`.
    - then `cdk:commit-changes` with no input: it makes atomic commits (`docs(changelog): …`, `chore(release): bump version to <required>`) and pushes.
-   - Read each `Result:` line; `stopped` or `cancelled` → stop the gate, report that step.
-6. **Revalidate.** Re-run step 1. `ok` → `Release: fixed (<codes>)`, then tell the caller to recompute its range and push need. Failures remain → one more remediation round at most (cap 2 in total); still failing → stop with the remaining codes and `fix`.
+   - Read each `Result:` line; `stopped` or `cancelled` → stop the gate with `release gate <codes>: <skill> stopped`.
+6. **Revalidate.** Re-run step 1. `ok` → `Release: fixed (<codes>)`, then tell the caller to recompute its range and push need. Failures remain → one more round (max 2 rounds in total); still failing → stop with the remaining codes and `fix`.
 
 ## Stops
 
@@ -27,4 +27,4 @@ A gate stop ends the caller's run: `Result: stopped`, `Stopped: <caller step>: r
 ## Notes
 
 - Idempotent: `cdk:write-changelog` matches existing bullets by meaning and `bump` sets the required version rather than adding to it, so a repeat run changes nothing and never double-bumps.
-- Caps: 2 remediation rounds; the gate is never re-entered by its caller.
+- The gate is never re-entered by its caller.
