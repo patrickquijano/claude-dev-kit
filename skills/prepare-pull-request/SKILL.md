@@ -27,6 +27,7 @@ Input: $ARGUMENTS
 - Never `--force`, `--no-verify`, commit, stash, or reset.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: medium and low findings in the managed section, `Dropped findings`, reviewers with `Status: incomplete`, failed or skipped checks, verify mismatches).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `prepare-pull-request`; it covers reviewer `Known issue:` lines.
 
 ## Workflow
@@ -38,13 +39,14 @@ Input: $ARGUMENTS
 5. **Range.** `mb = git merge-base <target ref> HEAD`; none → stop. `git rev-list --count <mb>..HEAD` = 0 → report "no commits vs <target>", `Result: nothing-to-do`. With the Write tool (scratch path only; Bash redirects would not match `allowed-tools`) save the output of `git diff <mb>..HEAD`, `git diff --name-status <mb>..HEAD`, and `git log --format='%h %s' <mb>..HEAD` to `<scratch>/diff.patch`, `name-status.txt`, `log.txt`. Push need: no upstream, upstream not on the target's remote, or `git rev-list --count @{u}..HEAD` > 0 → push required (`git push -u <remote> HEAD:<branch>`), else none.
 6. **Review.** Direct-review criteria met → review per `findings.md` `## Direct review`, mark the reviewers `direct`, go to step 7. Else one message, five parallel Agent calls: `cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`, each with root, `<target ref>`, `<mb>`, HEAD SHA, the three scratch paths, and `${CLAUDE_SKILL_DIR}/findings.md`.
 7. **Aggregate.** Per `findings.md` `## Parent validation`: parse, respawn once on a malformed block, drop invalid findings (keep their list), deduplicate. Print findings sorted by severity with roles, evidence, and recommendations.
-8. **Gate.** Any gating finding or failed or incomplete required check per `findings.md` → print them, `Result: stopped`, `Stopped: 8: <reason>`, end. Applies to `--dry-run` too.
+8. **Gate.** Any gating finding or failed or incomplete required check per `findings.md` → print them, `Result: stopped`, `Stopped: 8: <reason>`, then step 15 (Resolve findings, no edits) before ending. Applies to `--dry-run` too.
 9. **Existing PR.** Per `github.md` `## Pull request identity`: 0 → create, 1 → update (keep its number, title, body, assignees, draft flag), more → stop.
 10. **Template.** Per `github.md` `## Templates`; keep its text and source (`explicit`, `repository`, `fallback`). `--template` unresolved → stop.
 11. **Draft.** Title per Rules, from the commit subjects; write to `<scratch>/title` and lint it (cap in Rules). Create path body: fill the template, then append the managed block. Update path body: replace only the managed block (append when absent), per `github.md` `## Managed section`. The block holds a summary drawn from each reviewer `Summary`, per-role status and counts, commands with exit codes, medium and low findings, and limitations, including any reviewer with `Status: incomplete`. Existing title failing the title rules → note it. Write `<scratch>/body.md`.
 12. **Confirm.** Show title, base ← head, template and source, assignee Self, draft, push need, and the body. `--dry-run` → print this as the result, `Result: done`, end. `--yes` → take the recommended effect without asking (`Push + Create PR`, `Create PR`, or `Update PR`, `Update PR + title` only when the existing title fails the title rules, else `Update PR`, prefixed `Push +` when needed). Else one AskUserQuestion, options naming each effect: push required → `Push + Create PR` | Revise | Cancel; push none → `Create PR`; update path → `Update PR` (keep title, recommended unless the title fails the rules) | `Update PR + title`, each prefixed `Push +` when a push is needed. Every variant also offers Revise and Cancel. Revise → back to the step the user names (cap in Rules). Cancel → `Result: cancelled`, nothing written.
 13. **Write.** Only the confirmed effects, in order: `git push -u <remote> HEAD:<branch>` (`<remote>` = the target ref's remote); create `gh pr create -B <target> -H <branch> -t '<title>' -F <scratch>/body.md -a @me [-d]`; update `gh pr edit <n> -F <scratch>/body.md --add-assignee @me [-t '<title>']`, and with `--draft` on a ready PR `gh pr ready <n> --undo`. Failure → report the exact error line, retry once, then stop.
 14. **Verify.** `<n>` = existing number, or parsed from the URL `gh pr create` prints. `gh pr view <n> --json number,url,title,baseRefName,headRefName,isDraft,assignees,body`: base and head match, Self among assignees, draft flag as requested, both markers present once, and on update the text outside the markers equals the pre-write body. Mismatch → report the field, stop.
+15. **Resolve findings.** Per resolve-findings.md. Fix only the PR title and managed section this skill wrote; code findings are never edited here. A gating finding in step 8 ends the run through this step with `Result: stopped`, so its items still get impact and a recommended fix.
 
 ## Output
 
@@ -61,6 +63,7 @@ Checks:
 - `<command>` → exit <n>
 Dropped findings: <n> (<reasons>) | none
 Excluded: uncommitted changes | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

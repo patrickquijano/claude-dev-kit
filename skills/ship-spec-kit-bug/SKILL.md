@@ -13,6 +13,7 @@ Input: $ARGUMENTS
 
 - Follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`. Output blocks are handled by: Gate for fix-spec-kit-bug, Branch and Ship for the rest.
 - GitLab or GitHub, like the ship chain: the protected-branch check uses the host row of `## Protected branch`, else its fallback list.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Merged: no (<reason>)`, `Last review:`, `Test:` not verified, open `Findings:` lines of the chained skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-spec-kit-bug`.
 
 ## Workflow
@@ -22,6 +23,7 @@ Input: $ARGUMENTS
 3. **Gate.** Read the Output block. `Verdict:` starts with `invalid` → `Stopped: Gate: invalid`, report, stop; no fix exists to ship. Any other verdict → check Fix and Test. `Fix: applied` and `Test: verified` → continue. Every other combination → AskUserQuestion: Stop (Recommended) | Commit + push + open MR or PR anyway; an unverified fix should not reach an MR or PR unasked. Stop → `Stopped: Gate: <Fix> / <Test>`, report, stop.
 4. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (host row, else fallback list) → skip, no ask; ship-changes switches off it with `fix <slug>`. Else not `fix/*` → invoke the `cdk:switch-branch` skill via the Skill tool with `fix <slug>`, no ask; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`, report, stop.
 5. **Ship.** Invoke the `cdk:ship-changes` skill via the Skill tool with `fix <slug>` as the branch hint, so cdk:switch-branch picks the `fix/` type. Its `Result: stopped | cancelled` → `Stopped: Ship: <its Stopped>`; `nothing-to-do` → `Result: nothing-to-do`. Report, end.
+6. **Resolve findings.** Per resolve-findings.md. Orchestrator: collect only what the chained skills left open; ask nothing under `cdk:ship-changes` settings; report each with its recommended fix.
 
 ## Output
 
@@ -37,6 +39,7 @@ MR: !<iid> <web_url> | PR: #<n> <url> | none
 Rounds: <r> of 5 | none
 Last review: gitlab: <n> inline, <m> general (<b> blocking, <p> praise) | github: <b> blocking, <s> suggestions | none
 Merged: yes | no (<reason>) | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

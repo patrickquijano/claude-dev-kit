@@ -19,6 +19,7 @@ Input: $ARGUMENTS
 - Conflict analysis: ≥3 conflicted files → one `cdk:conflict-analyzer` per file, spawned in batches of ≤4 in one message; fewer → analyze inline. Agents only propose; every AskUserQuestion and git write stays here.
 - Caps: Revise loop 5 rounds per file; conflict loop runs once per replayed commit (bounded by the commit count). Cap hit → stop, tell user the rebase is still in progress (`git rebase --abort` undoes it).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `rebase-onto`.
 
 ## Workflow
@@ -42,6 +43,7 @@ Input: $ARGUMENTS
    - Else `git -c core.editor=true rebase --continue`. New conflicts → repeat step 6.
 7. **Verify.** `git status` clean, no rebase in progress. `git log --format='%h %G? %s' <target>..HEAD`: every `%G?` = `G`. Fail → report, stop.
 8. **Push.** `glab mr list --source-branch <current> -F json` returns an open MR (glab missing or error → skip check) → warn that push rewrites the MR history and may mark review comments outdated. Upstream = `origin/<current>` → AskUserQuestion: Push with lease (Recommended, remote still has pre-rebase history) | Skip. Push with lease → `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>`. Upstream is another branch (e.g. `origin/main`) → never force; AskUserQuestion: Skip (Recommended, upstream `<u>` is not this branch) | Push -u to `origin/<current>` (no force; rejected if it holds other history); Push -u → `git push -u origin HEAD:<current>`. No upstream → ask: Push -u (Recommended) | Skip; Push -u → `git push -u origin HEAD:<current>`. Fail → report exact error line, stop.
+9. **Resolve findings.** Per resolve-findings.md. Never edit code or redo the rebase here (history rewrites already had explicit asks); per item give impact, the recommended follow-up, and the command for the user to run.
 
 ## Output
 
@@ -51,6 +53,7 @@ Commits replayed: <count> [signature: G]
 Conflicts: <file — resolution> or none
 Skipped: <commits or none>
 Pushed: <remote>/<current> (force-with-lease | -u) | no
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

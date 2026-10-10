@@ -13,6 +13,7 @@ Input: $ARGUMENTS
 
 - Follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`. Output blocks are handled by: Gate for assess-spec-kit-idea, Build for run-spec-kit, Branch and Ship for the rest.
 - GitLab or GitHub, like the ship chain: the protected-branch check uses the host row of `## Protected branch`, else its fallback list.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Open:` items, `Merged: no (<reason>)`, `Last review:`, open `Findings:` lines of the chained skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-spec-kit-idea`.
 
 ## Workflow
@@ -23,6 +24,7 @@ Input: $ARGUMENTS
 4. **Build.** Read the section whose heading starts with `## If go` in `.specify/assessments/<slug>/decision.md`, up to the next `##` heading. Invoke the `cdk:run-spec-kit` skill via the Skill tool with that section body verbatim. Its `Result: cancelled`, or `Stopped:` at any step other than step 10 (Implement, converge, address) → `Stopped: Build: run-spec-kit <its Stopped>`, report, stop. Not converged or open items, including run-spec-kit stopping after 5 rounds → continue; the MR review loop surfaces them. `Addressed:` `<c> of them CRITICAL` with c > 0, or any item listed under `Open:` starts with `CRITICAL:` → AskUserQuestion: Stop (Recommended) | Commit + push + open MR or PR anyway; unresolved CRITICAL findings should not reach an MR unasked. Stop → `Result: stopped`, `Stopped: Build: CRITICAL findings open`, report, stop.
 5. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (host row, else fallback list) → skip, no ask; ship-changes switches off it with `feat <slug>`. Else Spec Kit branch (`001-<name>`) → keep it, no ask; later `speckit-*` commands find the feature directory from that branch name; report `Branch: <current> (kept: Spec Kit branch)`. Else not `feat/*` → invoke the `cdk:switch-branch` skill via the Skill tool with `feat <slug>`, no ask; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`, report, stop.
 6. **Ship.** Invoke the `cdk:ship-changes` skill via the Skill tool with `feat <slug>` as the branch hint, so cdk:switch-branch picks the `feat/` type. Its `Result: stopped | cancelled` → `Stopped: Ship: <its Stopped>`; `nothing-to-do` → `Result: nothing-to-do`. Report, end.
+7. **Resolve findings.** Per resolve-findings.md. Orchestrator: collect only what the chained skills left open (including run-spec-kit's `Open:` items); ask nothing under `cdk:ship-changes` settings; report each with its recommended fix.
 
 ## Output
 
@@ -38,6 +40,7 @@ MR: !<iid> <web_url> | PR: #<n> <url> | none
 Rounds: <r> of 5 | none
 Last review: gitlab: <n> inline, <m> general (<b> blocking, <p> praise) | github: <b> blocking, <s> suggestions | none
 Merged: yes | no (<reason>) | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
