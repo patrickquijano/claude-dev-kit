@@ -28,6 +28,7 @@ Input: $ARGUMENTS
 - Caps: PR choice re-asks 3; planner respawn with answers 1; fix attempts per group 3; verify rounds 2; commitlint redrafts 3; stale-head re-fetch 3 × 5 s; Revise rounds 3. Cap hit → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Follow-up:`, `Failures:`, `Validation:` fail|skipped, `Resolved:` remaining open, `Items:` blocked, conflicting, or needing clarification, `Pushed: no`, `Review requested: no`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `address-pull-request-review`; it covers agent `Known issue:` lines.
 
 ## Workflow
@@ -47,7 +48,8 @@ Input: $ARGUMENTS
 13. **Replies.** Spawn `cdk:pr-feedback-replier` with the updated items file path (classifications, `related` and `reason` per item, verifier results), commit map, validation summary, `${CLAUDE_SKILL_DIR}/state.md`, `${CLAUDE_SKILL_DIR}/../address-merge-request-review/replies.md`, the head short SHA, and whether anything was pushed. It returns one reply body per item with its marker; `no reply` items post nothing, `target` picks a thread reply or a PR comment, and `duplicate` or `outdated` replies are plain short explanations (no template).
 14. **Gate B.** Show each reply (item, disposition, body), the resolve candidates per `${CLAUDE_SKILL_DIR}/state.md` `## Resolve rule`, and the re-request targets per `## Re-request rule`. Commit only chosen at Gate A → nothing is pushed, so no resolves or re-requests, and the replier ran with pushed = no, so it drafts only Answer, Clarify, and Decline bodies and never claims a fix; Fix replies are held until a later run after the push. AskUserQuestion multiSelect: `Post replies` | `Resolve threads` | `Re-request review`; `Resolve threads` is offered only with replies posted this run or already recorded. `--yes` → all that apply. Nothing selected → skip to step 16.
 15. **Mutate.** One item at a time per `${CLAUDE_SKILL_DIR}/github-feedback.md` `## Re-fetch before a mutation` and `## Mutations`: skip an operation already in `ops[]` or whose marker is already posted; post the reply; resolve only if its reply is recorded and the resolve rule still holds; then re-request each target. Record each result before the next. Error → record it on the item, report the exact line, continue with independent items, never retry a reply. Then `## Verify after mutations`.
-16. **Report.** Print the Output, listing failures and follow-up actions (declined or open items, unpushed commits, skipped checks, reviewers not re-requested and why).
+16. **Resolve findings.** Per resolve-findings.md, once, after step 15. Itemize the `Follow-up:` and `Failures:` entries, each failed or skipped `Validation:` command, and each thread in `Resolved:` remaining open. `--yes` counts as unattended: ask nothing and report each item's recommended fix. Nothing is edited, posted, or pushed here, and choices Gate A or Gate B already offered are not asked again.
+17. **Report.** Print the Output, listing failures and follow-up actions (declined or open items, unpushed commits, skipped checks, reviewers not re-requested and why).
 
 ## Output
 
@@ -63,6 +65,7 @@ Review requested: @<user>, … | no
 Failures: <operation: exact error> | none
 Follow-up: <list> | none
 State: <state file path>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

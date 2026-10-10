@@ -26,6 +26,7 @@ Input: $ARGUMENTS
 - `self-review` input token (set by `cdk:ship-changes`) = the user reviewed their own MR; keep threads self started, and the user answers Clarify questions in step 5 instead of a posted question.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: threads `left open`, `awaiting reviewer`, declined threads, unpushed commits).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `address-merge-request-review`.
 
 ## Workflow
@@ -49,6 +50,7 @@ Input: $ARGUMENTS
 10. **Post.** Start = `date -u +%Y-%m-%dT%H:%M:%SZ`. Re-fetch `glab api -X GET projects/:id/merge_requests/<iid>` until `diff_refs.head_sha` = pushed HEAD (or old head when no commits); before each retry run `sleep 5`. Head is a commit not ours → report "new commits on MR", stop. Still stale after 3 attempts → report, stop. Per reply: write `{"body":…}` to scratch; `glab api projects/:id/merge_requests/<iid>/discussions/<id>/notes -X POST -H 'Content-Type: application/json' --input <file>`. Per resolve candidate: write `{"resolved":true}`; `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT -H 'Content-Type: application/json' --input <file>`. Summary: write `{"body":…}`; `glab api projects/:id/merge_requests/<iid>/notes -X POST -H 'Content-Type: application/json' --input <file>`. Error → report exact line and list already posted; stop.
 11. **Re-request review.** Significant = any Fix or Decline on a blocking thread, or any Fix touching non-test, non-doc code. Targets (self always excluded) = reviewers with `state` `requested_changes`, else all MR reviewers not `approved`. No targets (e.g. self-review only) or not significant → skip. Else re-request without asking. Per target: write `{"query":"mutation($p:ID!,$i:String!,$u:UserID!){mergeRequestReviewerRereview(input:{projectPath:$p,iid:$i,userId:$u}){errors}}","variables":{"p":"<path_with_namespace>","i":"<iid>","u":"gid://gitlab/User/<id>"}}` to scratch; `glab api graphql -X POST -H 'Content-Type: application/json' --input <file>`. Top-level `errors` or `data.mergeRequestReviewerRereview.errors` non-empty, or HTTP error → report exact line, continue with next target.
 12. **Verify.** `glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions`: self notes with `created_at` ≥ start = replies + 1 (summary); resolve candidate threads `resolved` true. Re-requested → `glab api -X GET projects/:id/merge_requests/<iid>/reviewers` shows targets `state` no longer `requested_changes`. Mismatch → report field, stop.
+13. **Resolve findings.** Per resolve-findings.md. Itemize the `left open` and `awaiting reviewer` counts by thread, each declined thread, and unpushed commits (`Pushed: no` with commits). Nothing is edited or posted here; `self-review` counts as unattended, so ask nothing and report each item's recommended fix. Items the earlier Clarify or answer steps already offered are not asked again.
 
 ## Output
 
@@ -60,6 +62,7 @@ Resolved: <n>; left open: <m>
 Pushed: <remote>/<branch> | no
 Summary posted: yes | no
 Review re-requested: @<user>, … | no
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

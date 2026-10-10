@@ -25,6 +25,7 @@ Input: $ARGUMENTS
 - Never claim the code is secure, bug-free, or free of vulnerabilities. State only what the listed builds, tests, and rescans verified.
 - Caps: iterations `max-iterations` (default 5, range 1–10); 2 attempts per finding across all iterations; one agent re-spawn per agent error or missing Return (steps 4, 6, 8), then stop (`scanner agent failed`); a scanner `failed` or `timeout` runs again in the next scan, and after its second failure goes in `retry-used`; approval questions: the top 4 `needs-approval` items by priority per iteration, the rest wait for the next iteration, or for step 7.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Remaining:` items itemized, `Validation:` fail|unavailable, failed|unavailable `Scanners:`, `Manual actions:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `scan-vulnerabilities`; it covers the agent's `Known issue:` lines.
 
 ## Workflow
@@ -39,6 +40,7 @@ Input: $ARGUMENTS
 8. **Final rescan.** Spawn the agent with `mode=final` as iteration `i + 1`.
 9. **Report.** Write `summary.md` per `reports.md` `## summary.md`, and finalize `manifest.json` `result`. Initial counts come from iteration 1, final counts from the final rescan. Remove the `cdk-vuln-scan/*` image tags this run built. Carry the `Newer major:` line stored in step 4 into the Output.
 10. **Ship.** Fixed count = 0 → skip. Protected paths still dirty → skip, and tell the user that shipping would also commit their earlier uncommitted changes. Else AskUserQuestion, listing the modified files, the `specs/` folders, and the current branch: Leave changes uncommitted (Recommended; review the diff first) | Commit + push + open MR or PR via cdk:ship-changes. Ship → invoke the `cdk:ship-changes` skill via the Skill tool with `fix vulnerability remediations`; its `stopped` or ship-changes `cancelled` → `Stopped: Ship: <its Stopped>`. Each file in its `Excluded:` line → one `Manual actions:` line (held back from commit; review it).
+11. **Resolve findings.** Per resolve-findings.md, after step 10 (also after a `Stopped: Ship` stop; pre-flight stops and cancels print `not run`) so `Manual actions:` includes the held-back files; `Resolution:` and those files appear in chat output only, not in `summary.md`. Fixes stay in the step 4–8 loop and are never re-run; this step only reports. Itemize the `Remaining:` count by finding id (`needs-approval`, `manual`, `failed`, `open`) and each failed or unavailable validation command and scanner; the step 6 and 7 approval questions already offered the `needs-approval` choices, so ask nothing again for them.
 
 ## Output
 
@@ -60,6 +62,7 @@ Branches: <branch at start> → <branch now>; created: <names> | unchanged
 Iterations: <k> of <max>
 Stop reason: <condition from step 7, or the pre-flight reason>
 MR: !<iid> <url> | PR: #<n> <url> | none
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -15,6 +15,7 @@ Input: $ARGUMENTS
 - Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items` agent per round, re-spawned at most once per round after it returns `Question:`.
 - The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Open:` items, `Addressed:` skipped, `Analyze:` open, `Implement: not converged`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `run-spec-kit`.
 
 ## Workflow
@@ -33,6 +34,7 @@ Input: $ARGUMENTS
 8. **Tasks.** Run `speckit-tasks`.
 9. **Analyze.** Run `speckit-analyze`. Findings with remediations → accept its remediation offer; analyze is read-only, so this skill applies the edits to `spec.md`, `plan.md`, and `tasks.md`, then run `speckit-analyze` once more to confirm. Findings left after the second run → list them, CRITICAL first, and carry them into step 10; implementation proceeds without a gate.
 10. **Implement, converge, address.** Run up to 5 rounds; keep a skip list and a fixed-awaiting-check list for the session. Each round: run `speckit-implement`, then `speckit-converge`, then address open items per `${CLAUDE_SKILL_DIR}/addressing.md`, which spawns `cdk:speckit-open-items` and decides whether to continue, finish, or stop. Stopped after 5 rounds → list the open items and unchecked tasks; repeated misses point to a spec or plan problem.
+11. **Resolve findings.** Per resolve-findings.md, once after step 10, including after a stop in it; the step itemizes the `Analyze:` and `Addressed:` counts and the agent's per-item approaches (its Recommended fix; `addressing.md` is not re-run, and ask nothing for items it already offered: report them `open`). Edit only spec and feature files this run wrote, limited to wording or clarity fixes validated by one extra `speckit-analyze` outside the step 9 cap (otherwise the item stays `open`); skipped CRITICAL items and checklist items the user skipped stay `accepted`; code, task, or meaning-changing edits stay `needs-decision`.
 
 ## Output
 
@@ -45,6 +47,7 @@ Implement: <rounds> round(s), converged | not converged (<k> tasks left)
 Addressed: <fixed> fixed, <skipped> skipped (<c> of them CRITICAL), <open> open
 Open: none | items below, one per line
   <open item or unchecked task; CRITICAL findings prefixed `CRITICAL:`>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
