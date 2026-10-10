@@ -1,0 +1,14 @@
+{
+  "$comment": "Opt-in release policy read by hooks/scripts/release-check.mjs (PR/MR skills, PreToolUse hook, CI). Paths outside userFacing (README, CLAUDE.md, .claude, .github, .husky, .vscode, evals, package files) never require a changelog entry or version bump. Add an exempt entry, with a reason, for anything inside userFacing that does not ship to users.",
+  "changelog": "CHANGELOG.md",
+  "defaultBranch": "main",
+  "remote": "origin",
+  "versionFiles": [{ "path": ".claude-plugin/plugin.json", "key": "version" }],
+  "userFacing": ["skills/**", "agents/**", "hooks/**", ".claude-plugin/**"],
+  "exempt": [
+    {
+      "glob": "hooks/scripts/*.test.mjs",
+      "reason": "test files do not change shipped behavior"
+    }
+  ]
+}
