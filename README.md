@@ -34,6 +34,8 @@ claude plugin install cdk@claude-dev-kit
 
 ### Skills
 
+Skills that report findings (failed or skipped checks, gaps, suspected bugs, blockers) end with a **Resolve findings** step: it analyzes each open item (impact, fix, alternatives, validation), fixes safe in-scope ones and revalidates, and asks with a recommended option for the rest. Skills with their own fix loop keep it; ship and setup chains stay unattended and report what is left.
+
 | Skill                               | Purpose                                                                                                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/cdk:address-merge-request-review` | Fix MR review threads with new commits, reply, resolve agreed threads, re-request review.                                                                     |
