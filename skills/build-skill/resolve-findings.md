@@ -1,6 +1,6 @@
 # Resolve findings
 
-Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed last before any **Report** step. The skill names its `scope` and `sources`; this file holds the procedure, so the skill adds no further issue-handling text. It runs once, after the skill's own capped loops, and never re-enters them.
+Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed last before any **Report** step. The skill names its `scope` and `sources`; this file holds the procedure, so the skill adds only scope clarifications, never a second procedure. It runs once, after the skill's own capped loops, and never re-enters them.
 
 - `scope: edit` = the skill may change files it already owns or writes (its own outputs, configs, tests). `scope: ask-only` = the skill never edits or posts anything in this step (reviews, posting, rebase, orchestrators): it analyzes, reports each item's recommended fix and who acts, and asks only for a choice no earlier step already offered.
 - `sources` = the Output fields and agent returns that carry findings: failed or skipped checks, remaining gaps, suspected bugs, blockers, skipped or reverted items, open review findings, unresolved decisions, open threads, and warnings.
