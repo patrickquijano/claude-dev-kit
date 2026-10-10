@@ -1,6 +1,6 @@
 ---
 name: change-analyzer
-description: Read uncommitted or branch changes and return atomic commit groups with subjects, a Conventional Branch name, or an MR title and filled description. Read-only. Spawned by the cdk:commit-changes, cdk:switch-branch, and cdk:submit-merge-request skills; do not use directly.
+description: Read uncommitted or branch changes and return atomic commit groups with subjects, a Conventional Branch name, or an MR title and filled description. Read-only. Spawned by the cdk:commit-changes (complex changes only; small ones are handled in its main thread), cdk:switch-branch, and cdk:prepare-merge-request skills; do not use directly.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: green

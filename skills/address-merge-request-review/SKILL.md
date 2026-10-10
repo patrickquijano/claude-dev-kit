@@ -2,7 +2,7 @@
 name: address-merge-request-review
 description: Address reviewer feedback on your own GitLab merge request. Remediate every blocking thread with new signed commits (never force-push), reply to each thread (fix, clarification question, or explained decline), resolve only non-substantive threads that meet the resolve rule, post a revision summary, and re-request review after significant changes. Picks the current branch's open MR, else asks which of your MRs with open review. Use only when the user explicitly asks to address or respond to MR review feedback, e.g. "address the review comments", "fix the MR feedback", "respond to the review on !42", "reply to the MR comments", "resolve the review threads", "the reviewer requested changes on my MR". Do not use on your own after finishing a task.
 argument-hint: '[optional MR iid] [self-review]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git remote -v) Bash(mktemp *) Bash(date -u *) Bash(sleep 5) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *) Bash(glab api -X GET projects/:id/merge_requests/*) Bash(glab api -X GET --paginate projects/:id/merge_requests/*)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git remote -v) Bash(mktemp *) Bash(date -u *) Bash(sleep 5) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *)
 ---
 
 # Address Merge Request Review
@@ -19,8 +19,8 @@ Input: $ARGUMENTS
 - Resolve only per `replies.md` `## Resolve rule`.
 - Push without asking after step 7 commit verification passes (the request to address review counts as consent to a normal push). Switch, commit, re-request review, post replies and the summary, and resolve candidates, without asking the user to confirm them (steps 3, 7, 10, 11).
 - Reply and summary bodies in plain English, full sentences; never compressed style.
-- Model text (JSON bodies, commit subjects) via scratch file (`--input`, `git commit -F`); never inline in shell args. GitLab API reads and writes per `${CLAUDE_SKILL_DIR}/../submit-merge-request/gitlab.md` `## API reads and writes`.
-- `allowed-tools` pre-approves reads only. Other reads (`glab api projects/<source_project_id>`) and every write (`git switch`, `git pull`, `git commit`, POST, PUT, graphql, push) stay permission-prompted.
+- Model text (JSON bodies, commit subjects) via scratch file (`--input`, `git commit -F`); never inline in shell args. GitLab API reads and writes per `${CLAUDE_SKILL_DIR}/../prepare-merge-request/gitlab.md` `## API reads and writes`.
+- `allowed-tools` pre-approves local git and a few fixed `glab` reads only. MR API reads (`glab api -X GET projects/:id/merge_requests/…`), other reads (`glab api projects/<source_project_id>`) and every write (`git switch`, `git pull`, `git commit`, POST, PUT, graphql, push) stay permission-prompted.
 - Commits and subjects per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` (`## Commit subject`, `## Signing`); always `git commit -S -F <file>`, never `--no-verify` or `--no-gpg-sign`. Signing not configured → stop at step 3.
 - Caps: triager re-spawn with answers (step 5) once; check fixes (step 6), commitlint redrafts, and hook fixes (step 7) 3 attempts each; MR re-fetch (step 10) 3 attempts, 5 s apart. Cap hit → report, stop.
 - `self-review` input token (set by `cdk:ship-changes`) = the user reviewed their own MR; keep threads self started, and the user answers Clarify questions in step 5 instead of a posted question.
@@ -30,7 +30,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/../submit-merge-request/gitlab.md` `## Pre-flight` (keep `id`, `path_with_namespace`, Self, Root, Scratch).
+1. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/../prepare-merge-request/gitlab.md` `## Pre-flight` (keep `id`, `path_with_namespace`, Self, Root, Scratch).
 2. **Identify MR.**
    - Input iid (strip `!`; ignore the `self-review` token) → `glab api -X GET projects/:id/merge_requests/<iid>`; `state` not `opened` → report, stop. Author not self → AskUserQuestion: Continue (co-author) | Cancel.
    - Else current = `git rev-parse --abbrev-ref HEAD`; `glab mr list --source-branch <current> -F json`: one match → use it; several → ask from matches.

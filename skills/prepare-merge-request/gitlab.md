@@ -1,6 +1,6 @@
 # GitLab conventions
 
-Shared by `cdk:submit-merge-request`, `cdk:review-merge-request`, `cdk:address-merge-request-review`, and `cdk:ship-changes`.
+Shared by `cdk:prepare-merge-request`, `cdk:review-merge-request`, `cdk:address-merge-request-review`, and `cdk:ship-changes`.
 
 ## Pre-flight
 
@@ -14,7 +14,7 @@ Run in order; the linking skill names which values it keeps.
 
 ## API reads and writes
 
-- Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` or `glab api -X GET --paginate projects/:id/merge_requests/…`; only these prefixes are pre-approved.
-- A command that starts with `glab api -X GET` never carries a second `-X`/`--method`; the last method flag wins, so it would turn a pre-approved read into a write.
+- Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` or `glab api -X GET --paginate projects/:id/merge_requests/…`; none is pre-approved, so each read gets a permission prompt.
+- A command that starts with `glab api -X GET` never carries a second `-X`/`--method`; the last method flag wins, so it would turn a read into a write.
 - Writes (POST, PUT, DELETE, graphql) always start `glab api <endpoint> -X <METHOD>`, never with the `-X GET` prefix, so each one gets a permission prompt as a second confirmation.
 - JSON request bodies go to a scratch file and `--input <file>`; never inline user or model text in shell args. `-f`/`-F` only for API-sourced values (SHAs, ids) or fixed literals.
