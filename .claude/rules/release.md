@@ -5,4 +5,5 @@
 - Fix a failure with `cdk:write-changelog` and `cdk:bump-version`, then `cdk:commit-changes` (atomic commits, pushed). Never hand-edit the version to satisfy the check.
 - Exceptions exist only as `exempt` entries in the policy, each with a reason; a policy change is a reviewed diff. Never bypass the hook or gate, never edit the policy only to make a check pass, never `--no-verify`.
 - `release-check` must stay a required status check on `main`; local hooks can be bypassed, CI cannot.
+- GitLab MRs are covered by the skill gate and hook only; no GitLab CI (removed on purpose).
 - Verify: `npm test`, then `node hooks/scripts/release-check.mjs check --target main`.
