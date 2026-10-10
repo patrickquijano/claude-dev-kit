@@ -53,7 +53,7 @@ Commits replayed: <count> [signature: G]
 Conflicts: <file — resolution> or none
 Skipped: <commits or none>
 Pushed: <remote>/<current> (force-with-lease | -u) | no
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

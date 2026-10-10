@@ -67,7 +67,7 @@ Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
 Checks: JSON <pass | fail>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, write-dockerfile <its Checks | n/a>
 Next: <item>, … | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

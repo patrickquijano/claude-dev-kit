@@ -41,7 +41,7 @@ Input: $ARGUMENTS
 
 ```text
 <fixed structure>
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
@@ -77,7 +77,7 @@ Input: $ARGUMENTS
 
 ```text
 <fixed structure>
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped) # only with the Resolve findings step
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -49,7 +49,7 @@ Code and config changes: <file — change>, …
 Checks: <command: pass | fail>, …
 Reverted: <package: reason> | none
 Next: review the diff, then commit (e.g. /cdk:commit-changes)
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -51,7 +51,7 @@ Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none
 Suspected bugs: <journey step — kept failing>, … | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

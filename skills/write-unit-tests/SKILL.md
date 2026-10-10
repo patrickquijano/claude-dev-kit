@@ -49,7 +49,7 @@ Rounds: <n>/5
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Suspected bugs: <file:line — kept failing>, … | none
 Uncovered: <file — n%>, … | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

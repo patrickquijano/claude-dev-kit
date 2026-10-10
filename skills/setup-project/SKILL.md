@@ -14,7 +14,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 - Selection is asked once. No loops or retries.
 - Any sub-skill stop or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines and open `Findings:` lines of the chained setup skills).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines and open `Resolution:` lines of the chained setup skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-project`.
 
 ## Workflow
@@ -43,7 +43,7 @@ setup-format-lint: <…>
 setup-husky: <…>
 setup-test-hook: <…>
 Next: <sub-skill Next lines> | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -61,7 +61,7 @@ Assignee: @<username>
 Reviewers: @<u1>, @<u2> | none
 Delete source branch: yes | no
 Squash: yes | no [enforced]
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

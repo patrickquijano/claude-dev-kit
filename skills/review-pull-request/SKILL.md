@@ -22,7 +22,7 @@ Input: $ARGUMENTS
 - Caps: invalid typed PR number 3 re-asks; reviewer respawn on a malformed return 1; `422` comment-position retry 1; `UNKNOWN` merge-state re-fetch 3 per check (step 8 offer, step 12 run; at step 8 the cap means not offered), `git fetch pull/<n>/head` 1. Cap hit → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Uncertainty:`, skipped validation, incomplete reviewers, `Merged: not offered` blockers, `Decision:` proposed only).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: open blocking and suggestion findings (id, severity), `Uncertainty:`, skipped validation, incomplete reviewers, `Merged: not offered` blockers, `Decision:` proposed only).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `review-pull-request`; it covers reviewer `Known issue:` lines.
 
 ## Workflow
@@ -39,7 +39,7 @@ Input: $ARGUMENTS
 10. **Post.** Re-fetch `headRefOid` (`gh pr view <n> --json headRefOid,state`); changed or not `OPEN` → report "new commits pushed" or the state, stop. Write `<scratch>/review.json` and post per `review.md` `## Review payload`.
 11. **Verify.** `gh pr view <n> --json latestReviews,reviews`: Self's newest review has the posted state (`COMMENT`→`COMMENTED`, `REQUEST_CHANGES`→`CHANGES_REQUESTED`, `APPROVE`→`APPROVED`) and `commit.oid` equals the reviewed `headRefOid`. Mismatch → report the field, stop (no merge).
 12. **Merge.** Merge picked (or `--auto` with merge offered) → run and verify per `review.md` `## Merge`, including its admin gate, honoring the Squash and Delete choices. Own PR with the review not posted (`Don't post`) still merges when picked.
-13. **Resolve findings.** Per resolve-findings.md. Never change code or the posted review; per open blocker give impact, recommended fix, and who acts. Ask only for choices this skill owns (for example post the review as proposed).
+13. **Resolve findings.** Per resolve-findings.md. Never change code or the posted review; per open blocker give impact, recommended fix, and who acts. Never post, merge, or re-ask a step 9 choice; report `Decision: proposed only` and `Merged: not offered` with the recommended fix and who acts.
 
 ## Output
 
@@ -53,7 +53,7 @@ Comments: <n> inline + summary posted | prepared, not posted
 Merged: yes (<squash | merge commit>; branch <deleted | kept>[; local branch deleted][; admin, only when `--admin` was passed]) | no (<reason>) | not offered (<blockers>) | not requested
 Decision: REQUEST_CHANGES | COMMENT | APPROVE (<posted | proposed only>)
 Uncertainty: <list> | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

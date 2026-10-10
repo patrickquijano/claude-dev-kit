@@ -13,7 +13,7 @@ Input: $ARGUMENTS
 
 - Follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`. Output blocks are handled by: Gate for assess-spec-kit-idea, Build for run-spec-kit, Branch and Ship for the rest.
 - GitLab or GitHub, like the ship chain: the protected-branch check uses the host row of `## Protected branch`, else its fallback list.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Open:` items, `Merged: no (<reason>)`, `Last review:`, open `Findings:` lines of the chained skills).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Open:` items, `Merged: no (<reason>)`, `Last review:`, open `Resolution:` lines of the chained skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-spec-kit-idea`.
 
 ## Workflow
@@ -40,7 +40,7 @@ MR: !<iid> <web_url> | PR: #<n> <url> | none
 Rounds: <r> of 5 | none
 Last review: gitlab: <n> inline, <m> general (<b> blocking, <p> praise) | github: <b> blocking, <s> suggestions | none
 Merged: yes | no (<reason>) | none
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

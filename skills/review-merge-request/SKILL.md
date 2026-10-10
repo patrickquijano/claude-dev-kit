@@ -67,7 +67,7 @@ Approval: approved | not approved (<failed criteria ids> | declined) | skipped (
 Reviewer added: yes | no
 Threads resolved: <n> of <own unresolved>
 Merged: yes | no (<error or reason>) | not offered (<blockers>) | not requested
-Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
+Resolution: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
