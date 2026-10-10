@@ -22,7 +22,7 @@ Input: $ARGUMENTS
 - Caps: empty `diff_refs` re-fetch (step 3) and merge-status re-fetch (step 11) 3 attempts each; invalid typed iid re-ask (step 2) 3 rounds. A step 11 cap hit, or a stop after the review produced items (step 9 "new commits pushed" or failure, step 10 mismatch, step 11) → step 12 once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`. Step 1 and 3 stops, the step 2 cap and `state` not `opened` stop, step 2 nothing-to-do, and step 9 Cancel print `Resolution: not run (stopped | nothing-to-do | cancelled)`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: failed approval criteria A1–A7, merge blockers, own threads still unresolved (`Threads resolved: n of m`), General findings that could not be placed, `Merged: not offered`).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: failed approval criteria A1–A7, merge blockers, own threads still unresolved (`Threads resolved: n of m`), General findings that could not be placed, `Merged: not offered`, `Merged: no (<error or reason>)`, `Approval: not approved (declined)`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `review-merge-request`.
 
 ## Workflow
