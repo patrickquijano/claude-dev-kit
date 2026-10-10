@@ -43,6 +43,7 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:assess-spec-kit-idea`         | Assess an idea with Spec Kit intake to decide; go hands off to run-spec-kit unless `handoff=no`.                                                              |
 | `/cdk:build-agent`                  | Interview, then create or update a subagent in personal, project, or plugin scope.                                                                            |
 | `/cdk:build-skill`                  | Interview, then create or update a skill or orchestrator + subagents.                                                                                         |
+| `/cdk:bump-version`                 | Set the version in the files named by `.claude/release-policy.json` to the SemVer value the branch commits require. Idempotent.                               |
 | `/cdk:commit-changes`               | Small changes: one signed commit, no subagent; large ones: atomic groups via analyzer; leave protected branches, push.                                        |
 | `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                                                                       |
 | `/cdk:prepare-merge-request`        | Create or update a GitLab MR with template, reviewers, delete-source and squash options (presets and `auto` for ship-changes).                                |
@@ -137,6 +138,16 @@ In a Claude Code session inside your repository:
 
 Claude scores the existing `README.md` against the 100-point rubric and prints a per-criterion table with deductions. Score mode never writes files.
 
+## Versioning and changelog
+
+A repo opts in with `.claude/release-policy.json` (changelog path, version files, `userFacing` globs, `exempt` entries with a reason). Without it nothing below runs. With it, a PR or MR cannot be created until `CHANGELOG.md` has a new `Unreleased` entry and every version file holds the version the branch commits require: breaking = major, `feat` = minor, otherwise patch, measured from the target branch tip. Three layers run the same script, `hooks/scripts/release-check.mjs`:
+
+1. `/cdk:prepare-pull-request` and `/cdk:prepare-merge-request` run a release gate first: on failure they chain `/cdk:write-changelog`, `/cdk:bump-version`, then `/cdk:commit-changes` (atomic commits and push), and revalidate.
+2. A project `PreToolUse` hook (`.claude/settings.json`) blocks `gh pr create`, `gh api` PR creation, `glab mr create`, `glab api` MR creation, and the GitLab MCP create call with the fix.
+3. `.github/workflows/release-check.yml` runs the same check on every PR to `main`; make `release-check` a required status check, since local hooks can be bypassed.
+
+There is no per-PR override. The only exception is an `exempt` entry with a written reason in the policy, reviewed like any change.
+
 ## Configuration
 
 No configuration.
@@ -147,6 +158,7 @@ No configuration.
 npm install                        # also installs Husky git hooks via prepare
 npm run format
 npm run lint                       # eslint, markdownlint-cli2, yamllint, yamlfmt, prettier
+npm test                           # release-check script tests (node:test)
 claude plugin validate --strict .
 claude plugin eval .               # LLM-graded eval suite in evals/; manual only, not run by hooks
 claude --plugin-dir .              # test local checkout; /reload-plugins after edits
