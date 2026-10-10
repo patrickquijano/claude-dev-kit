@@ -56,7 +56,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:setup-git`                    | Init repo; validate and repair identity and signing config, ask when unsure, test a signature; .gitignore.                                                    |
 | `/cdk:setup-graphify`               | Install graphify, add Claude and git hooks, build the graph, name communities, share graph and report, add ignores and rules.                                 |
 | `/cdk:setup-husky`                  | Install Husky; add commit message (header ≤72) and signing checks, commit rules file; LF endings, ignores.                                                    |
-| `/cdk:setup-permissions`            | Inventory repo commands; merge user-scoped allow, ask, deny rules (exact + wildcard pairs); validate, summarize.                                              |
+| `/cdk:setup-permissions`            | Inventory repo commands and the session's MCP tools; merge user-scoped allow, ask, deny rules (Bash pairs, exact MCP tool rules); validate, summarize.        |
 | `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                                                    |
 | `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                                                     |
 | `/cdk:setup-test-hook`              | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                                                             |
