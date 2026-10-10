@@ -22,7 +22,7 @@ Input: $ARGUMENTS
 - Body claims come only from commits, the diff, and reviewer evidence; unknown → leave the template placeholder. Never invent tests, issues, or results.
 - Existing PR: change only the managed section and, when chosen, the title; keep every other byte of the body, assignees, and reviewers.
 - Body goes through `<scratch>/body.md` and `-F`; never inline text in shell args.
-- Caps: invalid Other target 3 re-asks; reviewer respawn on a malformed return 1; title redrafts after a lint failure 3; step 12 Revise 3 rounds; failed create or update retried once. Cap hit (including the title lint cap) → step 15 once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`. Pre-step stops (steps 1–5, 9, 10) print `Resolution: not run (stopped)`; Cancel prints `not run (cancelled)`.
+- Caps: invalid Other target 3 re-asks; reviewer respawn on a malformed return 1; title redrafts after a lint failure 3; step 12 Revise 3 rounds; failed create or update retried once. Cap hit (including the title lint cap) → step 15 once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`. Pre-step stops (steps 1–5) print `Resolution: not run (stopped)`; a stop at step 9 or 10 follows the review, so it runs step 15 first; Cancel prints `not run (cancelled)`.
 - `--yes` skips only the step 12 question. `--dry-run` runs steps 1–12, prints the result, and writes nothing (no push, no PR).
 - Never `--force`, `--no-verify`, commit, stash, or reset.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
