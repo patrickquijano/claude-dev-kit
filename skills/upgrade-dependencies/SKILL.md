@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
 - Never commit, push, or change files outside the repo. The user commits (e.g. `/cdk:commit-changes`).
 - Loops: fix rounds per failing check (step 9) max 3, then revert that package and continue.
-- Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 11 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Skipped:`, `Reverted:`, `Checks:` failures, `Leftovers:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `upgrade-dependencies`.

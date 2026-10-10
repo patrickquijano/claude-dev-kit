@@ -16,7 +16,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - AskUserQuestion: at most 4 questions per call, 2–4 options each; recommended option first with its reason. Each question is asked at most once per run; no re-ask loops.
 - Config edits: append only missing entries, keep existing ones. Of the ignore and attribute files, only `.gitignore` and `.gitattributes` may be created; tool configs follow `${CLAUDE_SKILL_DIR}/ignores.md`. `package.json` (step 4), hooks (step 9), the commitlint config (step 10), and `.claude/rules/commits.md` (step 11) are created only by their steps.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` itself and by commitlint config; never raise it.
-- Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 16 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: smoke test results (step 15) and the `Signed` line, kept files that differ from the assets, `CLAUDE.md mention: missing` in `Rules:`).

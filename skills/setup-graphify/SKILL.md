@@ -15,7 +15,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 - Ignore files: append only missing entries; keep existing entries, order, and syntax form.
 - Edit only linter and formatter configs that already exist. Only `.gitignore` and `.claude/rules/graphify.md` may be created.
 - Each command runs once, no retries. The step 7 question is asked once.
-- Any stop → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight and step 2 (CLI) stops → print the Output with `Resolution: not run (stopped)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines). Everything else in `graphify-out/` holds absolute paths or per-machine state.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.

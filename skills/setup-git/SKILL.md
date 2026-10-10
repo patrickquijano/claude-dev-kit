@@ -16,10 +16,10 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 - AskUserQuestion: at most 4 questions per call, 2–4 options each; recommended option first with its reason. Free-text values with no 2 real options (name, email) → ask in plain text and wait for the reply.
 - Never commit, push, or untrack files without an explicit choice.
 - Path catalog: `${CLAUDE_SKILL_DIR}/ignores.md`.
-- Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 15 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers, `Ignores:` uncovered stacks or skipped groups, `Next:` key upload, an unverifiable smoke test).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers, `Ignores:` uncovered stacks or skipped groups, an unverifiable smoke test).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-git`.
 
 ## Workflow

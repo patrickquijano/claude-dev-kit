@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - User interaction (AskUserQuestion) only here; `cdk:permission-analyzer` cannot ask, so its `Questions:` are asked here. Batch conflicts into calls of at most 4 questions, 2–4 options each; recommended first with its reason.
 - Caps: step 2 re-spawns the analyzer at most once; step 6 validate-fix at most 3 attempts. Every question is asked once.
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
-- Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
+- A Stop answer (step 7) → `Result: cancelled`, `Resolution: not run (cancelled)`, `Stopped: <step>: <reason>`, end. Any other stop or failure after candidates exist (an invalid settings file stays a pre-flight stop; the step 6 validate-cap stop) → run step 9 once on what is left, without re-entering step 6, then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-permissions`.
@@ -50,10 +50,10 @@ Input: $ARGUMENTS
    - every new MCP rule matches `^mcp__[A-Za-z0-9_-]+__[A-Za-z0-9_-]+$` and names a tool listed in step 3; no parentheses, no wildcard.
    - no duplicates within or across lists; no new allow shadowed by a deny of the same program.
 
-   Fail → fix and re-check (cap in Rules); still failing → stop.
+   Fail → fix and re-check (cap in Rules); still failing → run step 9 on the failed checks without re-entering this step (nothing was written, so step 9 edits nothing), then print the Output with `Stopped: 6: <reason>` and end.
 
-7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`.
-8. **Write.** Write the validated JSON to the target, creating the directory if missing. The write touches a protected path, so Claude Code prompts. Re-read the file and repeat the step 6 checks on it.
+7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`, and run step 9 on `Skipped:`, `Conflicting:`, `Reclassified:` items (else `Resolution: none`).
+8. **Write.** Write the validated JSON to the target, creating the directory if missing. The write touches a protected path, so Claude Code prompts. Re-read the file and repeat the step 6 checks on it; a failure → run step 9 on the failed checks, then print the Output with `Stopped: 8: <reason>` and end.
 9. **Resolve findings.** Per resolve-findings.md. Fix only rules this run added, then re-run the step 6 validation after any edit; never remove, reorder, or rewrite an existing rule. Entries the user already decided in a question are `accepted`.
 10. **Report** the output below (`Settings: unchanged` when nothing was written), plus: `claude doctor` lists any rule Claude Code rejected, and `/permissions` shows the active rules.
 

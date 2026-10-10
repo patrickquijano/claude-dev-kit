@@ -18,7 +18,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - Caps: analyzer respawn after `Gaps` 1; step 11 may spawn one extra `mode=check` for the tools it touched, shared across items. Each question is asked once per linter role (step 4), tool (step 7), or run (step 5); never re-ask the same question. More questions than fit one call → further calls until all are asked, at most 4 calls per step.
 - Package dir, package manager, exec prefix, and `package.json` creation: `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md`.
 - Native tools change the machine, not only the repo: never install one unasked.
-- Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 11 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Check:`/`Problems:` lines, `Skipped tools:`, `Constraints:` that caused a skipped tool, `uncovered` file types, analyzer `Gaps:`).

@@ -12,7 +12,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 - No questions: apply the `defaults.md` defaults.
 - Defaults, globs, and reasons: `${CLAUDE_SKILL_DIR}/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`), so EditorConfig cores and plugins recognize them.
 - Never change or reorder an existing section. Append new type sections at the end, because later sections win and type sections must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section, so it never overrides existing sections.
-- Any failure → print the Output with `Stopped: <step>: <reason>` and end.
+- Pre-flight stops (step 1) → print the Output with `Resolution: not run (stopped)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 8 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Run before `cdk:setup-format-lint`: Prettier and shfmt read `.editorconfig` for indentation, so an existing file keeps them aligned.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
