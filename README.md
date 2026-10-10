@@ -146,6 +146,8 @@ A repo opts in with `.claude/release-policy.json` (changelog path, version files
 2. A project `PreToolUse` hook (`.claude/settings.json`) blocks `gh pr create`, `gh api` PR creation, `glab mr create`, `glab api` MR creation, and the GitLab MCP create call with the fix.
 3. `.github/workflows/release-check.yml` runs the same check on every PR to `main`; make `release-check` a required status check, since local hooks can be bypassed.
 
+The hook is project-scoped: `CLAUDE_PLUGIN_ROOT` is not documented for project settings, so other repos get the skill gate and, if they add it, CI. To add the hook there, vendor `hooks/scripts/release-check.mjs` with `git-state.mjs` and `tools.mjs` and register it in `.claude/settings.json` with `node \"$CLAUDE_PROJECT_DIR/<path>/release-check.mjs\" hook` under `PreToolUse` (`Bash` with `if: Bash(gh *)` and `Bash(glab *)`, plus the GitLab MCP `save_merge_request`). GitLab has no CI job (GitLab CI was removed on purpose); GitLab MRs rely on the skill gate and the hook.
+
 There is no per-PR override. The only exception is an `exempt` entry with a written reason in the policy, reviewed like any change.
 
 ## Configuration
