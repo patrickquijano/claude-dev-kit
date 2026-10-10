@@ -20,6 +20,7 @@ Input: $ARGUMENTS
 - Every write to an existing file prints its diff; no approval asked, since the files are local and the diff is reviewable.
 - Loops: clarify (step 3) max 3 AskUserQuestion calls; verify-fix (step 9) max 3 attempts. Cap hit, or any failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Skipped practices:`, `Next:` items).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-devcontainer`; it covers the analyzer's `Known issue:` lines.
 
 ## Workflow
@@ -43,11 +44,12 @@ Input: $ARGUMENTS
    - `.gitattributes` LF rule when missing; firewall → `.devcontainer/init-firewall.sh` from the reference.
    - Dockerfile needed → the `cdk:write-dockerfile` arguments per practices.md `## Dockerfile handoff`.
    - Update mode → keep the existing config's intent (approach, features, customizations, commands), add only what step 3 chose, fix what breaks a practice (`appPort`, Compose `ports`, `latest` tags, mounted host secrets); list each change with its reason.
-6. **Plan.** Print each file's content (diff for existing files), the handoff arguments, and the change list. Nothing to add or fix in update mode → `Result: nothing-to-do`; skip to step 10.
+6. **Plan.** Print each file's content (diff for existing files), the handoff arguments, and the change list. Nothing to add or fix in update mode → `Result: nothing-to-do`; skip to step 11.
 7. **Write** the step 5 files without asking (existing `.gitignore` and `.gitattributes` → append only missing lines). They come first, so the Dockerfile's `COPY` sources exist when it is reviewed.
 8. **Dockerfile.** Dockerfile needed → invoke `cdk:write-dockerfile` via the Skill tool with the step 5 arguments. Read its Output: `Result: done` or `nothing-to-do` → keep its `App:`, `Stages:` (the Base digest), `Files:`, and `Checks:` lines, and confirm `<App dir>/Dockerfile` matches `build.dockerfile` (or the Compose `app` `build`), fixing the reference when it differs; else stop per orchestration.md, `Stopped: 8: write-dockerfile <its Stopped>`.
 9. **Verify.** Run the practices.md `## Checks` the host supports (analyzer `CLIs`). Each failure in a file this skill wrote → fix, print the diff, re-run (cap in Rules); a Dockerfile failure → report it, never fix it here. `devcontainer up` only when the user asks.
-10. **Report** the output below.
+10. **Resolve findings.** Per resolve-findings.md. Fix only files this skill wrote; a Dockerfile check failure is reported with the recommended `cdk:write-dockerfile` input, never fixed here (Rules).
+11. **Report** the output below.
 
 ## Output
 
@@ -65,6 +67,7 @@ Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
 Checks: JSON <pass | fail>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, write-dockerfile <its Checks | n/a>
 Next: <item>, … | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

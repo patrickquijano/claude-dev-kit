@@ -19,6 +19,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-git`.
 
 ## Workflow
@@ -47,7 +48,8 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 12. **Choose ignores.** Take the catalog-Recommended groups among the candidates, no question; target `.gitignore` (every clone gets it). None Recommended → skip to step 14.
 13. **Write ignores.** Append chosen groups to the target, creating it if missing, each under a `# <Group>` comment; keep existing lines and order; write a pattern shared by several chosen groups once. Editors: for each tracked file under `.vscode/`, add `!.vscode/<file>` after `.vscode/*` so shared files stay tracked.
 14. **Tracked but ignored.** `git ls-files -ci --exclude-standard` lists tracked files that now match an ignore pattern. None → skip. Else AskUserQuestion: Keep tracked (Recommended; untracking deletes the file in other clones on their next pull) | Untrack with `git rm --cached` (files stay on disk; you commit the removal). A listed file matches the Secrets group → warn that history still holds it, so rotate the secret.
-15. **Report** the output below. Signing key set up or changed in step 6 or 9 → add the forge step: upload the signing public key (SSH: GitLab User settings > SSH Keys, usage Signing or Authentication & Signing; GitHub Settings > SSH and GPG keys, type Signing Key. OpenPGP: `gpg --armor --export <key id>` to the GPG keys page).
+15. **Resolve findings.** Per resolve-findings.md. Do not re-ask what steps 4–14 already asked; a value only the user can supply (identity, key, untracking) stays `needs-decision`, and a signing failure that needs a user-run command is reported with that `! <command>`.
+16. **Report** the output below. Signing key set up or changed in step 6 or 9 → add the forge step: upload the signing public key (SSH: GitLab User settings > SSH Keys, usage Signing or Authentication & Signing; GitHub Settings > SSH and GPG keys, type Signing Key. OpenPGP: `gpg --armor --export <key id>` to the GPG keys page).
 
 ## Output
 
@@ -63,6 +65,7 @@ Smoke test: ✅ Signed | ✅ Signed (not verifiable locally) | ❌ Signed: <erro
 Ignores: <file: added groups>, … | up to date (skipped not-Recommended groups: <names> | none; uncovered stacks: <names> | none)
 Tracked but ignored: <files> (<kept | untracked>) | none
 Next: upload the signing public key to your forge account | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

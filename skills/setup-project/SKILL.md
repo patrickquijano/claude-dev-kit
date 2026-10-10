@@ -14,6 +14,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 - Selection is asked once. No loops or retries.
 - Any sub-skill stop or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines and open `Findings:` lines of the chained setup skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-project`.
 
 ## Workflow
@@ -25,10 +26,11 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
    - Formatters and linters: any config the `setup-format-lint` catalog (`${CLAUDE_SKILL_DIR}/../setup-format-lint/tools.md`) lists exists → partial (a re-run fills missing roles); none → missing. Never report it as configured.
    - Husky: `.husky/commit-msg` or `.husky/post-commit` at the root or in a `package.json` dir → configured; `.husky/` without them → partial.
    - Test hook: `.claude/settings.json` `hooks.Stop` has a command running `run-tests.mjs` or a test runner → configured.
-3. **Choose.** Print the detection table. AskUserQuestion, one call, two multiSelect questions per Rules; each option says its state and what the skill writes. Not a git repo → git is Recommended, and the description of every other option says it needs git. Nothing selected → `nothing-to-do`; skip to step 6.
+3. **Choose.** Print the detection table. AskUserQuestion, one call, two multiSelect questions per Rules; each option says its state and what the skill writes. Not a git repo → git is Recommended, and the description of every other option says it needs git. Nothing selected → `nothing-to-do`; skip to step 7.
 4. **Run.** For each selected skill in the fixed order, invoke it via the Skill tool (`cdk:setup-git`, `cdk:setup-editorconfig`, `cdk:setup-format-lint`, `cdk:setup-husky`, `cdk:setup-test-hook`), no arguments. Read its Output `Result:` line and keep its `Next:` and `Stopped:` lines for the Output. `done` or `nothing-to-do` → next skill. Root still not a git repo (git not selected) → mark each later skill `skipped (needs git)` and do not run it.
 5. **Sub-skill stop.** `stopped`, `cancelled`, or a failure → stop, no ask; later setups may depend on it. Print the Output with `Stopped: 5: <skill> <its Stopped>`; `cdk:setup-git` while the root is still not a git repo → `Stopped: 5: setup-git stopped; later skills need git`.
-6. **Report** the output below.
+6. **Resolve findings.** Per resolve-findings.md. Orchestrator: collect only what the chained skills left `open`, never re-analyze or re-fix them; for each give its recommended fix and which skill to re-run.
+7. **Report** the output below.
 
 ## Output
 
@@ -41,6 +43,7 @@ setup-format-lint: <…>
 setup-husky: <…>
 setup-test-hook: <…>
 Next: <sub-skill Next lines> | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

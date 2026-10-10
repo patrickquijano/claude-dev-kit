@@ -23,6 +23,7 @@ Input: $ARGUMENTS
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-permissions`.
 
 ## Workflow
@@ -53,7 +54,8 @@ Input: $ARGUMENTS
 
 7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`.
 8. **Write.** Write the validated JSON to the target, creating the directory if missing. The write touches a protected path, so Claude Code prompts. Re-read the file and repeat the step 6 checks on it.
-9. **Report** the output below (`Settings: unchanged` when nothing was written), plus: `claude doctor` lists any rule Claude Code rejected, and `/permissions` shows the active rules.
+9. **Resolve findings.** Per resolve-findings.md. Fix only rules this run added, then re-run the step 6 validation after any edit; never remove, reorder, or rewrite an existing rule. Entries the user already decided in a question are `accepted`.
+10. **Report** the output below (`Settings: unchanged` when nothing was written), plus: `claude doctor` lists any rule Claude Code rejected, and `/permissions` shows the active rules.
 
 ## Output
 
@@ -70,6 +72,7 @@ Skipped: <rule — reason>, … | none
 Conflicting: <rule — resolution>, … | none
 Reclassified: <command: from → to — reason>, … | none
 Validation: pass | fail: <reason>
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

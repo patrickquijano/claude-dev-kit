@@ -19,6 +19,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines). Everything else in `graphify-out/` holds absolute paths or per-machine state.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Graph: pending`, placeholder community names left, `Git ignore: kept local only`, `Rules: kept (differs)`, `CLAUDE.md section missing`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-graphify`.
 
 ## Workflow
@@ -43,7 +44,8 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 
 8. **Lint and format ignores.** Generated JSON, Markdown, and HTML only add noise. Add `graphify-out/` to each existing config in that tool's syntax from `${CLAUDE_SKILL_DIR}/../setup-husky/ignores.md` (Linters and formatters and Docker lines; `<entry>` = `graphify-out/`, Biome negation `!**/graphify-out`, ignore form `graphify-out`). Skip conditions in that file that rely on `.gitignore` do not apply: step 7 un-ignores two files there, so tools that read `.gitignore` would lint them. dprint has no entry syntax there: report it instead of editing. Skip the npm line; report that the shared graph files are the user's call for a published package.
 9. **Rules.** Copy `${CLAUDE_SKILL_DIR}/assets/graphify-rules.md` to `.claude/rules/graphify.md`: absent → write; identical → skip; differs → keep the user's file, report it. Then check `CLAUDE.md` has a `## graphify` section. Missing → report it; graphify owns that section, so never hand-write it.
-10. **Report** the output below. Also tell the user: each teammate runs `graphify hook install` once per clone (git hooks and the merge driver live in `.git/` and are not shared); `graphify-mcp` (`uv tool install "graphifyy[mcp]"`) is an optional manual step; graphify's README suggests a `.claudeignore`, which is skipped because Claude Code docs do not list that file.
+10. **Resolve findings.** Per resolve-findings.md. Resolve only what this skill may write (ignores, rules file). Token-spending runs, user-kept files, and graphify-owned sections stay `needs-decision` or `blocked`; never hand-write the `CLAUDE.md` section.
+11. **Report** the output below. Also tell the user: each teammate runs `graphify hook install` once per clone (git hooks and the merge driver live in `.git/` and are not shared); `graphify-mcp` (`uv tool install "graphifyy[mcp]"`) is an optional manual step; graphify's README suggests a `.claudeignore`, which is skipped because Claude Code docs do not list that file.
 
 ## Output
 
@@ -57,6 +59,7 @@ Names: renamed <n>, <m> left | present (no placeholders) | skipped (graph pendin
 Git ignore: shared graph.json + GRAPH_REPORT.md (<n> lines added) | up to date | kept local only | skipped (not a git repo)
 Lint/format ignores: <file: added paths>, … | none found
 Rules: .claude/rules/graphify.md <added | present | kept (differs)>; CLAUDE.md section <present | missing>
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

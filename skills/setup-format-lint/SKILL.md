@@ -21,6 +21,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Check:`/`Problems:` lines, `Skipped tools:`, `Constraints:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-format-lint`.
 
 ## Workflow
@@ -35,7 +36,8 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 8. **Configure.** Each chosen or kept tool without a config, whose catalog defaults are not `none` → write the catalog's config file with its recommended defaults, no question (they keep tools aligned, for example Prettier, yamllint, CSharpier, and PHP_CodeSniffer at 120 columns). A config whose format depends on the resolved version follows that version (ESLint needs `eslint/config`, else skipped per `tools.md` `## Versions`). Existing config → keep. `none` tools → write nothing.
 9. **Overlaps + ignore paths.** Apply the catalog overlaps. Then take the analyzer's `Ignore candidates` (paths that exist and that the tool does not already ignore), keeping only the chosen and kept tools. None → skip. Else, no question: reuse `.gitignore` where the tool supports it (one list to maintain); other tools get the found path groups (build output, coverage, vendored deps, lockfiles, generated hooks; generated, not hand-written), appending only missing entries in the tool's syntax. `setup-husky/ignores.md` says never to create a config; here an ignore file may be created for a tool chosen in step 4.
 10. **Check.** Spawn `cdk:format-lint-analyzer` with root, `mode=check`, `${CLAUDE_SKILL_DIR}/tools.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md`, the installed tools (including kept tools), the package dir and manager from step 5 (else step 2 `Package`), any step 9 check-command overrides (HTMLHint `--ignore`, `dotnet format --exclude`), and the step 2 `Lists`. It runs each tool's catalog check command once (no writes) and returns `Checks` and `Problems`. Report counts and the first `Problems` lines; never auto-fix here, the user decides.
-11. **Report** the output below.
+11. **Resolve findings.** Per resolve-findings.md. Fix only configs and ignore entries this run wrote. Lint or format fixes to user code and tool installs stay `needs-decision` (step 10: the user decides, never auto-fixed).
+12. **Report** the output below.
 
 ## Output
 
@@ -51,6 +53,7 @@ Configs: <file> (<written | kept>), …
 Ignores: <file: added paths>, … | up to date
 Check: <tool: N problems>, … | not run
 Problems: <tool: first lines>, … | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

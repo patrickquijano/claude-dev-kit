@@ -19,6 +19,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: smoke test results (step 15) and the `Signed` line, kept files that differ from the assets, a missing `CLAUDE.md` mention).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-husky`.
 
 ## Workflow
@@ -53,7 +54,8 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 13. **Line endings.** The stubs are POSIX `sh`; a CRLF checkout (Git for Windows `core.autocrlf=true`) breaks them. Entry: `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root). Append it to root `.gitattributes`, creating the file if missing, unless a line with that exact pattern already sets `eol=lf`. Appending puts it last, so it wins over broader patterns such as `* text eol=crlf`.
 14. **Tool ignores.** Add the Husky paths to each existing linter, formatter, npm, and Docker config per `${CLAUDE_SKILL_DIR}/ignores.md`, in that tool's syntax.
 15. **Smoke test.** No commit-msg hook, or a kept user stub that does not call `commit-msg.mjs` → skip. From the git root, run each check below with the stub's flags; with `--skip-message` still write the file but skip both message expectations. Write `feat: add husky hooks` to a file in the OS temp dir and run `node <pkg>/.husky/commit-msg.mjs <file>`; expect `✅ Commit Message` and `✅ Header Length`. Repeat with `feat: added husky hooks`; expect `❌ Commit Message` (imperative check). Repeat with `feat: add` plus a space and 63 `x` characters (73-char header); expect `❌ Header Length`. Pass the stub's flags before `<file>`. Delete the temp file. Report the `Signed` line as printed; `❌ Signed` shows why commits stay blocked.
-16. **Report** the output below.
+16. **Resolve findings.** Per resolve-findings.md. Fix only files this run wrote or copied. A kept user file stays as is: report its diff and how to overwrite it, never replace it.
+17. **Report** the output below.
 
 ## Output
 
@@ -74,6 +76,7 @@ Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, … | up to date
 Smoke test: <✅/❌ lines>
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

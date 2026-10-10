@@ -26,6 +26,7 @@ Input: $ARGUMENTS
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Smoke test: blocks`, `Feasible unit: no` reasons, `Existing hook: kept`, feasible suites left unselected).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-test-hook`.
 
 ## Workflow
@@ -42,7 +43,8 @@ Input: $ARGUMENTS
 10. **Project context.** The hook owns unit runs, so Claude runs only targeted unit tests while working and never the slower suites. Build the hook-files.md project-context note. Target: first heading matching /test/i in `CLAUDE.md` or `.claude/CLAUDE.md`, else in `.claude/rules/*.md` (first match by file name) → put the note under it; none → append `## Testing` with the note to `CLAUDE.md`, creating it if missing. Other context files that tell Claude to run a suite kind now excluded (`AGENTS.md`, `.claude/rules/*.md`, `CLAUDE.md` Commands) → show each line and propose the replacement in the same prompt. A note with the same text → skip. Else add it without asking and report the text and target; a different old note is replaced, not duplicated, and replacing or rewriting existing lines → AskUserQuestion: Rewrite (Recommended; stops Claude running slow suites) | Skip.
 11. **VS Code tasks.** Target `.vscode/tasks.json`; one hook-files.md task per detected suite (all kinds). Skip a suite when a task with that label or the same `command` and `args` exists; keep every other task and key. The file has comments (JSONC) → insert with Edit, never rewrite the file. Nothing to add → skip this step. Else add them, no question (one-click runs for every suite). Git project and `git check-ignore -q .vscode/tasks.json` succeeds → write it, keep it ignored, and report how to unignore (replace a `.vscode/` or `.vscode` line in `.gitignore` with `.vscode/*` and `!.vscode/tasks.json`).
 12. **Smoke test.** From the project dir run the hook-files.md forced run with Bash `run_in_background: true` and wait for it to finish; suites may run up to the budget, which can pass the Bash 10-minute `timeout` limit. A block → report the first `reason` line and ask before fixing tests. Script error → check the `GROUPS` and `TIMEOUT` edits only (the rest is the canonical asset), fix them, re-run (cap in Rules); still failing → stop, report the error as an asset bug. Script kept in step 8 → report the error, never edit it. Git project → note `git status --porcelain` before and after this run; new entries are files the suites write, so report them and suggest ignoring them in `.gitignore`. Then run the hook-files.md skip check; it must exit 0 at once with no output.
-13. **Report** the output below.
+13. **Resolve findings.** Per resolve-findings.md. Fix only the hook script, settings entry, context note, and tasks this run wrote; a failing test in user code is a finding to report, never edited here.
+14. **Report** the output below.
 
 ## Output
 
@@ -62,6 +64,7 @@ Settings: .claude/settings.json (<added | updated | already present>)[, removed 
 Context: <file> (<added | updated | already present | skipped>)
 Tasks: .vscode/tasks.json (<added N | already present>)[, unignored]
 Smoke test: pass | blocks: <first reason line>
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
