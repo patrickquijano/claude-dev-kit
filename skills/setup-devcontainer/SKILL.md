@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 - Every write to an existing file prints its diff; no approval asked, since the files are local and the diff is reviewable.
 - Loops: clarify (step 3) max 3 AskUserQuestion calls; verify-fix (step 9) max 3 attempts. Cap hit, or any failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Skipped practices:`, `Next:` items).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, `Next:` items, analyzer `Gaps:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-devcontainer`; it covers the analyzer's `Known issue:` lines.
 
 ## Workflow

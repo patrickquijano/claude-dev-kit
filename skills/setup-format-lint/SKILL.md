@@ -21,7 +21,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Check:`/`Problems:` lines, `Skipped tools:`, `Constraints:` that caused a skipped tool).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Check:`/`Problems:` lines, `Skipped tools:`, `Constraints:` that caused a skipped tool, `uncovered` file types, analyzer `Gaps:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-format-lint`.
 
 ## Workflow

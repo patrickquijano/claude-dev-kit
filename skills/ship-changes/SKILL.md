@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 - Caps: 5 review rounds per loop and 3 extra loops end `done` with the open items listed; 3 invalid typed-target re-asks (step 4) → `Stopped: 4: no valid target`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Merged: no (<reasons>)`, `Commits: not pushed`, `Excluded:`, open `Resolution:` lines of the chained skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-changes`.
 
 ## Workflow
@@ -44,7 +44,7 @@ Input: $ARGUMENTS
    4. The address Output shows `Commits: none` or `Pushed: no` → exit loop, list the findings as open (a repeat review would see the same head).
    5. Round 5 done with findings or own threads left → exit loop (not `stopped`), list them as open; `Last review` is that round's review, before its fixes.
 7. **Next loop.** `Merged: yes` or a stop or nothing-to-do exit → skip. Otherwise decide whether another loop may help: open findings, open own threads, or blockers a new round could clear (checks still pending, a failed check, an unknown merge state). Only blockers that need a person (another reviewer's required approval, merge conflicts, draft, branch policy) → skip, report them. Another loop may help → one AskUserQuestion: `Run another loop` (Recommended) | `Stop`. Run → back to step 6 with the same Settings and no other question (cap in Rules; `Loops` counts it); after the third extra loop skip the ask and report what is open. Stop → step 8.
-8. **Resolve findings.** Per resolve-findings.md (asks nothing, so the run keeps its two asks), once after the last loop (also after a user `Stop`). Findings an address round fixed that no later review re-checked stay `open` with reason `fixed in round <n>, not re-reviewed`. Unattended: collect the `Resolution:` lines kept from each chained Output and report every blocker and open finding with its impact, recommended fix, and who acts (author, CI, reviewer).
+8. **Resolve findings.** Per resolve-findings.md (asks nothing, so the run keeps its two asks), once after the last loop (also after a user `Stop`). Findings an address round fixed that no later review re-checked stay `open` with reason `fixed in round <n>, not re-reviewed`. Unattended: collect the `Resolution:` lines kept from each chained Output (address-* now print them too) and report every blocker and open finding with its impact, recommended fix, and who acts (author, CI, reviewer).
 
 ## Output
 

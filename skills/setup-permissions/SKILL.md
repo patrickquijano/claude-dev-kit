@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-permissions`.
 
 ## Workflow

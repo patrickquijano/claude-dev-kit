@@ -19,7 +19,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines). Everything else in `graphify-out/` holds absolute paths or per-machine state.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Graph: pending`, placeholder community names left, `Git ignore: kept local only`, `Rules: kept (differs)`, `CLAUDE.md section missing`).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Graph: pending`, placeholder community names left, `Git ignore: kept local only`, `Rules: kept (differs)`, `CLAUDE.md section missing`, `skipped (not a git repo)` items).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-graphify`.
 
 ## Workflow

@@ -19,7 +19,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers, `Ignores:` uncovered stacks or skipped groups, `Next:` key upload, an unverifiable smoke test).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-git`.
 
 ## Workflow

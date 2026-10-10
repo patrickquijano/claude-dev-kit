@@ -22,7 +22,7 @@ Input: $ARGUMENTS
 - Caps: empty `diff_refs` re-fetch (step 3) and merge-status re-fetch (step 11) 3 attempts each; invalid typed iid re-ask (step 2) 3 rounds. Cap hit → stop, report.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: failed approval criteria A1–A7, merge blockers, General findings that could not be placed, `Merged: not offered`).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: failed approval criteria A1–A7, merge blockers, own threads still unresolved (`Threads resolved: n of m`), General findings that could not be placed, `Merged: not offered`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `review-merge-request`.
 
 ## Workflow
@@ -55,7 +55,7 @@ Input: $ARGUMENTS
    - Any create or publish fails → report exact error line; delete created drafts `glab api projects/:id/merge_requests/<iid>/draft_notes/<id> -X DELETE`; approved in this step → `glab api projects/:id/merge_requests/<iid>/unapprove -X POST`; report reviewer added in step 8 (not reverted); stop. Never publish partial review.
 10. **Verify.** `glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions`: notes by self with `system: false` and `id` above baseline = inline count + General thread count + kept thread count + old drafts published + 1. Each kept thread: first note `resolved: true`; else `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT -F resolved=true`, re-check; still unresolved → mismatch `thread <id>`. State set → `glab api -X GET projects/:id/merge_requests/<iid>/reviewers`: self `state` matches. Approved → `glab api -X GET projects/:id/merge_requests/<iid>/approvals`: self in `approved_by`. Mismatch → report field, stop (no merge).
 11. **Merge.** User picked Merge after publish. Re-fetch MR: `diff_refs.head_sha` changed → report "new commits pushed", stop. `detailed_merge_status` `checking` or `approvals_syncing` → re-fetch up to 3 times. Require `state` = `opened`, `detailed_merge_status` = `mergeable`, and `glab api -X GET projects/:id/merge_requests/<iid>/approvals` `approvals_left` = 0; else report the field, stop. `glab api projects/:id/merge_requests/<iid>/merge -X PUT -f sha=<head_sha>` (step 3 head; guards against new commits). Response `state` = `merged` → done; other state without error → re-fetch, report `state`, Merged: no (pending). `409` → report "new commits pushed"; `405`/`406`/`422` → report exact error line and current `detailed_merge_status`; `401` → report no merge permission. On any merge error the review and approval stay posted; stop.
-12. **Resolve findings.** Per resolve-findings.md. Never change code or the posted review; per open blocker give impact, recommended fix, and who acts. Ask only for choices this skill owns (for example re-run the review after checks finish).
+12. **Resolve findings.** Per resolve-findings.md. Severity = mr-reviewer `label` + `decoration`. Never change code or the posted review; per open blocker give impact, recommended fix, and who acts. Ask only for choices this skill owns (for example re-run the review after checks finish).
 
 ## Output
 

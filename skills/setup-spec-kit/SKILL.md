@@ -17,7 +17,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - Step 3: add or set-priority runs once per extension in the list (3), no retries. Only exception: one user-approved reinstall per extension whose skill dirs are missing.
 - `specify extension remove` is deliberately not in `allowed-tools`: the reinstall deletes extension files, so its permission prompt is a second guard after the AskUserQuestion.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped, `skipped (not a git repo)` items).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-spec-kit`.
 
 ## Workflow
