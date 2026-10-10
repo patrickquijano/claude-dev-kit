@@ -12,12 +12,14 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Project Claude config: `.claude/settings.json` `PostToolUse` hook → `.claude/hooks/plugin-validate.mjs` — after Claude edits a file under `skills/`, `agents/`, `evals/`, `hooks/`, `.claude-plugin/`, runs structural `claude plugin validate --strict .`; exits 2 on any error or warning so Claude fixes it. Rules `.claude/rules/`.
 - VS Code tasks: `.vscode/tasks.json` (only tracked file in `.vscode/`) — lint, format, per-tool checks, plugin validate, local branch cleanup.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint via detected package manager, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
+- Release enforcement: opt-in policy `.claude/release-policy.json`; one script `hooks/scripts/release-check.mjs` (tests `hooks/scripts/release-check.test.mjs`) shared by the release gate in `prepare-pull-request` and `prepare-merge-request` (`release-gate.md`, chains `write-changelog`, `bump-version`, `commit-changes`), the project `PreToolUse` hook in `.claude/settings.json`, and the required CI check `.github/workflows/release-check.yml`. Rules `.claude/rules/release.md`.
 - Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks and `commit-rules.md`, `setup-test-hook` `run-tests.mjs`, `setup-graphify` `graphify-rules.md`).
 - GitHub: PR template `.github/pull_request_template.md`.
 
 ## Commands
 
 - Lint: `npm run lint`
+- Test: `npm test` (release-check script)
 - Format: `npm run format`
 - Validate plugin: `claude plugin validate --strict .`
 - Never run `claude plugin eval` (LLM-graded behavioral evals); structural validation only.
@@ -29,6 +31,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Commit Stop hook smoke test: `echo '{"session_id":"t"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/commit-stop.mjs` (dirty tree → block asking for `cdk:commit-changes`; clean → `⏺ No Git changes to commit`)
 - Graphify Stop hook smoke test: `echo '{"session_id":"t"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/graphify-stop.mjs` (no output unless Graphify is configured)
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/format-lint-repo.mjs` (no output when no covered file changed since its last run)
+- Release hook smoke test: `echo '{"tool_name":"Bash","tool_input":{"command":"gh pr create -B main"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/release-check.mjs hook` (exit 2 with codes and fixes until the changelog and version are updated and pushed; exit 0 otherwise); validate directly: `node hooks/scripts/release-check.mjs check --target main`
 - Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/skills/build-skill/SKILL.md"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/plugin-validate.mjs` (exit 0 and no output when valid)
 
 ## Precedence
@@ -43,6 +46,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Never commit or push directly to `main`; work on a Conventional Branch.
 - Ask first before `git push` (an explicit commit or push request to a cdk git skill counts as consent to a normal, non-force push), creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Local commits, review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 - Exception: the plugin's `Stop` hook (`commit-stop.mjs`, last step of `stop.mjs`) instructs Claude to run `cdk:commit-changes` with a normal push in any git repo whose tree changed since session start (never pre-session work, never mid-merge or rebase); that covers the commit and push only (never force-push, MR, or merge).
+- Exception: the release gate in `cdk:prepare-pull-request` and `cdk:prepare-merge-request` chains `cdk:commit-changes` (commit and normal push of the changelog and version only) after one ask, or with `--yes`/`auto`; it never force-pushes and never overrides the check.
 - Exception: `cdk:ship-changes` asks once (target branch, squash, delete source branch) and that answer covers pushing, creating or updating the MR or PR, posting reviews and replies, approving, and merging a clean MR or PR (not draft, conflict-free, approved where required, required checks passing); it never force-pushes and never merges an unclean one.
 - Secrets and hook bypass: see `.claude/rules/git.md`.
 
@@ -53,6 +57,8 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Definition of done
 
 - [ ] `npm run format`, then `npm run lint` pass.
+- [ ] `npm test` passes.
+- [ ] `node hooks/scripts/release-check.mjs check --target main` passes before any PR or MR.
 - [ ] `claude plugin validate --strict .` passes.
 - [ ] The `PostToolUse` validate hook reports no error or warning; fix everything it reports.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
@@ -65,6 +71,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Known issues and fixes
 
 - yamllint `line-length` on long URL comments → URL on own comment line.
+- yamllint `truthy` warning on workflow `on:` → `truthy.check-keys: false` in `.yamllint.yaml`.
 - `validate --strict .claude-plugin/plugin.json` warns on root `CLAUDE.md` → accepted; still loads as repo context, `validate --strict .` passes.
 - `validate --strict` warns missing marketplace `description` → add top-level `description` to `marketplace.json`.
 - prettier silently skip files in `.prettierignore` (exit 0) → route YAML to yamlfmt only.
