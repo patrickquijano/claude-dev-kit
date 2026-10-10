@@ -8,7 +8,7 @@ Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed 
 
 ## Early exits
 
-A stop after the skill produced items (a capped-loop stop, a failed check, a blocker, a gate stop) runs this step once on what is left, without re-entering the loop, then prints the Output with `Stopped:`; each skill states this on its own stop paths. Pre-flight stops and cancels skip it and print `Resolution: not run (…)`. `nothing-to-do` skips the step only when no source holds an item; a `nothing-to-do` with items (baseline failures, `Skipped:`, `Skipped practices:`, `Gaps:`) runs the step.
+A stop after the skill produced items (a capped-loop stop, a failed check, a blocker, a gate stop) runs this step once on what is left, without re-entering the loop, then prints the Output with `Stopped:`; each skill states this on its own stop paths. Pre-flight stops and cancels skip it and print `Resolution: not run (…)`. `nothing-to-do` skips the step only when no source holds an item; a `nothing-to-do` with items (baseline failures, `Skipped:`, `Skipped practices:`, `Gaps:`) runs the step. Default for any exit a skill does not route explicitly: run this step once when a source already holds an item, else print `Resolution: not run (<cancelled | stopped | nothing-to-do>)` matching `Result:`; a skill need not restate it per exit.
 
 ## Collect
 
