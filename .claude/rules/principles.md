@@ -5,7 +5,7 @@
 - Failed check → find root cause, fix, re-run check until pass.
 - Comments brief: max 2 sentences.
 - Review, validate, test each changed component before commit, using `Verify:` line in its `.claude/rules/` file.
-- Verify: Definition of done checklist in `CLAUDE.md`.
+- Verify: Definition of done checklist in `.claude/CLAUDE.md`.
 
 ## Design principles
 

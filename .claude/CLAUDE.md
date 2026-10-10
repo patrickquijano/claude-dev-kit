@@ -72,7 +72,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - yamllint `line-length` on long URL comments → URL on own comment line.
 - yamllint `truthy` warning on workflow `on:` → `truthy.check-keys: false` in `.yamllint.yaml`.
-- `validate --strict .claude-plugin/plugin.json` warns on root `CLAUDE.md` → accepted; still loads as repo context, `validate --strict .` passes.
+- `validate --strict` warns "CLAUDE.md at the plugin root is not loaded as project context" → moved to `.claude/CLAUDE.md`.
 - `validate --strict` warns missing marketplace `description` → add top-level `description` to `marketplace.json`.
 - prettier silently skip files in `.prettierignore` (exit 0) → route YAML to yamlfmt only.
 - Plugin hook blocked edits in projects without ESLint/Stylelint config → gate those steps on config file (`configs`).
