@@ -155,7 +155,6 @@ claude --plugin-dir .              # test local checkout; /reload-plugins after 
 - Branches: `<type>/<short-description>`.
 - Never bypass hooks with `--no-verify`.
 - Open pull requests with the [default template](.github/pull_request_template.md).
-- In Claude Code sessions here, a project hook (`.claude/hooks/version-bump.mjs`) bumps the plugin version (major for breaking changes, minor for `feat`, else patch), commits it, and pushes the branch before `gh pr create` or `glab mr create` into `main`. Don't bump the version by hand.
 
 ## License
 
