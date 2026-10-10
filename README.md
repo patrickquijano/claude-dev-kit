@@ -34,7 +34,7 @@ claude plugin install cdk@claude-dev-kit
 
 ### Skills
 
-Skills that report findings (failed or skipped checks, gaps, suspected bugs, blockers) end with a **Resolve findings** step: it analyzes each open item (impact, fix, alternatives, validation), fixes safe in-scope ones and revalidates, and asks with a recommended option for the rest. Skills with their own fix loop keep it; ship and setup chains stay unattended and report what is left.
+Every skill that reports findings (failed or skipped checks, gaps, suspected bugs, blockers, open items) ends with a **Resolve findings** step, after any own fix loop: it analyzes each open item (impact, fix, alternatives, validation), fixes safe in-scope ones and revalidates, and asks with a recommended option for the rest. Ask-only skills (review, posting, rebase, orchestrators, print-only) only report and ask. Unattended runs (chains, `--auto`, `--yes`, the Stop hook) ask nothing and report what is left. Only `switch-branch` has no step.
 
 | Skill                               | Purpose                                                                                                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |

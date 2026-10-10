@@ -6,10 +6,15 @@ Shared by every `cdk:` skill with a **Resolve findings.** workflow step, placed 
 - `sources` = the Output fields and agent returns that carry findings: failed or skipped checks, remaining gaps, suspected bugs, blockers, skipped or reverted items, open review findings, unresolved decisions, open threads, and warnings.
 - No source holds an item → skip the step; print `Resolution: none`.
 
+## Early exits
+
+A stop after the skill produced items (a capped-loop stop, a failed check, a blocker, a gate stop) runs this step once on what is left, without re-entering the loop, then prints the Output with `Stopped:`; this overrides a skill's "print the Output and end" for those stops. Pre-flight stops, cancels, and `nothing-to-do` skip it and print `Resolution: not run (…)`.
+
 ## Collect
 
 1. List every item from the sources, keeping its original id, severity, and status. Never drop, merge away, relabel, or hide one; an item the user already accepted earlier in the run (for example a `Skip this tool` answer) stays listed as `accepted`, not as resolved.
-2. Orchestrators (skills that chain `cdk:` skills) collect only what the chained skills' `Resolution:` lines left `open`; they never re-analyze or re-fix a chained skill's items.
+2. An item left by the skill's own capped loop (score gaps, unfixed reviewer findings, open spec-kit items) keeps that loop's fix proposal as its Recommended fix; the loop is never re-run.
+3. Orchestrators (skills that chain `cdk:` skills) collect only what the chained skills' `Resolution:` lines left `open`; they never re-analyze or re-fix a chained skill's items.
 
 ## Analyze
 
@@ -28,7 +33,7 @@ Classify each item `safe` (in scope, reversible, no new behavior or dependency),
 
 ## Ask
 
-All `needs-decision` and `blocked` items, in one AskUserQuestion call (at most 4 questions per call, one per item or per tightly related group; further calls only to cover items not yet asked). Each question: 2–4 concrete options naming their effect, the recommended one first with "(Recommended)" and a one-sentence objective reason, and a `Leave open` option. A chosen fix of a `scope: edit` skill runs as in Resolve and counts as an attempt, allowed only while fewer than 2 were used. Never ask again a choice an earlier workflow step already offered (for example `Don't post`); report it as `open` instead. Under an unattended token (`--yes`, `--auto`, `auto`, `self-review`, or when chained by another skill) ask nothing: the items stay `open` and are reported with their recommended fix.
+All `needs-decision` and `blocked` items, in one AskUserQuestion call (at most 4 questions per call, one per item or per tightly related group; further calls only to cover items not yet asked). Each question: 2–4 concrete options naming their effect, the recommended one first with "(Recommended)" and a one-sentence objective reason, and a `Leave open` option. A chosen fix of a `scope: edit` skill runs as in Resolve and counts as an attempt, allowed only while fewer than 2 were used. Never ask again a choice an earlier workflow step already offered (for example `Don't post`); report it as `open` instead. Under an unattended token (`--yes`, `--auto`, `auto`, `self-review`, when chained by another skill, or when run from the cdk `Stop` hook) ask nothing: the items stay `open` and are reported with their recommended fix.
 
 ## Caps
 
