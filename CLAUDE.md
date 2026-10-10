@@ -72,4 +72,5 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - hadolint ANSI colors leak into hook `reason` → run every hook step with `NO_COLOR=1`.
 - hadolint parse error on heredoc Dockerfiles (`RUN <<EOF`) blocked edits → `format-lint.mjs` skips hadolint when the file has a heredoc.
 - ESLint `no-undef` on `process` in `.mjs` → add `globals.node` to `eslint.config.mjs`.
+- commitlint `footer-empty` rejects the session attribution trailer → commit subject-only (git.md: no attribution).
 - `npm run format` renumbers nested list under 2-digit ordered step (steps restart at 1) → keep steps ≥10 as single paragraphs.
