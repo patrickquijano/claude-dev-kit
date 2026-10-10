@@ -65,6 +65,7 @@ claude plugin install cdk@claude-dev-kit
 | `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR or PR.                                                           |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from unique commits and changes, switch to it, push.                                                                        |
 | `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                                                       |
+| `/cdk:write-changelog`              | Create or update CHANGELOG.md per Keep a Changelog from branch commits and working-tree changes; `release` cuts a dated version. Idempotent.                  |
 | `/cdk:write-claude-md`              | Merge guidelines and engineering principles into CLAUDE.md and `.claude/rules`; score /100 until ≥95.                                                         |
 | `/cdk:write-dockerfile`             | Write a multi-stage, digest-pinned Debian/Ubuntu/Alpine slim Dockerfile and `.dockerignore` from input and repo facts.                                        |
 | `/cdk:write-e2e-tests`              | Write AAA, faker-based end-to-end tests for critical journeys; run-fix until new tests pass (max 3).                                                          |
