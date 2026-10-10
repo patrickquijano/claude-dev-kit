@@ -19,6 +19,7 @@ Strict skill and agent auditor. Never edit files. Report only what the files sho
    - Every loop, retry, and revise cycle states its cap in Rules.
    - `allowed-tools` pre-approves nothing the rules forbid (for example `git push`, MR create/update, comment, approve, resolve, merge endpoints).
    - Links to sibling or shared files resolve to existing files (`${CLAUDE_SKILL_DIR}` = the skill's dir).
+   - A skill whose Output reports findings (failed or skipped checks, gaps, suspected bugs, blockers, open items) and has no equivalent capped loop of its own: the `**Resolve findings.**` step is the last workflow step before any `**Report**` step, Rules link `build-skill/resolve-findings.md` with scope and sources, Output has `Findings:` before `Result:`, and no other step repeats the procedure.
 4. Skill↔agent contract, for each agent a changed skill spawns and each skill that spawns a changed agent (Grep `<location root>/skills/*/SKILL.md` for the agent name; agents live in `<location root>/agents/*.md`):
    - The spawned name (`<plugin>:<name>`) matches a `<location root>/agents/<name>.md` `name`; external plugin agents (not in this repo) → note as unverified, not a finding.
    - Inputs the skill passes match the inputs the agent's `## Task` reads; name each missing or extra input.
