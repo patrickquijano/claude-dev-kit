@@ -10,7 +10,8 @@ Inputs from the caller: target branch, `unattended` (`--yes` or `auto`), `dry-ru
    - `skipped` (no policy, or only exempt or non-user-facing changes) → `Release: skipped (<note>)`; done.
    - `ok` → `Release: ok (<level> → <required>)`; done.
    - `failures` with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → stop with the failure's `message` and `fix`; remediation cannot help.
-2. **Dry run.** `dry-run` → `Release: failed (<codes>)` with each `fix`, change nothing, and return to the caller.
+   - any other code (for example `unpushed`) → stop the same way.
+2. **Dry run.** `dry-run` → `Release: failed (<codes>)` with each `fix`, change nothing, and return to the caller, which continues (dry run writes nothing); the failure is an item for its Resolve findings step, not a stop.
 3. **Clean tree.** Only `changelog-*` and `version-*` codes are remediable here; any `uncommitted` code also takes this step's stop. `git status --porcelain=v1 --untracked-files=all` non-empty → stop, `uncommitted changes block the release gate; run /cdk:commit-changes first`. `cdk:commit-changes` commits everything dirty, so never remediate over unrelated edits.
 4. **Consent.** Not `unattended` → one AskUserQuestion: `Update changelog and version, commit, push (Recommended)` (objective reason: the check blocks PR/MR creation and CI until they exist) | `Stop`. `Stop` → stop. `unattended` → no ask; the caller's consent covers it.
 5. **Remediate**, chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`:
