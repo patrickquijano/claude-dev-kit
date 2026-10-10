@@ -22,11 +22,12 @@ Input: $ARGUMENTS
 - Model text (JSON bodies, commit subjects) via scratch file (`--input`, `git commit -F`); never inline in shell args. GitLab API reads and writes per `${CLAUDE_SKILL_DIR}/../prepare-merge-request/gitlab.md` `## API reads and writes`.
 - `allowed-tools` pre-approves local git and a few fixed `glab` reads only. MR API reads (`glab api -X GET projects/:id/merge_requests/…`), other reads (`glab api projects/<source_project_id>`) and every write (`git switch`, `git pull`, `git commit`, POST, PUT, graphql, push) stay permission-prompted.
 - Commits and subjects per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` (`## Commit subject`, `## Signing`); always `git commit -S -F <file>`, never `--no-verify` or `--no-gpg-sign`. Signing not configured → stop at step 3.
-- Caps: triager re-spawn with answers (step 5) once; check fixes (step 6), commitlint redrafts, and hook fixes (step 7) 3 attempts each; MR re-fetch (step 10) 3 attempts, 5 s apart. Cap hit → report, stop.
+- Caps: triager re-spawn with answers (step 5) once; check fixes (step 6), commitlint redrafts, and hook fixes (step 7) 3 attempts each; MR re-fetch (step 10) 3 attempts, 5 s apart. Cap hit or any stop in steps 5–12 (push rejected, commit verify, stale head, post error, verify mismatch) → run step 13 (**Resolve findings.**) once on what is left, without re-entering the loop, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
+- Stops and cancels in steps 1–4 → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. A `nothing-to-do` exit (steps 2, 4) has no item in any source → `Resolution: not run (nothing-to-do)`.
 - `self-review` input token (set by `cdk:ship-changes`) = the user reviewed their own MR; keep threads self started, and the user answers Clarify questions in step 5 instead of a posted question.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: threads `left open`, `awaiting reviewer`, declined threads, unpushed commits).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: threads `left open`, `awaiting reviewer`, declined threads, unpushed commits, `Summary posted: no`, `Review re-requested: no` when significant).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `address-merge-request-review`.
 
 ## Workflow
