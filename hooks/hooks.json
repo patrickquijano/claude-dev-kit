@@ -1,13 +1,14 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "SessionStart": [
       {
-        "matcher": "Bash",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/glab-read-guard.mjs\"",
-            "timeout": 10
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.mjs\"",
+            "timeout": 20,
+            "statusMessage": "Loading session context"
           }
         ]
       }
@@ -30,9 +31,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/format-lint-repo.mjs\"",
-            "timeout": 600,
-            "statusMessage": "Formatting and linting repository"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop.mjs\"",
+            "timeout": 1000,
+            "statusMessage": "Running Stop checks"
           }
         ]
       }

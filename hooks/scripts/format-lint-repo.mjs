@@ -162,7 +162,7 @@ async function main() {
     // Unwritable temp dir; the next turn runs again.
   }
   if (!lines.length) return;
-  const result = { systemMessage: lines.join('\n') };
+  const result = { systemMessage: lines.join(' | ') };
   if (failures.length) {
     result.decision = 'block';
     result.reason =
