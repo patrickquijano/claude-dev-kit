@@ -22,7 +22,7 @@ Inputs from the caller: target branch, `unattended` (`--yes` or `auto`), `dry-ru
 
 ## Stops
 
-A gate stop ends the caller's run: `Result: stopped`, `Stopped: <caller step>: release gate <codes>: <fix>`, `Release: failed (<codes>)`, `Resolution: not run (stopped)`. Nothing is created, edited by hand, or force-pushed. There is no skip and no override; an exception exists only as an `exempt` entry with a reason in `.claude/release-policy.json`, reviewed like any change. Never edit that policy to make a check pass.
+A gate stop ends the caller's run: `Result: stopped`, `Stopped: <caller step>: release gate <codes>: <fix>`, `Release: failed (<codes>)`, `Resolution` from the caller's Resolve findings step (ask-only; the failure is its item). Nothing is created, edited by hand, or force-pushed. There is no skip and no override; an exception exists only as an `exempt` entry with a reason in `.claude/release-policy.json`, reviewed like any change. Never edit that policy to make a check pass.
 
 ## Notes
 
