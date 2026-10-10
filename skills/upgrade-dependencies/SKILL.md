@@ -21,6 +21,7 @@ Input: $ARGUMENTS
 - Loops: fix rounds per failing check (step 9) max 3, then revert that package and continue.
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Skipped:`, `Reverted:`, `Checks:` failures, step 10 leftovers).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `upgrade-dependencies`.
 
 ## Workflow
@@ -35,7 +36,8 @@ Input: $ARGUMENTS
 8. **Apply.** Per package in plan order: record its original manifest specifier (e.g. `~1.2.3`, `1.2.3`, `^1.2.3`) and manifest file, run the upgrade command from managers.md (workspace: in each member that declares the package, using managers.md `## Workspace members`), then the planned code and config edits, then step 9. Order: patch and minor first (one batch), then each major, dependencies before dependents (e.g. a framework before its plugins).
 9. **Validate.** After each step, run the project's own checks in this order, skipping those it lacks: install (clean, from the lockfile), build, type check, lint, tests. Use the analyzer's `Checks:` list for that project; don't re-detect. List them in the Output. A failure, error, or deprecation warning not in the baseline → find the root cause in the changelog or migration guide, fix it, re-run the check. Still failing after 3 fix rounds → revert this package (keeps the rest green), report it, and continue with the next. Revert → restore the recorded specifier in its manifest exactly (not `<pkg>@<old version>`, which can turn `~` or an exact pin into `^`), run the manager's install or lock command, and undo that step's code and config edits (not `git checkout`, which also drops earlier upgrades).
 10. **Review.** Show `git diff --stat`. Then the per-package summary. Re-read each changed file for leftovers: old API names, stale config keys, deprecated options the guide lists.
-11. **Report** the output below.
+11. **Resolve findings.** Per resolve-findings.md. Retry a reverted or skipped package only with a different, safer path (for example an intermediate version) and only after its checks pass at the baseline; major-version or breaking changes the user declined stay `accepted`.
+12. **Report** the output below.
 
 ## Output
 
@@ -47,6 +49,7 @@ Code and config changes: <file — change>, …
 Checks: <command: pass | fail>, …
 Reverted: <package: reason> | none
 Next: review the diff, then commit (e.g. /cdk:commit-changes)
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

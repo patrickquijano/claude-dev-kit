@@ -18,6 +18,7 @@ Input: $ARGUMENTS
 - Caps: step 3 re-spawns an analyzer at most once, still open `Questions:` → `Stopped: 3: analyzer questions unresolved`; step 9 run-fix rounds at most 3, then `Stopped: 9: tests still failing after 3 rounds`.
 - Stop answer → print the Output with `Result: cancelled`, `Stopped: <step>: <reason>`, and end. Cap hit or failure → print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Suspected bugs:`, `Baseline failures:`, tests still failing after the round cap).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-integration-tests`.
 
 ## Workflow
@@ -31,7 +32,8 @@ Input: $ARGUMENTS
 7. **Plan.** Table per package: boundary `file:line`, dependency strategy, scenarios (success and failure paths), data setup and cleanup. Print it and continue to step 8 without asking.
 8. **Write.** Per boundary, in the project's conventions (style sample) and conventions.md Integration: AAA blocks, seeded faker data with unique keys, real wiring of the project's own components, the chosen strategy per dependency, cleanup per test.
 9. **Run.** Run the integration suite. Failure in a new test → test or setup bug: fix it; code looks wrong → conventions.md production-bug rule (keep failing, report). Re-run until every new test passes, except tests kept failing under the production-bug rule (cap in Rules).
-10. **Report** the output below.
+10. **Resolve findings.** Per resolve-findings.md. Fix only tests this run wrote. A suspected bug in production code stays `needs-decision`; never delete or weaken a test.
+11. **Report** the output below.
 
 ## Output
 
@@ -48,6 +50,7 @@ Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none
 Suspected bugs: <file:line — kept failing>, … | none
+Findings: <n> resolved, <m> open (<id: reason; recommended fix>, …), <k> accepted | none | not run (stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
