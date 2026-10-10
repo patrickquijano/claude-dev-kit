@@ -74,7 +74,7 @@ Commitlint config: <file> (<kept | written>; header-max-length <added | present 
 Rules: .claude/rules/commits.md (<written | same | kept>); CLAUDE.md mention <present | missing>
 Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, … | up to date
-Smoke test: <✅/❌ lines>
+Smoke test: <✅/❌ lines> | skipped (<reason>)
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled

@@ -15,7 +15,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none of them uses its native format from the catalog.
 - Never overwrite a user file; edits append only missing keys or entries. Configs are written only when missing.
 - AskUserQuestion: at most 4 questions per call, 2–4 options each; recommended option first with its reason.
-- Caps: analyzer respawn after `Gaps` 1; step 11 may spawn one extra `mode=check` for the tools it touched. Each question is asked once per linter role (step 4), tool (step 7), or run (step 5); never re-ask the same question. More questions than fit one call → further calls until all are asked, at most 4 calls per step.
+- Caps: analyzer respawn after `Gaps` 1; step 11 may spawn one extra `mode=check` for the tools it touched, shared across items. Each question is asked once per linter role (step 4), tool (step 7), or run (step 5); never re-ask the same question. More questions than fit one call → further calls until all are asked, at most 4 calls per step.
 - Package dir, package manager, exec prefix, and `package.json` creation: `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md`.
 - Native tools change the machine, not only the repo: never install one unasked.
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.

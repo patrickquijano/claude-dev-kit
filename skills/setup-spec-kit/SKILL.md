@@ -57,7 +57,7 @@ specify-cli: installed <version> | present <version>
 Init: done | Claude integration added | skipped (already initialized)
 Extensions: agent-context <added|priority N→10|ok|failed>, assess <…>, bug <…>
 Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo)
-Lint/format ignores: <file: added paths>, … | none found
+Lint/format ignores: <file: added paths>, … | skipped <file: reason> | none found
 Required skills: all present | missing <dirs>
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
