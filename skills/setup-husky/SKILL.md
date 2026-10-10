@@ -19,7 +19,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - Any Stop answer or failure → print the Output with `Stopped: <step>: <reason>` and end.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: smoke test results (step 15) and the `Signed` line, kept files that differ from the assets, a missing `CLAUDE.md` mention).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: smoke test results (step 15) and the `Signed` line, kept files that differ from the assets, `CLAUDE.md mention: missing` in `Rules:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-husky`.
 
 ## Workflow
@@ -71,7 +71,7 @@ pre-commit: removed | kept (test script) | restored | untouched
 Events: message <commit-msg | skipped>, signing <pre-check + report | pre-check | report | skipped> | kept user hook
 Hooks: commit-msg <copied|same|kept|removed>, commit-msg.mjs <…>, post-commit <…>, post-commit.mjs <…>
 Commitlint config: <file> (<kept | written>; header-max-length <added | present | kept <value> | report-only>)
-Rules: .claude/rules/commits.md (<written | same | kept>)
+Rules: .claude/rules/commits.md (<written | same | kept>); CLAUDE.md mention <present | missing>
 Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, … | up to date
 Smoke test: <✅/❌ lines>
