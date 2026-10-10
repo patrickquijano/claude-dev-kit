@@ -22,6 +22,7 @@ Input: $ARGUMENTS
 - Never run a workflow, push, open a PR, or change repository or organization settings.
 - Every write to an existing file prints its diff; no approval asked, since the files are local and reviewable.
 - Loops: clarify (step 3) max 3 rounds; verify-fix (step 9) max 3 attempts; still incomplete or failing → print the Output with `Stopped: <step>: <reason>` and end.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Checks:` findings, fail, or not installed).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-github-workflows`; it covers subagent `Known issue:` lines.
 
 ## Workflow
@@ -30,12 +31,13 @@ Input: $ARGUMENTS
 2. **Analyze.** Spawn `cdk:workflow-analyzer` with the root, a request summary, and `${CLAUDE_SKILL_DIR}/versions.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
 3. **Clarify.** Derive triggers, jobs, `needs` graph, permissions, environments, inputs, outputs, variables, secrets, containers, services, caching, artifacts, and cleanup from the input and the analyzer. Ask only what stays missing or ambiguous: one AskUserQuestion call with every question together (max 4 per call, repeated if more), each with 2–4 options, the recommended one first labeled "(Recommended)", and a justification in its description; the first question also offers Stop (→ `Result: cancelled`). Derivable → don't ask. Nothing left to change → `Result: nothing-to-do`. Analyzer `Questions` and unverified required checks go here. A touched job with a required check needs no question: the gate job in step 6 is automatic, also when the check is only unverified (listed under Retained constraints). Max 3 rounds.
 4. **Docs check.** WebFetch only the pages named in `practices.md` for features this request uses (for example services, environments, concurrency); a fact that differs from `practices.md` → follow the doc, record it under `Docs checked`. Skip for features unused.
-5. **Resolve.** Spawn `cdk:actions-version-resolver` with `${CLAUDE_SKILL_DIR}/versions.md`, the actions, remote reusable workflows, images (with variant and major.minor), runner need and architecture, and the analyzer's pinning signals. Items in its `Unresolved` → one AskUserQuestion (inside the step 3 cap) or `Stopped`; this includes `Pinning: unknown` (options SHA recommended, tag) and a newest runner label that is not an LTS `.04` release (options newest, newest LTS). Keep its table for steps 6, 9, and 10.
+5. **Resolve.** Spawn `cdk:actions-version-resolver` with `${CLAUDE_SKILL_DIR}/versions.md`, the actions, remote reusable workflows, images (with variant and major.minor), runner need and architecture, and the analyzer's pinning signals. Items in its `Unresolved` → one AskUserQuestion (inside the step 3 cap) or `Stopped`; this includes `Pinning: unknown` (options SHA recommended, tag) and a newest runner label that is not an LTS `.04` release (options newest, newest LTS). Keep its table for steps 6, 9, and 11.
 6. **Draft.** Per `layout.md` and `practices.md`: the orchestrator and one callee per job; `runs-on` the resolved label; every `uses:` and `image:` from the table in the resolver's pinning mode (SHA mode keeps `# vX.Y.Z` comments); explicit `permissions` per job; `timeout-minutes`; step-level `env`; cache and artifacts with `retention-days`; `if: ${{ always() }}` cleanup for each credential, temp file, login, or container the job creates. A touched job with a required check (analyzer `Required checks`) → add the `_gate.yml` callee per `layout.md` as the single stable check, and build the `Check-name map`. Fill `Policy applied` with each **cdk**-marked practice used and `Retained constraints` with each check rename and skipped signal. Update mode → edit in place, list each change with its reason.
 7. **Plan.** Print the file list with a one-line purpose each, the resolved versions table, and the diff for existing files; then write without asking.
 8. **Write** the files under `.github/workflows/`.
 9. **Verify.** Spawn `cdk:workflow-reviewer` with the paths, `${CLAUDE_SKILL_DIR}/practices.md`, `${CLAUDE_SKILL_DIR}/layout.md`, the resolver table, the pinning mode, the list of files written, and in update mode the diff. Use its `Findings`, `Checks`, `Tool output`. Each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
-10. **Report** the output below.
+10. **Resolve findings.** Per resolve-findings.md. Edit only the workflows this run wrote. Itemize `Unresolved:` and each `Checks:` entry with `n findings`, `fail`, or `not installed`.
+11. **Report** the output below.
 
 ## Output
 
@@ -57,6 +59,7 @@ Policy applied: <cdk policy item — see practices.md>, … | none
 Check-name map: <old check → new check (format unverified)>, … | none
 Unresolved: <item — reason> | none
 Known issues: <saved memory file | printed line>, … | none
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

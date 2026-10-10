@@ -21,6 +21,8 @@ Input: $ARGUMENTS
 - Secrets never committed: the analyzer (small path: step 4) flags file names (`.env`, keys) and diff content (`-----BEGIN`, `AKIA`, `ghp_`, `glpat-`, `xox[bp]-`) under `Excluded`. Flagged → leave unstaged, list under Excluded, warn user.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Excluded:` secret-flagged files, a skipped commitlint check, `Branch:` `not pushed` with no origin).
+- Unattended when run by the cdk `Stop` hook or chained by another skill: it asks nothing, and step 11 only reports open items with their recommended fix.
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `commit-changes`.
 
 ## Workflow
@@ -35,6 +37,7 @@ Input: $ARGUMENTS
 8. **Commit.** Switching → `git switch -c <target>` (name from step 6); fail → report exact error line, stop. Per group: whole files → `git add -- <files>`; split files → `git apply --cached <scratch>/<n>.patch` instead of `git add`. Write subject to `<scratch>/msg`, then `git commit -S -F <scratch>/msg` (never inline the subject in shell args). Signing fails → stop per conventions.md `## Signing`. Other hook failure → diagnose root cause, fix, re-stage, commit again.
 9. **Verify.** `git log --format='%h %G? %s' -n <count>`. Every `%G?` must be `G`; every subject ≤72 chars. `git status` shows only excluded files. Fail → stop, report.
 10. **Push.** `git remote get-url origin` fails → report "no origin remote", skip push, `Branch:` line says `not pushed`. Else `git push origin HEAD:<branch>`; add `-u` when `git rev-parse --abbrev-ref @{u}` fails or ≠ `origin/<branch>` (never follow an upstream like `origin/main`). Fail → report exact error line, stop.
+11. **Resolve findings.** Per resolve-findings.md, only when a source holds an item (`Excluded:` secret-flagged files, a skipped commitlint check, `not pushed` with no origin); otherwise skip it and print `Resolution: none`. Runs after a stop from step 9 onward (pre-flight stops and cancels print `not run`). Ask nothing and never edit, stage, or push anything here; report each item's impact, who acts (the user), and recommended fix. A skipped commitlint check is read from the "note it" report of that skip.
 
 ## Output
 
@@ -45,6 +48,7 @@ Switched from: <protected/default branch or none>
 Commits:
 - <hash> <subject> [signature: G]
 Excluded: <files or none>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

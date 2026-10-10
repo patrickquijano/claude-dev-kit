@@ -13,9 +13,10 @@ Input: $ARGUMENTS
 - No hallucination. Every frontmatter field and behavior follows `${CLAUDE_SKILL_DIR}/practices.md` or the official docs (<https://code.claude.com/docs/en/sub-agents>). Unverified → omit and report.
 - No assumption. Gap or ambiguity → AskUserQuestion: 2–4 options, recommended first with "(Recommended)", justification in its description. Derivable answer → don't ask.
 - Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler.
-- Loops: clarify (step 3) max 3 rounds; verify-fix (step 8) max 3 attempts; still incomplete or failing → print the Output with `Stopped: <step>: <reason>` and end.
+- Loops: clarify (step 3) max 3 rounds; verify-fix (step 8) max 3 attempts; clarify cap hit or any failure → print the Output with `Stopped: <step>: <reason>` and end; verify cap hit → run step 9 on what is left, then print the Output with `Stopped: 8: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Never run `claude plugin eval` (LLM-graded); structural validation only.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: reviewer, validator, and auditor findings left after the verify cap, itemized; `Checks:` fail or skipped).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `build-agent`.
 
 ## Workflow
@@ -33,6 +34,7 @@ Input: $ARGUMENTS
    - Spawn in one message, in parallel: `plugin-dev:plugin-validator` for a plugin location (plugin root, agent path); `plugin-dev:skill-reviewer` per spawning-skill SKILL.md written; `cdk:skill-auditor` with location root (`~/.claude`, `<repo>/.claude`, or plugin root), repo root (for `.claude/rules/`; none for `~/.claude`), and every written path, including spawning-skill edits; read its `Rules:` and `Contracts:` (`Rules: none` or no rule matched → warning).
    - plugin-dev agents unavailable → skip them, note in Output `Checks`.
    - Merge findings, deduplicated by file:line; collect agents' `Known issue:` lines. Any error or warning → fix; recurring or blocking → save per Known issues rule; re-verify (max 3 attempts).
+9. **Resolve findings.** Per resolve-findings.md. Edit only files this run wrote (never the shared `build-skill/` files unless the request targeted them). Itemize the reviewer, validator, and auditor findings left after the step 8 cap (the Output `n findings` counts are only tallies), plus `Checks:` `fail` or `skipped`; each keeps its file:line and severity.
 
 ## Output
 
@@ -45,6 +47,7 @@ Invoke: @-mention [<plugin>:]<name> | spawned by [<plugin>:]<skill>
 Checks: validate <pass | fail>, plugin-validator <pass | n findings | skipped — reason>, skill-reviewer <pass | n findings | n/a | skipped — reason>, skill-auditor <pass | n findings>, rules <files | none>, contracts <ok | n findings | none>
 Reload: restart (new agents dir) | /reload-plugins (plugin) | none
 Known issues: <saved memory file | printed line>, … | none
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

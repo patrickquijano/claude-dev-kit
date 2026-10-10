@@ -22,12 +22,13 @@ Input: $ARGUMENTS
 - Loops: clarify (step 3) max 3 AskUserQuestion calls, then Stopped with the facts still missing; verify-fix (step 7) max 3 attempts, still failing → Stopped.
 - Step 3 cap hit, step 7 cap hit, or any failure → print the Output, `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - Chained by `cdk:setup-devcontainer` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: unfixed `Findings:`, `Checks:` fail or not installed).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-dockerfile`.
 
 ## Workflow
 
 1. **Pre-flight.** Root = `git rev-parse --show-toplevel`, else cwd. Read the input (text, paths, pasted Dockerfile); app dir = the dir it points to (`dir=`), else root. Target: input `target=devcontainer` → devcontainer, else default. Devcontainer input keys (space-separated `key=value`, values with spaces in double quotes): `dir=`, `context=` (build context), `base=<image>:<tag>`, `packages=<a,b,…>`, `sudoers="<line>"`, `copy=<src>:<dest>,…`. Mode: input asks only to review, score, or audit → review (writes nothing); Dockerfile exists in the app dir → update; else create. Review mode, no Dockerfile → report it, suggest create mode, end with `Result: nothing-to-do`.
-2. **Analyze.** Collect: language and runtime version (`.nvmrc`, `engines`, `.python-version`, `go` directive, `rust-toolchain`, `global.json`, …), package manager + lockfile, build command and output dir, start command, port, env vars, system packages, health endpoint, monorepo layout. Existing `Dockerfile`, `.dockerignore`, `compose*.yaml`, CI build steps → read them. Build context = `context=`, else the dir the build needs files from (monorepo app using shared packages → repo root); `.dockerignore` goes at the context root. Devcontainer target → collect only the existing Dockerfile and the context's files; the input gives the rest. Review mode → step 7, then step 8.
+2. **Analyze.** Collect: language and runtime version (`.nvmrc`, `engines`, `.python-version`, `go` directive, `rust-toolchain`, `global.json`, …), package manager + lockfile, build command and output dir, start command, port, env vars, system packages, health endpoint, monorepo layout. Existing `Dockerfile`, `.dockerignore`, `compose*.yaml`, CI build steps → read them. Build context = `context=`, else the dir the build needs files from (monorepo app using shared packages → repo root); `.dockerignore` goes at the context root. Devcontainer target → collect only the existing Dockerfile and the context's files; the input gives the rest. Review mode → step 7, then steps 8 and 9.
 3. **Clarify.** Devcontainer target → skip this step entirely. Each fact still missing or ambiguous → AskUserQuestion (max 4 per call), recommended option first with the reason: exact runtime version, build and start commands, port. Derivable → don't ask. Apply these Recommended defaults without asking, unless the input or an existing Dockerfile already answers, and list them in the Output: copy only the needed application files into the image (self-contained image); create a non-root user and group with `APP_USER=app`, `APP_UID=10001`, `APP_GID=10001` (limits damage if the app is compromised; above the range distros assign to system and login accounts); Debian slim base unless its official runtime image lacks one (then Ubuntu, then Alpine; glibc, broad package support); purpose production unless the input says dev or devcontainer.
 4. **Draft.** Build the `Dockerfile` from practices.md: syntax line, image `ARG`s with tag and digest (resolve each tag, then look up its digest, per practices.md; never guess; a failed lookup is asked once under the step 3 cap (devcontainer target: stop, never ask; review mode: only report)), build stages, runtime stage, cache mounts for the detected package manager, unversioned package installs plus system and package-manager upgrades and same-layer cleanup, trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths only (when chosen), user and group from `ARG`s (when chosen), heredoc multi-line `RUN`s, merged `RUN`s, `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice; list each change with its reason.
 5. **Plan.** Print the Dockerfile, `.dockerignore`, and the change list (diff for existing files), then write without asking.
@@ -36,7 +37,8 @@ Input: $ARGUMENTS
    - Review mode → report its findings; write nothing.
    - Create or update → each `error` or `warning` finding → fix, print the diff, write the fixes without asking; re-run this step (cap in Rules). `info` findings → list only.
    - Full `docker build` only when the user asks (it downloads images and runs build commands).
-8. **Report** the output below.
+8. **Resolve findings.** Per resolve-findings.md. Edit only the `Dockerfile` and `.dockerignore` this run wrote or updated; review mode writes nothing, so its items are reported with their recommended fix. Itemize the unfixed `Findings:`; `Checks:` fail or not installed (a skipped hadolint for a heredoc is not an item). Devcontainer target chained by `cdk:setup-devcontainer` is unattended: ask nothing.
+9. **Report** the output below.
 
 ## Output
 
@@ -53,6 +55,7 @@ Distro: <debian | ubuntu | alpine> (<reason when not Debian slim>)
 Checks: docker build --check <pass | fail | not installed>, hadolint <pass | fail | skipped (heredoc) | not installed>
 Findings: <path:line practice id — fix>, … | none
 Build: docker build -t <name> -f <Dockerfile> <context>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -22,6 +22,7 @@ Input: $ARGUMENTS
 - Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Never re-ask an omitted item.
 - Score-only never writes.
 - Formatter runs prompt for permission; expected.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, the target memory file and `.claude/rules/**/*.md` only; sources: `Remaining gaps:` scorer deductions).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-claude-md`.
 
 ## Workflow
@@ -29,7 +30,7 @@ Input: $ARGUMENTS
 1. **Pre-flight.** Root = `git rev-parse --show-toplevel`; fail → cwd.
    - `CLAUDE.md` or `.claude/CLAUDE.md` exists → update mode. Both exist → AskUserQuestion which to keep as target.
    - None → create mode, target `CLAUDE.md`. Existing `.claude/rules/` files → edit in place, never re-template.
-   - Input `score` or request is score/audit only → score-only: steps 2, 6, 7. No target file → report it, suggest create mode, end with `Result: nothing-to-do`.
+   - Input `score` or request is score/audit only → score-only: steps 2, 6, 7, 8. No target file → report it, suggest create mode, end with `Result: nothing-to-do`.
    - Split input: existing file paths → `Input files:`; rest → `Input text:`.
 2. **Analyze.** Spawn `cdk:claude-md-analyzer` with root, `Target:`, `Input files:`, `Input text:`. Keep facts block.
 3. **Combine.** Merge input + existing instructions per facts `Instructions`.
@@ -46,10 +47,11 @@ Input: $ARGUMENTS
 5. **Write** files. Facts `Formatter` not none → run it on written files.
 6. **Score.** Spawn `cdk:claude-md-scorer` with: file paths (target memory file, its `@imports`, every file written in step 5, and every `.claude/rules/**/*.md` from facts `Memory files`, so Z1, P2, and E1 see all files), rubric path `${CLAUDE_SKILL_DIR}/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/principles.md`, facts block (answers merged), `Omitted:` list.
 7. **Gate.**
-   - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; print the Output, `Result: done`.
-   - Total ≥95 → print the Output, `Result: done`.
-   - <95 and rounds = 3 → print the Output with remaining gaps, `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
+   - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; `Result: done`; go to step 8.
+   - Total ≥95 → `Result: done`; go to step 8.
+   - <95 and rounds = 3 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`; go to step 8 with the remaining gaps.
    - <95 and rounds < 3 → show deductions table (criterion, lost pts, fix), then improve without asking: rounds + 1; apply fixes; fix needs non-derivable fact not omitted → ask first. Write + format (step 5), back to step 6.
+8. **Resolve findings.** Per resolve-findings.md. Itemize each `Remaining gaps:` deduction (criterion, lost pts, scorer fix as Recommended fix); the step never re-enters the improve loop. Score-only → report and ask only (writes nothing). Then print the Output.
 
 ## Output
 
@@ -60,6 +62,7 @@ Score: <n>/100 (pass | below 95)
 Rounds: <improve rounds>
 Remaining gaps: <criterion list or none>
 Omitted: <items the user chose to omit | none>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

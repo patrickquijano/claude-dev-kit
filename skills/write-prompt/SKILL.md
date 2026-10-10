@@ -19,16 +19,18 @@ Input: $ARGUMENTS
 - Claude Code target only.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Loops: clarify (step 3) max 2 batches.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt`.
 
 ## Workflow
 
 1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → review it; request is review-only → review-only mode. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
-2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; print the review-only Output, `Result: done`, stop.
+2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; `Result: done`; go to step 6, then print the review-only Output and stop.
 3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps. Existing prompt → also fix each failed check.
 4. **Draft** per structure.md.
 5. **Check.** Walk checks.md against the draft; fix each failure.
-6. **Report.** Print the Output, `Result: done`; no approval asked, since nothing is written.
+6. **Resolve findings.** Per resolve-findings.md. Itemize each `Open gaps:` entry (draft) or `Failed checks:` entry (review-only); the step never re-enters the clarify loop and asks only for a choice step 3 did not already offer.
+7. **Report.** Print the Output, `Result: done`; no approval asked, since nothing is written.
 
 ## Output
 
@@ -39,6 +41,7 @@ Input: $ARGUMENTS
 Checks n/a: <list or none>
 Open gaps: <list or none>
 Follow-ups: <split-off tasks or none>
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ````
@@ -47,6 +50,7 @@ Review-only:
 
 ```text
 Failed checks: <check — fix>, … | none
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
