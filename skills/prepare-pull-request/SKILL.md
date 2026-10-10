@@ -2,7 +2,7 @@
 name: prepare-pull-request
 description: Review a branch with five parallel read-only reviewers, then create or update a GitHub pull request for a target branch you select, with a filled template, the current gh user as assignee, and only a managed section of the body updated. Use only when the user explicitly asks to prepare, open, create, submit, or update a GitHub pull request, e.g. "prepare a PR", "open a pull request", "create a PR to main", "update my pull request". Do not use on your own after finishing a task.
 argument-hint: '[--target <branch>] [--template <name|path>] [--draft] [--dry-run] [--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git for-each-ref *) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git for-each-ref *) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(node *release-check.mjs *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *)
 ---
 
 # Prepare Pull Request
@@ -24,7 +24,8 @@ Input: $ARGUMENTS
 - Body goes through `<scratch>/body.md` and `-F`; never inline text in shell args.
 - Caps: invalid Other target 3 re-asks; reviewer respawn on a malformed return 1; title redrafts after a lint failure 3; step 12 Revise 3 rounds; failed create or update retried once. Cap hit (including the title lint cap) → step 15 once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`. Pre-step stops (steps 1–5) print `Resolution: not run (stopped)`, except the step 5 nothing-to-do exit, which prints `not run (nothing-to-do)`; a stop at step 9 or 10 follows the review, so it runs step 15 first; Cancel prints `not run (cancelled)`.
 - `--yes` skips only the step 12 question. `--dry-run` runs steps 1–12, prints the result, and writes nothing (no push, no PR).
-- Never `--force`, `--no-verify`, commit, stash, or reset.
+- Never `--force`, `--no-verify`, stash, or reset. Never commit directly; the only commits come from `cdk:commit-changes` chained by the release gate (`${CLAUDE_SKILL_DIR}/release-gate.md`).
+- Release gate: step 5 runs `${CLAUDE_SKILL_DIR}/release-gate.md` on every create or update; it blocks the PR until `CHANGELOG.md` and the plugin version satisfy `.claude/release-policy.json` (repos without a policy are skipped). It never skips or overrides; a gate stop prints `Release: failed`, `Resolution: not run (stopped)`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: medium and low findings in the managed section, `Dropped findings`, `Excluded:`, reviewers with `Status: incomplete`, failed or skipped checks).
@@ -36,7 +37,7 @@ Input: $ARGUMENTS
 2. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/github.md` `## Pre-flight`; keep Repo, Root, Branch, Self, Scratch.
 3. **Remote branches.** Per `github.md` `## Remote branches`; keep the filtered list.
 4. **Target.** `--target <b>` → the list must hold exactly one ref whose branch part is `<b>` (several remotes → stop, name them); none → stop; skip the ask. Else print the whole list. AskUserQuestion with the four most recent branches plus Other (typed value must be in the list, else re-ask within the cap); none marked recommended. Selected ref's remote must match Repo (`github.md`). Target = its branch part.
-5. **Range.** `mb = git merge-base <target ref> HEAD`; none → stop. `git rev-list --count <mb>..HEAD` = 0 → report "no commits vs <target>", `Result: nothing-to-do`. With the Write tool (scratch path only; Bash redirects would not match `allowed-tools`) save the output of `git diff <mb>..HEAD`, `git diff --name-status <mb>..HEAD`, and `git log --format='%h %s' <mb>..HEAD` to `<scratch>/diff.patch`, `name-status.txt`, `log.txt`. Push need: no upstream, upstream not on the target's remote, or `git rev-list --count @{u}..HEAD` > 0 → push required (`git push -u <remote> HEAD:<branch>`), else none.
+5. **Range.** `mb = git merge-base <target ref> HEAD`; none → stop. `git rev-list --count <mb>..HEAD` = 0 → report "no commits vs <target>", `Result: nothing-to-do`. Then the release gate (`release-gate.md`, with `--yes` as unattended); when it added commits, recompute `mb` and the range. With the Write tool (scratch path only; Bash redirects would not match `allowed-tools`) save the output of `git diff <mb>..HEAD`, `git diff --name-status <mb>..HEAD`, and `git log --format='%h %s' <mb>..HEAD` to `<scratch>/diff.patch`, `name-status.txt`, `log.txt`. Push need: no upstream, upstream not on the target's remote, or `git rev-list --count @{u}..HEAD` > 0 → push required (`git push -u <remote> HEAD:<branch>`), else none.
 6. **Review.** Direct-review criteria met → review per `findings.md` `## Direct review`, mark the reviewers `direct`, go to step 7. Else one message, five parallel Agent calls: `cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`, each with root, `<target ref>`, `<mb>`, HEAD SHA, the three scratch paths, and `${CLAUDE_SKILL_DIR}/findings.md`.
 7. **Aggregate.** Per `findings.md` `## Parent validation`: parse, respawn once on a malformed block, drop invalid findings (keep their list), deduplicate. Print findings sorted by severity with roles, evidence, and recommendations.
 8. **Gate.** Any gating finding or failed or incomplete required check per `findings.md` → print them, `Result: stopped`, `Stopped: 8: <reason>`, then step 15 (Resolve findings, no edits) before ending. Applies to `--dry-run` too.
@@ -63,6 +64,7 @@ Checks:
 - `<command>` → exit <n>
 Dropped findings: <n> (<reasons>) | none
 Excluded: uncommitted changes | none
+Release: ok (<level> → <version>) | skipped (<reason>) | fixed (<codes>) | failed (<codes>)
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
