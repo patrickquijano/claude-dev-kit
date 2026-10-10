@@ -1,6 +1,6 @@
 # Orchestration
 
-Shared by orchestrator skills that chain `cdk:` skills: `cdk:ship-changes`, `cdk:ship-spec-kit-bug`, `cdk:ship-spec-kit-idea`, `cdk:setup-project`, `cdk:scan-vulnerabilities`, `cdk:setup-devcontainer`, `cdk:assess-spec-kit-idea`, `cdk:setup-graphify`.
+Shared by orchestrator skills that chain `cdk:` skills: `cdk:ship-changes`, `cdk:prepare-pull-request`, `cdk:prepare-merge-request`, `cdk:ship-spec-kit-bug`, `cdk:ship-spec-kit-idea`, `cdk:setup-project`, `cdk:scan-vulnerabilities`, `cdk:setup-devcontainer`, `cdk:assess-spec-kit-idea`, `cdk:setup-graphify`.
 
 - Orchestrator only; each step runs a skill via the Skill tool, in this main thread, never via the Agent tool, even though `cdk:` also prefixes agent names (`cdk:change-analyzer`). Chained skills ask the user and spawn their own subagents; a subagent has no AskUserQuestion and its spawns nest deeper (depth limit; background subagents drop Agent), so never fork or delegate them.
 - Never set `context: fork` on a chaining or chained skill; it runs the skill as a subagent. A nested orchestrator (e.g. `cdk:ship-spec-kit-idea` → `cdk:ship-changes`) stays in the same main thread.
