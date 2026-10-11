@@ -1,9 +1,10 @@
 // Stop step (last, run by stop.mjs): when the working tree has uncommitted or untracked changes, ask Claude to run cdk:commit-changes
 // (commit and push), then report the result on the next Stop. Never blocks on failure; at most one instruction
-// per tree fingerprint and never while a Stop hook is already continuing Claude. Skips changes already present
+// per tree fingerprint and never while a Stop hook is already continuing Claude. Skips while the ship-release marker exists, and changes already present
 // at session start (baseline written by session-start.mjs) and merge, rebase, or detached-HEAD states.
-import { realpathSync } from 'node:fs';
-import { pushed, readState, statePath, treeSnapshot, unsafeState, writeState } from './git-state.mjs';
+import { existsSync, realpathSync } from 'node:fs';
+import path from 'node:path';
+import { git, pushed, readState, statePath, treeSnapshot, unsafeState, writeState } from './git-state.mjs';
 import { readStdin } from './tools.mjs';
 
 function emit(message, reason) {
@@ -31,6 +32,12 @@ async function main() {
   // `graphify update .` output never counts as a change to commit.
   const snap = treeSnapshot(cwd, { exclude: ['graphify-out'] });
   if (!snap) return;
+  // /cdk:ship-release holds the single commit until review passes.
+  const hold = git(cwd, ['rev-parse', '--git-path', 'cdk-ship-release']);
+  if (hold.status === 0 && existsSync(path.resolve(cwd, hold.stdout.toString().trim()))) {
+    emit('⏸ ship-release pending: not committing');
+    return;
+  }
   const session = typeof input?.session_id === 'string' ? input.session_id : '';
   const file = statePath('commit', cwd, session);
   const s = readState(file);
