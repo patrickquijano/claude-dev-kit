@@ -1,6 +1,6 @@
 # GitLab conventions
 
-Shared by `cdk:prepare-merge-request`, `cdk:review-merge-request`, `cdk:address-merge-request-review`, and `cdk:ship-changes`.
+Shared by `cdk:prepare-merge-request`, `cdk:review-merge-request`, and `cdk:address-merge-request-review`.
 
 ## Pre-flight
 

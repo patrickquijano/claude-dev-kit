@@ -14,7 +14,7 @@ Inputs from the caller: target branch, `unattended` (`--yes` or `auto`), `dry-ru
 2. **Dry run.** `dry-run` → `Release: failed (<codes>)` with each `fix`, change nothing, and return to the caller, which continues (dry run writes nothing); the failure is an item for its Resolve findings step, not a stop.
 3. **Clean tree.** Only `changelog-*` and `version-*` codes are remediable here; any `uncommitted` code also takes this step's stop. `git status --porcelain=v1 --untracked-files=all` non-empty → stop, `uncommitted changes block the release gate; run /cdk:commit-changes first`. `cdk:commit-changes` commits everything dirty, so never remediate over unrelated edits.
 4. **Consent.** Not `unattended` → one AskUserQuestion: `Update changelog and version, commit, push (Recommended)` (objective reason: the check blocks PR/MR creation and CI until they exist) | `Stop`. `Stop` → stop. `unattended` → no ask; the caller's consent covers it.
-5. **Remediate**, chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`:
+5. **Remediate**, chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../build-skill/orchestration.md`:
    - any `version-*` → `cdk:bump-version target <target>` first; it chains `cdk:write-changelog` when the changelog exists.
    - then any `changelog-*` not covered by that (changelog missing, or no `version-*` failure) → `cdk:write-changelog base <target>`.
    - then `cdk:commit-changes` with no input: it makes atomic commits (`docs(changelog): …`, `chore(release): bump version to <required>`) and pushes.
