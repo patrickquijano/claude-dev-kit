@@ -71,10 +71,11 @@ Report each with its reason; never add:
 **Release.** Needs a version and a date, both from the user (arguments or answers); never infer them from commits, tags, or the clock. Then:
 
 1. Run the non-release flow first so Unreleased is complete.
-2. Stop when `[version]` already exists in the file.
-3. Rename the Unreleased content into `## [version] - date`; add a fresh empty `## [Unreleased]` above it.
+2. `[version]` already in the file: when it also exists in the base branch's `CHANGELOG.md` (`git show <base>:CHANGELOG.md`, base per the skill's Base step), stop. Otherwise it is an unmerged release section: merge any new Unreleased entries into it in place (by meaning, no duplicates), keep its date, leave Unreleased empty, and refresh the links.
+3. Else rename the Unreleased content into `## [version] - date`; add a fresh empty `## [Unreleased]` above it.
 4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` (GitHub `/compare/a...b`, GitLab `/-/compare/a...b`); other host or no remote → ask or omit links.
-5. Never create tags, commits, or pushes; mention that the tag must exist for links to resolve.
+5. Re-running with the same version and date changes nothing.
+6. Never create tags, commits, or pushes; mention that the tag must exist for links to resolve.
 
 ## Bad practices
 
@@ -98,6 +99,6 @@ Each item pass or fail in the review loop:
 5. Ordering: Unreleased first; versions descending; canonical section order.
 6. Format: header present; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; file ends with one newline.
 7. Links: every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the style and tag prefix; tags exist (`git tag --list`) or are flagged.
-8. Released sections unchanged (non-release; tracked file only): `git diff` of the file shows hunks only in Unreleased and, if needed, the `[unreleased]` link.
+8. Released sections (present in the base branch's changelog) unchanged (non-release; tracked file only): `git diff` of the file shows hunks only in Unreleased and, if needed, the `[unreleased]` link.
 9. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
 10. Idempotency: re-deriving entries from the same inputs against the written file produces no change.

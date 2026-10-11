@@ -1,6 +1,6 @@
 # cdk — Claude Dev Kit
 
-Claude Code plugin providing a development kit — skills, custom agents, and hooks — for any framework or language.
+Claude Code plugin providing a development kit — skills, commands, custom agents, and hooks — for any framework or language.
 
 Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requests, reviews) plus skill, README, and CLAUDE.md authoring with scored rubrics, so Claude follows the same conventions in every repository.
 
@@ -11,6 +11,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - [Claude Code](https://code.claude.com/docs) CLI (`claude`).
 - Git; commit, rebase, and review-address skills sign commits when signing is configured. `/cdk:setup-git` SSH signing needs Git 2.34+; OpenPGP needs GnuPG.
 - [`glab`](https://gitlab.com/gitlab-org/cli) CLI, authenticated, for the merge request skills.
+- [`gh`](https://cli.github.com/) CLI, authenticated, for `/cdk:ship-release`, the pull request skills, and `/cdk:create-github-release`.
 - [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
 - [`uv`](https://docs.astral.sh/uv/) or `pipx` (Python 3.10+) for `/cdk:setup-graphify` when `graphify` is not installed.
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
@@ -47,7 +48,7 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:commit-changes`               | Small changes: one signed commit, no subagent; large ones: atomic groups via analyzer; leave protected branches, push.                                                                             |
 | `/cdk:create-github-release`        | Tag and release the latest `CHANGELOG.md` version on GitHub from the verified tip of `main`: annotated tag, notes from the changelog section, no force, no edits to existing releases. Idempotent. |
 | `/cdk:fix-spec-kit-bug`             | Extract bug evidence, run Spec Kit assess, fix, test; retry fix until verified (max 3).                                                                                                            |
-| `/cdk:prepare-merge-request`        | Create or update a GitLab MR with template, reviewers, delete-source and squash options (presets and `auto` for ship-changes).                                                                     |
+| `/cdk:prepare-merge-request`        | Create or update a GitLab MR with template, reviewers, delete-source and squash options (presets and `auto` for `cdk:scan-vulnerabilities`).                                                       |
 | `/cdk:prepare-pull-request`         | Pick a target branch, review (five read-only agents, or direct for small changes), then create or update a GitHub PR with a filled template.                                                       |
 | `/cdk:rebase-onto`                  | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                                                                                                               |
 | `/cdk:review-merge-request`         | Review a GitLab MR; post labeled comments, resolve addressed own threads, approve and merge.                                                                                                       |
@@ -64,9 +65,6 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:setup-project`                | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                                                                                         |
 | `/cdk:setup-spec-kit`               | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                                                                                          |
 | `/cdk:setup-test-hook`              | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                                                                                                  |
-| `/cdk:ship-changes`                 | Branch, commit, push, open the MR or PR, loop review and address rounds, then merge when clean; asks once for target, squash, delete source.                                                       |
-| `/cdk:ship-spec-kit-bug`            | Fix a bug with fix-spec-kit-bug, then ship and review the MR or PR; ask before shipping unverified.                                                                                                |
-| `/cdk:ship-spec-kit-idea`           | Assess an idea with Spec Kit; on go, build it with run-spec-kit, then ship and review the MR or PR.                                                                                                |
 | `/cdk:switch-branch`                | Derive a Conventional Branch name from unique commits and changes, switch to it, push.                                                                                                             |
 | `/cdk:upgrade-dependencies`         | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                                                                                            |
 | `/cdk:write-changelog`              | Create or update CHANGELOG.md per Keep a Changelog from branch commits and working-tree changes; `release` cuts a dated version. Idempotent.                                                       |
@@ -78,6 +76,12 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:write-prompt`                 | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.                                                                                                          |
 | `/cdk:write-readme`                 | Create or update README.md from templates, score it /100, iterate until ≥95.                                                                                                                       |
 | `/cdk:write-unit-tests`             | Write AAA, faker-based unit tests (≥2 positive, ≥2 negative each) until coverage target (default 90%, max 5).                                                                                      |
+
+### Commands
+
+| Command             | Purpose                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/cdk:ship-release` | Ship a GitHub release end to end: commit, bump version and notes, validate, open a PR to `main`, loop self-review and fixes, squash-merge, sync `main`, confirm branch cleanup. |
 
 ### Agents
 

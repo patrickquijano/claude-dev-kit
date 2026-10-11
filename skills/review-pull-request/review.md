@@ -68,7 +68,7 @@ Run only when `git rev-parse HEAD` equals `headRefOid` and `git status --porcela
 
 ## Auto mode
 
-Set by `cdk:ship-changes` with `--auto --squash yes|no --delete-branch yes|no`; its one settings ask is the consent.
+Set by `/cdk:ship-release` with `--auto --squash yes|no --delete-branch yes|no`; invoking that command is the consent.
 
 - Step 9 asks nothing: step 10 posts the verdict event, then step 12 merges when `## Merge` offers it, using the preset Squash and Delete choices (a method the repository disallows falls back as `## Merge` Options says, and Output notes it).
 - Another author's PR merges only after its `APPROVE` review is posted and verified. An own PR (event `COMMENT`, judged on the APPROVE criteria) merges when `CLEAN`; one whose only blocker is the required review is `Merged: not offered (required review)`, never admin-merged.

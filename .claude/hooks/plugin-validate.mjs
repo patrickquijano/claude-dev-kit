@@ -4,8 +4,8 @@
 import { spawnSync } from 'node:child_process';
 import { isAbsolute, relative, resolve } from 'node:path';
 
-const PATHS = ['skills', 'agents', 'evals', 'hooks', '.claude-plugin'];
-const PLUGIN_RELOAD = ['skills', 'agents', 'hooks'];
+const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
+const PLUGIN_RELOAD = ['skills', 'commands', 'agents', 'hooks'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
 const PROJECT_FILES = ['settings.json', 'CLAUDE.md'];
 const MAX = 8000;
