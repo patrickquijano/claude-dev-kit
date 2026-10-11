@@ -2,7 +2,7 @@
 name: create-github-release
 description: Create the annotated git tag and the GitHub release for the latest released version in CHANGELOG.md, from the verified tip of main, with the changelog section as release notes. Idempotent; never moves a tag, force-pushes, or edits an existing release. Use only when the user explicitly asks to create or publish a GitHub release or tag, e.g. "create the release", "tag and release 1.0.0", "publish the GitHub release for this version". Do not use on your own after finishing a task.
 argument-hint: '[--prefix v|none] [--yes]'
-allowed-tools: Bash(node *changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch *) Bash(git ls-remote *) Bash(git remote *) Bash(git tag --list *) Bash(git merge --ff-only origin/main) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
+allowed-tools: Bash(node *changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote *) Bash(git remote) Bash(git remote get-url *) Bash(git tag --list *) Bash(git merge --ff-only origin/main) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
 ---
 
 # Create GitHub Release
@@ -41,8 +41,8 @@ Input: $ARGUMENTS
 5. **Confirm.** Print tag, commit, date, tag source (`tags` | `changelog links` | `flag`), the actions from step 4, and the notes. Ask once (AskUserQuestion; recommended first): `Tag + push + release (Recommended)` — "creates the annotated tag, pushes it, and publishes a non-draft, non-prerelease release" | `Stop`. Stop → `Result: cancelled`. Skip when `--yes` or unattended.
 6. **Create.**
    - Tag: `git tag -a <tag> -m "Release <version>" <commit>`; then `git push origin "refs/tags/<tag>"` (plain, never force). A rejected push → stop, nothing else is retried.
-   - `gh release create` fails after the tag is pushed → `Stopped: 6: release-create-failed: <error>`; the tag stays, and a rerun reuses it (step 4).
    - Release: `gh release create <tag> --verify-tag --title <tag> --notes-file <scratch>/notes.md` (no `--draft`, `--prerelease`, or `--target`). `--verify-tag` aborts rather than letting GitHub create a lightweight tag from the default branch.
+   - `gh release create` fails after the tag is pushed → `Stopped: 6: release-create-failed: <error>`; the tag stays, and a rerun reuses it (step 4).
    - Verify: `gh release view <tag> --json url,tagName,isDraft,isPrerelease,targetCommitish`: draft or prerelease true, or the tag missing → finding (`Blocked:`); never edited.
 7. **Resolve findings.** Per resolve-findings.md. Runs once after any stop from step 2 onward (conflict, sync failure, `tag-mismatch`, rejected push, `release-create-failed`); `release-exists` is `nothing-to-do` and skips it; pre-flight stops and a cancel at step 5 skip it (`Resolution: not run`). Itemize `Blocked:`, failed `Checks:`, and `Stopped:` with the recommended fix and who acts.
 8. **Report.** Print the Output.
