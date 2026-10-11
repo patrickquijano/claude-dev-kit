@@ -2,7 +2,7 @@
 name: scan-vulnerabilities
 description: Scan the repository for security vulnerabilities with Docker-only free scanners at the latest stable version resolved per run (Semgrep, Trivy, Gitleaks, OSV-Scanner, Checkov, and others, chosen by the detected stack). Consolidate, deduplicate, and prioritize redacted findings. Then loop remediate via cdk:run-spec-kit, validate with the project's builds and tests, roll back failures, and rescan, up to `max-iterations` (default 5). Finish with a full rescan and a before-and-after report in .vulnerability-reports/. Use only when the user explicitly asks to scan for, find, or fix security vulnerabilities, e.g. "scan for vulnerabilities", "run a security scan", "find and fix CVEs", "check for leaked secrets". Do not use on your own after finishing a task.
 argument-hint: '[max-iterations=<n>] [image=<ref>]... [zap-target=<local url>] [zap-mode=baseline|api|full] [zap-spec=<openapi path or local url>]'
-allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref *) Bash(git status *) Bash(git diff *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git stash create) Bash(docker info *) Bash(command -v *)
+allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git status *) Bash(git diff *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git stash create) Bash(docker info *) Bash(command -v *)
 ---
 
 # Scan Vulnerabilities
@@ -67,4 +67,4 @@ Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the loop or a scan-only run ended on a step 7 condition, `validation unavailable`, or a scan-only run because `.specify/` is missing. `nothing-to-do` = every scanner completed with zero findings. `stopped` = pre-flight or an agent failure ended the run early. `cancelled` = a ship-step skill cancelled. A ship-step `stopped` sets `stopped`.
+`done` = the loop or a scan-only run ended on a step 7 condition, `validation unavailable`, or a scan-only run because `.specify/` is missing. `nothing-to-do` = every scanner completed with zero findings. `stopped` = pre-flight or an agent failure ended the run early. `cancelled` = any skill chained in step 10 cancelled. A chained `stopped` sets `stopped`.
