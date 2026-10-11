@@ -99,6 +99,6 @@ Each item pass or fail in the review loop:
 5. Ordering: Unreleased first; versions descending; canonical section order.
 6. Format: header present; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; file ends with one newline.
 7. Links: every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the style and tag prefix; tags exist (`git tag --list`) or are flagged.
-8. Released sections unchanged (non-release; tracked file only): `git diff` of the file shows hunks only in Unreleased and, if needed, the `[unreleased]` link.
+8. Released sections (present in the base branch's changelog) unchanged (non-release; tracked file only): `git diff` of the file shows hunks only in Unreleased and, if needed, the `[unreleased]` link.
 9. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
 10. Idempotency: re-deriving entries from the same inputs against the written file produces no change.
