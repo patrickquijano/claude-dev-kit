@@ -346,3 +346,26 @@ test('ci mode uses the existing remote ref without fetching', () => {
     r.done();
   }
 });
+
+test('pending subject sets the required level for an uncommitted change', () => {
+  const r = repo();
+  try {
+    write(r.work, 'skills/a/SKILL.md', 'a\n');
+    const subject = path.join(r.dir, 'msg');
+    writeFileSync(subject, 'feat: add a\n');
+    assert.equal(evaluate(r.work, { prePush: true }).required, '0.1.1');
+    assert.equal(evaluate(r.work, { prePush: true, pendingSubject: 'feat: add a' }).required, '0.2.0');
+    assert.ok(bump(r.work, { pendingSubject: 'feat: add a' }).changed.some((c) => c.to === '0.2.0'));
+    assert.equal(JSON.parse(readFileSync(path.join(r.work, 'plugin.json'), 'utf8')).version, '0.2.0');
+    write(r.work, 'CHANGELOG.md', withChangelog('Added a.'));
+    const opts = { prePush: true, pendingSubject: 'feat: add a' };
+    assert.deepEqual(codes(evaluate(r.work, opts)), ['uncommitted']);
+    const cli = spawnSync('node', [SCRIPT, 'check', '--pre-push', '--subject', subject, '--json'], {
+      cwd: r.work,
+      encoding: 'utf8'
+    });
+    assert.deepEqual(codes(JSON.parse(cli.stdout)), ['uncommitted']);
+  } finally {
+    r.done();
+  }
+});
