@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/cdk:write-github-workflows` writes or updates GitHub Actions workflows with resolved, pinned versions.
 - `/cdk:write-changelog` creates or updates `CHANGELOG.md` per Keep a Changelog.
 - `/cdk:bump-version` sets the version files named by `.claude/release-policy.json` to the Semantic Versioning value the branch commits require, then updates the changelog when the repository has one.
+- The release check accepts a deliberate higher version that has a matching new changelog release section, and `/cdk:bump-version` keeps it.
 - Release enforcement for repositories with `.claude/release-policy.json`: PR and MR creation is blocked until `CHANGELOG.md` has a new `Unreleased` entry and the version is bumped, through a release gate in the PR and MR skills, a project `PreToolUse` hook, and a CI check.
 - Every skill that reports findings ends with a resolve-findings step that analyzes each open item and proposes or applies a fix; `/cdk:build-skill` requires it in new skills and `cdk:skill-auditor` checks it.
 - `SessionStart` hook injects today's date and time, plus Graphify usage rules when Graphify is configured; `Stop` hooks now run in sequence and add Graphify updates and an automatic `cdk:commit-changes` for changes made in the session.

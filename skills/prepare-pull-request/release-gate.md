@@ -27,5 +27,5 @@ A gate stop ends the caller's run: `Result: stopped`, `Stopped: <caller step>: r
 
 ## Notes
 
-- Idempotent: `cdk:write-changelog` (also chained by `cdk:bump-version`) matches existing bullets by meaning and `bump` sets the required version rather than adding to it, so a repeat run changes nothing and never double-bumps.
+- Idempotent: `cdk:write-changelog` (also chained by `cdk:bump-version`) matches existing bullets by meaning and `bump` sets the required version (keeping a deliberate higher release that has a matching new changelog section) rather than adding to it, so a repeat run changes nothing and never double-bumps.
 - The gate is never re-entered by its caller.
