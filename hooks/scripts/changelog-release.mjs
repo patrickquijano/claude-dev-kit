@@ -1,5 +1,5 @@
 // Release plan for cdk:create-github-release: the latest released section of a Keep a Changelog file, its tag, and its notes.
-// Read-only. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
+// Writes only the `--notes-out` file. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -48,8 +48,9 @@ export function parseChangelog(text) {
   let fence = null;
   for (const line of text.replace(/\r\n/g, '\n').split('\n')) {
     const f = /^\s*(```+|~~~+)(.*)$/.exec(line);
-    if (f && !fence) fence = f[1];
-    else if (f && f[1][0] === fence[0] && f[1].length >= fence.length && !f[2].trim()) fence = null;
+    if (f && !fence) {
+      if (f[1][0] === '~' || !f[2].includes('`')) fence = f[1];
+    } else if (f && f[1][0] === fence[0] && f[1].length >= fence.length && !f[2].trim()) fence = null;
     const h = !fence && HEADING.exec(line);
     if (h) {
       const rest = h[2].trim();
@@ -71,7 +72,7 @@ export function parseChangelog(text) {
     s.body = s.lines.join('\n').trim();
     delete s.lines;
   }
-  return { sections, refs };
+  return { sections, refs, unterminated: Boolean(fence) };
 }
 
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -112,7 +113,12 @@ export function detectPrefix(tags, refs, versions) {
 
 export function plan({ changelog, tags = [], prefix, repoUrl } = {}) {
   const errors = [];
-  const { sections, refs } = parseChangelog(changelog);
+  const { sections, refs, unterminated } = parseChangelog(changelog);
+  if (unterminated)
+    return {
+      ok: false,
+      errors: [fail('unterminated-fence', 'a code fence is never closed', 'close the fence in the changelog')]
+    };
   const released = sections.filter((s) => !(s.label.toLowerCase() === 'unreleased'));
   if (!released.length) {
     const only = sections.some((s) => s.label.toLowerCase() === 'unreleased');

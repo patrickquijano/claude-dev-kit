@@ -70,6 +70,19 @@ test('parseChangelog keeps a longer fence open until a matching closing fence', 
   );
 });
 
+test('parseChangelog fence edge cases: tilde, info string, inline backticks, unclosed', () => {
+  const head = (body) => parseChangelog(`## [1.0.0] - 2026-01-01\n\n${body}\n`);
+  const labels = (r) => r.sections.map((s) => s.label);
+  assert.deepEqual(labels(head('~~~\n```\n## [9.9.9] - 2026-01-02\n~~~')), ['1.0.0']);
+  assert.deepEqual(labels(head('```\n```js\n## [9.9.9] - 2026-01-02\n```')), ['1.0.0']);
+  assert.deepEqual(labels(head('```x``` inline\n\n## [0.9.0] - 2025-12-01')), ['1.0.0', '0.9.0']);
+  assert.equal(head('```\ntext').unterminated, true);
+  assert.equal(
+    codes(plan({ changelog: '## [1.0.0] - 2026-01-01\n\n```\ntext\n' })).includes('unterminated-fence'),
+    true
+  );
+});
+
 test('plan picks the top released section with notes and a compare link', () => {
   const r = plan({ changelog: CL, tags: ['v1.0.0'], repoUrl: REPO });
   assert.equal(r.ok, true);
@@ -132,7 +145,7 @@ test('CLI reads tags from git, writes notes, and exits 1 on errors', () => {
     sh('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init');
     sh('tag', '1.0.0');
     writeFileSync(path.join(dir, 'CHANGELOG.md'), CL);
-    const notes = path.join(dir, 'notes.md');
+    const notes = path.join(dir, 'nested', 'sub', 'notes.md');
     const ok = spawnSync('node', [SCRIPT, 'plan', '--repo-url', REPO, '--notes-out', notes], { cwd: dir });
     const res = JSON.parse(ok.stdout);
     assert.equal(ok.status, 0);
