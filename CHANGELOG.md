@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-11
+
+### Added
+
+- `/cdk:bump-version` accepts a `subject <file>` input, so the required version covers a commit that is still to come.
+- The PR reviewer agents can review the uncommitted working tree, which `/cdk:ship-release` uses to review before it commits.
+
+### Changed
+
+- `/cdk:ship-release` reviews and fixes your changes locally first (up to 5 rounds, no commits), then makes one signed commit, instead of committing during the review loop. It continues past blockers and reports each one.
+- The commit Stop hook waits while a `/cdk:ship-release` run is in progress, so it does not commit the tree mid-review.
+
 ## [2.0.0] - 2026-10-11
 
 ### Added

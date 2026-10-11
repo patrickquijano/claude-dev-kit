@@ -1,7 +1,7 @@
 // Stop step (last, run by stop.mjs): when the working tree has uncommitted or untracked changes, ask Claude to run cdk:commit-changes
 // (commit and push), then report the result on the next Stop. Never blocks on failure; at most one instruction
-// per tree fingerprint and never while a Stop hook is already continuing Claude. Skips while the ship-release marker exists, and changes already present
-// at session start (baseline written by session-start.mjs) and merge, rebase, or detached-HEAD states.
+// per tree fingerprint and never while a Stop hook is already continuing Claude. Skips while the ship-release marker exists,
+// for changes already present at session start (baseline written by session-start.mjs), and in merge, rebase, or detached-HEAD states.
 import { existsSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { git, pushed, readState, statePath, treeSnapshot, unsafeState, writeState } from './git-state.mjs';

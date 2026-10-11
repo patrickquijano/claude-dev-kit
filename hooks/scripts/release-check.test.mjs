@@ -365,6 +365,8 @@ test('pending subject sets the required level for an uncommitted change', () => 
       encoding: 'utf8'
     });
     assert.deepEqual(codes(JSON.parse(cli.stdout)), ['uncommitted']);
+    const bad = spawnSync('node', [SCRIPT, 'check', '--subject', '--json'], { cwd: r.work, encoding: 'utf8' });
+    assert.equal(bad.status, 2);
   } finally {
     r.done();
   }

@@ -448,6 +448,10 @@ async function main() {
   const target = args.includes('--target') ? opt('--target') : undefined;
   try {
     const subjectFile = args.includes('--subject') ? opt('--subject') : undefined;
+    if (args.includes('--subject') && (!subjectFile || subjectFile.startsWith('--'))) {
+      console.error('release-check: --subject needs a file path');
+      process.exit(2);
+    }
     const pendingSubject = subjectFile ? (readFileSync(subjectFile, 'utf8').split('\n')[0] ?? '') : '';
     if (mode === 'bump') {
       const r = bump(cwd, { target, pendingSubject });
