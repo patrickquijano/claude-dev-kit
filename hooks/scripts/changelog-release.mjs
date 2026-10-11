@@ -1,6 +1,6 @@
 // Release plan for cdk:create-github-release: the latest released section of a Keep a Changelog file, its tag, and its notes.
 // Read-only. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { git } from './git-state.mjs';
@@ -47,8 +47,9 @@ export function parseChangelog(text) {
   let cur = null;
   let fence = null;
   for (const line of text.replace(/\r\n/g, '\n').split('\n')) {
-    const f = /^\s*(```+|~~~+)/.exec(line);
-    if (f && (!fence || f[1][0] === fence[0])) fence = fence ? null : f[1];
+    const f = /^\s*(```+|~~~+)(.*)$/.exec(line);
+    if (f && !fence) fence = f[1];
+    else if (f && f[1][0] === fence[0] && f[1].length >= fence.length && !f[2].trim()) fence = null;
     const h = !fence && HEADING.exec(line);
     if (h) {
       const rest = h[2].trim();
@@ -78,7 +79,7 @@ const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Existing tags decide the prefix; with none, the changelog's link references may show it.
 export function detectPrefix(tags, refs, versions) {
   const prefixes = new Set();
-  let count = { v: 0, none: 0 };
+  const count = { v: 0, none: 0 };
   for (const t of tags) {
     const m = /^(v?)(.+)$/.exec(t);
     if (m && isSemver(m[2])) {
@@ -226,7 +227,10 @@ function main(argv) {
     repoUrl: arg(argv, '--repo-url')
   });
   const out = arg(argv, '--notes-out');
-  if (res.ok && out) writeFileSync(out, res.notes);
+  if (res.ok && out) {
+    mkdirSync(path.dirname(out), { recursive: true });
+    writeFileSync(out, res.notes);
+  }
   console.log(JSON.stringify(res));
   return res.ok ? 0 : 1;
 }

@@ -62,6 +62,14 @@ test('parseChangelog skips headings in code fences and strips link references', 
   assert.equal(refs['1.0.0'], 'http://x/v1.0.0');
 });
 
+test('parseChangelog keeps a longer fence open until a matching closing fence', () => {
+  const { sections } = parseChangelog('## [1.0.0] - 2026-01-01\n\n````\n```\n## [9.9.9] - 2026-01-02\n```\n````\n');
+  assert.deepEqual(
+    sections.map((s) => s.label),
+    ['1.0.0']
+  );
+});
+
 test('plan picks the top released section with notes and a compare link', () => {
   const r = plan({ changelog: CL, tags: ['v1.0.0'], repoUrl: REPO });
   assert.equal(r.ok, true);
