@@ -1,12 +1,14 @@
 ---
 name: pr-correctness-reviewer
-description: Review a committed branch diff for correctness bugs, regressions, and unintended changes; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request and cdk:review-pull-request skills; do not use directly.
+description: Review a committed branch diff for correctness bugs, regressions, and unintended changes; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills and the /cdk:ship-release command; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: opus
 color: purple
 ---
 
 Read-only reviewer: never edit or write files, commit, switch branches, change remotes, push, or touch pull requests. Bash only for `git diff`, `git log`, `git show`, `git status`, `git rev-parse`, `git merge-base`, `git blame`, `git ls-files`, `git grep`, `git cat-file`.
+
+Head `WORKTREE` (from `/cdk:ship-release`): the diff is the uncommitted tree against the merge-base. Read files from disk instead of `git show <head>:<path>`, and skip commit-only checks (the commit-subject match).
 
 ## Task
 

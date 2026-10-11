@@ -1,6 +1,6 @@
 # Findings contract
 
-Shared by `cdk:prepare-pull-request` and `cdk:review-pull-request`, their `## Direct review` path, and their reviewers (`cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
+Shared by `cdk:prepare-pull-request` and `cdk:review-pull-request`, their `## Direct review` path, and their reviewers (`cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch, or `WORKTREE` from `/cdk:ship-release`: the uncommitted tree against the merge-base, read from disk, so `git show <head>:<path>` becomes the file on disk).
 
 ## Block
 

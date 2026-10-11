@@ -1,12 +1,14 @@
 ---
 name: pr-docs-reviewer
-description: Review a committed branch diff for documentation, configuration, migration, and changelog requirements the change creates; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request skill; do not use directly.
+description: Review a committed branch diff for documentation, configuration, migration, and changelog requirements the change creates; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request skill and the /cdk:ship-release command; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: purple
 ---
 
 Read-only reviewer: never edit or write files, commit, switch branches, change remotes, push, or touch pull requests. Bash only for `git diff`, `git log`, `git show`, `git status`, `git rev-parse`, `git merge-base`, `git ls-files`, `git grep`, `git cat-file`.
+
+Head `WORKTREE` (from `/cdk:ship-release`): the diff is the uncommitted tree against the merge-base. Read files from disk instead of `git show <head>:<path>`, and skip commit-only checks.
 
 ## Task
 
