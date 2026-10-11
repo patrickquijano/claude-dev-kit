@@ -10,7 +10,7 @@
 - Subject only: no body, no footer.
 - No attribution (no `Co-Authored-By`, no "Generated with").
 - Signed + verified (SSH signing set locally; check `git log --show-signature -1`).
-- Atomic: one logical change per commit, related files grouped.
+- Atomic: one logical change per commit, related files grouped. Exception: `/cdk:ship-release` makes one commit for the reviewed code plus version, changelog, and README; the PR is squash-merged anyway.
 - Never commit secrets/creds; read from env vars.
 
 ## Branches

@@ -102,7 +102,7 @@ const show = (cwd, ref, file) => {
 };
 
 // Core validation. Returns {skipped?, ok, level, required, failures, notes}.
-export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
+export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubject = '' } = {}) {
   const { root, policy } = loadPolicy(cwd);
   if (!policy) return { skipped: true, ok: true, failures: [], notes: ['skipped: no release policy'] };
   cwd = root;
@@ -177,6 +177,8 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
       const [subject, body = ''] = e.split('\0');
       return { subject: subject.trim(), body };
     });
+  // A subject for a commit still to come counts toward the required level.
+  if (pendingSubject.trim()) commits.push({ subject: pendingSubject.trim(), body: '' });
   const level = levelOf(commits);
 
   // Version: every file must equal target-tip version plus the required level.
@@ -292,8 +294,8 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
 }
 
 // Writes the accepted (deliberate) or required version into every version file; idempotent.
-export function bump(cwd, { target } = {}) {
-  const r = evaluate(cwd, { target, ci: false, prePush: true });
+export function bump(cwd, { target, pendingSubject = '' } = {}) {
+  const r = evaluate(cwd, { target, ci: false, prePush: true, pendingSubject });
   if (r.skipped || !r.required) return { changed: [], ...r };
   const { root, policy } = loadPolicy(cwd);
   const want = r.accepted ?? r.required;
@@ -445,8 +447,14 @@ async function main() {
   if (mode === 'hook') return runHook();
   const target = args.includes('--target') ? opt('--target') : undefined;
   try {
+    const subjectFile = args.includes('--subject') ? opt('--subject') : undefined;
+    if (args.includes('--subject') && (!subjectFile || subjectFile.startsWith('--'))) {
+      console.error('release-check: --subject needs a file path');
+      process.exit(2);
+    }
+    const pendingSubject = subjectFile ? (readFileSync(subjectFile, 'utf8').split('\n')[0] ?? '') : '';
     if (mode === 'bump') {
-      const r = bump(cwd, { target });
+      const r = bump(cwd, { target, pendingSubject });
       console.log(
         args.includes('--json')
           ? JSON.stringify(r)
@@ -460,7 +468,12 @@ async function main() {
         ? 1
         : 0;
     }
-    const r = evaluate(cwd, { target, ci: args.includes('--ci'), prePush: args.includes('--pre-push') });
+    const r = evaluate(cwd, {
+      target,
+      ci: args.includes('--ci'),
+      prePush: args.includes('--pre-push'),
+      pendingSubject
+    });
     console.log(args.includes('--json') ? JSON.stringify(r) : report(r) || `ok: ${r.level} -> ${r.required}`);
     return r.ok ? 0 : 1;
   } catch (e) {
