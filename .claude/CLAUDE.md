@@ -13,13 +13,14 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - VS Code tasks: `.vscode/tasks.json` (only tracked file in `.vscode/`) — lint, format, per-tool checks, plugin validate, local branch cleanup.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` — `commit-msg` (commitlint via detected package manager, imperative check, signing config), `post-commit` (signature report); enforce `.claude/rules/git.md`. Canonical copies in `skills/setup-husky/assets/`; keep identical. `.gitattributes` keeps both LF.
 - Release enforcement: opt-in policy `.claude/release-policy.json`; one script `hooks/scripts/release-check.mjs` (tests `hooks/scripts/release-check.test.mjs`) shared by the release gate in `prepare-pull-request` and `prepare-merge-request` (`release-gate.md`, chains `bump-version` (which chains `write-changelog` when a changelog exists), then `write-changelog` for any remaining changelog failure, then `commit-changes`), the project `PreToolUse` hook in `.claude/settings.json`, and the required CI check `.github/workflows/release-check.yml`. Rules `.claude/rules/release.md`.
+- GitHub release: `skills/create-github-release/` (`SKILL.md`, `release-notes.md`); parsing, SemVer, tag-prefix, and notes logic in `hooks/scripts/changelog-release.mjs` (tests `hooks/scripts/changelog-release.test.mjs`); one confirmation covers the tag push and release, never force.
 - Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks and `commit-rules.md`, `setup-test-hook` `run-tests.mjs`, `setup-graphify` `graphify-rules.md`).
 - GitHub: PR template `.github/pull_request_template.md`.
 
 ## Commands
 
 - Lint: `npm run lint`
-- Test: `npm test` (release-check script)
+- Test: `npm test` (release-check and changelog-release scripts)
 - Format: `npm run format`
 - Validate plugin: `claude plugin validate --strict .`
 - Never run `claude plugin eval` (LLM-graded behavioral evals); structural validation only.

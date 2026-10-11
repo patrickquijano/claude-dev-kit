@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-11
+
+### Added
+
+- `/cdk:create-github-release` creates the annotated tag and GitHub release for the latest version in `CHANGELOG.md` from the verified tip of `main`, using the changelog section as release notes. It asks once before writing, never force-pushes, and leaves an existing release untouched.
+
 ## [1.0.0] - 2026-10-11
 
 ### Added
