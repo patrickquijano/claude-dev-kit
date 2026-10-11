@@ -190,6 +190,14 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
   const headVs = heads.map((h) => parseVer(h.head));
   const fixBump = 'run /cdk:bump-version, then /cdk:commit-changes';
 
+  // Changelog parts first: a deliberate release above `required` needs a new matching section.
+  const clFile = policy.changelog;
+  const headCl = existsSync(path.join(cwd, clFile)) ? readFileSync(path.join(cwd, clFile), 'utf8') : null;
+  const h = changelogParts(headCl ?? '');
+  const b = changelogParts(headCl === null ? '' : (show(cwd, mb, clFile) ?? ''));
+  const newRelease = (v) => h.releases.includes(fmt(v)) && !b.releases.includes(fmt(v));
+  let accepted = null;
+
   if (heads.length === 0) notes.push('no versionFiles configured');
   if (heads.some((h, i) => !headVs[i])) {
     failures.push(
@@ -209,7 +217,10 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
   } else if (required && headVs[0]) {
     const c = cmpVer(headVs[0], required);
     const baseCmp = cmpVer(headVs[0], baseV);
-    if (c !== 0) {
+    if (c > 0 && newRelease(headVs[0])) {
+      accepted = fmt(headVs[0]);
+      notes.push(`release ${accepted} above required ${fmt(required)}`);
+    } else if (c !== 0) {
       const code = baseCmp === 0 ? 'version-unchanged' : c > 0 ? 'version-over-bumped' : 'version-lower';
       failures.push(
         fail(
@@ -222,17 +233,13 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
   }
 
   // Changelog: new bullet under Unreleased (or a new release section), no duplicates.
-  const clFile = policy.changelog;
-  const headCl = existsSync(path.join(cwd, clFile)) ? readFileSync(path.join(cwd, clFile), 'utf8') : null;
   if (headCl === null) {
     failures.push(
       fail('changelog-missing', `${clFile} does not exist`, 'run /cdk:write-changelog, then /cdk:commit-changes')
     );
   } else {
-    const h = changelogParts(headCl);
-    const b = changelogParts(show(cwd, mb, clFile) ?? '');
     const dup = h.bullets.find((x, i) => h.bullets.indexOf(x) !== i);
-    const released = required && h.releases.includes(fmt(required)) && !b.releases.includes(fmt(required));
+    const released = (required && newRelease(required)) || accepted !== null;
     if (dup)
       failures.push(
         fail('changelog-duplicate', `duplicate Unreleased entry: "${dup.slice(0, 60)}"`, 'remove the duplicate line')
@@ -278,16 +285,18 @@ export function evaluate(cwd, { target, ci = false, prePush = false } = {}) {
     drivers,
     level,
     required: required ? fmt(required) : null,
+    accepted,
     base: baseV ? fmt(baseV) : null,
     target: tgt
   });
 }
 
-// Writes the required version into every version file; idempotent.
+// Writes the accepted (deliberate) or required version into every version file; idempotent.
 export function bump(cwd, { target } = {}) {
   const r = evaluate(cwd, { target, ci: false, prePush: true });
   if (r.skipped || !r.required) return { changed: [], ...r };
   const { root, policy } = loadPolicy(cwd);
+  const want = r.accepted ?? r.required;
   const changed = [];
   for (const v of policy.versionFiles) {
     const abs = path.join(root, v.path);
@@ -295,9 +304,9 @@ export function bump(cwd, { target } = {}) {
     const re = new RegExp(`("${v.key}"\\s*:\\s*")([^"]*)(")`);
     const m = re.exec(text);
     if (!m) throw new Error(`key "${v.key}" not found in ${v.path}`);
-    if (m[2] !== r.required) {
-      writeFileSync(abs, text.replace(re, `$1${r.required}$3`));
-      changed.push({ path: v.path, from: m[2], to: r.required });
+    if (m[2] !== want) {
+      writeFileSync(abs, text.replace(re, `$1${want}$3`));
+      changed.push({ path: v.path, from: m[2], to: want });
     }
   }
   return { ...r, changed };

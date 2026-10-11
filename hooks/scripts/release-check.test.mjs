@@ -131,6 +131,35 @@ test('fix requires patch; minor is over-bumped', () => {
   }
 });
 
+test('deliberate release above required passes with a new matching section; bump keeps it', () => {
+  const r = repo();
+  try {
+    const cl = CHANGELOG.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
+    commit(r.work, { 'skills/a/SKILL.md': 'a\n', 'CHANGELOG.md': cl, 'plugin.json': pj('1.0.0') }, 'feat: a');
+    push(r.work);
+    const res = evaluate(r.work);
+    assert.deepEqual(codes(res), []);
+    assert.equal(res.accepted, '1.0.0');
+    assert.deepEqual(bump(r.work).changed, []);
+  } finally {
+    r.done();
+  }
+});
+
+test('higher version whose section already exists on main stays over-bumped', () => {
+  const r = repo();
+  try {
+    const cl = CHANGELOG.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
+    commit(r.work, { 'CHANGELOG.md': cl }, 'chore: pre-release section');
+    sh(r.work, 'push', '-q', 'origin', 'feat/x:main');
+    commit(r.work, { 'skills/a/SKILL.md': 'a\n', 'plugin.json': pj('1.0.0') }, 'feat: a');
+    push(r.work);
+    assert.ok(codes(evaluate(r.work)).includes('version-over-bumped'));
+  } finally {
+    r.done();
+  }
+});
+
 test('breaking change requires major', () => {
   const r = repo();
   try {
