@@ -4,7 +4,7 @@
   "defaultBranch": "main",
   "remote": "origin",
   "versionFiles": [{ "path": ".claude-plugin/plugin.json", "key": "version" }],
-  "userFacing": ["skills/**", "agents/**", "hooks/**", ".claude-plugin/**"],
+  "userFacing": ["skills/**", "commands/**", "agents/**", "hooks/**", ".claude-plugin/**"],
   "exempt": [
     {
       "glob": "hooks/scripts/*.test.mjs",
