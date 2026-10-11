@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-11
+
+### Added
+
+- `/cdk:ship-release` ships a GitHub release end to end: it commits, bumps the version and release notes, validates, opens a pull request to `main`, loops self-review and fixes (up to 5 rounds), squash-merges a clean PR, syncs `main`, and offers a branch cleanup that deletes only after your explicit confirmation. It never force-pushes or deletes `main`.
+- Plugin slash commands live in `commands/`, validated and reloaded like skills.
+
+### Changed
+
+- **Breaking:** `/cdk:scan-vulnerabilities` ships its fixes by switching off a protected branch, committing, and opening the PR or MR directly, instead of through `/cdk:ship-changes`.
+- `/cdk:write-changelog release` can re-run on a version that exists only on the current branch and updates that unmerged section in place, instead of stopping.
+
+### Removed
+
+- **Breaking:** `/cdk:ship-changes`, `/cdk:ship-spec-kit-bug`, and `/cdk:ship-spec-kit-idea`; use `/cdk:ship-release` for GitHub releases.
+- **Breaking:** the `auto` token of `/cdk:review-merge-request` and the `self-review` token of `/cdk:address-merge-request-review`.
+
 ## [1.1.0] - 2026-10-11
 
 ### Added
