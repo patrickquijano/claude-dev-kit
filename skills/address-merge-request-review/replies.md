@@ -1,6 +1,6 @@
 # Review reply guide
 
-Bundled standard for `address-merge-request-review`. Comment quality and labels come from `../review-merge-request/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
+Bundled standard for `address-merge-request-review`; `address-pull-request-review` reuses `## Dispositions` and `## Reply templates`. Comment quality and labels come from `../review-merge-request/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
 
 ## Dispositions
 

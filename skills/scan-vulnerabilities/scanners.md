@@ -2,23 +2,37 @@
 
 Shared by `cdk:scan-vulnerabilities` and `cdk:security-scanner`. Security scanners only; never add or run linters, formatters, or code-style tools.
 
-## Pinned images
+## Image resolution
 
-Pin tag and digest together so a moved tag cannot change the scanner. Digests were checked against Docker Hub, GHCR, and Quay on 2026-10-02. To update one, change tag and digest together and re-check the registry.
+Resolve every image once per run to its latest stable release within the verified major, then lock its digest for the whole run (iterations, rescans, final scan), so before and after counts compare one scanner build. A new run resolves again; nothing carries over from an earlier run.
 
-| Scanner     | Image                                                                                                             | Version command     |
-| ----------- | ----------------------------------------------------------------------------------------------------------------- | ------------------- |
-| semgrep     | `semgrep/semgrep:1.179.0@sha256:93963d9295a366f59e4850127b1550400ee7b388f04fe144e4a1f6325d96e01b`                 | `semgrep --version` |
-| trivy       | `aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa`                    | `--version`         |
-| gitleaks    | `zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f`            | `version`           |
-| osv-scanner | `ghcr.io/google/osv-scanner:v2.6.0@sha256:afd838850ac1a0fcc15ff4a041dc9ba11123c3f0d2666217a5f0fcf9222b55fa`       | `--version`         |
-| checkov     | `bridgecrew/checkov:3.3.22@sha256:617c76e3f9b1f7907ebca9abb6b9d746844edcb48e9bd775e4692c69c1c6ac47`               | `--version`         |
-| dockle      | `goodwithtech/dockle:v0.4.15@sha256:eade932f793742de0aa8755406c7677cd7696f8675b6180926f7eeffa7abe6b9`             | `--version`         |
-| kubescape   | `quay.io/kubescape/kubescape-cli:v4.0.15@sha256:16f1383351936d4085f9eec4a01a08abe34e531629d2e849d3893aaed2c74052` | `version`           |
-| zap         | `zaproxy/zap-stable:2.17.0@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef`               | image tag           |
-| jq (redact) | `ghcr.io/jqlang/jq:1.8.2@sha256:b9c68867e5766576263a222e91db3de422d802069c7af70440e667a95344e486`                 | `--version`         |
+| Scanner     | Image repo                        | Release source (GitHub) | Tag from release tag | Verified major | Version command     |
+| ----------- | --------------------------------- | ----------------------- | -------------------- | -------------- | ------------------- |
+| semgrep     | `semgrep/semgrep`                 | `semgrep/semgrep`       | strip `v`            | 1              | `semgrep --version` |
+| trivy       | `aquasec/trivy`                   | `aquasecurity/trivy`    | strip `v`            | 0              | `--version`         |
+| gitleaks    | `zricethezav/gitleaks`            | `gitleaks/gitleaks`     | as is (`v` kept)     | 8              | `version`           |
+| osv-scanner | `ghcr.io/google/osv-scanner`      | `google/osv-scanner`    | as is (`v` kept)     | 2              | `--version`         |
+| checkov     | `bridgecrew/checkov`              | `bridgecrewio/checkov`  | as is (no `v`)       | 3              | `--version`         |
+| dockle      | `goodwithtech/dockle`             | `goodwithtech/dockle`   | as is (`v` kept)     | 0              | `--version`         |
+| kubescape   | `quay.io/kubescape/kubescape-cli` | `kubescape/kubescape`   | as is (`v` kept)     | 4              | `version`           |
+| zap         | `zaproxy/zap-stable`              | `zaproxy/zaproxy`       | strip `v`            | 2              | image tag           |
+| jq (redact) | `ghcr.io/jqlang/jq`               | `jqlang/jq`             | strip `jq-`          | 1              | `--version`         |
 
-Record the resolved digest per run: `docker image inspect --format '{{index .RepoDigests 0}}' <image>`.
+The verified major is a retained constraint: the command templates, flags, exit codes, and redaction key paths below were verified on it. A newer major is reported (`Newer major:`), never used, until the templates are re-verified. Major 0 (trivy, dockle) does not guarantee flag stability across minors: a template that errors or yields unparseable output on a new minor makes the scanner `failed`, never clean.
+
+Steps per scanner:
+
+1. `curl -fsS --max-time 20 "https://api.github.com/repos/<release source>/releases?per_page=100&page=<n>"` (pages 1–3, stopping at the first page that holds a candidate); read `tag_name`, `draft`, `prerelease`.
+2. Keep releases with `draft: false`, `prerelease: false`, and a tag that strictly matches `<prefix>X.Y.Z` (prefix `v`, `jq-`, or none per the table). The strict match drops `-rc`, `-beta`, `-alpha`, nightly, and preview tags that the flag misses. A release or repo whose notes or README mark it deprecated or archived is skipped and reported; no registry exposes a deprecation flag.
+3. Highest semver whose major equals the verified major. A higher major → note it for `Newer major:`.
+4. Derive the image tag from the table, then `docker buildx imagetools inspect <image repo>:<tag> --format '{{json .Manifest.Digest}}'` (the multi-platform index digest). Tag not published → next lower stable release, at most 3 candidates.
+5. Write `scanner-images.json` in the run dir: per scanner `version`, `image`, `tag`, `digest`, `release_url`, `resolved_at`, `newer_major`.
+
+A transient failure (network error, HTTP 403 or 429 from the unauthenticated GitHub rate limit) gets one retry within the run; a second failure is `version unverified: step 1`.
+
+Fail safe: any step fails or finds no verified-major stable release → that scanner is `unavailable` with reason `version unverified: <step>`. Never fall back to `latest`, an earlier run's file, an older remembered tag, or a prerelease, and never guess a digest. jq `unavailable` for any reason (unverified, failed pull) → redaction is impossible, so the run stops.
+
+Run every scanner as `<image repo>:<tag>@<digest>` from `scanner-images.json`. Record the resolved digest per run: `docker image inspect --format '{{index .RepoDigests 0}}' <image>`; it must equal the locked digest (the multi-platform index digest), else the scanner is `unavailable`. Rescan or final mode with no `scanner-images.json` → stop (`scanner agent failed`); never re-resolve mid-run.
 
 ## Repository detection
 
@@ -64,6 +78,7 @@ mkdir -p "$RAW/<scanner>" "$CACHE/trivy"   # before each run, or Docker creates 
 COMMON=(--rm --name "cdk-vs-<scanner>-<iteration>" --user "$(id -u):$(id -g)" -e HOME=/tmp
         -v "$ROOT:/src:ro" -v "$RAW/<scanner>:/out")
 OFFLINE=(--network none)             # scanners that need no network
+# $SEMGREP, $TRIVY, $GITLEAKS, $OSV, $CHECKOV, $DOCKLE, $KUBESCAPE, $ZAP, $JQ = <image repo>:<tag>@<digest> from scanner-images.json
 ```
 
 The repository is mounted read-only (`:ro`), so a scanner cannot change source files. Logs go to `$RAW/<scanner>/<scanner>.log`. Semgrep's stdout prints matched code, so only its stderr is logged.
@@ -107,7 +122,7 @@ docker run "${COMMON[@]}" "$KUBESCAPE" scan /src --keep-local --format json --fo
 
 Only JSON reports are kept, because redaction projects JSON to an allow-list (`reports.md` `## Redaction`). SARIF, HTML, and JUnit embed snippets and messages that an allow-list cannot cover.
 
-Images: build each repo Dockerfile locally (`docker build -f <Dockerfile> -t cdk-vuln-scan/<slug>:<ts> <its dir>`), or use each `image=<ref>` that already exists locally. A build runs the project's own Dockerfile steps; list that under validation limitations. Pinned scanner images may be pulled; never pull or push a target image the user did not name. Export once with `docker save <ref> -o "$RAW/images/<slug>.tar"` so that no scanner needs the Docker socket:
+Images: build each repo Dockerfile locally (`docker build -f <Dockerfile> -t cdk-vuln-scan/<slug>:<ts> <its dir>`), or use each `image=<ref>` that already exists locally. A build runs the project's own Dockerfile steps; list that under validation limitations. Resolved scanner images may be pulled; never pull or push a target image the user did not name. Export once with `docker save <ref> -o "$RAW/images/<slug>.tar"` so that no scanner needs the Docker socket:
 
 ```bash
 docker run "${COMMON[@]}" -v "$RAW/images:/images:ro" -e TRIVY_CACHE_DIR=/cache -v "$CACHE/trivy:/cache" \
@@ -122,11 +137,12 @@ A build failure gives status `failed` (`image build failed`) for trivy image and
 
 Data that leaves the machine; print it at pre-flight and repeat it in `summary.md` `## Scope`:
 
+- Image resolution queries `api.github.com` (release lists) and the image registries (Docker Hub, `ghcr.io`, `quay.io`) for tag digests; only repo names and tags are sent.
 - osv-scanner sends package names, versions, and ecosystems to `api.osv.dev`, and may resolve Maven transitive dependencies through `deps.dev`.
 - kubescape may refresh its control frameworks from its artifact registry.
 - trivy downloads its vulnerability and misconfiguration databases from its registries.
 - semgrep downloads the `p/default` ruleset from the Semgrep registry (`--metrics=off`, no code sent).
-- Docker pulls the pinned images. ZAP runs with `-z "-silent"`, so it makes no update or add-on requests. Gitleaks, dockle, and jq run with `--network none`.
+- Docker pulls the resolved `tag@digest` images. ZAP runs with `-z "-silent"`, so it makes no update or add-on requests. Gitleaks, dockle, and jq run with `--network none`.
 
 ## OWASP ZAP
 

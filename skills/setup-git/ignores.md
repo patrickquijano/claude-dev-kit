@@ -1,6 +1,6 @@
 # Ignore Catalog
 
-A stack is detected when any of its markers is found by step 10. Always-on groups need no marker. Step 11 takes the Recommended groups. Step 12 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
+A stack is detected when any of its markers is found by step 11. Always-on groups need no marker. Step 12 takes the Recommended groups. Step 13 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
 
 | Group            | Markers                                                   | Patterns                                                                                                                                 | Why                                     | Recommended |
 | ---------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------- |

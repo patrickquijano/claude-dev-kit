@@ -1,4 +1,4 @@
-// Validates the commit message (commitlint + imperative heuristic) and pre-checks signing config.
+// Validates the commit message (commitlint, 72-char header, imperative heuristic) and pre-checks signing config.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -98,6 +98,14 @@ function runCommitlint(file) {
   return spawnSync(cmd, [...args, '--edit', arg], { encoding: 'utf8', shell: isWindows, cwd: packageDir });
 }
 
+const MAX_HEADER = 72;
+
+// Returns an error when the header is longer than MAX_HEADER UTF-16 units (commitlint's count), whatever its config says.
+function headerLengthError(subject) {
+  const length = subject.length;
+  return length > MAX_HEADER ? `header is ${length} characters; max is ${MAX_HEADER}` : '';
+}
+
 // Returns an error when the description's first word looks past tense or progressive.
 function imperativeError(subject) {
   const index = subject.indexOf(': ');
@@ -187,7 +195,10 @@ const subject = readSubject(file);
 const messageErrors = flags.has('--skip-message') ? [] : checkMessage(file, subject);
 if (!flags.has('--skip-message')) report(messageErrors.length === 0, 'Commit Message', subject, messageErrors);
 
+const lengthError = flags.has('--skip-message') ? '' : headerLengthError(subject);
+if (!flags.has('--skip-message')) report(!lengthError, 'Header Length', subject, lengthError ? [lengthError] : []);
+
 const signError = flags.has('--skip-signing') ? '' : signingError();
 if (!flags.has('--skip-signing')) report(!signError, 'Signed', subject, signError ? [signError] : []);
 
-process.exit(messageErrors.length || signError ? 1 : 0);
+process.exit(messageErrors.length || lengthError || signError ? 1 : 0);

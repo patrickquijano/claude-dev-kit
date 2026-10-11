@@ -9,6 +9,7 @@ Shared by `cdk:scan-vulnerabilities` and `cdk:security-scanner`. `<ts>` = run st
   .cache/trivy/                    # trivy DB cache, reused across runs
   <ts>/
     manifest.json                  # machine-readable run record (skill owns it)
+    scanner-images.json            # resolved image, tag, digest per scanner, written once per run (agent writes)
     summary.md                     # before-and-after summary (skill owns it)
     remediation-log.md             # one entry per triage decision and remediation (skill owns it)
     iteration-<n>/
@@ -27,7 +28,7 @@ The final rescan is the last `iteration-<n>` and has `"kind": "final"`. The skil
 Secret values must never reach a report, log, prompt, diff, commit, or console.
 
 1. Scanners write only to `$RAW` (a `mktemp -d` dir outside the repo). Nobody reads, cats, greps, or prints a `$RAW` file. The one exception is a key-path listing, which shows structure but no values: `jq '[paths | map(tostring) | join(".")] | unique'`.
-2. Project each raw JSON report into the run dir with the pinned jq image (`--network none`). Keep only the allow-listed fields below and drop everything else, so an unknown field cannot carry a value through. The jq program reads the file; Claude never does:
+2. Project each raw JSON report into the run dir with the resolved jq image (`--network none`). Keep only the allow-listed fields below and drop everything else, so an unknown field cannot carry a value through. The jq program reads the file; Claude never does:
 
    ```bash
    docker run --rm -i --network none "$JQ" '<projection>' \
@@ -125,8 +126,8 @@ Each scan record (the agent writes them to `scans.json`, and the skill copies th
   "scanner": "trivy",
   "target": "fs | image:<slug> | <url>",
   "kind": "full | rescan-<k> | final",
-  "version": "0.75.0",
-  "image": "aquasec/trivy:0.75.0",
+  "version": "<X.Y.Z>",
+  "image": "<image repo>:<tag>",
   "digest": "sha256:…",
   "command": "<redacted command>",
   "started_at": "<ISO 8601 UTC>",
@@ -252,7 +253,7 @@ A false positive or accepted risk also needs `- Evidence:` and `- Justification:
 Sections, in order:
 
 1. Scope: repo, branch at start and end, HEAD, run dir, iterations, stop reason, and the data that left the machine (`scanners.md` `## Network`).
-2. Scanners: table of scanner, version, image, digest, status, and reason.
+2. Scanners: table of scanner, version, image, digest, status, and reason; below it, each `Newer major:` entry (verified major not upgraded) or "none".
 3. Commands executed: redacted, one line each.
 4. Initial and final counts: tables by scanner × severity, plus consolidated rows.
 5. Fixed, remaining, failed attempts, verified false positives, accepted risks, approved suppressions.

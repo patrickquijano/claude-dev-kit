@@ -1,8 +1,8 @@
 ---
 name: ship-spec-kit-bug
-description: Take a bug from evidence to a reviewed GitLab merge request. Run cdk:fix-spec-kit-bug to assess, fix, and test it, then run cdk:ship-merge-request to branch, commit, open the MR, and loop review and address rounds. An invalid verdict stops before shipping; an unverified fix asks first. Use only when the user explicitly asks to fix and ship a bug, or to take a bug all the way to a merge request. Do not use on your own after finishing a task.
+description: Take a bug from evidence to a reviewed GitLab merge request or GitHub pull request. Run cdk:fix-spec-kit-bug to assess, fix, and test it, then run cdk:ship-changes to branch, commit, open the MR or PR, and loop review and address rounds. An invalid verdict stops before shipping; an unverified fix asks first. Use only when the user explicitly asks to fix and ship a bug, or to take a bug all the way to a merge or pull request. Do not use on your own after finishing a task.
 argument-hint: '<stack trace | error | URL | bug report>'
-allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(glab api --paginate projects/:id/protected_branches)
+allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---
 
 # Ship Spec Kit Bug
@@ -11,17 +11,19 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Follow `${CLAUDE_SKILL_DIR}/../ship-merge-request/orchestration.md`. Output blocks are handled by: Gate for fix-spec-kit-bug, Branch and Ship for the rest.
-- GitLab only, like the ship chain: the protected-branch check uses only the gitlab and fallback rows of `## Protected branch`.
+- Follow `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`. Output blocks are handled by: Gate for fix-spec-kit-bug, Branch and Ship for the rest.
+- GitLab or GitHub, like the ship chain: the protected-branch check uses the host row of `## Protected branch`, else its fallback list.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Fix:` status not applied, `Test:` not verified, `Commits: not pushed`, `Excluded:`, `Merged: no (<reason>)`, `Last review:`, open `Resolution:` lines of the chained skills).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-spec-kit-bug`.
 
 ## Workflow
 
-1. **Pre-flight.** `git status --porcelain` non-empty → AskUserQuestion: Cancel (Recommended, commit or stash first) | Continue (uncommitted changes ship with the fix). Cancel → `Result: cancelled`, `Stopped: Pre-flight: uncommitted changes`, report, stop.
-2. **Fix.** Invoke `cdk:fix-spec-kit-bug` with `$ARGUMENTS`. Take `<slug>` from its `Bug:` line: the segment after `.specify/bugs/`, without the trailing `/`.
-3. **Gate.** Read the Output block. `Verdict:` starts with `invalid` → `Stopped: Gate: invalid`, report, stop; no fix exists to ship. Any other verdict → check Fix and Test. `Fix: applied` and `Test: verified` → continue. Every other combination → AskUserQuestion: Stop (Recommended) | Commit + push + open MR anyway; an unverified fix should not reach an MR unasked. Stop → `Stopped: Gate: <Fix> / <Test>`, report, stop.
-4. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (gitlab row, else fallback list) → skip, no ask; ship-merge-request switches off it with `fix <slug>`. Else not `fix/*` → invoke `cdk:switch-branch` with `fix <slug>`, no ask; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`, report, stop.
-5. **Ship.** Invoke `cdk:ship-merge-request` with `fix <slug>` as the branch hint, so cdk:switch-branch picks the `fix/` type. Its `Result: stopped | cancelled` → `Stopped: Ship: <its Stopped>`; `nothing-to-do` → `Result: nothing-to-do`. Report, end.
+1. **Pre-flight.** `git status --porcelain` non-empty → AskUserQuestion: Cancel (Recommended, commit or stash first) | Continue (uncommitted changes ship with the fix). Cancel → `Result: cancelled`, `Resolution: not run (cancelled)`, `Stopped: Pre-flight: uncommitted changes`, report, stop.
+2. **Fix.** Invoke the `cdk:fix-spec-kit-bug` skill via the Skill tool with `$ARGUMENTS`. Take `<slug>` from its `Bug:` line: the segment after `.specify/bugs/`, without the trailing `/`.
+3. **Gate.** Read the Output block. Chained `Result: cancelled` → `Resolution: not run (cancelled)`, `Stopped: Gate: <its Stopped>`, report, stop. Chained `Result: stopped` before a `Verdict:` exists → run step 6 once on what is left (its `Resolution:` line and open items), without re-entering the fix, then print the Output with `Stopped: Gate: <its Stopped>` and end. Else `Verdict:` starts with `invalid` → `Stopped: Gate: invalid`, report, stop; no fix exists to ship, so with no source item (the chained `Resolution:` is `not run`) it prints `Resolution: not run (stopped)`, else run step 6 first. Any other verdict → check Fix and Test. `Fix: applied` and `Test: verified` → continue. Every other combination → AskUserQuestion: Stop (Recommended) | Commit + push + open MR or PR anyway; an unverified fix should not reach an MR or PR unasked. Stop → `Result: stopped`; run step 6 on the open `Fix:` and `Test:` items and the chained `Resolution:` lines without re-entering the gate, then print the Output with `Stopped: Gate: <Fix> / <Test>` and end.
+4. **Branch.** Current = `git rev-parse --abbrev-ref HEAD`. Protected per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Protected branch` (host row, else fallback list) → skip, no ask; ship-changes switches off it with `fix <slug>`. Else not `fix/*` → invoke the `cdk:switch-branch` skill via the Skill tool with `fix <slug>`, no ask; its `Result: stopped | cancelled` → `Stopped: Branch: <its Stopped>`; `cancelled` reports `Resolution: not run (cancelled)` and stops, `stopped` runs step 6 on what is left without re-entering the branch step, then prints the Output with `Stopped:` and ends.
+5. **Ship.** Invoke the `cdk:ship-changes` skill via the Skill tool with `fix <slug>` as the branch hint, so cdk:switch-branch picks the `fix/` type. Its `Result: stopped | cancelled` → `Stopped: Ship: <its Stopped>`; `cancelled` reports `Resolution: not run (cancelled)`, `stopped` runs step 6 on what is left without re-entering the ship step, then prints the Output with `Stopped:`; `nothing-to-do` → `Result: nothing-to-do`. Then run step 6 (an item left by a chained skill still runs it, else `Resolution: not run (nothing-to-do)`), print the Output, end.
+6. **Resolve findings.** Per resolve-findings.md. Orchestrator: collect only what the chained skills' `Resolution:` lines left open (keep those lines from each chained Output, including fix-spec-kit-bug's); ask nothing under `cdk:ship-changes` settings; report each with its recommended fix.
 
 ## Output
 
@@ -33,10 +35,11 @@ Test: <result>
 Branch: <name> | none
 Commits: <count> new (pushed | not pushed) | none
 Excluded: <files> | none
-MR: !<iid> <web_url> | none
+MR: !<iid> <web_url> | PR: #<n> <url> | none
 Rounds: <r> of 5 | none
-Last review: <n> inline, <m> general (<b> blocking, <p> praise) | none
+Last review: gitlab: <n> inline, <m> general (<b> blocking, <p> praise) | github: <b> blocking, <s> suggestions | none
 Merged: yes | no (<reason>) | none
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

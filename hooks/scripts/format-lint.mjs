@@ -49,7 +49,7 @@ async function main() {
     }
   }
   if (!lines.length) return;
-  const result = { systemMessage: lines.join('\n') };
+  const result = { systemMessage: lines.join(' | ') };
   if (failures.length) {
     result.decision = 'block';
     result.reason = `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`.slice(0, 8000);

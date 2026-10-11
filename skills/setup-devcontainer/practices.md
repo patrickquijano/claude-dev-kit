@@ -18,8 +18,8 @@ Verified 2026-10-06 against containers.dev, code.visualstudio.com, github.com/de
 ## Images
 
 - Base image `mcr.microsoft.com/devcontainers/<image>`. Stack → image: Node with `tsconfig.json` → `typescript-node`, other Node → `javascript-node`, Python → `python`, Go → `go`, Java → `java`, .NET → `dotnet`, PHP → `php`, Rust → `rust`, Ruby → `ruby`, C/C++ → `cpp`, none or other → `base`. <https://github.com/devcontainers/images>
-- Tag `<image major>-<runtime version>-<debian codename>` (e.g. `1-3.12-bookworm`): the image major tag keeps getting security patches, which only land on the latest non-breaking versions, and the codename pins the OS. Pick from `https://mcr.microsoft.com/v2/devcontainers/<image>/tags/list`: highest image major, the runtime version the repo pins, the newest Debian codename listed for it (Debian variants work on arm64). Never guess a tag. <https://github.com/devcontainers/images/tree/main/src/python>
-- Dockerfile base → the highest full semver tag of that line instead (e.g. `3.2.3-3.12-bookworm`), since `cdk:write-dockerfile` pins an exact tag plus digest; say the digest needs scheduled refresh (Renovate or Dependabot).
+- Tag `<image major>-<runtime version>-<debian codename>` (a numeric stable tag only, never `dev-*`, `latest`, or a prerelease): the image major tag keeps getting security patches, which only land on the latest non-breaking versions, and the codename pins the OS. Pick from `https://mcr.microsoft.com/v2/devcontainers/<image>/tags/list`: highest image major, the runtime version the repo pins, the newest Debian codename listed for it (Debian variants work on arm64). Never guess a tag. <https://github.com/devcontainers/images/tree/main/src/python>
+- Dockerfile base → the highest full semver tag of that line instead (`<X.Y.Z>-<runtime version>-<codename>`, stable only), since `cdk:write-dockerfile` pins an exact tag plus digest; say the digest needs scheduled refresh (Renovate or Dependabot).
 - Images set their non-root user (`vscode` in base images, `node` in `javascript-node` and `typescript-node`) through image metadata, so omit `remoteUser`; read the user from the image README at `https://raw.githubusercontent.com/devcontainers/images/main/src/<image>/README.md` when a path needs its home.
 - Monorepo with several stacks → one root config: base image of the primary stack (most source files), other runtimes as features.
 
@@ -73,7 +73,7 @@ Catalog, each image on Docker Hub (`library` = official image):
 
 Source: <https://code.claude.com/docs/en/devcontainer>.
 
-- Feature `ghcr.io/anthropics/devcontainer-features/claude-code:1` (the docs show `1.0`; the registry publishes `1`, so the `:<major>` rule holds); it installs Node itself. "Failed to install Node.js and npm" → add `ghcr.io/devcontainers/features/node:<major>` above it.
+- Feature `ghcr.io/anthropics/devcontainer-features/claude-code:<major>`; major = first number of `version` in `https://raw.githubusercontent.com/anthropics/devcontainer-features/main/src/claude-code/devcontainer-feature.json`, as for the other features; it installs Node itself. "Failed to install Node.js and npm" → add `ghcr.io/devcontainers/features/node:<major>` above it (major per the first Features rule).
 - Sign-in survives rebuilds: mount `source=claude-code-config-${devcontainerId},target=<user home>/.claude,type=volume` and set `containerEnv.CLAUDE_CONFIG_DIR` to the same path (`~/.claude.json` lives outside `~/.claude` otherwise).
 - Codespaces clears `~/.claude` on rebuild → declare `secrets` `ANTHROPIC_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`), each with a description.
 - Firewall (opt-in): fetch `init-firewall.sh`, `Dockerfile`, and `devcontainer.json` from `https://raw.githubusercontent.com/anthropics/claude-code/main/.devcontainer/`. Copy the script to `.devcontainer/init-firewall.sh`. From that Dockerfile take only the packages the script calls (not its shell or Node toolchain) and its sudoers line, with the user replaced by the base image's user. Set `"capAdd": ["NET_ADMIN", "NET_RAW"]` (cross-orchestrator, so it also reaches the Compose `app`; `runArgs`, which the reference uses, applies to image and Dockerfile configs only), and `postStartCommand` and `waitFor` as that devcontainer.json does. <https://containers.dev/implementors/json_reference/> Needs a Dockerfile. The allowlist blocks registries it does not list, so installs after `postStartCommand` fail until their domains are added.
@@ -84,7 +84,7 @@ Source: <https://code.claude.com/docs/en/devcontainer>.
 Arguments for `cdk:write-dockerfile`, space-separated `key=value`, values with spaces in double quotes:
 
 - `target=devcontainer dir=.devcontainer context=.devcontainer`.
-- `base=mcr.microsoft.com/devcontainers/<image>:<full semver tag>`.
+- `base=mcr.microsoft.com/devcontainers/<image>:<X.Y.Z>-<runtime version>-<codename>` (stable only, per `## Images`).
 - `packages=<a,b,…>`: comma-separated system packages (repo needs plus firewall packages); none → omit.
 - `sudoers="<line>"`: firewall only.
 - `copy=<src>:<dest>,…`: files from the context to copy in as root and make executable, e.g. `copy=init-firewall.sh:/usr/local/bin/init-firewall.sh`; none → omit.

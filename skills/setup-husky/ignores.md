@@ -1,6 +1,6 @@
 # Ignores
 
-Where step 13 adds the Husky paths. Husky regenerates `.husky/_/` on every install, so tools should skip it; `.husky/*.mjs` stay linted because they are project code.
+Where step 14 adds the Husky paths. Husky regenerates `.husky/_/` on every install, so tools should skip it; `.husky/*.mjs` stay linted because they are project code.
 
 - Look for each config in the git root and the package dir. `<entry>` is relative to the config's dir: `.husky/_/` beside the package, `<pkg>/.husky/_/` at the git root.
 - Edit only configs that already exist; never create one for a tool the project does not use.

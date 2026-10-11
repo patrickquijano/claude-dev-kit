@@ -1,4 +1,4 @@
-## What does this MR do?
+## What does this PR do?
 
 <!-- Briefly describe the change and why it is needed. -->
 
@@ -14,4 +14,4 @@
 
 - [ ] `npm run lint` passes
 - [ ] Commits are conventional, imperative, ≤72 chars, and signed
-- [ ] `claude plugin validate .` passes (if plugin files changed)
+- [ ] `claude plugin validate --strict .` passes (if plugin files changed)

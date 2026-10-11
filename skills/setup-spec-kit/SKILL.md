@@ -17,6 +17,8 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - Step 3: add or set-priority runs once per extension in the list (3), no retries. Only exception: one user-approved reinstall per extension whose skill dirs are missing.
 - `specify extension remove` is deliberately not in `allowed-tools`: the reinstall deletes extension files, so its permission prompt is a second guard after the AskUserQuestion.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Pre-flight stops (steps 1–2) and cancels → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later stop (for example the step 3 Stop answer with `Extensions: failed` or `Required skills: missing`) → run step 6 (**Resolve findings.**) once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped, `skipped (not a git repo)` items).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-spec-kit`.
 
 ## Workflow
@@ -46,7 +48,8 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
    - `eslint.config.*`: add `.specify/**` and `.claude/skills/speckit-*/**` to the existing global-ignores object (an object with only `ignores`); none → add `{ ignores: [...] }` as its own array element.
    - `.yamllint`, `.yamllint.yaml`, `.yamllint.yml`: add to `ignore:` in its existing form (block string or list); no `ignore:` → add a block string.
    - Config form not listed or not parseable → report the file, skip it.
-6. **Report** the output below. Tell the user `.specify/assessments/` and `.specify/bugs/` (written by assess-spec-kit-idea and fix-spec-kit-bug) are committed with the work unless they add them to `.gitignore`.
+6. **Resolve findings.** Per resolve-findings.md. Resolve only what this skill installs or writes (extension registration, ignores); a failed CLI install or missing skill directory is reported with its recommended command.
+7. **Report** the output below. Tell the user `.specify/assessments/` and `.specify/bugs/` (written by assess-spec-kit-idea and fix-spec-kit-bug) are committed with the work unless they add them to `.gitignore`.
 
 ## Output
 
@@ -55,8 +58,9 @@ specify-cli: installed <version> | present <version>
 Init: done | Claude integration added | skipped (already initialized)
 Extensions: agent-context <added|priority N→10|ok|failed>, assess <…>, bug <…>
 Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo)
-Lint/format ignores: <file: added paths>, … | none found
+Lint/format ignores: <file: added paths>, … | skipped <file: reason> | none found
 Required skills: all present | missing <dirs>
-Result: done | nothing-to-do | stopped
+Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

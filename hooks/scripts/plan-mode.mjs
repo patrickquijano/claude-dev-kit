@@ -1,0 +1,70 @@
+// UserPromptSubmit hook: decide whether the prompt needs plan mode and ask Claude to switch with
+// EnterPlanMode or ExitPlanMode. Hooks cannot change the mode themselves; never blocks a prompt.
+import { pathToFileURL } from 'node:url';
+import { readStdin } from './tools.mjs';
+
+const MODES = ['default', 'plan', 'acceptEdits', 'auto', 'dontAsk', 'bypassPermissions'];
+const QUESTION_WORDS = /^(what|why|how|where|when|which|who|is|are|can|could|does|do|should|explain)\b/i;
+const CHANGE_VERBS =
+  /\b(implement|build|add|create|refactor|migrate|redesign|rewrite|update|change|integrate|set up|replace|remove|convert|port)\b/i;
+const SCOPE_WORDS =
+  /\b(architecture|across|multiple files|end-to-end|migration|redesign|refactor|feature|workflow|system|pipeline)\b/i;
+
+const listItems = (prompt) => (prompt.match(/^\s*(?:[-*+]|\d+[.)])\s+\S/gm) || []).length;
+
+// First matching rule wins.
+export function classify(prompt) {
+  const text = prompt.trim();
+  if (/(^|\s)#noplan\b/.test(text)) return { result: 'noplan', rule: 'override #noplan' };
+  if (/(^|\s)#plan\b/.test(text)) return { result: 'plan', rule: 'override #plan' };
+  const items = listItems(text);
+  if ((QUESTION_WORDS.test(text) || text.endsWith('?')) && items < 3) {
+    return { result: 'noplan', rule: 'question' };
+  }
+  if (CHANGE_VERBS.test(text)) {
+    if (items >= 3) return { result: 'plan', rule: 'change with 3+ list items' };
+    if (text.length >= 600) return { result: 'plan', rule: 'long change request' };
+    if (SCOPE_WORDS.test(text)) return { result: 'plan', rule: 'change with broad scope' };
+  }
+  return { result: 'noplan', rule: 'small request' };
+}
+
+export function decide(event) {
+  const prompt = event?.prompt;
+  const mode = event?.permission_mode;
+  if (typeof prompt !== 'string' || !prompt.trim()) return { action: 'none' };
+  if (/^\s*[/!]/.test(prompt) || !MODES.includes(mode)) return { action: 'none' };
+  const { result, rule } = classify(prompt);
+  if (result === 'plan' && mode !== 'plan') return { action: 'enter', rule };
+  if (result === 'noplan' && mode === 'plan') return { action: 'exit', rule };
+  return { action: 'none', rule };
+}
+
+export function output({ action, rule }) {
+  if (action === 'none') return null;
+  const enter = action === 'enter';
+  return {
+    systemMessage: `Plan mode: ${enter ? 'entering' : 'exiting'} (${rule})`,
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: enter
+        ? 'Before any other tool call, call EnterPlanMode (load it with ToolSearch if deferred), then plan this prompt.'
+        : `Before any other tool call, write the one-line plan \`No plan needed: ${rule}\` to the plan file and call ExitPlanMode; after approval, do the prompt.`
+    }
+  };
+}
+
+async function main() {
+  let event;
+  try {
+    event = JSON.parse(await readStdin());
+  } catch {
+    return;
+  }
+  const out = output(decide(event));
+  if (out) process.stdout.write(JSON.stringify(out));
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}

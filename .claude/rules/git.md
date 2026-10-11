@@ -21,7 +21,8 @@
 
 ## Push
 
-- Never force-push. Only exception: `cdk:rebase-onto` uses an explicit lease (`--force-with-lease=<branch>:<pre-rebase sha>`) after explicit confirmation.
+- Never bare `--force`; never force-push `main`.
+- Rewritten history: push with an explicit lease (`--force-with-lease=<branch>:<pre-rewrite sha>`) after explicit confirmation; `cdk:rebase-onto` does this.
 
 ## Git hooks
 

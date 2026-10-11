@@ -78,6 +78,12 @@
       "command": "claude",
       "args": ["plugin", "validate", "--strict", "."],
       "problemMatcher": []
+    },
+    {
+      "label": "git: delete other local branches",
+      "type": "shell",
+      "command": "cur=$(git branch --show-current); for b in $(git branch --format='%(refname:short)'); do [ \"$b\" = \"$cur\" ] || git branch -D \"$b\"; done",
+      "problemMatcher": []
     }
   ]
 }
