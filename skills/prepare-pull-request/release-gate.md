@@ -15,8 +15,8 @@ Inputs from the caller: target branch, `unattended` (`--yes` or `auto`), `dry-ru
 3. **Clean tree.** Only `changelog-*` and `version-*` codes are remediable here; any `uncommitted` code also takes this step's stop. `git status --porcelain=v1 --untracked-files=all` non-empty → stop, `uncommitted changes block the release gate; run /cdk:commit-changes first`. `cdk:commit-changes` commits everything dirty, so never remediate over unrelated edits.
 4. **Consent.** Not `unattended` → one AskUserQuestion: `Update changelog and version, commit, push (Recommended)` (objective reason: the check blocks PR/MR creation and CI until they exist) | `Stop`. `Stop` → stop. `unattended` → no ask; the caller's consent covers it.
 5. **Remediate**, chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../ship-changes/orchestration.md`:
-   - any `changelog-*` → `cdk:write-changelog base <target>`.
-   - any `version-*` → `cdk:bump-version target <target>`.
+   - any `version-*` → `cdk:bump-version target <target>` first; it chains `cdk:write-changelog` when the changelog exists.
+   - then any `changelog-*` not covered by that (changelog missing, or no `version-*` failure) → `cdk:write-changelog base <target>`.
    - then `cdk:commit-changes` with no input: it makes atomic commits (`docs(changelog): …`, `chore(release): bump version to <required>`) and pushes.
    - Read each `Result:` line; `stopped` or `cancelled` → stop the gate with `release gate <codes>: <skill> stopped`.
 6. **Revalidate.** Re-run step 1. `ok` → `Release: fixed (<codes>)`, then tell the caller to recompute its range and push need. Failures remain → one more round (max 2 rounds in total); still failing → stop with the remaining codes and `fix`.
@@ -27,5 +27,5 @@ A gate stop ends the caller's run: `Result: stopped`, `Stopped: <caller step>: r
 
 ## Notes
 
-- Idempotent: `cdk:write-changelog` matches existing bullets by meaning and `bump` sets the required version rather than adding to it, so a repeat run changes nothing and never double-bumps.
+- Idempotent: `cdk:write-changelog` (also chained by `cdk:bump-version`) matches existing bullets by meaning and `bump` sets the required version rather than adding to it, so a repeat run changes nothing and never double-bumps.
 - The gate is never re-entered by its caller.
