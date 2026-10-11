@@ -79,9 +79,9 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 
 ### Commands
 
-| Command             | Purpose                                                                                                                                                                         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/cdk:ship-release` | Ship a GitHub release end to end: commit, bump version and notes, validate, open a PR to `main`, loop self-review and fixes, squash-merge, sync `main`, confirm branch cleanup. |
+| Command             | Purpose                                                                                                                                                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/cdk:ship-release` | Ship a GitHub release end to end: review and fix locally before any commit, bump version and notes, validate, make one signed commit, open a PR to `main`, verify, squash-merge, sync `main`, confirm branch cleanup. Continues past blockers and reports them. |
 
 ### Agents
 
