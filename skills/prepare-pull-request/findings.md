@@ -38,7 +38,7 @@ Summary: <two sentences, facts only>
 
 ## Evidence rules
 
-- Review only the committed range `merge-base..<head>`; uncommitted changes are out of scope.
+- Review only the committed range `merge-base..<head>`; uncommitted changes are out of scope unless head is `WORKTREE`.
 - `file` must be in the diff's changed-file list, or a file the change affects (cite why in `evidence`); `line` is a line in that file at `<head>`, on the changed (added or context) side when one exists.
 - `blocking: yes` only when `status: confirmed` and severity is `critical` or `high`; every other finding is `no`.
 - `evidence` quotes real code or output; no evidence → drop the finding or mark it `suspected` with `severity` at most `medium`.
