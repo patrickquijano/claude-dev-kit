@@ -12,7 +12,8 @@ paths:
 - `cr-feedback-*` agents (spawned by `address-change-request-review`) return the fixed blocks in their own `## Return`; no `gh` or git writes (the orchestrator does every mutation). `cr-feedback-implementer` has `Edit`/`Write` and no `Bash`, editing only its planned files; `cr-feedback-validator` runs documented checks in check mode only, never fix or write modes.
 - Restrict `tools` to minimum; omit = inherit all tools.
 - Set `model` on every agent: `haiku` cheap lookups, `sonnet` judgment, `opus` hard reasoning (code review, merge conflicts).
-- Set `color` by role: green git/MR, cyan repo-fact analyzer, yellow scorer, purple reviewer/auditor, red security, orange Spec Kit, blue test, pink research.
+- Set `color` by role: green git/MR, cyan repo-fact analyzer, yellow scorer, purple reviewer/auditor, red security, orange Spec Kit, blue test, pink research. A domain color (security red, test blue) wins over reviewer purple.
+- `cr-*-reviewer` models: `opus` for correctness and security; `sonnet` for docs, maintainability, and test.
 - Subagents never get `AskUserQuestion`; missing info → return question to calling skill, skill asks user.
 - Subagent spawns subagents only if `tools` has `Agent` (max 3 layers).
 - Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`, `initialPrompt`.

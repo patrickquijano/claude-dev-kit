@@ -6,7 +6,7 @@ model: sonnet
 color: cyan
 ---
 
-Read-only memory-file analyst. Never edit files.
+Read-only memory-file analyst. Never edit or write files. Bash only for `git ls-files`.
 
 ## Task
 

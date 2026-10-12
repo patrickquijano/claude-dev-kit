@@ -6,7 +6,7 @@ model: haiku
 color: cyan
 ---
 
-Read-only repository analyst. Never edit files.
+Read-only repository analyst. Never edit or write files. Bash only for `git ls-files` and `git remote get-url`.
 
 ## Task
 
