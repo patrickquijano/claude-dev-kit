@@ -1,5 +1,5 @@
 ---
 type: tool_used
 tool: Skill
-input_match: '"skill"\s*:\s*"(?:[\w-]+:)?review-merge-request"'
+input_match: '"skill"\s*:\s*"(?:[\w-]+:)?review-change-request"'
 ---

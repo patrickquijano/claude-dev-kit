@@ -1,12 +1,12 @@
-# MR review guidelines
+# Change request review guidelines
 
-Bundled standard for `review-merge-request` and `mr-reviewer`. Sources at bottom.
+Bundled standard for `review-change-request` (GitHub pull requests and GitLab merge requests; "CR" below). Sources at bottom.
 
 ## Checklist
 
-Check each item against the diff, the MR title/description, and the repo's documented standards.
+Check each item against the diff, the CR title/description, and the repo's documented standards.
 
-- G1 Goal: change does what the MR title/description states; nothing missing, nothing unrelated.
+- G1 Goal: change does what the CR title/description states; nothing missing, nothing unrelated.
 - G2 Correctness: logic bugs, edge cases (empty, null, boundaries, errors), concurrency, data loss.
 - G3 Security: input validation at trust boundaries, authz, secrets in code, injection, unsafe defaults.
 - G4 Tests: new behavior and fixed bugs have tests; tests assert outcomes, not implementation.
@@ -15,7 +15,7 @@ Check each item against the diff, the MR title/description, and the repo's docum
 - G7 Standards: follows repo docs (CLAUDE.md, CONTRIBUTING, `.claude/rules/`, lint/format/commit configs). Cite the file.
 - G8 Performance: no avoidable N+1, unbounded loops or loads on hot paths.
 - G9 Compatibility: breaking changes, migrations, and rollback called out.
-- G10 Dependencies: MR not blocked by unresolved dependencies or unmerged prerequisites.
+- G10 Dependencies: CR not blocked by unresolved dependencies or unmerged prerequisites.
 
 ## Labels (Conventional Comments)
 
@@ -35,8 +35,8 @@ Format: `<label> (<decoration>): <subject>`.
 
 Decorations:
 
-- `blocking`: MR must not merge until resolved.
-- `non-blocking`: MR may merge without it.
+- `blocking`: CR must not merge until resolved.
+- `non-blocking`: CR may merge without it.
 - `if-minor`: resolve only if the fix is small.
 
 Mark every non-mandatory comment `non-blocking` (GitLab guide).
@@ -67,7 +67,7 @@ Every comment MUST be:
 Standard: <repo doc path or Gn>
 ```
 
-Suggestion block only on added or unchanged lines. It replaces the anchored line; `-N+M` extends N lines above and M below (max 100 each):
+Suggestion block only on added or unchanged lines (GitHub: a single-line or contiguous replacement on the RIGHT side). It replaces the anchored line; `-N+M` extends N lines above and M below (max 100 each):
 
 ````markdown
 ```suggestion:-0+0
@@ -82,7 +82,7 @@ Praise uses only the first line.
 ```markdown
 **Review summary** — @<author>
 
-<2–4 sentences: what the MR does, overall assessment.>
+<2–4 sentences: what the CR does, overall assessment.>
 
 | Label   | Blocking | Non-blocking |
 | ------- | -------- | ------------ |
@@ -113,19 +113,19 @@ Omit empty sections except the approval checklist.
 
 Approve only when every criterion passes.
 
-- A1 Requirements: change delivers everything the MR title/description state (G1).
+- A1 Requirements: change delivers everything the CR title/description state (G1).
 - A2 No blocking issue: no kept `blocking` finding, in particular none on correctness (G2) or security (G3).
 - A3 Tests: new and changed behavior is covered by tests that would fail without the change; bug fixes include a regression test (G4). Docs-only or config-only changes pass with a stated reason.
-- A4 CI: head pipeline status is `success` and no required check or status check is pending or failed. No pipeline configured passes with a note.
+- A4 CI: every required check passes and none is pending or failed (host inputs in the host file `## Criteria`). No pipeline or check configured passes with a note.
 - A5 Maintainability: code is readable, simple, consistent with repo standards, and free of dead code or duplication (G6, G7).
 - A6 Deploy and rollback: breaking changes, migrations, config or flag changes are called out, and a rollback path exists (G9).
-- A7 Approvals: every other required approval is in; the reviewer's own approval is the last one needed, or none remain.
+- A7 Approvals: every other required approval is in; the reviewer's own approval is the last one needed, or none remain (host inputs in the host file `## Criteria`).
 
 ## Review state
 
-- Any `blocking` finding: publish with `reviewer_state=requested_changes`.
-- None: publish with `reviewer_state=reviewed`.
-- `reviewer_state` never records an approval. Approval is a separate API call, made only when A1–A7 pass.
+- Any `blocking` finding: request changes (GitHub event `REQUEST_CHANGES`, GitLab `reviewer_state=requested_changes`).
+- None: a plain review (GitHub `COMMENT`, GitLab `reviewer_state=reviewed`).
+- A review state never records an approval. Approval is made only when A1–A7 pass and the user picks it (host file `## Approve`).
 
 ## Sources
 
@@ -135,3 +135,5 @@ Approve only when every criterion passes.
 - <https://docs.gitlab.com/api/discussions/>
 - <https://docs.gitlab.com/api/merge_request_approvals/>
 - <https://docs.gitlab.com/user/project/merge_requests/reviews/suggestions/>
+- <https://docs.github.com/en/rest/pulls/reviews>
+- <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/incorporating-feedback-in-your-pull-request>
