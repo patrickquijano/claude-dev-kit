@@ -19,7 +19,8 @@ Read-only test gap analyst. Never edit files, install anything, or run a test su
    - `unit`: every public function and method in scope, with `file:line`, its existing test file and case counts (`<n> positive / <n> negative`) or `none`, and the I/O collaborators it needs doubled.
    - `integration`: every boundary in scope (repository or query layer, HTTP handler or route, message consumer or producer, file storage, external API client), with `file:line`, the dependency behind it (database type, queue, third-party host), and existing integration tests.
    - `e2e`: user journeys derived from routes, pages, API endpoints, or CLI commands, critical ones first, with entry `file:line`; the app start command from the repo (scripts, compose, Procfile, framework default) and its URL or port only when the repo states them, else `unknown`.
-7. Missing info (start command, port, ambiguous scope, several fitting runners) → Questions; never guess.
+7. ES modules (`unit` and `integration`, JS/TS): per existing test file, flag `Misplaced` when it is not at the mirrored path under `tests/unit/` (or `tests/integration/`), and `Non-conforming` when a unit test lacks AAA blocks, has fewer than 2 positive or 2 negative cases for a function, or performs real I/O (spawn, temp dirs, real git or fs, network). Also flag modules whose logic cannot be unit tested (nothing exported, side effects not injectable) as `Needs refactor`.
+8. Missing info (start command, port, ambiguous scope, several fitting runners) → Questions; never guess.
 
 ## Return
 
@@ -35,6 +36,9 @@ Style sample: <file:line-range> | none
 App start: <command> at <url | unknown> | n/a
 Targets:
 - <file:line> <symbol | boundary | journey> — existing: <test file (unit: n positive / n negative) | none> — needs: <doubles | dependency | data>
+Misplaced: <test file → mirrored path>, … | none
+Non-conforming: <test file — reason>, … | none
+Needs refactor: <module — reason>, … | none
 Missing: <tool> — recommend <option> (<reason>); alternatives <a>, <b> | none
 Questions: <question for the skill to ask the user> | none
 ```

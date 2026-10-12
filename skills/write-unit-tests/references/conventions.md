@@ -64,6 +64,22 @@ Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and 
 - Mock only what the unit owns the contract with; prefer fakes and stubs over strict mocks.
 - Fast: each test well under a second; slow → a hidden integration.
 
+### ES modules
+
+- JS/TS ES modules (`.mjs`, `.js`, `.ts` with `import`/`export`): unit tests go in `tests/unit/` at the mirrored source path (`src/a/b.mjs` → `tests/unit/src/a/b.test.mjs`). This overrides "Match the project" for location only; runner, assertion style, and helpers still match the project.
+- Make the module testable first: export the logic as named functions, pass side effects (runner, `fs`, env, clock, stdin/stdout) as a `deps` parameter that defaults to the real one, keep the CLI body behind a main guard. This changes production code, which test skills never edit: report such a module as `Needs refactor:` and leave it untested.
+- Existing unit tests outside that path: move with `git mv`, update runner config and globs so they still run (Node's `**` glob skips dot directories; add explicit globs), then bring them up to the Unit rules (AAA, 2 positive + 2 negative per function, no integration). Report each move and change.
+- Cases that need real I/O (git, fs, spawned process) found in unit files: move them to `tests/integration/` at the mirrored path and hand them to `write-integration-tests`.
+
+### ES module safety
+
+Code the test skills write or touch follows this checklist (target projects lack the cdk rule file):
+
+- `node:` import specifiers. `execFileSync` or `spawnSync` with an argument array and a `timeout`; never `shell: true`, `eval`, `new Function`, or input interpolated into a command.
+- `JSON.parse` of external input inside `try`, then validate shape and types.
+- Resolve paths and check they stay inside the project root before reading or writing.
+- Never log secrets or env values; no network calls unless the module's purpose.
+
 ## Integration
 
 - Scope: two or more real components together, across a boundary the project owns: database repositories, HTTP handlers through the framework, message consumers, file storage, module wiring.
@@ -72,6 +88,7 @@ Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and 
 - Separate suite from unit: own directory, config, marker, or build tag (stacks.md splits), so unit runs and the unit Stop hook stay fast.
 - Assert observable outcomes at the boundary (stored row, HTTP response, published message), not internals.
 - Never hit production or shared environments.
+- JS/TS ES modules: integration tests go in `tests/integration/` at the mirrored source path, apart from `tests/unit/`; each uses temp dirs it removes afterwards, and never touches the network.
 
 ## End to end
 
