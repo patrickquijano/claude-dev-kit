@@ -17,13 +17,13 @@ Input: $ARGUMENTS
 - Engineering principles: apply `${CLAUDE_SKILL_DIR}/principles.md` by default in create and update mode, adapted to facts and repo conventions, so every generated set of memory files carries them (placement: `principles.md` `## Placement`) without the user asking.
 - Write scope: project `CLAUDE.md` (or `.claude/CLAUDE.md` when that is the existing one) and `.claude/rules/**/*.md`. Never write `CLAUDE.local.md`, `~/.claude/**`, managed policy.
 - Never invent commands, paths, or policies. Not derivable → ask; user omits → leave out, add to `Omitted:`.
-- Update mode: keep correct content, author voice, every Known issues entry. Change only stale, wrong, duplicate, conflicting, or missing items.
+- Update mode: keep correct content and author voice. Move any existing Known issues entries to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove the section; auto memory unavailable → keep the section and report it. Change only stale, wrong, duplicate, conflicting, or missing items.
 - Conflict → never resolve silently; ask.
 - Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Never re-ask an omitted item.
 - Score-only never writes.
 - Formatter runs prompt for permission; expected.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, the target memory file and `.claude/rules/**/*.md` only; sources: `Remaining gaps:` scorer deductions).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-claude-md`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-claude-md` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

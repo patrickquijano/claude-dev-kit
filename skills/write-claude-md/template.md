@@ -55,11 +55,7 @@ Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then s
 ## Maintenance
 
 - Update this file and `.claude/rules/` in the same change that alters a command, path, or convention.
-- Record each resolved issue under Known issues as `- <symptom> → <fix>`; check the list before debugging.
-
-## Known issues
-
-- none
+- Record a recurring or blocking resolved issue in Claude auto memory (`feedback` memory plus `MEMORY.md` pointer), never in this file; check memory before debugging.
 ```
 
 ## Principles rule — `.claude/rules/principles.md`
