@@ -12,6 +12,8 @@ import { pathToFileURL } from 'node:url';
 const GROUPS = [];
 
 const MAX = 8000;
+// True when `err.code` is one of `codes`; every catch below skips only its named condition and rethrows the rest.
+export const expected = (err, ...codes) => codes.includes(err?.code);
 // Claude Code caps systemMessage at 10,000 characters.
 const MESSAGE_MAX = 10_000;
 // Total budget for all groups in ms: the hook `timeout` minus 60 s, so this script reports the timeout itself.
@@ -52,14 +54,12 @@ export function createContext(deps = defaults) {
   return { deps, children: new Set(), lines: [], logPath: null, deadline: deps.now() + deps.timeout };
 }
 
-// Parses the event JSON; invalid or empty input is treated as `{}`.
+// Parses the event JSON; throws when it is empty, invalid, or not an object (the harness always sends an object).
 export function parseEvent(data) {
-  try {
-    const event = JSON.parse(data) ?? {};
-    return typeof event === 'object' && !Array.isArray(event) ? event : {};
-  } catch {
-    return {};
-  }
+  const event = JSON.parse(data);
+  if (!event || typeof event !== 'object' || Array.isArray(event))
+    throw new TypeError('hook input is not a JSON object');
+  return event;
 }
 
 function git(cwd, deps, ...args) {
@@ -72,8 +72,9 @@ export function hashFiles(hash, cwd, files, deps = defaults) {
     hash.update(`\0${file}\0`);
     try {
       hash.update(deps.readFile(join(cwd, file)));
-    } catch {
+    } catch (err) {
       // Removed since listing.
+      if (!expected(err, 'ENOENT')) throw err;
     }
   }
   return hash.digest('hex');
@@ -117,8 +118,9 @@ export function progress(ctx, line) {
   if (!ctx.logPath) return;
   try {
     ctx.deps.appendFile(ctx.logPath, `${line}\n`);
-  } catch {
+  } catch (err) {
     // Log dir missing or read-only; the final systemMessage still carries every line.
+    if (!expected(err, 'ENOENT', 'EACCES', 'EPERM', 'EROFS')) throw err;
   }
 }
 
@@ -128,8 +130,9 @@ export function kill(child, deps = defaults) {
   if (!deps.win) {
     try {
       deps.killGroup(child.pid);
-    } catch {
+    } catch (err) {
       // Group already gone.
+      if (!expected(err, 'ESRCH', 'EPERM')) throw err;
     }
   } else if (child.exitCode === null && child.signalCode === null) {
     deps.spawnSync('taskkill', ['/T', '/F', '/PID', String(child.pid)], { timeout: 30_000, windowsHide: true });
@@ -250,8 +253,9 @@ export async function main(deps = defaults) {
   let real = cwd;
   try {
     real = deps.realpath(cwd);
-  } catch {
+  } catch (err) {
     // Missing dir; hash the given path.
+    if (!expected(err, 'ENOENT', 'ENOTDIR')) throw err;
   }
   const id = createHash('sha256').update(real).digest('hex').slice(0, 16);
   const state = join(deps.tmpdir(), `cdk-run-tests-${id}`);
@@ -259,8 +263,9 @@ export async function main(deps = defaults) {
   let last = null;
   try {
     last = deps.readFile(state, 'utf8');
-  } catch {
+  } catch (err) {
     // First run.
+    if (!expected(err, 'ENOENT')) throw err;
   }
   // CDK_RUN_TESTS_FORCE=1 runs every suite regardless of changes and cache, for smoke tests.
   const skip = fp === null ? event.stop_hook_active === true : fp === last;
@@ -268,24 +273,27 @@ export async function main(deps = defaults) {
   let cache = {};
   try {
     cache = JSON.parse(deps.readFile(cacheFile, 'utf8'));
-  } catch {
-    // No cache yet.
+  } catch (err) {
+    // No cache yet, or a corrupt one.
+    if (!expected(err, 'ENOENT') && !(err instanceof SyntaxError)) throw err;
   }
   if (!cache || typeof cache !== 'object' || Array.isArray(cache)) cache = {};
   ctx.logPath = join(cwd, LOG);
   try {
     deps.writeFile(ctx.logPath, '');
-  } catch {
+  } catch (err) {
+    if (!expected(err, 'ENOENT', 'EACCES', 'EPERM', 'EROFS')) throw err;
     ctx.logPath = null;
   }
   // Record the state after the run, so untracked files the suites write do not trigger a rerun.
-  // A write failure must not crash the hook, or a failing suite would never block.
+  // An unwritable temp dir must not stop a failing suite from blocking; any other write error bubbles.
   const record = () => {
     try {
       if (fp !== null) deps.writeFile(state, fingerprint(cwd, deps) ?? '');
       deps.writeFile(cacheFile, JSON.stringify(cache));
-    } catch {
+    } catch (err) {
       // Temp dir not writable; the next Stop re-runs the suites.
+      if (!expected(err, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw err;
     }
   };
   for (const group of deps.groups) {
@@ -302,6 +310,16 @@ export async function main(deps = defaults) {
   if (ctx.lines.length) deps.stdout(JSON.stringify({ systemMessage: cap(ctx.lines.join('\n')) }));
 }
 
+// The one error boundary: an unexpected error prints one stderr line and exits 1 (non-blocking; exit 2 on Stop would loop).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await main();
+  try {
+    await main();
+  } catch (err) {
+    process.stderr.write(
+      `cdk run-tests: ${String(err?.message ?? err)
+        .split('\n')[0]
+        .slice(0, 300)}\n`
+    );
+    process.exitCode = 1;
+  }
 }

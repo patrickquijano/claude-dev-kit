@@ -10,6 +10,7 @@ import {
   hashFiles,
   kill,
   main,
+  expected,
   parseEvent,
   progress,
   run,
@@ -63,7 +64,8 @@ function makeDeps({
       return out === null ? { status: 1, stdout: Buffer.alloc(0) } : { status: 0, stdout: Buffer.from(out) };
     },
     readFile: (path) => {
-      if (!(path in files) && !(path in calls.writes)) throw new Error(`ENOENT ${path}`);
+      if (!(path in files) && !(path in calls.writes))
+        throw Object.assign(new Error(`ENOENT ${path}`), { code: 'ENOENT' });
       return path in calls.writes ? calls.writes[path] : files[path];
     },
     writeFile: (path, data) => {
@@ -141,31 +143,60 @@ describe('parseEvent', () => {
     assert.deepEqual(result, { stop_hook_active: true });
   });
 
-  test('returns an empty object for null', () => {
+  test('throws for null', () => {
     // Arrange
     const data = 'null';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act, TypeError);
   });
 
-  test('returns an empty object for invalid JSON', () => {
+  test('throws for invalid JSON', () => {
     // Arrange
     const data = '';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act, SyntaxError);
   });
 
-  test('returns an empty object for a non-object JSON value', () => {
+  test('throws for a non-object JSON value', () => {
     // Arrange
     const data = '[1]';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act, TypeError);
+  });
+});
+
+describe('expected', () => {
+  test('is true when the code is listed', () => {
+    // Arrange
+    const err = { code: 'ENOENT' };
+    // Act
+    const result = expected(err, 'ENOENT', 'EACCES');
+    // Assert
+    assert.equal(result, true);
+  });
+
+  test('is false for another code', () => {
+    // Arrange
+    const err = { code: 'EIO' };
+    // Act
+    const result = expected(err, 'ENOENT');
+    // Assert
+    assert.equal(result, false);
+  });
+
+  test('is false for a value without a code', () => {
+    // Arrange
+    const err = new Error('x');
+    // Act
+    const result = expected(err, 'ENOENT');
+    // Assert
+    assert.equal(result, false);
   });
 });
 
@@ -366,11 +397,25 @@ describe('progress', () => {
     assert.equal(calls.appends.length, 0);
   });
 
+  test('rethrows an unexpected append error', () => {
+    // Arrange
+    const { deps } = makeDeps();
+    deps.appendFile = () => {
+      throw Object.assign(new Error('boom'), { code: 'EIO' });
+    };
+    const ctx = createContext(deps);
+    ctx.logPath = '/log';
+    // Act
+    const act = () => progress(ctx, 'hi');
+    // Assert
+    assert.throws(act, /boom/);
+  });
+
   test('keeps the line when appending throws', () => {
     // Arrange
     const { deps } = makeDeps();
     deps.appendFile = () => {
-      throw new Error('EROFS');
+      throw Object.assign(new Error('EROFS'), { code: 'EROFS' });
     };
     const ctx = createContext(deps);
     ctx.logPath = '/log';
@@ -414,12 +459,24 @@ describe('kill', () => {
     // Arrange
     const { deps } = makeDeps();
     deps.killGroup = () => {
-      throw new Error('ESRCH');
+      throw Object.assign(new Error('ESRCH'), { code: 'ESRCH' });
     };
     // Act
     const act = () => kill(fakeChild(7), deps);
     // Assert
     assert.doesNotThrow(act);
+  });
+
+  test('rethrows an unexpected kill error', () => {
+    // Arrange
+    const { deps } = makeDeps();
+    deps.killGroup = () => {
+      throw Object.assign(new Error('boom'), { code: 'EINVAL' });
+    };
+    // Act
+    const act = () => kill(fakeChild(7), deps);
+    // Assert
+    assert.throws(act, /boom/);
   });
 
   test('skips taskkill on Windows once the child has exited', () => {
@@ -802,11 +859,55 @@ describe('main', () => {
     assert.deepEqual(h.calls.exits, [1]);
   });
 
+  test('rejects when the event on stdin is not JSON', async () => {
+    // Arrange
+    const h = makeDeps({ groups: passing, stdin: 'garbage' });
+    // Act
+    const act = main(h.deps);
+    // Assert
+    await assert.rejects(act, SyntaxError);
+  });
+
+  test('rejects when the state file cannot be read for an unexpected reason', async () => {
+    // Arrange
+    const h = makeDeps({ groups: passing });
+    h.deps.readFile = () => {
+      throw Object.assign(new Error('boom'), { code: 'EIO' });
+    };
+    // Act
+    const act = main(h.deps);
+    // Assert
+    await assert.rejects(act, /boom/);
+  });
+
+  test('ignores a corrupt cache file', async () => {
+    // Arrange
+    const h = makeDeps({ groups: passing, files: { '/tmp/x': '' } });
+    const read = h.deps.readFile;
+    h.deps.readFile = (path) => (path.endsWith('.json') ? '{' : read(path));
+    // Act
+    await drive(h, [0]);
+    // Assert
+    assert.match(JSON.parse(h.calls.stdout[0]).systemMessage, /completed a/);
+  });
+
+  test('rejects when a state write fails for an unexpected reason', async () => {
+    // Arrange
+    const h = makeDeps({ groups: passing });
+    h.deps.writeFile = (path) => {
+      if (path.startsWith('/tmp/cdk-run-tests-')) throw Object.assign(new Error('boom'), { code: 'EIO' });
+    };
+    // Act
+    const run = drive(h, [0]);
+    // Assert
+    await assert.rejects(run, /boom/);
+  });
+
   test('ignores a corrupt cache file and a read-only temp dir', async () => {
     // Arrange
     const h = makeDeps({ groups: passing });
     h.deps.writeFile = () => {
-      throw new Error('EROFS');
+      throw Object.assign(new Error('EROFS'), { code: 'EROFS' });
     };
     // Act
     await drive(h, [0]);
