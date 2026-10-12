@@ -1,3 +1,0 @@
-Details step 5 (Existing hook).
-
-Read `hooks.Stop` and legacy `hooks.TaskCompleted` in `.claude/settings.json`, `.claude/settings.local.json`, and `~/.claude/settings.json`, plus any script those hooks run. Name the file each found hook lives in. A Stop hook already runs tests → keep it, report it (file and command), and skip steps 6–9 and 12; no question. Only a `TaskCompleted` hook runs tests → AskUserQuestion: Migrate to Stop (Recommended; TaskCompleted fires only when a task-list task completes, so most turns go untested) | Keep it and add Stop | Keep existing. Keep existing → skip steps 6–9 and 12.

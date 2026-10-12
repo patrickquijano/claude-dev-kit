@@ -1,3 +1,0 @@
-Details step 9 (Settings).
-
-Create `.claude/settings.json` as `{}` if missing. Append the hook-files.md settings entry to `hooks.Stop` (create the array), unless an entry with that command exists; an existing entry with another `timeout` or `statusMessage` → update those two fields. Migrate chosen in step 5 → remove only the old test hook entry, in the file it lives in (the `TaskCompleted` array too when it ends up empty); old entry in `~/.claude/settings.json` → ask first (it applies to every project). The old entry ran a script in the project that nothing else runs → AskUserQuestion: Delete it (Recommended; orphaned) | Keep. Keep every other key and hook. Git project and `.gitignore` lacks `.claude/hooks/run-tests.log` → append it (a generated log).
