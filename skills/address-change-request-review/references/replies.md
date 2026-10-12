@@ -8,6 +8,7 @@ Bundled standard for `address-change-request-review` (GitHub and GitLab). Commen
 - **Clarify**: the thread is ambiguous, or more than one fix is valid. Ask one specific question. Do not change code until answered.
 - **Decline**: the recommendation is intentionally not adopted. Allowed only with a concrete reason: conflicts with a documented standard, out of scope for this CR, or a measurable cost. Offer an alternative or a follow-up issue.
 - **Answer**: `question` threads with no code change needed. Answer directly.
+- **Already done**: the requested change already exists in the branch (`already-addressed`). Point to the commit or `path:line`; change nothing.
 
 Every `blocking` thread MUST get Fix, Clarify, or Decline; a blocking `question` may get Answer and stays open for the reviewer. Never ignore a thread.
 
@@ -39,6 +40,12 @@ Answer:
 
 ```markdown
 <Direct answer.> <Evidence: code path, doc, or test that shows it.>
+```
+
+Already done:
+
+```markdown
+This is already in place: <commit short SHA or `path:line`>. <One sentence on how it meets the request.>
 ```
 
 Cite `path:line`, a commit SHA, or a repo doc when it supports the reply.
