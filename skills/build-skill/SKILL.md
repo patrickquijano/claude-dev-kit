@@ -13,7 +13,7 @@ Input: $ARGUMENTS
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → omit and report.
 - No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask.
-- Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → sibling files.
+- Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → `references/` (docs), `assets/` (copied content), `scripts/` (executables); runnable commands → `references/commands.md`, referenced by name; workflow steps happy-path, ≤ ~2 lines, conditional branches → `references/<topic>.md`.
 - Loops: clarify (step 3) max 3 rounds; verify-fix (step 8) max 3 attempts; clarify cap hit or a failure before step 8 → print the Output with `Resolution: not run (stopped)`, `Stopped: <step>: <reason>`, and end; a failure in step 8 after findings exist runs step 9 first; verify cap hit → run step 9 on what is left, then print the Output with `Stopped: 8: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/references/fallbacks.md`.
 - Never run `claude plugin eval` (LLM-graded); structural validation only.
