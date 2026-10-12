@@ -1,16 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { dateLine, recordBaseline, sessionStart } from '../../../../hooks/scripts/session-start.mjs';
+import { dateLine, sessionStart } from '../../../../hooks/scripts/session-start.mjs';
 
-function make({
-  configured = false,
-  present = false,
-  state = {},
-  snap = { fp: 'fp' },
-  rules = 'RULES\n',
-  readFails = false
-} = {}) {
-  const writes = [];
+function make({ configured = false, present = false, rules = 'RULES\n', readFails = false } = {}) {
   const deps = {
     env: { CLAUDE_PROJECT_DIR: '/repo', CLAUDE_PLUGIN_ROOT: '/plugin' },
     cwd: () => '/cwd',
@@ -22,13 +14,9 @@ function make({
     readFileSync: (p) => {
       if (readFails) throw new Error('ENOENT');
       return `${rules}|${p}`;
-    },
-    statePath: () => '/state.json',
-    readState: () => structuredClone(state),
-    treeSnapshot: () => snap,
-    writeState: (f, s) => writes.push(s)
+    }
   };
-  return { deps, writes };
+  return { deps };
 }
 
 test('dateLine formats the weekday, date, and 12-hour time', () => {
@@ -65,42 +53,6 @@ test('dateLine defaults to the current time without throwing', () => {
   const result = dateLine();
   // Assert
   assert.match(result, pattern);
-});
-
-test('recordBaseline stores the tree fingerprint', () => {
-  // Arrange
-  const { deps, writes } = make();
-  // Act
-  recordBaseline({ session_id: 's', source: 'startup' }, deps);
-  // Assert
-  assert.equal(writes[0].baseline, 'fp');
-});
-
-test('recordBaseline refreshes the baseline on a fresh start even when one exists', () => {
-  // Arrange
-  const { deps, writes } = make({ state: { baseline: 'old' } });
-  // Act
-  recordBaseline({ source: 'startup' }, deps);
-  // Assert
-  assert.equal(writes[0].baseline, 'fp');
-});
-
-test('recordBaseline keeps an existing baseline on compact', () => {
-  // Arrange
-  const { deps, writes } = make({ state: { baseline: 'old' } });
-  // Act
-  recordBaseline({ source: 'compact' }, deps);
-  // Assert
-  assert.equal(writes.length, 0);
-});
-
-test('recordBaseline writes nothing when git cannot snapshot the tree', () => {
-  // Arrange
-  const { deps, writes } = make({ snap: null });
-  // Act
-  recordBaseline({ source: 'startup' }, deps);
-  // Assert
-  assert.equal(writes.length, 0);
 });
 
 test('sessionStart returns the date line as additional context', () => {
@@ -162,16 +114,4 @@ test('sessionStart still returns the date line when the rules file is unreadable
   // Assert
   assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
   assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart still returns the date line when the baseline cannot be recorded', () => {
-  // Arrange
-  const { deps } = make();
-  deps.treeSnapshot = () => {
-    throw new Error('boom');
-  };
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
 });

@@ -1,4 +1,4 @@
-// Shared Graphify helpers for the SessionStart and Stop hooks; cross-platform, no shell.
+// Shared Graphify helpers for the SessionStart and UserPromptSubmit hooks; cross-platform, no shell.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';

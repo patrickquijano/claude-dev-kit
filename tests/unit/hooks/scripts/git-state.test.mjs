@@ -1,16 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import {
-  git,
-  pushed,
-  readState,
-  sha,
-  statePath,
-  treeSnapshot,
-  unsafeState,
-  writeState
-} from '../../../../hooks/scripts/git-state.mjs';
+import { git, readState, sha, statePath, unsafeState, writeState } from '../../../../hooks/scripts/git-state.mjs';
 
 const out = (text, status = 0) => ({ status, stdout: Buffer.from(text) });
 const fail = { status: 1, stdout: Buffer.from('') };
@@ -20,14 +11,6 @@ const procBy = (table) => (cmd, args) => {
   const hit = key === undefined ? fail : table[key];
   return typeof hit === 'function' ? hit(args) : hit;
 };
-const files = (map) => ({
-  statSync: (p) => {
-    if (!(p in map)) throw new Error('ENOENT');
-    return { size: map[p].length, mtimeMs: 1 };
-  },
-  readFileSync: (p) => Buffer.from(map[p])
-});
-
 test('sha returns 16 hex characters', () => {
   // Arrange
   const input = 'hello';
@@ -106,80 +89,6 @@ test('git passes a failing exit status through', () => {
   assert.equal(result.status, 128);
 });
 
-test('treeSnapshot reports a clean tree with the HEAD sha', () => {
-  // Arrange
-  const deps = { proc: procBy({ status: out(''), 'rev-parse': out('abc123\n') }) };
-  // Act
-  const result = treeSnapshot('/repo', {}, deps);
-  // Assert
-  assert.deepEqual(result, { dirty: false, head: 'abc123', fp: '', status: '' });
-});
-
-test('treeSnapshot fingerprints a dirty tree and keeps the status text', () => {
-  // Arrange
-  const deps = {
-    proc: procBy({ status: out(' M a.txt\0'), 'rev-parse': out('abc\n'), diff: out('DIFF'), 'ls-files': out('') })
-  };
-  // Act
-  const result = treeSnapshot('/repo', {}, deps);
-  // Assert
-  assert.equal(result.dirty, true);
-  assert.match(result.fp, /^[0-9a-f]{64}$/);
-  assert.equal(result.status, ' M a.txt\0');
-});
-
-test('treeSnapshot fingerprint changes when the diff changes', () => {
-  // Arrange
-  const make = (diff) => ({
-    proc: procBy({ status: out(' M a\0'), 'rev-parse': out('h'), diff: out(diff), 'ls-files': out('') })
-  });
-  // Act
-  const result = treeSnapshot('/r', {}, make('one')).fp === treeSnapshot('/r', {}, make('two')).fp;
-  // Assert
-  assert.equal(result, false);
-});
-
-test('treeSnapshot hashes untracked file contents and tolerates a removed one', () => {
-  // Arrange
-  const deps = {
-    proc: procBy({ status: out('?? n\0'), 'rev-parse': out('h'), diff: out(''), 'ls-files': out('n\0gone\0') }),
-    ...files({ [path.join('/r', 'n')]: 'data' })
-  };
-  // Act
-  const result = treeSnapshot('/r', {}, deps);
-  // Assert
-  assert.equal(result.dirty, true);
-  assert.match(result.fp, /^[0-9a-f]{64}$/);
-});
-
-test('treeSnapshot turns excludes into pathspecs', () => {
-  // Arrange
-  const seen = [];
-  const deps = { proc: (cmd, args) => (seen.push(args), out('')) };
-  // Act
-  treeSnapshot('/r', { exclude: ['graphify-out'] }, deps);
-  // Assert
-  assert.ok(seen[0].includes(':(exclude)graphify-out'));
-});
-
-test('treeSnapshot returns null when git status fails', () => {
-  // Arrange
-  const deps = { proc: () => fail };
-  // Act
-  const result = treeSnapshot('/repo', {}, deps);
-  // Assert
-  assert.equal(result, null);
-});
-
-test('treeSnapshot returns null when git cannot be started', () => {
-  // Arrange
-  const deps = { proc: () => ({ error: new Error('ENOENT'), status: null, stdout: Buffer.from('') }) };
-  // Act
-  const result = treeSnapshot('/repo', {}, deps);
-  // Assert
-  assert.equal(result, null);
-});
-
 test('unsafeState is true on a detached HEAD', () => {
   // Arrange
   const deps = { proc: procBy({ 'symbolic-ref': fail }), existsSync: () => false };
@@ -233,51 +142,6 @@ test('unsafeState is false when git markers cannot be resolved', () => {
   };
   // Act
   const result = unsafeState('/r', '', deps);
-  // Assert
-  assert.equal(result, false);
-});
-
-test('pushed is true when HEAD is not ahead of the upstream', () => {
-  // Arrange
-  const deps = { proc: procBy({ 'rev-parse': out('origin/main'), 'rev-list': out('0\n') }) };
-  // Act
-  const result = pushed('/r', deps);
-  // Assert
-  assert.equal(result, true);
-});
-
-test('pushed is true when there is no upstream and no remote', () => {
-  // Arrange
-  const deps = { proc: procBy({ 'rev-parse': fail, remote: out('\n') }) };
-  // Act
-  const result = pushed('/r', deps);
-  // Assert
-  assert.equal(result, true);
-});
-
-test('pushed is false when commits are ahead of the upstream', () => {
-  // Arrange
-  const deps = { proc: procBy({ 'rev-parse': out('origin/main'), 'rev-list': out('2\n') }) };
-  // Act
-  const result = pushed('/r', deps);
-  // Assert
-  assert.equal(result, false);
-});
-
-test('pushed is false when there is no upstream but a remote exists', () => {
-  // Arrange
-  const deps = { proc: procBy({ 'rev-parse': fail, remote: out('origin\n') }) };
-  // Act
-  const result = pushed('/r', deps);
-  // Assert
-  assert.equal(result, false);
-});
-
-test('pushed is false when counting commits fails', () => {
-  // Arrange
-  const deps = { proc: procBy({ 'rev-parse': out('origin/main'), 'rev-list': fail }) };
-  // Act
-  const result = pushed('/r', deps);
   // Assert
   assert.equal(result, false);
 });

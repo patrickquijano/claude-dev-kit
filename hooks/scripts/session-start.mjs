@@ -3,7 +3,6 @@
 import { readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { readState, statePath, treeSnapshot, writeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist } from './graphify.mjs';
 import { readStdin } from './tools.mjs';
 
@@ -12,11 +11,7 @@ export const realDeps = {
   graphifyConfigured,
   graphifyFilesExist,
   readFileSync,
-  readState,
   realpathSync,
-  statePath,
-  treeSnapshot,
-  writeState,
   now: () => new Date(),
   env: process.env,
   cwd: () => process.cwd(),
@@ -40,18 +35,6 @@ export function dateLine(now = new Date()) {
   return `Today is ${parts.weekday}, ${parts.month}, ${parts.day}, ${parts.year} and the current time is ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }
 
-// Remembers the tree as found at session start so commit-stop.mjs leaves pre-session work alone; `compact` keeps it.
-export function recordBaseline(input, deps = realDeps) {
-  const cwd = deps.realpathSync(deps.env.CLAUDE_PROJECT_DIR || input.cwd || deps.cwd());
-  const file = deps.statePath('commit', cwd, typeof input.session_id === 'string' ? input.session_id : '');
-  const s = deps.readState(file);
-  if (input.source === 'compact' && s.baseline !== undefined) return;
-  const snap = deps.treeSnapshot(cwd, { exclude: ['graphify-out'], timeout: 4000 });
-  if (!snap) return;
-  s.baseline = snap.fp;
-  deps.writeState(file, s);
-}
-
 // The SessionStart hook's JSON output for a parsed input.
 export function sessionStart(input = {}, deps = realDeps) {
   const context = [dateLine(deps.now())];
@@ -64,16 +47,11 @@ export function sessionStart(input = {}, deps = realDeps) {
         'utf8'
       );
       context.push(
-        `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nThe cdk Stop hook runs \`graphify update .\` after each turn that changed files; do not run it yourself.`
+        `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nA cdk end-of-task instruction names the graphify step to run once the task is done; do not run it on your own.`
       );
     }
   } catch {
     // Graphify context is optional.
-  }
-  try {
-    recordBaseline(input, deps);
-  } catch {
-    // The baseline only keeps the commit Stop hook from sweeping pre-session work.
   }
   return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: context.join('\n\n') } };
 }
