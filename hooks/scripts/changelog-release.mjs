@@ -6,8 +6,10 @@ import { pathToFileURL } from 'node:url';
 import { git } from './git-state.mjs';
 
 // Official SemVer 2.0.0 regex (semver.org).
+/* eslint-disable security/detect-unsafe-regex -- the official pattern, applied to a version string only */
 const SEMVER =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+/* eslint-enable security/detect-unsafe-regex */
 const HEADING = /^##\s+\[([^\]]+)\](.*)$/;
 const REF = /^\[([^\]]+)\]:\s*(\S+)/;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -99,6 +101,7 @@ export function detectPrefix(tags, refs, versions) {
     };
   for (const v of versions) {
     const url = refs[v];
+    // eslint-disable-next-line security/detect-non-literal-regexp -- the version is escaped by esc()
     const m = url && new RegExp(`(?:/|\\.\\.\\.)(v?)${esc(v)}(?=$|\\.\\.\\.|[?#])`).exec(url);
     if (m) return { prefix: m[1], source: 'changelog links' };
   }

@@ -27,6 +27,7 @@ const globRe = (g) => {
     } else if (g[i] === '*') re += '[^/]*';
     else re += g[i].replace(/[.+^${}()|[\]\\?]/g, '\\$&');
   }
+  // eslint-disable-next-line security/detect-non-literal-regexp -- every glob character is escaped above
   return new RegExp(`^${re}$`);
 };
 const matchAny = (file, globs) => globs.some((g) => globRe(g).test(file));
@@ -65,6 +66,7 @@ export function loadPolicy(cwd) {
 export function levelOf(commits) {
   let level = 0;
   for (const { subject, body } of commits) {
+    // eslint-disable-next-line security/detect-unsafe-regex -- linear: the scope class cannot overlap the next token
     const m = /^(\w+)(?:\([^)]*\))?(!)?:/.exec(subject);
     if (m?.[2] || /^BREAKING[ -]CHANGE:/m.test(body)) return 'major';
     if (m?.[1] === 'feat') level = Math.max(level, 1);
@@ -303,6 +305,7 @@ export function bump(cwd, { target, pendingSubject = '' } = {}) {
   for (const v of policy.versionFiles) {
     const abs = path.join(root, v.path);
     const text = readFileSync(abs, 'utf8');
+    // eslint-disable-next-line security/detect-non-literal-regexp -- the key comes from the committed release policy
     const re = new RegExp(`("${v.key}"\\s*:\\s*")([^"]*)(")`);
     const m = re.exec(text);
     if (!m) throw new Error(`key "${v.key}" not found in ${v.path}`);
