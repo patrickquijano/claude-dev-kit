@@ -1,0 +1,3 @@
+Details step 5 (Triage). Commands: `${CLAUDE_SKILL_DIR}/references/commands.md`.
+
+For each non-secret finding: read the cited code or manifest, confirm the resolved version or the vulnerable pattern, check reachability (imports, call sites, config use), and check exposure. For a secret finding: check only that the file is tracked (`tracked-files`) and the fingerprint is current, then mark it `manual` with a rotate-and-move action. Re-score. Classify as `false-positive` (with evidence), `manual` (secret, third-party code, no fix), `needs-approval` (with the boundary named), or remediable. Write each decision to `remediation-log.md`.

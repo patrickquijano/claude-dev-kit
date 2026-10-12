@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Policy, syntax, baseline lists, and MCP rules: `${CLAUDE_SKILL_DIR}/references/catalog.md`. Follow it; never copy its rules here.
 - Target only the user settings file: `$CLAUDE_CONFIG_DIR/settings.json` when set, else `~/.claude/settings.json` (`%USERPROFILE%\.claude\settings.json` on Windows). Never `settings.local.json` (read only in the home directory) and never project or managed files.
 - Never remove, reorder, or rewrite an existing key or rule. Append only new rules to `permissions.allow`, `permissions.ask`, `permissions.deny`.
@@ -28,27 +29,12 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Repo root = `git rev-parse --show-toplevel`, else cwd. Platform = Windows when `printenv OS` prints `Windows_NT`, else `uname` (`Darwin` → macOS, `Linux` → Linux). Settings dir = `printenv CLAUDE_CONFIG_DIR` when it prints a path (a failed command means unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Note that managed settings, if any, still outrank it.
+1. **Pre-flight.** Repo root = `repo-root`, else cwd. Platform = Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` → macOS, `Linux` → Linux). Settings dir = `config-dir` when it prints a path (a failed command means unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Note that managed settings, if any, still outrank it.
 2. **Analyze.** Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS`. Ask its `Questions:`, then re-spawn once with the answers appended to the prompt as extra notes. `Known issue:` lines → known-issues rule.
-3. **MCP inventory.** Never from the analyzer or from memory. Servers = `claude mcp list` (a failed command → none known). Tools = every `mcp__<server>__<tool>` name in this session's own tool list, including deferred tools listed by name, copied exactly. A listed server with no listed tool (failed, pending approval, needs authentication) → `Skipped: <server> — unavailable`; never guess its tools. Servers or tools that are not listed are not classified.
+3. **MCP inventory.** Never from the analyzer or from memory. Servers = `mcp-list` (a failed command → none known). Tools = every `mcp__<server>__<tool>` name in this session's own tool list, including deferred tools listed by name, copied exactly. A listed server with no listed tool (failed, pending approval, needs authentication) → `Skipped: <server> — unavailable`; never guess its tools. Servers or tools that are not listed are not classified.
 4. **Classify.** Apply `catalog.md` to the analyzer's commands plus the baseline for the platform, and its `## MCP` section to each listed MCP tool. Use `Package managers` to scope the read-only package-manager allows, `Installed` to skip programs that are missing, and `Gaps` as `skipped` notes. Produce candidate rules per list, each with its reason: `Bash`/`PowerShell` commands as exact + wildcard pairs, each MCP tool as one exact rule. `Destructive`, `Interpreter/exec`, and `Privileged` entries, and anything unclassifiable → ask or deny per the catalog. Record `reclassified` = a command that looks allowable but the catalog moved to ask or deny, with the reason.
-5. **Merge.** Read the target (missing → `{}`; see Rules for invalid). Compare candidates with existing `permissions.allow|ask|deny`, treating `Bash(x:*)` as `Bash(x *)`:
-   - already present → `retained`; skipped as a duplicate.
-   - same rule in a different list → `conflicting`; keep the existing, add nothing.
-   - existing allow that a new ask or deny covers → keep it; the stricter list wins at evaluation; report it `conflicting`.
-   - existing deny that blocks a detected dev command → `conflicting`; AskUserQuestion: Keep it (Recommended; deny wins everywhere) | Remove that rule.
-   - existing unsafe allow (`Bash(*)`, a shell, `sudo`) → AskUserQuestion: Move to deny or ask per the catalog (Recommended) | Keep it.
-   - existing server-wide MCP allow (`mcp__<server>`, `mcp__<server>__*`) that a new MCP ask covers → keep it; report `conflicting` (ask wins). Existing server-wide MCP deny → add no allow or ask for that server's tools; report `conflicting`.
-   - Candidate with no safe pattern → `skipped` with the reason.
-
-   Build the merged object in memory: append new rules at each list's end, keep every other key and order, add `$schema` (`https://json.schemastore.org/claude-code-settings.json`) only when absent.
-
-6. **Validate.** Write the merged JSON to the scratchpad and run `jq empty <file>` (`jq` missing → ask the user to install it, or approve a one-off `node -e` JSON parse). Then check:
-   - top-level object; the three lists are arrays of strings.
-   - each rule is `Tool(specifier)` with a known tool name (`Bash`, `PowerShell`, `Edit`, `Read`, …); no bare tool name, no leading `*`; `mcp__` rules are checked by the MCP bullet below instead.
-   - every `Bash` and `PowerShell` rule has both its exact and wildcard form, except the single rules in `catalog.md` Syntax.
-   - every new MCP rule matches `^mcp__[A-Za-z0-9_-]+__[A-Za-z0-9_-]+$` and names a tool listed in step 3; no parentheses, no wildcard.
-   - no duplicates within or across lists; no new allow shadowed by a deny of the same program.
+5. **Merge.** Read the target (missing → `{}`; see Rules for invalid). Compare candidates with existing `permissions.allow|ask|deny`: duplicates are `retained`, cross-list duplicates and covered rules `conflicting`, unsafe existing allows and blocking denies ask. Append new rules, add `$schema` only when absent. Detail: `${CLAUDE_SKILL_DIR}/references/merge.md`.
+6. **Validate.** Write the merged JSON to the scratchpad and run `validate-json`, then the shape checks. Detail: `${CLAUDE_SKILL_DIR}/references/validate.md`.
 
    Fail → fix and re-check (cap in Rules); still failing → run step 9 on the failed checks without re-entering this step (nothing was written, so step 9 edits nothing), then print the Output with `Stopped: 6: <reason>` and end.
 

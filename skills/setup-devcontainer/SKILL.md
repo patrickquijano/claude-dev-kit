@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; writes only here or in the chained `cdk:write-dockerfile`; `cdk:devcontainer-analyzer` only reads.
 - Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. Skipped item → reason in the Output.
 - No invented facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. Lookup fails → ask in step 3 call 3; never guess.
@@ -25,29 +26,15 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `git rev-parse --show-toplevel`, else cwd. Mode: `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists → update; else create. Update → read each config and the files it references (Dockerfile, compose files) fully.
+1. **Pre-flight.** Root = `repo-root`, else cwd. Mode: `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists → update; else create. Update → read each config and the files it references (Dockerfile, compose files) fully.
 2. **Analyze.** Spawn `cdk:devcontainer-analyzer` with the root. Use its Return for every later step.
-3. **Clarify.** AskUserQuestion, recommended option first with the reason; derivable facts and facts the input gives are never asked.
-   - Call 1:
-     - Services, three multiSelect questions: "Databases" (PostgreSQL, MySQL, MariaDB, MongoDB), "Cache and messaging" (Redis, Valkey, RabbitMQ, Kafka), "Search and dev tools" (OpenSearch, Elasticsearch, Mailpit, LocalStack). Catalog services with analyzer evidence get "(Recommended)" and their evidence; the analyzer's `Other services` are named in the first question's text, to add via "Other". An "Other" service resolves to its official Docker Hub image (none found → call 3). Nothing selected → no services.
-     - Claude Code: Yes, no firewall (Recommended; feature, sign-in volume, Codespaces secrets) | Yes, with firewall (egress allowlist; adds NET_ADMIN and NET_RAW, needs a Dockerfile, blocks unlisted registries) | No.
-   - Approach: no question; derive per practices.md `## Approach` from call 1 and report it with the reason.
-   - Call 2, each question only when it applies:
-     - Docker access, when the analyzer says `Builds images: yes`: None (Recommended; least access) | docker-outside-of-docker (host daemon) | docker-in-docker (privileged).
-     - Stack and runtime version, when `Empty: yes` or the version is not derivable.
-     - Config to update, when update mode found more than one config.
-   - Call 3: only for gaps left after call 2 and failed step 4 lookups (step 4 re-runs for the answers).
+3. **Clarify.** AskUserQuestion, recommended option first with the reason; derivable facts and facts the input gives are never asked. Call 1: services and Claude Code (approach derived, no question); call 2: only the questions that apply; call 3: only the gaps left. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Look up** per practices.md: base image tag, feature majors, and each service's tag, port, data directory, env vars, and health command. Failure → call 3; call 3 already used → step 10, then stop.
-5. **Draft.** Per practices.md:
-   - devcontainer.json: `name` (repo dir name), `image`, `build`, or `dockerComposeFile` + `service` + `workspaceFolder`, `features`, `forwardPorts`, `mounts`, `containerEnv`, `remoteEnv`, `postCreateCommand`, `secrets`, `customizations.vscode.extensions`, plus `capAdd`, `postStartCommand`, and `waitFor` for the firewall.
-   - Compose: `.devcontainer/compose.yaml` (extending the repo's compose file when one exists), `.devcontainer/.env.example`, `.devcontainer/.env`, `.gitignore` entry.
-   - `.gitattributes` LF rule when missing; firewall → `.devcontainer/init-firewall.sh` from the reference.
-   - Dockerfile needed → the `cdk:write-dockerfile` arguments per practices.md `## Dockerfile handoff`.
-   - Update mode → keep the existing config's intent (approach, features, customizations, commands), add only what step 3 chose, fix what breaks a practice (`appPort`, Compose `ports`, `latest` tags, mounted host secrets); list each change with its reason.
+5. **Draft.** Per practices.md: devcontainer.json, Compose files when needed, the `.gitattributes` LF rule, the firewall script, and the Dockerfile handoff arguments. Update mode keeps the existing config's intent and adds only what step 3 chose. Detail: `${CLAUDE_SKILL_DIR}/references/draft.md`.
 6. **Plan.** Print each file's content (diff for existing files), the handoff arguments, and the change list. Nothing to add or fix in update mode → `Result: nothing-to-do`; skip to step 10, which runs on `Skipped practices:`/`Gaps:` items, else prints `Resolution: not run (nothing-to-do)`.
 7. **Write** the step 5 files without asking (existing `.gitignore` and `.gitattributes` → append only missing lines). They come first, so the Dockerfile's `COPY` sources exist when it is reviewed.
-8. **Dockerfile.** Dockerfile needed → invoke `cdk:write-dockerfile` via the Skill tool with the step 5 arguments. Read its Output: `Result: done` or `nothing-to-do` → keep its `App:`, `Stages:` (the Base digest), `Files:`, and `Checks:` lines, and confirm `<App dir>/Dockerfile` matches `build.dockerfile` (or the Compose `app` `build`), fixing the reference when it differs; else stop per orchestration.md: run step 10 on what is left (keep the chained write-dockerfile `Resolution:` lines), then print `Stopped: 8: write-dockerfile <its Stopped>`.
-9. **Verify.** Run the practices.md `## Checks` the host supports (analyzer `CLIs`). Each failure in a file this skill wrote → fix, print the diff, re-run (cap in Rules); a Dockerfile failure → report it, never fix it here. `devcontainer up` only when the user asks.
+8. **Dockerfile.** Dockerfile needed → invoke `cdk:write-dockerfile` via the Skill tool with the step 5 arguments, read its Output, and confirm `<App dir>/Dockerfile` matches the config's reference; a stop per orchestration.md ends through step 10. Detail: `${CLAUDE_SKILL_DIR}/references/dockerfile.md`.
+9. **Verify.** Run the practices.md `## Checks` the host supports (analyzer `CLIs`). Each failure in a file this skill wrote → fix, print the diff, re-run (cap in Rules); a Dockerfile failure → report it, never fix it here. `devcontainer-up` only when the user asks.
 10. **Resolve findings.** Per resolve-findings.md. Fix only files this skill wrote; a Dockerfile check failure is reported with the recommended `cdk:write-dockerfile` input, never fixed here (Rules).
 11. **Report** the output below.
 

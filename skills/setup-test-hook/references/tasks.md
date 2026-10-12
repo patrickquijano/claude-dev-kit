@@ -1,0 +1,3 @@
+Details step 11 (VS Code tasks). Commands: `${CLAUDE_SKILL_DIR}/references/commands.md`.
+
+Target `.vscode/tasks.json`; one hook-files.md task per detected suite (all kinds). Skip a suite when a task with that label or the same `command` and `args` exists; keep every other task and key. The file has comments (JSONC) → insert with Edit, never rewrite the file. Nothing to add → skip this step. Else add them, no question (one-click runs for every suite). Git project and `check-ignore-tasks` succeeds → write it, keep it ignored, and report how to unignore (replace a `.vscode/` or `.vscode` line in `.gitignore` with `.vscode/*` and `!.vscode/tasks.json`).

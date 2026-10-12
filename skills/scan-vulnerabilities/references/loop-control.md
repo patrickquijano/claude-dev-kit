@@ -1,0 +1,3 @@
+Details step 7 (Continue or stop).
+
+Stop the loop when: no confirmed remediable finding is left; only approval-bound, manual, false-positive, or accepted findings are left; a scanner, build, or test dependency needed for reliable validation is unavailable; every remaining remediable finding has used its 2 attempts; `i` = max iterations; or more changes risk regressions (for example, repeated failures across unrelated fixes). Before stopping on approval-bound findings, ask every not-yet-asked `needs-approval` item, 4 per call; an approval with iterations left cancels the stop. No stop condition met → `i += 1`, back to step 4.
