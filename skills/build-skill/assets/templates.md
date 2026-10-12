@@ -4,7 +4,7 @@
 - `<plugin>:` prefix only for plugin targets.
 - Omit frontmatter keys not confirmed or equal to default.
 - Strip all `# ...` template comments from output.
-- Target outside the `cdk` plugin (no `skills/build-skill/` sibling) → replace each `${CLAUDE_SKILL_DIR}/../build-skill/<file>` link line with that file's rules inline.
+- Target outside the `cdk` plugin (no `skills/build-skill/` sibling) → replace each `${CLAUDE_SKILL_DIR}/../build-skill/references/<file>` link line with that file's rules inline.
 
 ## Skill — `<root>/skills/<name>/SKILL.md`
 
@@ -25,7 +25,8 @@ Input: $ARGUMENTS
 ## Rules
 
 - <constraint>
-- Reference files: `${CLAUDE_SKILL_DIR}/<file>`.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. # only if the skill runs commands
+- Reference files: `${CLAUDE_SKILL_DIR}/references/<file>`.
 - <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`. # only if the skill asks the user or writes files
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
