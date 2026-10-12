@@ -121,8 +121,10 @@ export function changelogParts(text = '') {
 const readKey = (text, key) => {
   try {
     return JSON.parse(text)[key];
-  } catch {
-    return undefined;
+  } catch (e) {
+    // A version file that is not JSON has no such key.
+    if (e instanceof SyntaxError) return undefined;
+    throw e;
   }
 };
 
@@ -442,7 +444,6 @@ export function report(r) {
 export async function runHook(deps = {}) {
   const d = withDeps(deps);
   const event = await d.readJsonStdin();
-  if (!event) return 0;
   const cwd = (typeof event.cwd === 'string' && event.cwd) || d.env.CLAUDE_PROJECT_DIR || d.cwd();
   let loaded;
   try {
@@ -521,6 +522,5 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   }
 }
 
-await runIfMain(import.meta.url, async () => {
-  process.exitCode = await main();
-});
+// `hook` is a gate (exit 2 on an unexpected error); the CLI modes exit 1.
+await runIfMain(import.meta.url, main, { label: 'release-check', failCode: process.argv[2] === 'hook' ? 2 : 1 });

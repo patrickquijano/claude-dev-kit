@@ -106,12 +106,23 @@ test('sessionStart omits Graphify rules when the graph files are missing', () =>
   assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
 });
 
-test('sessionStart still returns the date line when the rules file is unreadable', () => {
+test('sessionStart lets an unreadable rules file bubble', () => {
   // Arrange
   const { deps } = make({ configured: true, present: true, readFails: true });
   // Act
-  const result = sessionStart({}, deps);
+  const act = () => sessionStart({}, deps);
   // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
+  assert.throws(act, /ENOENT/);
+});
+
+test('sessionStart lets a missing project directory bubble', () => {
+  // Arrange
+  const { deps } = make();
+  deps.realpathSync = () => {
+    throw new Error('ENOENT');
+  };
+  // Act
+  const act = () => sessionStart({}, deps);
+  // Assert
+  assert.throws(act, /ENOENT/);
 });

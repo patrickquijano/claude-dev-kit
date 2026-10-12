@@ -72,31 +72,40 @@ describe('parseEvent', () => {
     assert.deepEqual(result, { a: 1 });
   });
 
-  test('returns an empty object for JSON null', () => {
+  test('throws for JSON null', () => {
     // Arrange
     const data = 'null';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act);
   });
 
-  test('returns an empty object for invalid JSON', () => {
+  test('throws for empty input', () => {
+    // Arrange
+    const data = '';
+    // Act
+    const act = () => parseEvent(data);
+    // Assert
+    assert.throws(act, SyntaxError);
+  });
+
+  test('throws for invalid JSON', () => {
     // Arrange
     const data = '{nope';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act);
   });
 
-  test('returns an empty object for a JSON array', () => {
+  test('throws for a JSON array', () => {
     // Arrange
     const data = '[1,2]';
     // Act
-    const result = parseEvent(data);
+    const act = () => parseEvent(data);
     // Assert
-    assert.deepEqual(result, {});
+    assert.throws(act);
   });
 });
 

@@ -10,6 +10,8 @@ import {
   writeState
 } from '../../../../../hooks/scripts/lib/git-state.mjs';
 
+const fsError = (code) => Object.assign(new Error(code), { code });
+
 const out = (text, status = 0) => ({ status, stdout: Buffer.from(text) });
 const fail = { status: 1, stdout: Buffer.from('') };
 // Git stub keyed by the first arguments of the call; unknown calls fail.
@@ -203,13 +205,26 @@ test('readState returns an empty object for a missing file', () => {
   // Arrange
   const deps = {
     readFileSync: () => {
-      throw new Error('ENOENT');
+      throw fsError('ENOENT');
     }
   };
   // Act
   const result = readState('f', deps);
   // Assert
   assert.deepEqual(result, {});
+});
+
+test('readState rethrows an unexpected read error', () => {
+  // Arrange
+  const deps = {
+    readFileSync: () => {
+      throw fsError('EACCES');
+    }
+  };
+  // Act
+  const act = () => readState('f', deps);
+  // Assert
+  assert.throws(act, { code: 'EACCES' });
 });
 
 test('readState returns an empty object for invalid JSON', () => {
@@ -250,11 +265,11 @@ test('writeState writes an empty object', () => {
   assert.deepEqual(writes, ['{}']);
 });
 
-test('writeState swallows an unwritable temp dir', () => {
+test('writeState skips an unwritable temp dir', () => {
   // Arrange
   const deps = {
     writeFileSync: () => {
-      throw new Error('EACCES');
+      throw fsError('EACCES');
     }
   };
   // Act
@@ -263,13 +278,26 @@ test('writeState swallows an unwritable temp dir', () => {
   assert.equal(result, undefined);
 });
 
-test('writeState swallows a state that cannot be stringified', () => {
+test('writeState rethrows a state that cannot be stringified', () => {
   // Arrange
   const deps = { writeFileSync: () => {} };
   const cyclic = {};
   cyclic.self = cyclic;
   // Act
-  const result = writeState('f', cyclic, deps);
+  const act = () => writeState('f', cyclic, deps);
   // Assert
-  assert.equal(result, undefined);
+  assert.throws(act, TypeError);
+});
+
+test('writeState rethrows an unexpected write error', () => {
+  // Arrange
+  const deps = {
+    writeFileSync: () => {
+      throw fsError('EMFILE');
+    }
+  };
+  // Act
+  const act = () => writeState('f', { a: 1 }, deps);
+  // Assert
+  assert.throws(act, { code: 'EMFILE' });
 });

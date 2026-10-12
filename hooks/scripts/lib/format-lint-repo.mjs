@@ -3,7 +3,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { blockOutput, projectDir } from './hook-io.mjs';
+import { blockOutput, expected, projectDir } from './hook-io.mjs';
 import { git, statePath } from './git-state.mjs';
 import {
   FILE,
@@ -68,8 +68,9 @@ export function fingerprint(cwd, specs, deps = {}) {
     hash.update(`\0${file}\0`);
     try {
       hash.update(d.readFile(path.join(cwd, file)));
-    } catch {
+    } catch (e) {
       // Removed since listing; the name still counts.
+      if (!expected(e, 'ENOENT')) throw e;
     }
   }
   return hash.digest('hex');
@@ -135,18 +136,14 @@ export function runStep(step, files, cwd, failures, deadline, deps = {}) {
 export function formatLintRepo(input, deps = {}) {
   const d = { ...REAL_DEPS, ...deps };
   const deadline = d.now() + BUDGET;
-  let cwd;
-  try {
-    cwd = projectDir(input, d);
-  } catch {
-    return null;
-  }
+  const cwd = projectDir(input, d);
   const state = d.statePath(cwd);
   let last = {};
   try {
     last = JSON.parse(d.readFile(state).toString()) ?? {};
-  } catch {
-    // First run.
+  } catch (e) {
+    // First run (no state file) or a corrupt one.
+    if (!expected(e, 'ENOENT', 'ENOTDIR') && !(e instanceof SyntaxError)) throw e;
   }
   // Skip unchanged groups: Q&A turns cost nothing and Claude can stop once it stops editing.
   const stale = [];
@@ -171,14 +168,17 @@ export function formatLintRepo(input, deps = {}) {
       if (!targets.length) continue;
       const ok = runStep(step, targets, cwd, failures, deadline, d);
       lines.push(`${ok ? '✅' : '❌'} ${entry.kind} ${step.cmd}: ${targets.length} .${exts[0]} files`);
+      // A failed formatter leaves stale content for this group's linter; other groups still run.
+      if (!ok && entry.kind === 'Format') break;
     }
   }
   // Recorded after the run, so the hook's own fixes do not trigger a rerun; failures re-run once Claude edits.
   for (const { exts, specs } of stale) last[exts[0]] = fingerprint(cwd, specs.all, d) ?? '';
   try {
     d.writeFile(state, JSON.stringify(last));
-  } catch {
+  } catch (e) {
     // Unwritable temp dir; the next turn runs again.
+    if (!expected(e, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw e;
   }
   if (!lines.length) return null;
   const message = lines.join(' | ');

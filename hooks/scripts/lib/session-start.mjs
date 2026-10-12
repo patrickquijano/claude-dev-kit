@@ -38,20 +38,13 @@ export function dateLine(now = new Date()) {
 // The SessionStart hook's JSON output for a parsed input.
 export function sessionStart(input = {}, deps = realDeps) {
   const context = [dateLine(deps.now())];
-  try {
-    const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
-    if (deps.graphifyConfigured(cwd) && deps.graphifyFilesExist(cwd)) {
-      const root = deps.env.CLAUDE_PLUGIN_ROOT || deps.defaultRoot();
-      const rules = deps.readFileSync(
-        path.join(root, 'skills', 'setup-graphify', 'assets', 'graphify-rules.md'),
-        'utf8'
-      );
-      context.push(
-        `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nA cdk end-of-task instruction names the graphify step to run once the task is done; do not run it on your own.`
-      );
-    }
-  } catch {
-    // Graphify context is optional.
+  const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
+  if (deps.graphifyConfigured(cwd) && deps.graphifyFilesExist(cwd)) {
+    const root = deps.env.CLAUDE_PLUGIN_ROOT || deps.defaultRoot();
+    const rules = deps.readFileSync(path.join(root, 'skills', 'setup-graphify', 'assets', 'graphify-rules.md'), 'utf8');
+    context.push(
+      `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nA cdk end-of-task instruction names the graphify step to run once the task is done; do not run it on your own.`
+    );
   }
   return contextOutput('SessionStart', context.join('\n\n'));
 }

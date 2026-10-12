@@ -10,17 +10,18 @@ import {
 } from '../../../../../hooks/scripts/lib/graphify.mjs';
 
 const BIN = path.join('/bin', 'graphify');
+const fsError = (code) => Object.assign(new Error(code), { code });
 // Deps where `graphify` is an executable file at /bin/graphify and `existing` paths exist.
 const make = ({ existing = [], claudeMd, platform = 'linux', proc, env = {} } = {}) => ({
   platform,
   env: { PATH: '/bin', ...env },
   statSync: (p) => {
-    if (p !== BIN && p !== `${BIN}.CMD`) throw new Error('ENOENT');
+    if (p !== BIN && p !== `${BIN}.CMD`) throw fsError('ENOENT');
     return { isFile: () => true, mode: 0o755 };
   },
   existsSync: (p) => existing.includes(p),
   readFileSync: () => {
-    if (claudeMd === undefined) throw new Error('ENOENT');
+    if (claudeMd === undefined) throw fsError('ENOENT');
     return claudeMd;
   },
   proc
@@ -51,6 +52,20 @@ test('which returns null when the command is not on PATH', () => {
   const result = which('missing', deps);
   // Assert
   assert.equal(result, null);
+});
+
+test('which rethrows an unexpected stat error', () => {
+  // Arrange
+  const deps = {
+    ...make(),
+    statSync: () => {
+      throw fsError('EIO');
+    }
+  };
+  // Act
+  const act = () => which('graphify', deps);
+  // Assert
+  assert.throws(act, { code: 'EIO' });
 });
 
 test('which skips a non-executable file on POSIX', () => {
@@ -108,6 +123,20 @@ test('graphifyConfigured is false when CLAUDE.md is unreadable', () => {
   const result = graphifyConfigured('/p', deps);
   // Assert
   assert.equal(result, false);
+});
+
+test('graphifyConfigured rethrows an unexpected CLAUDE.md read error', () => {
+  // Arrange
+  const deps = {
+    ...make(),
+    readFileSync: () => {
+      throw fsError('EIO');
+    }
+  };
+  // Act
+  const act = () => graphifyConfigured('/p', deps);
+  // Assert
+  assert.throws(act, { code: 'EIO' });
 });
 
 test('graphifyFilesExist is true when all output files exist', () => {

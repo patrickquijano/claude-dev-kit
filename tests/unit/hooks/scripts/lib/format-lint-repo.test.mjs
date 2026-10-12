@@ -11,6 +11,7 @@ import {
   runStep
 } from '../../../../../hooks/scripts/lib/format-lint-repo.mjs';
 
+const fsError = (code) => Object.assign(new Error(code), { code });
 const out = (text = '', status = 0) => ({ status, stdout: Buffer.from(text), stderr: Buffer.from('') });
 // Fake git: `diff` text, untracked files (`ls-files -o`), and tracked+untracked files (`ls-files -co`).
 const fakeGit =
@@ -161,13 +162,27 @@ test('fingerprint: still counts an untracked file that cannot be read', () => {
   const deps = {
     git: fakeGit({ untracked: ['gone.md'] }),
     readFile: () => {
-      throw new Error('ENOENT');
+      throw fsError('ENOENT');
     }
   };
   // Act
   const fp = fingerprint('/p', ['x'], deps);
   // Assert
   assert.match(fp, /^[0-9a-f]{64}$/);
+});
+
+test('fingerprint: rethrows an unexpected read error', () => {
+  // Arrange
+  const deps = {
+    git: fakeGit({ untracked: ['a.md'] }),
+    readFile: () => {
+      throw fsError('EACCES');
+    }
+  };
+  // Act
+  const act = () => fingerprint('/p', ['x'], deps);
+  // Assert
+  assert.throws(act, { code: 'EACCES' });
 });
 
 test('fingerprint: is null when git fails', () => {
@@ -371,13 +386,74 @@ test('formatLintRepo: does nothing on a clean first run', () => {
   // Arrange
   const deps = baseDeps({
     readFile: () => {
-      throw new Error('ENOENT');
+      throw fsError('ENOENT');
     }
   });
   // Act
   const result = formatLintRepo({}, deps);
   // Assert
   assert.equal(result, null);
+});
+
+test('formatLintRepo: rethrows an unexpected state read error', () => {
+  // Arrange
+  const deps = baseDeps({
+    readFile: () => {
+      throw fsError('EIO');
+    }
+  });
+  // Act
+  const act = () => formatLintRepo({}, deps);
+  // Assert
+  assert.throws(act, { code: 'EIO' });
+});
+
+test('formatLintRepo: skips an unwritable state file', () => {
+  // Arrange
+  const deps = baseDeps({
+    git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
+    available: (step) => step.cmd === 'yamllint',
+    writeFile: () => {
+      throw fsError('EACCES');
+    }
+  });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.deepEqual(result, { systemMessage: '✅ Lint yamllint: 1 .yaml files' });
+});
+
+test('formatLintRepo: rethrows an unexpected state write error', () => {
+  // Arrange
+  const deps = baseDeps({
+    git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
+    available: (step) => step.cmd === 'yamllint',
+    writeFile: () => {
+      throw fsError('EMFILE');
+    }
+  });
+  // Act
+  const act = () => formatLintRepo({}, deps);
+  // Assert
+  assert.throws(act, { code: 'EMFILE' });
+});
+
+test('formatLintRepo: skips the group linter when its formatter fails', () => {
+  // Arrange
+  const calls = [];
+  const deps = baseDeps({
+    git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
+    available: (step) => ['yamlfmt', 'yamllint'].includes(step.cmd),
+    run: (cmd) => {
+      calls.push(cmd);
+      return { status: 1, stdout: 'bad', stderr: '' };
+    }
+  });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result.decision, 'block');
+  assert.deepEqual(calls, ['yamlfmt']);
 });
 
 test('formatLintRepo: does nothing when git fails', () => {
@@ -389,7 +465,7 @@ test('formatLintRepo: does nothing when git fails', () => {
   assert.equal(result, null);
 });
 
-test('formatLintRepo: does nothing when the project directory cannot be resolved', () => {
+test('formatLintRepo: lets a project directory error bubble', () => {
   // Arrange
   const deps = baseDeps({
     realpath: () => {
@@ -397,9 +473,9 @@ test('formatLintRepo: does nothing when the project directory cannot be resolved
     }
   });
   // Act
-  const result = formatLintRepo({}, deps);
+  const act = () => formatLintRepo({}, deps);
   // Assert
-  assert.equal(result, null);
+  assert.throws(act, /ENOENT/);
 });
 
 test('formatLintRepo: skips groups whose fingerprint matches the saved state', () => {

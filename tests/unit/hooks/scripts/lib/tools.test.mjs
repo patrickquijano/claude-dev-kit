@@ -13,6 +13,8 @@ import {
   writeStdout
 } from '../../../../../hooks/scripts/lib/tools.mjs';
 
+const fsError = (code) => Object.assign(new Error(code), { code });
+
 test('keyOf: returns the lowercased extension', () => {
   // Arrange
   const file = 'src/App.TSX';
@@ -67,17 +69,30 @@ test('isFile: is false when stat reports a directory', () => {
   assert.equal(result, false);
 });
 
-test('isFile: is false when stat throws', () => {
+test('isFile: is false when the file is missing', () => {
   // Arrange
   const deps = {
     statSync: () => {
-      throw new Error('ENOENT');
+      throw fsError('ENOENT');
     }
   };
   // Act
   const result = isFile('missing', deps);
   // Assert
   assert.equal(result, false);
+});
+
+test('isFile: rethrows an unexpected stat error', () => {
+  // Arrange
+  const deps = {
+    statSync: () => {
+      throw fsError('EIO');
+    }
+  };
+  // Act
+  const act = () => isFile('x', deps);
+  // Assert
+  assert.throws(act, { code: 'EIO' });
 });
 
 test('run: passes the command and arguments straight through off Windows', () => {
@@ -240,13 +255,39 @@ test('available: an npx step is unavailable when package.json is missing or inva
     win: false,
     isFile: () => false,
     readFile: () => {
-      throw new Error('ENOENT');
+      throw fsError('ENOENT');
     }
   };
   // Act
   const result = available(step, '/p', deps);
   // Assert
   assert.equal(result, false);
+});
+
+test('available: an npx step is unavailable when package.json is not JSON', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', pkgKey: 'prettier' };
+  const deps = { win: false, isFile: () => false, readFile: () => '{nope' };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, false);
+});
+
+test('available: rethrows an unexpected package.json read error', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', pkgKey: 'prettier' };
+  const deps = {
+    win: false,
+    isFile: () => false,
+    readFile: () => {
+      throw fsError('EIO');
+    }
+  };
+  // Act
+  const act = () => available(step, '/p', deps);
+  // Assert
+  assert.throws(act, { code: 'EIO' });
 });
 
 test('available: a requireConfig step is unavailable when installed but unconfigured', () => {

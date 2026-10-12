@@ -31,13 +31,15 @@ test('startup input prints one SessionStart JSON object with the date line', () 
   assert.match(out.hookSpecificOutput.additionalContext, /^Today is /);
 });
 
-test('invalid stdin still prints the date line', () => {
+test('invalid stdin prints one stderr line, nothing on stdout, and exits 1', () => {
   // Arrange
   const dir = project();
   // Act
   const result = run(dir, 'not json');
   // Assert
-  assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext, /^Today is /);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /^cdk session-start: .+\n$/);
 });
 
 test('a project without Graphify gets no Graphify rules', () => {

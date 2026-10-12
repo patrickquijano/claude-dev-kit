@@ -41,12 +41,20 @@ test('main: prints nothing when no group changed', async () => {
   assert.deepEqual(writes, []);
 });
 
-test('main: prints nothing and skips formatLintRepo for invalid JSON', async () => {
+test('main: rejects and skips formatLintRepo for invalid JSON', async () => {
+  // Arrange
+  const input = 'not json';
+  // Act
+  const act = run(input, { systemMessage: 'x' });
+  // Assert
+  await assert.rejects(act, SyntaxError);
+});
+
+test('main: rejects for empty stdin', async () => {
   // Arrange
   const input = '';
   // Act
-  const { writes, seen } = await run(input, { systemMessage: 'x' });
+  const act = run(input, null);
   // Assert
-  assert.deepEqual(writes, []);
-  assert.deepEqual(seen, []);
+  await assert.rejects(act, SyntaxError);
 });

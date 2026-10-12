@@ -4,10 +4,10 @@ import { sessionStart } from './lib/session-start.mjs';
 
 const realDeps = { stream: process.stdin, write: (text) => process.stdout.write(text), sessionStart };
 
-// Prints one JSON object; unusable stdin still gets the date line.
+// Prints one JSON object.
 export async function main(deps = {}) {
   const d = { ...realDeps, ...deps };
-  d.write(JSON.stringify(d.sessionStart((await readJsonStdin(d.stream)) ?? {})));
+  d.write(JSON.stringify(d.sessionStart(await readJsonStdin(d.stream))));
 }
 
-await runIfMain(import.meta.url, main);
+await runIfMain(import.meta.url, main, { label: 'session-start' });

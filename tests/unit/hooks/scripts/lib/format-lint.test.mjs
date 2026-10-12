@@ -103,7 +103,7 @@ test('formatLint: returns null for a file inside node_modules', () => {
   assert.equal(result, null);
 });
 
-test('formatLint: returns null when the path cannot be resolved', () => {
+test('formatLint: lets a path resolution error bubble', () => {
   // Arrange
   const deps = base({
     realpath: () => {
@@ -111,9 +111,25 @@ test('formatLint: returns null when the path cannot be resolved', () => {
     }
   });
   // Act
+  const act = () => formatLint(event('/p/a.md'), deps);
+  // Assert
+  assert.throws(act, /ENOENT/);
+});
+
+test('formatLint: skips the linter when the formatter fails', () => {
+  // Arrange
+  const calls = [];
+  const deps = base({
+    run: (cmd, argv) => {
+      calls.push(argv.join(' '));
+      return { status: 1, stdout: 'bad', stderr: '' };
+    }
+  });
+  // Act
   const result = formatLint(event('/p/a.md'), deps);
   // Assert
-  assert.equal(result, null);
+  assert.equal(result.decision, 'block');
+  assert.equal(calls.length, 1);
 });
 
 test('formatLint: returns null for an extension with no tools', () => {

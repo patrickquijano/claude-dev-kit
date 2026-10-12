@@ -191,13 +191,13 @@ test('decide omits the commit step outside a git repo but keeps Graphify', () =>
   assert.match(result[0], /graphify update/);
 });
 
-test('decide returns nothing when the project dir cannot be resolved', () => {
+test('decide lets a project dir error bubble', () => {
   // Arrange
   const deps = make({ badCwd: true, configured: true });
   // Act
-  const result = decide(prompt, deps);
+  const act = () => decide(prompt, deps);
   // Assert
-  assert.deepEqual(result, []);
+  assert.throws(act, /ENOENT/);
 });
 
 test('output numbers the steps under the end-of-task heading', () => {

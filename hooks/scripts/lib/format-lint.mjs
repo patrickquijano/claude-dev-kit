@@ -36,13 +36,8 @@ export function formatLint(input, deps = {}) {
   const d = { ...REAL_DEPS, ...deps };
   const file = input?.tool_input?.file_path;
   if (typeof file !== 'string' || !d.isFile(file) || (d.win && WIN_UNSAFE.test(file))) return null;
-  let projectDir, abs;
-  try {
-    projectDir = resolveProjectDir(input, d);
-    abs = d.realpath(file);
-  } catch {
-    return null;
-  }
+  const projectDir = resolveProjectDir(input, d);
+  const abs = d.realpath(file);
   const rel = path.relative(projectDir, abs);
   const segments = rel.split(/[\\/]/);
   if (!rel || path.isAbsolute(rel) || segments[0] === '..') return null;
@@ -61,6 +56,8 @@ export function formatLint(input, deps = {}) {
     if (ok && step.stdout) writeStdout(abs, r.stdout, d);
     lines.push(`${ok ? '✅' : '❌'} ${entry.kind}: ${target}`);
     if (!ok) failures.push(failureText(cmd, argv, r, step));
+    // A failed formatter leaves stale content, so its linter would report on the wrong text.
+    if (!ok && entry.kind === 'Format') break;
   }
   if (!lines.length) return null;
   const message = lines.join(' | ');

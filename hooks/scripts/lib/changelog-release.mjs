@@ -258,6 +258,4 @@ export function main(argv, deps = {}) {
   return res.ok ? 0 : 1;
 }
 
-await runIfMain(import.meta.url, () => {
-  process.exitCode = main(process.argv.slice(2));
-});
+await runIfMain(import.meta.url, () => main(process.argv.slice(2)), { label: 'changelog-release' });

@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { expected } from './hook-io.mjs';
 
 // Side effects as a swappable bundle so tests never touch the fs, PATH, or a child process.
 export const realDeps = {
@@ -23,8 +24,9 @@ export function which(name, deps = realDeps) {
       const full = path.join(dir, name + ext);
       try {
         if (deps.statSync(full).isFile() && (win || deps.statSync(full).mode & 0o111)) return full;
-      } catch {
+      } catch (e) {
         // Not here.
+        if (!expected(e, 'ENOENT', 'ENOTDIR', 'EACCES')) throw e;
       }
     }
   }
@@ -37,8 +39,9 @@ export function graphifyConfigured(cwd, deps = realDeps) {
   if (deps.existsSync(path.join(cwd, '.claude', 'rules', 'graphify.md'))) return true;
   try {
     return /^##\s+graphify\s*$/im.test(deps.readFileSync(path.join(cwd, 'CLAUDE.md'), 'utf8'));
-  } catch {
-    return false;
+  } catch (e) {
+    if (expected(e, 'ENOENT', 'ENOTDIR')) return false;
+    throw e;
   }
 }
 

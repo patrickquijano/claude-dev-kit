@@ -32,19 +32,27 @@ test('main: passes the parsed event to sessionStart', async () => {
   assert.deepEqual(seen, [{ source: 'resume' }]);
 });
 
-test('main: still prints with an empty object for invalid JSON', async () => {
+test('main: rejects for invalid JSON', async () => {
   // Arrange
   const input = 'not json';
   // Act
-  const { writes, seen } = await run(input);
+  const act = run(input);
   // Assert
-  assert.equal(writes.length, 1);
-  assert.deepEqual(seen, [{}]);
+  await assert.rejects(act, SyntaxError);
+});
+
+test('main: rejects for empty stdin', async () => {
+  // Arrange
+  const input = '';
+  // Act
+  const act = run(input);
+  // Assert
+  await assert.rejects(act, SyntaxError);
 });
 
 test('main: prints exactly one object per run', async () => {
   // Arrange
-  const input = '';
+  const input = '{}';
   // Act
   const { writes } = await run(input);
   // Assert

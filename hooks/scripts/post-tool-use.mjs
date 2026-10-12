@@ -8,8 +8,8 @@ const realDeps = { stream: process.stdin, write: (text) => process.stdout.write(
 export async function main(deps = {}) {
   const d = { ...realDeps, ...deps };
   const input = await readJsonStdin(d.stream);
-  const result = input && d.formatLint(input);
+  const result = d.formatLint(input);
   if (result) d.write(JSON.stringify(result));
 }
 
-await runIfMain(import.meta.url, main);
+await runIfMain(import.meta.url, main, { label: 'post-tool-use' });

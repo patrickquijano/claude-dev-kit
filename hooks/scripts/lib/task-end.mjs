@@ -40,12 +40,7 @@ export function decide(input, deps = realDeps) {
   const prompt = input?.prompt;
   if (typeof prompt !== 'string' || !prompt.trim() || isSkippedPrompt(prompt)) return [];
   if (isQuestion(prompt)) return [];
-  let cwd;
-  try {
-    cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
-  } catch {
-    return [];
-  }
+  const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
   const parts = [];
   if (deps.graphifyConfigured(cwd)) parts.push(deps.graphifyFilesExist(cwd) ? GRAPHIFY_UPDATE : GRAPHIFY_BUILD);
   const inside = deps.git(cwd, ['rev-parse', '--is-inside-work-tree']);

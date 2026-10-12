@@ -6,6 +6,7 @@ import {
   MAX,
   blockOutput,
   contextOutput,
+  expected,
   projectDir,
   readJsonStdin,
   readStdin,
@@ -19,7 +20,7 @@ test('runIfMain: runs fn when the module is the entry script', async () => {
   const calls = [];
   const argv = ['node', '/tmp/entry.mjs'];
   // Act
-  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => calls.push(1), argv);
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, argv);
   // Assert
   assert.equal(calls.length, 1);
 });
@@ -29,7 +30,12 @@ test('runIfMain: awaits an async fn', async () => {
   const calls = [];
   const argv = ['node', '/tmp/entry.mjs'];
   // Act
-  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, async () => calls.push(await Promise.resolve(1)), argv);
+  await runIfMain(
+    pathToFileURL('/tmp/entry.mjs').href,
+    async () => void calls.push(await Promise.resolve(1)),
+    {},
+    argv
+  );
   // Assert
   assert.deepEqual(calls, [1]);
 });
@@ -39,7 +45,7 @@ test('runIfMain: skips fn when another script is the entry', async () => {
   const calls = [];
   const argv = ['node', '/tmp/other.mjs'];
   // Act
-  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => calls.push(1), argv);
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, argv);
   // Assert
   assert.equal(calls.length, 0);
 });
@@ -48,9 +54,140 @@ test('runIfMain: skips fn when there is no entry script', async () => {
   // Arrange
   const calls = [];
   // Act
-  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => calls.push(1), ['node']);
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, ['node']);
   // Assert
   assert.equal(calls.length, 0);
+});
+
+const ENTRY = pathToFileURL('/tmp/entry.mjs').href;
+const ARGV = ['node', '/tmp/entry.mjs'];
+const capture = () => {
+  const seen = { err: [], exit: [] };
+  return { seen, io: { stderr: (t) => seen.err.push(t), setExit: (c) => seen.exit.push(c) } };
+};
+
+test('runIfMain: prints one labeled stderr line and exits 1 when fn throws', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(
+    ENTRY,
+    () => {
+      throw new Error('boom\n    at stack line');
+    },
+    { label: 'stop' },
+    ARGV,
+    io
+  );
+  // Assert
+  assert.deepEqual(seen.err, ['cdk stop: boom\n']);
+  assert.deepEqual(seen.exit, [1]);
+});
+
+test('runIfMain: uses failCode 2 for a gate', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(
+    ENTRY,
+    async () => {
+      throw new Error('bad');
+    },
+    { label: 'pre-tool-use', failCode: 2 },
+    ARGV,
+    io
+  );
+  // Assert
+  assert.deepEqual(seen.exit, [2]);
+});
+
+test('runIfMain: caps a long error message', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(
+    ENTRY,
+    () => {
+      throw new Error('x'.repeat(1000));
+    },
+    { label: 'a' },
+    ARGV,
+    io
+  );
+  // Assert
+  assert.equal(seen.err[0].length, 'cdk a: '.length + 300 + 1);
+});
+
+test('runIfMain: a number fn returns becomes the exit code', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(ENTRY, async () => 2, { label: 'a' }, ARGV, io);
+  // Assert
+  assert.deepEqual(seen.exit, [2]);
+  assert.deepEqual(seen.err, []);
+});
+
+test('runIfMain: sets no exit code when fn returns nothing', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(ENTRY, () => undefined, { label: 'a' }, ARGV, io);
+  // Assert
+  assert.deepEqual(seen.exit, []);
+});
+
+test('runIfMain: reports nothing when another script is the entry', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(
+    ENTRY,
+    () => {
+      throw new Error('boom');
+    },
+    { label: 'a' },
+    ['node', '/tmp/other.mjs'],
+    io
+  );
+  // Assert
+  assert.deepEqual(seen, { err: [], exit: [] });
+});
+
+test('expected: true when the error code is listed', () => {
+  // Arrange
+  const err = Object.assign(new Error('x'), { code: 'ENOENT' });
+  // Act
+  const result = expected(err, 'ENOENT', 'ENOTDIR');
+  // Assert
+  assert.equal(result, true);
+});
+
+test('expected: true for the second listed code', () => {
+  // Arrange
+  const err = { code: 'ENOTDIR' };
+  // Act
+  const result = expected(err, 'ENOENT', 'ENOTDIR');
+  // Assert
+  assert.equal(result, true);
+});
+
+test('expected: false for another code', () => {
+  // Arrange
+  const err = Object.assign(new Error('x'), { code: 'EACCES' });
+  // Act
+  const result = expected(err, 'ENOENT');
+  // Assert
+  assert.equal(result, false);
+});
+
+test('expected: false for an error with no code or a non-object', () => {
+  // Arrange
+  const errors = [new Error('x'), null, undefined];
+  // Act
+  const results = errors.map((e) => expected(e, 'ENOENT'));
+  // Assert
+  assert.deepEqual(results, [false, false, false]);
 });
 
 test('readStdin: concatenates all chunks', async () => {
@@ -89,31 +226,31 @@ test('readJsonStdin: parses an empty object', async () => {
   assert.deepEqual(data, {});
 });
 
-test('readJsonStdin: is null for invalid JSON', async () => {
+test('readJsonStdin: throws for invalid JSON', async () => {
   // Arrange
   const stream = Readable.from(['not json']);
   // Act
-  const data = await readJsonStdin(stream);
+  const act = readJsonStdin(stream);
   // Assert
-  assert.equal(data, null);
+  await assert.rejects(act);
 });
 
-test('readJsonStdin: is null for empty input', async () => {
+test('readJsonStdin: throws for empty input', async () => {
   // Arrange
   const stream = Readable.from([]);
   // Act
-  const data = await readJsonStdin(stream);
+  const act = readJsonStdin(stream);
   // Assert
-  assert.equal(data, null);
+  await assert.rejects(act);
 });
 
-test('readJsonStdin: is null for a non-object value', async () => {
+test('readJsonStdin: throws for a non-object value', async () => {
   // Arrange
   const stream = Readable.from(['[1,2]']);
   // Act
-  const data = await readJsonStdin(stream);
+  const act = readJsonStdin(stream);
   // Assert
-  assert.equal(data, null);
+  await assert.rejects(act);
 });
 
 test('projectDir: prefers CLAUDE_PROJECT_DIR over the event cwd', () => {

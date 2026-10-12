@@ -41,12 +41,20 @@ test('main: prints nothing when formatLint has nothing to report', async () => {
   assert.deepEqual(writes, []);
 });
 
-test('main: prints nothing and skips formatLint for invalid JSON', async () => {
+test('main: rejects and skips formatLint for invalid JSON', async () => {
   // Arrange
   const input = 'not json';
   // Act
-  const { writes, seen } = await run(input, { systemMessage: 'x' });
+  const act = run(input, { systemMessage: 'x' });
   // Assert
-  assert.deepEqual(writes, []);
-  assert.deepEqual(seen, []);
+  await assert.rejects(act, SyntaxError);
+});
+
+test('main: rejects for a JSON array', async () => {
+  // Arrange
+  const input = '[1]';
+  // Act
+  const act = run(input, null);
+  // Assert
+  await assert.rejects(act, TypeError);
 });

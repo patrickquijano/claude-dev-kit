@@ -710,11 +710,9 @@ describe('runHook', () => {
     const deps = {
       ...w.deps,
       readJsonStdin: async () => {
-        try {
-          return typeof input === 'string' ? JSON.parse(input) : input;
-        } catch {
-          return null;
-        }
+        const parsed = typeof input === 'string' ? JSON.parse(input) : input;
+        if (!parsed || typeof parsed !== 'object') throw new TypeError('hook input is not a JSON object');
+        return parsed;
       },
       env: { CLAUDE_PROJECT_DIR: ROOT },
       cwd: () => ROOT,
@@ -785,22 +783,22 @@ describe('runHook', () => {
     assert.equal(code, 0);
   });
 
-  test('allows when stdin is not valid JSON', async () => {
+  test('lets invalid stdin bubble so the entry fails closed', async () => {
     // Arrange
     const { deps } = hookDeps('not json');
     // Act
-    const code = await runHook(deps);
+    const act = runHook(deps);
     // Assert
-    assert.equal(code, 0);
+    await assert.rejects(act, SyntaxError);
   });
 
-  test('allows when stdin is JSON null', async () => {
+  test('lets JSON null stdin bubble so the entry fails closed', async () => {
     // Arrange
     const { deps } = hookDeps('null');
     // Act
-    const code = await runHook(deps);
+    const act = runHook(deps);
     // Assert
-    assert.equal(code, 0);
+    await assert.rejects(act, TypeError);
   });
 
   test('blocks with exit 2 when the policy file is invalid', async () => {

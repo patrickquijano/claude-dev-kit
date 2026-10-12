@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { main } from '../../../../hooks/scripts/pre-tool-use.mjs';
 
-test('main: resolves 0 for stdin that is not JSON', async () => {
+test('main: rejects when stdin is not a JSON object', async () => {
   // Arrange
-  const deps = { readJsonStdin: async () => null };
+  const deps = {
+    readJsonStdin: async () => {
+      throw new TypeError('hook input is not a JSON object');
+    }
+  };
   // Act
-  const code = await main(deps);
+  const act = main(deps);
   // Assert
-  assert.equal(code, 0);
+  await assert.rejects(act, TypeError);
 });
 
 test('main: resolves 0 when the project has no release policy', async () => {

@@ -25,14 +25,12 @@ export function isProjectScoped(parts) {
   return parts.length === 2 ? PROJECT_FILES.includes(parts[1]) : PROJECT_DIRS.includes(parts[1]);
 }
 
-// Parses the event JSON; invalid or empty input is treated as `{}`.
+// Parses the event JSON; throws when it is empty, invalid, or not an object (the harness always sends an object).
 export function parseEvent(data) {
-  try {
-    const event = JSON.parse(data) ?? {};
-    return typeof event === 'object' && !Array.isArray(event) ? event : {};
-  } catch {
-    return {};
-  }
+  const event = JSON.parse(data);
+  if (!event || typeof event !== 'object' || Array.isArray(event))
+    throw new TypeError('hook input is not a JSON object');
+  return event;
 }
 
 // Plans the hook's work for one edited file: its project-relative path, whether to validate, and the notice to print.
@@ -100,6 +98,5 @@ export async function main(deps = defaults) {
   return 0;
 }
 
-await runIfMain(import.meta.url, async () => {
-  process.exitCode = await main();
-});
+// A gate fails closed: an unexpected error exits 2 so Claude sees it.
+await runIfMain(import.meta.url, main, { label: 'post-tool-use (validate)', failCode: 2 });

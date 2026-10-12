@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { expected } from './hook-io.mjs';
 
 // Side effects as a swappable bundle so tests never touch git, the fs, or the temp dir.
 export const realDeps = { proc: spawnSync, existsSync, readFileSync, statSync, writeFileSync, tmpdir };
@@ -27,19 +28,22 @@ export function unsafeState(cwd, status = '', deps = realDeps) {
 export const statePath = (name, cwd, session = '', deps = realDeps) =>
   path.join(deps.tmpdir(), `cdk-${name}-${sha(cwd)}-${sha(session)}.json`);
 
+// Saved state, or {} on the first run (no file) or when the file is corrupt; any other error bubbles.
 export function readState(file, deps = realDeps) {
   try {
     const s = JSON.parse(deps.readFileSync(file, 'utf8'));
     return s && typeof s === 'object' ? s : {};
-  } catch {
-    return {};
+  } catch (e) {
+    if (expected(e, 'ENOENT', 'ENOTDIR') || e instanceof SyntaxError) return {};
+    throw e;
   }
 }
 
 export function writeState(file, state, deps = realDeps) {
   try {
     deps.writeFileSync(file, JSON.stringify(state));
-  } catch {
+  } catch (e) {
     // Unwritable temp dir; at worst the next run repeats.
+    if (!expected(e, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw e;
   }
 }

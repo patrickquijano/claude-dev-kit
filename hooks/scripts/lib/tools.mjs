@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { expected } from './hook-io.mjs';
 
 export const win = process.platform === 'win32';
 export const FILE = '{file}';
@@ -124,8 +125,9 @@ export function keyOf(file) {
 export const isFile = (p, deps = {}) => {
   try {
     return (deps.statSync ?? statSync)(p).isFile();
-  } catch {
-    return false;
+  } catch (e) {
+    if (expected(e, 'ENOENT', 'ENOTDIR', 'EACCES')) return false;
+    throw e;
   }
 };
 
@@ -153,8 +155,10 @@ function hasPackageKey(key, cwd, deps = {}) {
   try {
     const pkg = JSON.parse(readFile(path.join(cwd, 'package.json')));
     return pkg !== null && typeof pkg === 'object' && Object.hasOwn(pkg, key);
-  } catch {
-    return false;
+  } catch (e) {
+    // No package.json, or one that is not JSON: no such key.
+    if (expected(e, 'ENOENT', 'ENOTDIR') || e instanceof SyntaxError) return false;
+    throw e;
   }
 }
 

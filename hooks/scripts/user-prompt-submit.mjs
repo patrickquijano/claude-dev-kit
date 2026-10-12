@@ -1,5 +1,5 @@
 // UserPromptSubmit dispatcher: one hook so the plan-mode context always comes before the end-of-task steps.
-// Prints one JSON object or nothing; never blocks and never fails the turn.
+// Prints one JSON object or nothing; never blocks. An unexpected error exits 1 (exit 2 would erase the user's prompt).
 import { decide as planDecide, output as planOutput } from './lib/plan-mode.mjs';
 import { decide as taskDecide, output as taskOutput } from './lib/task-end.mjs';
 import { contextOutput, readJsonStdin, runIfMain } from './lib/hook-io.mjs';
@@ -17,15 +17,8 @@ export function merge(planOut, taskOut) {
 
 async function main() {
   const event = await readJsonStdin();
-  if (!event) return;
   const out = merge(planOutput(planDecide(event)), taskOutput(taskDecide(event)));
   if (out) process.stdout.write(JSON.stringify(out));
 }
 
-await runIfMain(import.meta.url, async () => {
-  try {
-    await main();
-  } catch {
-    // A hook must never fail the turn.
-  }
-});
+await runIfMain(import.meta.url, main, { label: 'user-prompt-submit' });

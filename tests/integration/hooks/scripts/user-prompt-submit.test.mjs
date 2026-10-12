@@ -93,13 +93,24 @@ test('cli: a slash-command prompt prints nothing', () => {
   assert.equal(r.stdout, '');
 });
 
-test('cli: invalid JSON prints nothing and exits 0', () => {
+test('cli: invalid JSON prints one stderr line, nothing on stdout, and exits 1', () => {
   // Arrange
   const d = repo();
   // Act
-  const r = run(d, 'not json');
+  const r = run(d, 'garbage');
   // Assert
-  assert.equal(r.status, 0);
+  assert.equal(r.status, 1);
+  assert.equal(r.stdout, '');
+  assert.match(r.stderr, /^cdk user-prompt-submit: .+\n$/);
+});
+
+test('cli: a JSON array exits 1 with no stdout', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, '[1]');
+  // Assert
+  assert.equal(r.status, 1);
   assert.equal(r.stdout, '');
 });
 
@@ -110,7 +121,7 @@ test('cli: a question in default mode asks about plan mode', () => {
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: 'What does X do?' }));
   // Assert
   const out = JSON.parse(r.stdout);
-  assert.match(out.systemMessage, /^Plan mode: suggesting \(every prompt\)/);
+  assert.match(out.systemMessage, /^Plan mode: asking \(context\)/);
 });
 
 test('cli: a task-notification prompt asks nothing', () => {
@@ -154,6 +165,6 @@ test('cli: a large change asks about plan mode before the commit step', () => {
   // Assert
   const out = JSON.parse(r.stdout);
   const ctx = out.hookSpecificOutput.additionalContext;
-  assert.match(out.systemMessage, /^Plan mode: suggesting/);
+  assert.match(out.systemMessage, /^Plan mode: asking/);
   assert.ok(ctx.indexOf('AskUserQuestion') < ctx.indexOf('cdk:commit-changes'));
 });
