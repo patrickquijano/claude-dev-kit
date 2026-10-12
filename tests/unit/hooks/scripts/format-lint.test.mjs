@@ -33,7 +33,7 @@ test('formatLint: runs the formatter through npx with the relative target', () =
   // Act
   formatLint(event('/p/docs/a.md'), deps);
   // Assert
-  assert.deepEqual(calls[0], ['npx', ['--yes', 'prettier', '-w', '--ignore-unknown', 'docs/a.md'], '/p']);
+  assert.deepEqual(calls[0], ['npx', ['--no-install', 'prettier', '-w', '--ignore-unknown', 'docs/a.md'], '/p']);
 });
 
 test('formatLint: blocks with the tool output when a step fails', () => {

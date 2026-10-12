@@ -104,7 +104,7 @@ export function runStep(step, files, cwd, failures, deadline, deps = {}) {
     }
     const base = [...step.args, ...(step.strict ?? [])];
     const args = base.includes(FILE) ? base.map((a) => (a === FILE ? batch[0] : a)) : [...base, ...batch];
-    const [cmd, argv] = step.npx ? ['npx', ['--yes', step.cmd, ...args]] : [step.cmd, args];
+    const [cmd, argv] = step.npx ? ['npx', ['--no-install', step.cmd, ...args]] : [step.cmd, args];
     const r = d.run(cmd, argv, cwd, Math.min(300_000, left));
     const good = !r.error && r.status === 0;
     if (good && step.stdout) {

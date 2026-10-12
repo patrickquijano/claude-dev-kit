@@ -45,7 +45,7 @@ export function formatLint(input, deps = {}) {
     if (!step || !d.available(step, projectDir)) continue;
     if (step.skip?.(d.readFile(abs))) continue;
     const args = step.args.includes(FILE) ? step.args.map((a) => (a === FILE ? target : a)) : [...step.args, target];
-    const [cmd, argv] = step.npx ? ['npx', ['--yes', step.cmd, ...args]] : [step.cmd, args];
+    const [cmd, argv] = step.npx ? ['npx', ['--no-install', step.cmd, ...args]] : [step.cmd, args];
     const r = d.run(cmd, argv, projectDir);
     const ok = !r.error && r.status === 0;
     if (ok && step.stdout) {

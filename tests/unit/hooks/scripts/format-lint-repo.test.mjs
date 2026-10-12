@@ -304,7 +304,7 @@ test('runStep: wraps npx steps and caps the per-command timeout', () => {
   // Act
   runStep(step, ['a.md'], '/p', [], 10_000_000, deps);
   // Assert
-  assert.deepEqual(calls[0], ['npx', ['--yes', 'prettier', '-w', 'a.md'], '/p', 300_000]);
+  assert.deepEqual(calls[0], ['npx', ['--no-install', 'prettier', '-w', 'a.md'], '/p', 300_000]);
 });
 
 test('stateFile: is stable for one project directory', () => {

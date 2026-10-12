@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { test } from 'node:test';
-import { available, isFile, keyOf, readStdin, run } from '../../../../hooks/scripts/tools.mjs';
+import { available, installed, isFile, keyOf, readStdin, run } from '../../../../hooks/scripts/tools.mjs';
 
 test('keyOf: returns the lowercased extension', () => {
   // Arrange
@@ -118,11 +118,99 @@ test('run: returns the spawn error result unchanged', () => {
   assert.equal(result, failure);
 });
 
-test('available: npx steps are always available', () => {
+test('available: an npx step is available when installed in the project', () => {
   // Arrange
   const step = { npx: true, cmd: 'prettier' };
+  const deps = { win: false, isFile: (f) => f === path.join('/p', 'node_modules', '.bin', 'prettier') };
   // Act
-  const result = available(step, '/p', { isFile: () => false });
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, true);
+});
+
+test('available: an npx step is available when a config file exists', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', configs: ['.prettierrc'] };
+  const deps = { win: false, isFile: (f) => f === path.join('/p', '.prettierrc') };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, true);
+});
+
+test('available: an npx step is available when package.json has its key', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', pkgKey: 'prettier' };
+  const deps = { win: false, isFile: () => false, readFile: () => '{"prettier":{"semi":false}}' };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, true);
+});
+
+test('available: an npx step is unavailable when neither installed nor configured', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', configs: ['.prettierrc'], pkgKey: 'prettier' };
+  const deps = { win: false, isFile: () => false, readFile: () => '{"name":"x"}' };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, false);
+});
+
+test('available: an npx step is unavailable when package.json is missing or invalid', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'prettier', pkgKey: 'prettier' };
+  const deps = {
+    win: false,
+    isFile: () => false,
+    readFile: () => {
+      throw new Error('ENOENT');
+    }
+  };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, false);
+});
+
+test('available: a requireConfig step is unavailable when installed but unconfigured', () => {
+  // Arrange
+  const step = { npx: true, cmd: 'eslint', configs: ['eslint.config.js'], requireConfig: true };
+  const deps = { win: false, isFile: (f) => f.includes('node_modules') };
+  // Act
+  const result = available(step, '/p', deps);
+  // Assert
+  assert.equal(result, false);
+});
+
+test('installed: finds the project-local bin', () => {
+  // Arrange
+  const deps = { win: false, isFile: (f) => f === path.join('/p', 'node_modules', '.bin', 'prettier') };
+  // Act
+  const result = installed('prettier', '/p', deps);
+  // Assert
+  assert.equal(result, true);
+});
+
+test('installed: is false without a project-local bin', () => {
+  // Arrange
+  const deps = { win: false, isFile: () => false };
+  // Act
+  const result = installed('prettier', '/p', deps);
+  // Assert
+  assert.equal(result, false);
+});
+
+test('installed: tries PATHEXT suffixes on Windows', () => {
+  // Arrange
+  const deps = {
+    win: true,
+    env: { PATHEXT: '.EXE;.CMD' },
+    isFile: (f) => f === path.join('/p', 'node_modules', '.bin', 'prettier.CMD')
+  };
+  // Act
+  const result = installed('prettier', '/p', deps);
   // Assert
   assert.equal(result, true);
 });
