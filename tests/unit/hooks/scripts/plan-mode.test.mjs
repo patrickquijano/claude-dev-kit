@@ -87,13 +87,49 @@ for (const permission_mode of ['default', 'acceptEdits', 'auto']) {
   });
 }
 
-test('decide: exits plan mode for a question', () => {
+test('decide: exits plan mode only on #noplan', () => {
+  // Arrange
+  const event = { permission_mode: 'plan', prompt: 'Fix the typo #noplan' };
+  // Act
+  const result = decide(event);
+  // Assert
+  assert.deepEqual(result, { action: 'exit', rule: 'override #noplan' });
+});
+
+test('decide: exits plan mode on #noplan even for a broad change', () => {
+  // Arrange
+  const event = { permission_mode: 'plan', prompt: 'Refactor across multiple files #noplan' };
+  // Act
+  const result = decide(event);
+  // Assert
+  assert.equal(result.action, 'exit');
+});
+
+test('decide: stays in plan mode for a question', () => {
   // Arrange
   const event = { permission_mode: 'plan', prompt: 'What does stop.mjs do?' };
   // Act
   const result = decide(event);
   // Assert
-  assert.equal(result.action, 'exit');
+  assert.equal(result.action, 'none');
+});
+
+test('decide: stays in plan mode for a small request', () => {
+  // Arrange
+  const event = { permission_mode: 'plan', prompt: 'Go with option B' };
+  // Act
+  const result = decide(event);
+  // Assert
+  assert.equal(result.action, 'none');
+});
+
+test('decide: #noplan outside plan mode does nothing', () => {
+  // Arrange
+  const event = { permission_mode: 'default', prompt: 'Fix the typo #noplan' };
+  // Act
+  const result = decide(event);
+  // Assert
+  assert.equal(result.action, 'none');
 });
 
 test('decide: stays in plan mode for a broad change', () => {
@@ -158,12 +194,13 @@ test('output: asks Claude to call EnterPlanMode on enter', () => {
 
 test('output: asks Claude to call ExitPlanMode on exit', () => {
   // Arrange
-  const decision = { action: 'exit', rule: 'question' };
+  const decision = { action: 'exit', rule: 'override #noplan' };
   // Act
   const out = output(decision);
   // Assert
   assert.match(out.systemMessage, /^Plan mode: exiting/);
   assert.match(out.hookSpecificOutput.additionalContext, /ExitPlanMode/);
+  assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /plan file/);
 });
 
 test('output: prints nothing for action none', () => {

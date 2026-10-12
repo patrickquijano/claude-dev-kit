@@ -113,15 +113,24 @@ test('cli: a question in default mode prints nothing', () => {
   assert.equal(r.stdout, '');
 });
 
-test('cli: a question in plan mode prints only the exit instruction', () => {
+test('cli: a question in plan mode prints nothing', () => {
   // Arrange
   const d = repo();
   // Act
   const r = run(d, JSON.stringify({ permission_mode: 'plan', prompt: 'What does X do?' }));
   // Assert
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '');
+});
+
+test('cli: #noplan in plan mode prints the exit instruction', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, JSON.stringify({ permission_mode: 'plan', prompt: 'What does X do? #noplan' }));
+  // Assert
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
   assert.match(ctx, /ExitPlanMode/);
-  assert.doesNotMatch(ctx, /cdk:commit-changes/);
 });
 
 test('cli: a large change asks about plan mode before the commit step', () => {
