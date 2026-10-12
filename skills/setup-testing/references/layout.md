@@ -29,3 +29,9 @@ No native layout is documented for the stack or framework → `tests/unit`, `tes
 - Go: build tags only; no config file.
 - PHP: `phpunit.xml` test suites `Unit`, `Feature` (and `Browser`).
 - JVM: Maven Surefire for `*Test`, Failsafe plugin for `*IT`; Gradle `integrationTest` source set and task.
+- Ruby: `.rspec` with `--require spec_helper`; request and system specs set `type:` explicitly (`type: :request`, `type: :system`) so path inference is not needed.
+- Rust: no config; integration and e2e files in `tests/` are separate crates, so shared helpers go in `tests/common/mod.rs` and the logic under test lives in `src/lib.rs`.
+- Deno: `deno.json` `tasks` per kind, each pointing at its directory (`deno test tests/integration`).
+- .NET: one test project per kind; the integration project uses the Web SDK (`Microsoft.NET.Sdk.Web`) and `Microsoft.AspNetCore.Mvc.Testing`.
+- Cypress: `cypress.config.*` with `e2e.specPattern` set to the e2e directory.
+- Maven Failsafe: default includes are `**/IT*.java`, `**/*IT.java`, `**/*ITCase.java`; add `**/*E2E.java` to the plugin `includes` for e2e.

@@ -27,19 +27,19 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Caps: step 2 re-spawns an analyzer at most once, still-open `Questions:` → `Stopped: 2: analyzer questions unresolved`; install and smoke failures stop the skill, no retries.
 - Stop answer → print the Output with `Result: cancelled`, `Stopped: <step>: <reason>`, and end. A pre-flight or step 2 stop prints `Resolution: not run (stopped)`. Any later failure → run step 9 (**Resolve findings.**) on what is left, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Stopped:`, failed smoke runs, `Docker: unavailable`, skipped installs).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Stopped:`, failed smoke runs, skipped installs).
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-testing` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
-1. **Pre-flight.** Project dir = Context → Repo root, else cwd. Run `git-dir`; `rebase-merge`, `rebase-apply`, or `MERGE_HEAD` there → stop (`Stopped: 1: git operation in progress`). List files with `list-files`, find package manifests from `${CLAUDE_SKILL_DIR}/references/stacks.md` Signals (monorepo → one package each), detect the JS package manager per package-manager.md Detect (ambiguous → ask here). Probe `docker-info`; failure → note it, container-based integration then falls back to fakes.
-2. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `setup`, scope `all`, package manager (`n/a` for non-JS), and the paths of stacks.md, `${CLAUDE_SKILL_DIR}/references/layout.md`, and `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`. Use its `Stack:`, `Testers:`, `Faker:`, and `Missing:` lines; ask its `Questions:`, then re-spawn those analyzers once with the answers.
+1. **Pre-flight.** Project dir = Context → Repo root, else cwd. Run `git-dir`; a rebase or merge in progress → stop (`Stopped: 1: git operation in progress`). Find packages, detect the JS package manager, probe Docker. Detail: `${CLAUDE_SKILL_DIR}/references/analyze.md`.
+2. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message (kind `setup`); use its `Stack:`, `Testers:`, `Faker:`, `Missing:` lines; ask its `Questions:` only for the selected kinds, then re-spawn those analyzers once with the answers. Detail: `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 3. **Decide.** Print a table per package: stack, framework, tester per kind, state (`configured`, `unconfigured`, `missing`). Every selected kind configured and faker present → `Result: nothing-to-do` with `Resolution: not run (nothing-to-do)`, skipping step 9. Else AskUserQuestion per missing tool, per Rules. Detail: `${CLAUDE_SKILL_DIR}/references/decide.md`.
 4. **Install.** Picked testers, the faker library (conventions.md Faker libraries), and e2e browsers, as dev dependencies. A failed install stops the skill.
 5. **Configure.** Missing configs only, from stacks.md Recommended plus the runner's official docs via WebFetch (unavailable → bundled layout only; say so). Layout and per-kind config per layout.md.
 6. **Scripts.** Add `test:unit`, `test:integration`, `test:e2e` (or the stack's equivalent: Make target, Composer script, Gradle task) where missing; unit, integration, and e2e never share one script.
 7. **Context note.** Write each kind's command, plus the targeted-run form from stacks.md, under the first heading matching `/test/i` in `CLAUDE.md`, `.claude/CLAUDE.md`, or `.claude/rules/*.md`, else append `## Testing`. Detail: `${CLAUDE_SKILL_DIR}/references/context.md`.
-8. **Smoke.** Run each configured suite once with its step 6 script (else the stacks.md command). An empty suite counts as a pass (a runner's "no tests found" failure: pytest exit 5, Playwright, others; add `--passWithNoTests` to the smoke call only for Jest and Vitest, never into a script). e2e smoke lists tests (`--list`) instead of starting the app. Any other failure stops the skill.
+8. **Smoke.** Run each configured suite once with its step 6 script (else the stacks.md command); an empty suite counts as a pass, any other failure stops the skill. Detail: `${CLAUDE_SKILL_DIR}/references/smoke.md`.
 9. **Resolve findings.** Per resolve-findings.md; never re-run steps 4–8.
 10. **Report** the output below.
 

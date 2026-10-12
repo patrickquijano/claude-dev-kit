@@ -38,7 +38,7 @@ Signals: `pyproject.toml`, `setup.cfg`, `requirements*.txt`, `uv.lock`, `poetry.
 | Django   | unit, integration      | `manage.py` + `django` dep                               | `<py> manage.py test` |
 | mypy     | other                  | `mypy` dep or `[tool.mypy]`                              | `<py> -m mypy .`      |
 
-- Recommended: unit pytest; integration pytest with the `integration` marker (`-m integration`); e2e `pytest-playwright` (web UI) or pytest with `httpx` against the started app (API).
+- Recommended: unit pytest; integration pytest with the `integration` marker, run as `-o addopts="" -m integration` so the default-run `-m` in `addopts` cannot interfere (pytest prepends `addopts` to the command line); e2e `pytest-playwright` (web UI) or pytest with `httpx` against the started app (API).
 - Integration or e2e split by marker (`-m integration`, `-m e2e`) or directory (`tests/integration`) → one suite each; `unit` runs with `-m "not integration and not e2e"`.
 - Django projects keep Django's runner for unit and integration (Recommended there: `manage.py test`).
 
