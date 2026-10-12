@@ -40,7 +40,7 @@ Run only when `git rev-parse HEAD` equals `headRefOid` and `git status --porcela
 
 - A finding is inline-able when `file` is in the diff and `line` falls inside a hunk on the new (right) side of `diff.patch`. Payload entry: `{"path":…,"line":<n>,"side":"RIGHT","body":…}`; a range adds `start_line` and `start_side`.
 - Anything else (no line, deleted file, collapsed diff, line outside a hunk) → summary-only.
-- Comment body: `**<severity>** (<blocking | non-blocking>): <summary>`, then `Evidence:`, `Impact:`, `Fix:` lines. Plain English, full sentences.
+- Comment body: `**<label>** (<blocking | non-blocking>): <summary>`, then `Evidence:`, `Impact:`, `Fix:` lines. Plain English, full sentences. Label from the finding: `critical` or `high` → `blocker:`, `medium` or `low` → `suggestion:`, a finding whose intent is unclear → `question:`, a style-only finding → `nit:`; the summary review body keeps the severities.
 
 ## Verdict
 
@@ -68,7 +68,7 @@ Run only when `git rev-parse HEAD` equals `headRefOid` and `git status --porcela
 
 ## Auto mode
 
-Set by `/cdk:ship-release` with `--auto --squash yes|no --delete-branch yes|no`; invoking that command is the consent.
+Set by the `ship-release` skill (`cdk:ship-release`) with `--auto --squash yes|no --delete-branch yes|no`; invoking that command is the consent.
 
 - Step 9 asks nothing: step 10 posts the verdict event, then step 12 merges when `## Merge` offers it, using the preset Squash and Delete choices (a method the repository disallows falls back as `## Merge` Options says, and Output notes it).
 - Another author's PR merges only after its `APPROVE` review is posted and verified. An own PR (event `COMMENT`, judged on the APPROVE criteria) merges when `CLEAN`; one whose only blocker is the required review is `Merged: not offered (required review)`, never admin-merged.
