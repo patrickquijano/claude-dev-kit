@@ -93,36 +93,40 @@ export function keyOf(file) {
     : path.extname(base).slice(1).toLowerCase();
 }
 
-export const isFile = (p) => {
+export const isFile = (p, deps = {}) => {
   try {
-    return statSync(p).isFile();
+    return (deps.statSync ?? statSync)(p).isFile();
   } catch {
     return false;
   }
 };
 
-export function run(cmd, args, cwd, timeout = 60_000) {
-  const opts = { cwd, encoding: 'utf8', timeout, maxBuffer: 1 << 26, env: { ...process.env, NO_COLOR: '1' } };
-  if (!win) return spawnSync(cmd, args, opts);
+// `deps` (all optional): spawn, win, env.
+export function run(cmd, args, cwd, timeout = 60_000, deps = {}) {
+  const { spawn = spawnSync, win: isWin = win, env = process.env } = deps;
+  const opts = { cwd, encoding: 'utf8', timeout, maxBuffer: 1 << 26, env: { ...env, NO_COLOR: '1' } };
+  if (!isWin) return spawn(cmd, args, opts);
   const quoted = [path.normalize(cmd), ...args].map((a) => `"${a}"`);
-  return spawnSync(quoted[0], quoted.slice(1), { ...opts, shell: true });
+  return spawn(quoted[0], quoted.slice(1), { ...opts, shell: true });
 }
 
 // Native tools must exist on PATH (or in the project for relative commands); npx tools always run.
-export function available(step, cwd) {
-  if (step.configs && !step.configs.some((f) => isFile(path.join(cwd, f)))) return false;
+// `deps` (all optional): isFile, run, win, env.
+export function available(step, cwd, deps = {}) {
+  const { isFile: exists = isFile, run: exec = run, win: isWin = win, env = process.env } = deps;
+  if (step.configs && !step.configs.some((f) => exists(path.join(cwd, f)))) return false;
   if (step.npx) return true;
-  const exts = win ? ['', ...(process.env.PATHEXT || '.EXE;.CMD;.BAT').split(';')] : [''];
-  const dirs = step.cmd.includes('/') ? [cwd] : (process.env.PATH || '').split(path.delimiter).filter(Boolean);
-  if (!dirs.some((d) => exts.some((e) => isFile(path.join(d, step.cmd + e))))) return false;
+  const exts = isWin ? ['', ...(env.PATHEXT || '.EXE;.CMD;.BAT').split(';')] : [''];
+  const dirs = step.cmd.includes('/') ? [cwd] : (env.PATH || '').split(path.delimiter).filter(Boolean);
+  if (!dirs.some((d) => exts.some((e) => exists(path.join(d, step.cmd + e))))) return false;
   if (!step.probe) return true;
-  const r = run(step.cmd, step.probe, cwd);
+  const r = exec(step.cmd, step.probe, cwd);
   return !r.error && r.status === 0;
 }
 
 // Reads stdin asynchronously; sync reads of a piped fd 0 can throw EAGAIN on Windows.
-export async function readStdin() {
+export async function readStdin(stream = process.stdin) {
   let data = '';
-  for await (const chunk of process.stdin) data += chunk;
+  for await (const chunk of stream) data += chunk;
   return data;
 }

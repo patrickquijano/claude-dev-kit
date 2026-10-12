@@ -211,16 +211,30 @@ function arg(argv, name) {
   return i < 0 ? undefined : argv[i + 1];
 }
 
-function main(argv) {
+// Side effects the CLI needs; tests pass stubs, everything else uses the real ones.
+const realDeps = {
+  git,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  cwd: () => process.cwd(),
+  log: (text) => console.log(text),
+  error: (text) => console.error(text)
+};
+
+// CLI body; returns the exit code.
+export function main(argv, deps = {}) {
+  const d = { ...realDeps, ...deps };
   if (argv[0] !== 'plan') {
-    console.error(
+    d.error(
       'usage: changelog-release.mjs plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]'
     );
     return 2;
   }
   const file = path.resolve(arg(argv, '--changelog') ?? 'CHANGELOG.md');
-  if (!existsSync(file)) {
-    console.log(
+  if (!d.existsSync(file)) {
+    d.log(
       JSON.stringify({
         ok: false,
         errors: [fail('no-changelog', `${file} does not exist`, 'create it with cdk:write-changelog')]
@@ -228,19 +242,19 @@ function main(argv) {
     );
     return 1;
   }
-  const tags = (git(process.cwd(), ['tag', '--list']).stdout?.toString() ?? '').split('\n').filter(Boolean);
+  const tags = (d.git(d.cwd(), ['tag', '--list']).stdout?.toString() ?? '').split('\n').filter(Boolean);
   const res = plan({
-    changelog: readFileSync(file, 'utf8'),
+    changelog: d.readFileSync(file, 'utf8'),
     tags,
     prefix: arg(argv, '--prefix'),
     repoUrl: arg(argv, '--repo-url')
   });
   const out = arg(argv, '--notes-out');
   if (res.ok && out) {
-    mkdirSync(path.dirname(out), { recursive: true });
-    writeFileSync(out, res.notes);
+    d.mkdirSync(path.dirname(out), { recursive: true });
+    d.writeFileSync(out, res.notes);
   }
-  console.log(JSON.stringify(res));
+  d.log(JSON.stringify(res));
   return res.ok ? 0 : 1;
 }
 

@@ -10,6 +10,33 @@ export const POLICY_FILE = '.claude/release-policy.json';
 const MCP_CREATE = 'mcp__plugin_gitlab_gitlab__save_merge_request';
 const LEVELS = ['patch', 'minor', 'major'];
 
+// Side effects the logic needs; tests pass stubs, everything else uses the real ones.
+const realDeps = {
+  git,
+  unsafeState,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  readState,
+  writeState,
+  statePath,
+  readStdin,
+  stderr: (text) => process.stderr.write(text),
+  log: (text) => console.log(text),
+  error: (text) => console.error(text),
+  env: process.env,
+  cwd: () => process.cwd()
+};
+const withDeps = (deps) => ({ ...realDeps, ...deps });
+
+// Joins a policy path onto the repo root and refuses anything that escapes it.
+const inside = (root, rel) => {
+  const abs = path.resolve(root, rel);
+  const back = path.relative(root, abs);
+  if (back.startsWith('..') || path.isAbsolute(back)) throw new Error(`path escapes the repo: ${rel}`);
+  return abs;
+};
+
 const out = (r) => (r.stdout ? r.stdout.toString() : '').trim();
 const fail = (code, message, fix) => ({ code, message, fix });
 
@@ -41,12 +68,14 @@ const bumpVer = ([a, b, c], level) =>
   level === 'major' ? [a + 1, 0, 0] : level === 'minor' ? [a, b + 1, 0] : [a, b, c + 1];
 const fmt = (v) => v.join('.');
 
-export function loadPolicy(cwd) {
-  const root = out(git(cwd, ['rev-parse', '--show-toplevel'])) || cwd;
+export function loadPolicy(cwd, deps = {}) {
+  const d = withDeps(deps);
+  const root = out(d.git(cwd, ['rev-parse', '--show-toplevel'])) || cwd;
   const file = path.join(root, POLICY_FILE);
-  if (!existsSync(file)) return { root, policy: null };
-  const raw = readFileSync(file, 'utf8');
+  if (!d.existsSync(file)) return { root, policy: null };
+  const raw = d.readFileSync(file, 'utf8');
   const p = JSON.parse(raw);
+  if (!p || typeof p !== 'object' || Array.isArray(p)) throw new Error('policy must be a JSON object');
   return {
     root,
     hash: sha(raw),
@@ -98,14 +127,15 @@ const readKey = (text, key) => {
   }
 };
 
-const show = (cwd, ref, file) => {
-  const r = git(cwd, ['show', `${ref}:${file}`]);
+const show = (d, cwd, ref, file) => {
+  const r = d.git(cwd, ['show', `${ref}:${file}`]);
   return r.status === 0 ? r.stdout.toString() : null;
 };
 
 // Core validation. Returns {skipped?, ok, level, required, failures, notes}.
-export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubject = '' } = {}) {
-  const { root, policy } = loadPolicy(cwd);
+export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubject = '' } = {}, deps = {}) {
+  const d = withDeps(deps);
+  const { root, policy } = loadPolicy(cwd, deps);
   if (!policy) return { skipped: true, ok: true, failures: [], notes: ['skipped: no release policy'] };
   cwd = root;
   const tgt = target || policy.defaultBranch;
@@ -114,13 +144,13 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
   const notes = [];
   const done = (extra = {}) => ({ ok: failures.length === 0, failures, notes, ...extra });
 
-  if (git(cwd, ['remote', 'get-url', remote]).status !== 0) {
+  if (d.git(cwd, ['remote', 'get-url', remote]).status !== 0) {
     failures.push(
       fail('no-remote', `remote "${remote}" is not configured`, `git remote add ${remote} <url>, then push the branch`)
     );
     return done();
   }
-  if (!ci && unsafeState(cwd)) {
+  if (!ci && d.unsafeState(cwd)) {
     failures.push(
       fail('unsafe-state', 'merge, rebase, or detached HEAD in progress', 'finish or abort it, then retry')
     );
@@ -128,26 +158,27 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
   }
   const ref = `${remote}/${tgt}`;
   // CI checks out with all branches and no stored credentials, so an existing ref is used as is.
-  const have = ci && git(cwd, ['rev-parse', '--verify', '-q', `refs/remotes/${ref}`]).status === 0;
+  const have = ci && d.git(cwd, ['rev-parse', '--verify', '-q', `refs/remotes/${ref}`]).status === 0;
   const fetched = have
     ? { status: 0 }
-    : git(cwd, ['fetch', '--quiet', remote, `+refs/heads/${tgt}:refs/remotes/${ref}`], 60_000);
+    : d.git(cwd, ['fetch', '--quiet', remote, `+refs/heads/${tgt}:refs/remotes/${ref}`], 60_000);
   if (fetched.status !== 0) {
     failures.push(
       fail('fetch-failed', `cannot fetch ${ref}`, `check network, remote access, and that branch "${tgt}" exists`)
     );
     return done();
   }
-  const mb = out(git(cwd, ['merge-base', ref, 'HEAD']));
+  const mb = out(d.git(cwd, ['merge-base', ref, 'HEAD']));
   if (!mb) {
     failures.push(fail('no-merge-base', `HEAD shares no history with ${ref}`, 'rebase the branch onto the target'));
     return done();
   }
 
-  const committed = out(git(cwd, ['diff', '--name-only', `${mb}`, 'HEAD']))
+  const committed = out(d.git(cwd, ['diff', '--name-only', `${mb}`, 'HEAD']))
     .split('\n')
     .filter(Boolean);
-  const entries = git(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all'])
+  const entries = d
+    .git(cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all'])
     .stdout.toString()
     .split('\0')
     .filter(Boolean);
@@ -170,7 +201,7 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
     return done({ skipped: true });
   }
 
-  const log = out(git(cwd, ['log', '--no-merges', '--format=%s%x00%b%x01', `${mb}..HEAD`]));
+  const log = out(d.git(cwd, ['log', '--no-merges', '--format=%s%x00%b%x01', `${mb}..HEAD`]));
   const commits = log
     .split('\x01')
     .map((e) => e.trim())
@@ -185,10 +216,10 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
 
   // Version: every file must equal target-tip version plus the required level.
   const heads = policy.versionFiles.map((v) => {
-    const abs = path.join(cwd, v.path);
-    return { ...v, head: existsSync(abs) ? readKey(readFileSync(abs, 'utf8'), v.key) : undefined };
+    const abs = inside(cwd, v.path);
+    return { ...v, head: d.existsSync(abs) ? readKey(d.readFileSync(abs, 'utf8'), v.key) : undefined };
   });
-  const baseRaw = policy.versionFiles.map((v) => readKey(show(cwd, ref, v.path) ?? '', v.key));
+  const baseRaw = policy.versionFiles.map((v) => readKey(show(d, cwd, ref, v.path) ?? '', v.key));
   const baseV = baseRaw.map(parseVer).find(Boolean) ?? null;
   const required = baseV ? bumpVer(baseV, level) : null;
   const headVs = heads.map((h) => parseVer(h.head));
@@ -196,9 +227,10 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
 
   // Changelog parts first: a deliberate release above `required` needs a new matching section.
   const clFile = policy.changelog;
-  const headCl = existsSync(path.join(cwd, clFile)) ? readFileSync(path.join(cwd, clFile), 'utf8') : null;
+  const clAbs = inside(cwd, clFile);
+  const headCl = d.existsSync(clAbs) ? d.readFileSync(clAbs, 'utf8') : null;
   const h = changelogParts(headCl ?? '');
-  const b = changelogParts(headCl === null ? '' : (show(cwd, mb, clFile) ?? ''));
+  const b = changelogParts(headCl === null ? '' : (show(d, cwd, mb, clFile) ?? ''));
   const newRelease = (v) => h.releases.includes(fmt(v)) && !b.releases.includes(fmt(v));
   let accepted = null;
 
@@ -268,9 +300,9 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
         fail('uncommitted', `uncommitted: ${open.join(', ')}`, 'run /cdk:commit-changes (commits and pushes)')
       );
     if (!prePush) {
-      const branch = out(git(cwd, ['symbolic-ref', '--short', 'HEAD']));
-      const remoteSha = out(git(cwd, ['ls-remote', '--heads', remote, branch], 30_000)).split(/\s/)[0];
-      if (remoteSha !== out(git(cwd, ['rev-parse', 'HEAD']))) {
+      const branch = out(d.git(cwd, ['symbolic-ref', '--short', 'HEAD']));
+      const remoteSha = out(d.git(cwd, ['ls-remote', '--heads', remote, branch], 30_000)).split(/\s/)[0];
+      if (remoteSha !== out(d.git(cwd, ['rev-parse', 'HEAD']))) {
         failures.push(
           fail(
             'unpushed',
@@ -296,21 +328,22 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
 }
 
 // Writes the accepted (deliberate) or required version into every version file; idempotent.
-export function bump(cwd, { target, pendingSubject = '' } = {}) {
-  const r = evaluate(cwd, { target, ci: false, prePush: true, pendingSubject });
+export function bump(cwd, { target, pendingSubject = '' } = {}, deps = {}) {
+  const d = withDeps(deps);
+  const r = evaluate(cwd, { target, ci: false, prePush: true, pendingSubject }, deps);
   if (r.skipped || !r.required) return { changed: [], ...r };
-  const { root, policy } = loadPolicy(cwd);
+  const { root, policy } = loadPolicy(cwd, deps);
   const want = r.accepted ?? r.required;
   const changed = [];
   for (const v of policy.versionFiles) {
-    const abs = path.join(root, v.path);
-    const text = readFileSync(abs, 'utf8');
+    const abs = inside(root, v.path);
+    const text = d.readFileSync(abs, 'utf8');
     // eslint-disable-next-line security/detect-non-literal-regexp -- the key comes from the committed release policy
     const re = new RegExp(`("${v.key}"\\s*:\\s*")([^"]*)(")`);
     const m = re.exec(text);
     if (!m) throw new Error(`key "${v.key}" not found in ${v.path}`);
     if (m[2] !== want) {
-      writeFileSync(abs, text.replace(re, `$1${want}$3`));
+      d.writeFileSync(abs, text.replace(re, `$1${want}$3`));
       changed.push({ path: v.path, from: m[2], to: want });
     }
   }
@@ -406,19 +439,22 @@ export function report(r) {
   return lines.join('\n');
 }
 
-async function runHook() {
+// PreToolUse hook body; resolves to the exit code (2 blocks).
+export async function runHook(deps = {}) {
+  const d = withDeps(deps);
   let event;
   try {
-    event = JSON.parse(await readStdin());
+    event = JSON.parse(await d.readStdin());
   } catch {
     return 0;
   }
-  const cwd = event.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  if (!event || typeof event !== 'object') return 0;
+  const cwd = (typeof event.cwd === 'string' && event.cwd) || d.env.CLAUDE_PROJECT_DIR || d.cwd();
   let loaded;
   try {
-    loaded = loadPolicy(cwd);
+    loaded = loadPolicy(cwd, deps);
   } catch (e) {
-    process.stderr.write(`release-check: invalid ${POLICY_FILE}: ${e.message}\n`);
+    d.stderr(`release-check: invalid ${POLICY_FILE}: ${e.message}\n`);
     return 2;
   }
   if (!loaded.policy) return 0;
@@ -426,39 +462,41 @@ async function runHook() {
   if (!target) return 0;
 
   const rel = [loaded.policy.changelog, ...loaded.policy.versionFiles.map((v) => v.path)];
-  const head = out(git(loaded.root, ['rev-parse', 'HEAD']));
-  const relStatus = out(git(loaded.root, ['status', '--porcelain=v1', '--', ...rel]));
+  const head = out(d.git(loaded.root, ['rev-parse', 'HEAD']));
+  const relStatus = out(d.git(loaded.root, ['status', '--porcelain=v1', '--', ...rel]));
   const key = sha(`${head}|${target}|${loaded.hash}|${relStatus}`);
-  const file = statePath('release-check', loaded.root);
-  if (readState(file).pass === key) return 0;
+  const file = d.statePath('release-check', loaded.root);
+  if (d.readState(file).pass === key) return 0;
 
-  const r = evaluate(cwd, { target });
+  const r = evaluate(cwd, { target }, deps);
   if (r.ok) {
-    writeState(file, { pass: key });
+    d.writeState(file, { pass: key });
     return 0;
   }
-  process.stderr.write(
+  d.stderr(
     `${report(r)}\nBlocked PR/MR creation. Fix, commit, push, then retry. No bypass: exceptions live in ${POLICY_FILE} (exempt, with a reason).\n`
   );
   return 2;
 }
 
-async function main() {
-  const [mode = 'check', ...args] = process.argv.slice(2);
+// CLI body; resolves to the exit code.
+export async function main(argv = process.argv.slice(2), deps = {}) {
+  const d = withDeps(deps);
+  const [mode = 'check', ...args] = argv;
   const opt = (n) => args[args.indexOf(n) + 1];
-  const cwd = process.cwd();
-  if (mode === 'hook') return runHook();
+  const cwd = d.cwd();
+  if (mode === 'hook') return runHook(deps);
   const target = args.includes('--target') ? opt('--target') : undefined;
   try {
     const subjectFile = args.includes('--subject') ? opt('--subject') : undefined;
     if (args.includes('--subject') && (!subjectFile || subjectFile.startsWith('--'))) {
-      console.error('release-check: --subject needs a file path');
-      process.exit(2);
+      d.error('release-check: --subject needs a file path');
+      return 2;
     }
-    const pendingSubject = subjectFile ? (readFileSync(subjectFile, 'utf8').split('\n')[0] ?? '') : '';
+    const pendingSubject = subjectFile ? (d.readFileSync(subjectFile, 'utf8').split('\n')[0] ?? '') : '';
     if (mode === 'bump') {
-      const r = bump(cwd, { target, pendingSubject });
-      console.log(
+      const r = bump(cwd, { target, pendingSubject }, deps);
+      d.log(
         args.includes('--json')
           ? JSON.stringify(r)
           : r.skipped
@@ -471,16 +509,20 @@ async function main() {
         ? 1
         : 0;
     }
-    const r = evaluate(cwd, {
-      target,
-      ci: args.includes('--ci'),
-      prePush: args.includes('--pre-push'),
-      pendingSubject
-    });
-    console.log(args.includes('--json') ? JSON.stringify(r) : report(r) || `ok: ${r.level} -> ${r.required}`);
+    const r = evaluate(
+      cwd,
+      {
+        target,
+        ci: args.includes('--ci'),
+        prePush: args.includes('--pre-push'),
+        pendingSubject
+      },
+      deps
+    );
+    d.log(args.includes('--json') ? JSON.stringify(r) : report(r) || `ok: ${r.level} -> ${r.required}`);
     return r.ok ? 0 : 1;
   } catch (e) {
-    console.error(`release-check: ${e.message}`);
+    d.error(`release-check: ${e.message}`);
     return 1;
   }
 }

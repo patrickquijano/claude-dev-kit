@@ -3,11 +3,20 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const isWindows = process.platform === 'win32';
-// Package dir (parent of .husky/), so commitlint finds its config when the package is not at the git root.
-const packageDir = fileURLToPath(new URL('..', import.meta.url));
+// Real side effects; tests pass stubs. `packageDir` is the parent of .husky/, so commitlint finds its config when the
+// package is not at the git root.
+const defaults = {
+  spawn: spawnSync,
+  readFile: readFileSync,
+  exists: existsSync,
+  home: homedir,
+  isWindows: process.platform === 'win32',
+  packageDir: fileURLToPath(new URL('..', import.meta.url)),
+  log: (line) => console.log(line),
+  error: (line) => console.error(line)
+};
 
 // Commitlint command per package manager, from the commitlint local setup guide.
 const COMMITLINT = {
@@ -56,58 +65,65 @@ const IMPERATIVE_EXCEPTIONS = new Set([
 ]);
 
 // Returns a git config value, or "" when unset.
-function gitConfig(key) {
-  const result = spawnSync('git', ['config', '--get', key], { encoding: 'utf8' });
+export function gitConfig(key, deps = defaults) {
+  const result = deps.spawn('git', ['config', '--get', key], { encoding: 'utf8', timeout: 15_000 });
   return result.status === 0 ? result.stdout.trim() : '';
 }
 
 // Uses core.commentChar when it is a single character; otherwise git's default "#".
-function commentChar() {
-  const value = gitConfig('core.commentChar');
+export function commentChar(deps = defaults) {
+  const value = gitConfig('core.commentChar', deps);
   return value.length === 1 ? value : '#';
 }
 
 // Returns the first non-empty, non-comment line of the message.
-function readSubject(file) {
-  const prefix = commentChar();
-  const lines = readFileSync(file, 'utf8').split(/\r?\n/);
+export function readSubject(file, deps = defaults) {
+  const prefix = commentChar(deps);
+  const lines = deps.readFile(file, 'utf8').split(/\r?\n/);
   return lines.find((line) => !line.startsWith(prefix) && line.trim() !== '')?.trim() ?? '';
 }
 
-// Returns the `packageManager` name, else the first lockfile match in the package dir or git root; npm by default.
-function packageManager() {
+// Returns the `pmFlag`, else the `packageManager` name, else the first lockfile match in the package dir or git root; npm by default.
+export function packageManager(pmFlag, deps = defaults) {
   if (pmFlag) return pmFlag;
   try {
-    const name = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')).packageManager?.split('@')[0];
-    if (COMMITLINT[name]) return name;
+    const name = JSON.parse(deps.readFile(join(deps.packageDir, 'package.json'), 'utf8')).packageManager?.split('@')[0];
+    if (Object.hasOwn(COMMITLINT, name)) return name;
   } catch {
     // Missing or invalid package.json falls through to lockfiles.
   }
-  const root = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).stdout?.trim();
-  for (const dir of [packageDir, root].filter(Boolean)) {
-    const match = LOCKFILES.find(([lockfile]) => existsSync(join(dir, lockfile)));
+  const root = deps
+    .spawn('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8', timeout: 15_000 })
+    .stdout?.trim();
+  for (const dir of [deps.packageDir, root].filter(Boolean)) {
+    const match = LOCKFILES.find(([lockfile]) => deps.exists(join(dir, lockfile)));
     if (match) return match[1];
   }
   return 'npm';
 }
 
 // Runs commitlint with the package manager's command from the commitlint docs.
-function runCommitlint(file) {
-  const [cmd, args] = COMMITLINT[packageManager()];
-  const arg = isWindows ? `"${file}"` : file;
-  return spawnSync(cmd, [...args, '--edit', arg], { encoding: 'utf8', shell: isWindows, cwd: packageDir });
+export function runCommitlint(file, pmFlag, deps = defaults) {
+  const [cmd, args] = COMMITLINT[packageManager(pmFlag, deps)];
+  const arg = deps.isWindows ? `"${file}"` : file;
+  return deps.spawn(cmd, [...args, '--edit', arg], {
+    encoding: 'utf8',
+    shell: deps.isWindows,
+    cwd: deps.packageDir,
+    timeout: 120_000
+  });
 }
 
-const MAX_HEADER = 72;
+export const MAX_HEADER = 72;
 
 // Returns an error when the header is longer than MAX_HEADER UTF-16 units (commitlint's count), whatever its config says.
-function headerLengthError(subject) {
+export function headerLengthError(subject) {
   const length = subject.length;
   return length > MAX_HEADER ? `header is ${length} characters; max is ${MAX_HEADER}` : '';
 }
 
 // Returns an error when the description's first word looks past tense or progressive.
-function imperativeError(subject) {
+export function imperativeError(subject) {
   const index = subject.indexOf(': ');
   if (index === -1) return '';
   const word = subject
@@ -121,11 +137,11 @@ function imperativeError(subject) {
 }
 
 // Returns the list of problems found in the commit message.
-function checkMessage(file, subject) {
+export function checkMessage(file, subject, pmFlag, deps = defaults) {
   const errors = [];
-  const lint = runCommitlint(file);
+  const lint = runCommitlint(file, pmFlag, deps);
   if (lint.status !== 0) {
-    errors.push((lint.stdout + lint.stderr).trim() || lint.error?.message || 'commitlint failed');
+    errors.push(((lint.stdout ?? '') + (lint.stderr ?? '')).trim() || lint.error?.message || 'commitlint failed');
   }
   const imperative = imperativeError(subject);
   if (imperative) errors.push(imperative);
@@ -133,72 +149,86 @@ function checkMessage(file, subject) {
 }
 
 // Expands a leading "~" to the home directory.
-function expandHome(path) {
-  return path.startsWith('~') ? homedir() + path.slice(1) : path;
+export function expandHome(path, deps = defaults) {
+  return path.startsWith('~') ? deps.home() + path.slice(1) : path;
 }
 
 // Returns "<type> <base64>" from a literal key or a key file path (private paths use the sibling .pub).
-function publicKey(signingKey) {
+export function publicKey(signingKey, deps = defaults) {
   const literal = signingKey.replace(/^key::/, '');
-  const keyPath = expandHome(literal);
+  const keyPath = expandHome(literal, deps);
   const pubPath = keyPath.endsWith('.pub') ? keyPath : `${keyPath}.pub`;
   const text = /^(ssh-|ecdsa-|sk-)/.test(literal)
     ? literal
-    : readFileSync(existsSync(pubPath) ? pubPath : keyPath, 'utf8');
+    : deps.readFile(deps.exists(pubPath) ? pubPath : keyPath, 'utf8');
   return text.trim().split(/\s+/).slice(0, 2).join(' ');
 }
 
 // Returns the reason signing would fail, or "" when it is configured.
-function signingError() {
-  if (gitConfig('commit.gpgsign') !== 'true') return 'commit.gpgsign is not true';
-  const signingKey = gitConfig('user.signingkey');
+export function signingError(deps = defaults) {
+  if (gitConfig('commit.gpgsign', deps) !== 'true') return 'commit.gpgsign is not true';
+  const signingKey = gitConfig('user.signingkey', deps);
   if (!signingKey) return 'user.signingkey is not set';
-  if (gitConfig('gpg.format') !== 'ssh') return '';
+  if (gitConfig('gpg.format', deps) !== 'ssh') return '';
 
-  const allowed = gitConfig('gpg.ssh.allowedSignersFile');
+  const allowed = gitConfig('gpg.ssh.allowedSignersFile', deps);
   if (!allowed) return 'gpg.ssh.allowedSignersFile is not set';
-  const allowedPath = expandHome(allowed);
-  if (!existsSync(allowedPath)) return `allowed signers file not found: ${allowedPath}`;
+  const allowedPath = expandHome(allowed, deps);
+  if (!deps.exists(allowedPath)) return `allowed signers file not found: ${allowedPath}`;
 
   let key;
   try {
-    key = publicKey(signingKey);
+    key = publicKey(signingKey, deps);
   } catch (error) {
     return `cannot read signing key: ${error.message}`;
   }
-  return readFileSync(allowedPath, 'utf8').includes(key) ? '' : 'signing key is not in the allowed signers file';
+  return deps.readFile(allowedPath, 'utf8').includes(key) ? '' : 'signing key is not in the allowed signers file';
 }
 
 // Prints a status line followed by indented details.
-function report(ok, label, subject, details) {
-  console.log(`${ok ? '✅' : '❌'} ${label}: "${subject}"`);
+export function report(ok, label, subject, details, deps = defaults) {
+  deps.log(`${ok ? '✅' : '❌'} ${label}: "${subject}"`);
   for (const detail of details) {
-    console.log(detail.replace(/^/gm, '   '));
+    deps.log(detail.replace(/^/gm, '   '));
   }
 }
 
 // The stub may pass --skip-message, --skip-signing, or --pm=<name> to apply the choices made at setup.
-const args = process.argv.slice(2);
-const flags = new Set(args.filter((arg) => arg.startsWith('--') && !arg.startsWith('--pm=')));
-const pmFlag = args.find((arg) => arg.startsWith('--pm='))?.slice(5);
-const fileArg = args.find((arg) => !arg.startsWith('--'));
-const file = fileArg && resolve(fileArg);
-const unknownFlag = [...flags].some((flag) => flag !== '--skip-message' && flag !== '--skip-signing');
-if (!file || unknownFlag || (pmFlag !== undefined && !COMMITLINT[pmFlag])) {
-  console.error(
-    'usage: node .husky/commit-msg.mjs [--skip-message] [--skip-signing] [--pm=npm|pnpm|yarn|bun] <message-file>'
-  );
-  process.exit(1);
+// Returns { flags, pmFlag, file } or null when the arguments are invalid.
+export function parseArgs(argv) {
+  const flags = new Set(argv.filter((arg) => arg.startsWith('--') && !arg.startsWith('--pm=')));
+  const pmFlag = argv.find((arg) => arg.startsWith('--pm='))?.slice(5);
+  const fileArg = argv.find((arg) => !arg.startsWith('--'));
+  const file = fileArg && resolve(fileArg);
+  const unknownFlag = [...flags].some((flag) => flag !== '--skip-message' && flag !== '--skip-signing');
+  if (!file || unknownFlag || (pmFlag !== undefined && !Object.hasOwn(COMMITLINT, pmFlag))) return null;
+  return { flags, pmFlag, file };
 }
 
-const subject = readSubject(file);
-const messageErrors = flags.has('--skip-message') ? [] : checkMessage(file, subject);
-if (!flags.has('--skip-message')) report(messageErrors.length === 0, 'Commit Message', subject, messageErrors);
+// Runs the checks for `argv` (without node and script); returns the exit code.
+export function main(argv, deps = defaults) {
+  const parsed = parseArgs(argv);
+  if (!parsed) {
+    deps.error(
+      'usage: node .husky/commit-msg.mjs [--skip-message] [--skip-signing] [--pm=npm|pnpm|yarn|bun] <message-file>'
+    );
+    return 1;
+  }
+  const { flags, pmFlag, file } = parsed;
+  const subject = readSubject(file, deps);
+  const messageErrors = flags.has('--skip-message') ? [] : checkMessage(file, subject, pmFlag, deps);
+  if (!flags.has('--skip-message')) report(messageErrors.length === 0, 'Commit Message', subject, messageErrors, deps);
 
-const lengthError = flags.has('--skip-message') ? '' : headerLengthError(subject);
-if (!flags.has('--skip-message')) report(!lengthError, 'Header Length', subject, lengthError ? [lengthError] : []);
+  const lengthError = flags.has('--skip-message') ? '' : headerLengthError(subject);
+  if (!flags.has('--skip-message'))
+    report(!lengthError, 'Header Length', subject, lengthError ? [lengthError] : [], deps);
 
-const signError = flags.has('--skip-signing') ? '' : signingError();
-if (!flags.has('--skip-signing')) report(!signError, 'Signed', subject, signError ? [signError] : []);
+  const signError = flags.has('--skip-signing') ? '' : signingError(deps);
+  if (!flags.has('--skip-signing')) report(!signError, 'Signed', subject, signError ? [signError] : [], deps);
 
-process.exit(messageErrors.length || lengthError || signError ? 1 : 0);
+  return messageErrors.length || lengthError || signError ? 1 : 0;
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = main(process.argv.slice(2));
+}
