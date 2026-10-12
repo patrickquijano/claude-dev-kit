@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `cdk:review-change-request` replies to and resolves your own threads that the new code addresses, on GitHub as well as GitLab.
 - `cdk:address-change-request-review` keeps a state file, protects uncommitted changes, asks before pushing and before posting replies, and re-requests review on GitLab as well as GitHub.
 - The end-of-task hook now tells Claude to update the README and related docs when the task changed what they describe, before the commit step.
+- `/cdk:debug-issue` finds a bug's root cause from an error, stack trace, or failing test, proves it with a failing regression test, and fixes it after you confirm.
+- `/cdk:review-local-changes` reviews your unpushed commits and uncommitted changes before they are committed, with parallel read-only reviewers, then fixes the safe findings and asks about the rest.
+- `/cdk:setup-testing` sets up unit, integration, and end-to-end test tooling per package: it detects the stack, recommends a tester for each kind, installs and configures the missing ones in the stack's native folder layout, adds run scripts, and notes the commands in the project context. `/cdk:setup-project` and the `write-*-tests` skills chain it.
+- The plugin `PreToolUse` hook now guards git: it blocks force pushes, `--no-verify`, and `HUSKY=0`, and asks before `git reset --hard` and similar destructive commands, before the release check runs.
 
 ### Changed
 
@@ -30,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Breaking:** `prepare-pull-request`, `prepare-merge-request`, `review-pull-request`, `review-merge-request`, `address-pull-request-review`, and `address-merge-request-review` are replaced by the three `*-change-request*` skills above, with no aliases. `cdk:mr-reviewer` and `cdk:review-thread-triager` are removed, and the `pr-*` reviewer and `pr-feedback-*` agents are renamed to `cr-*` and `cr-feedback-*`.
 - **Breaking:** the PR reviewer agents no longer review an uncommitted working tree, and the plugin no longer ships a `commands/` directory.
+- **Breaking:** `/cdk:setup-test-hook` and the `cdk:test-suite-analyzer` agent are removed in favor of `/cdk:setup-testing`; the project `Stop` test hook it installed is no longer set up.
 
 ## [2.1.0] - 2026-10-11
 
