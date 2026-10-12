@@ -1,6 +1,6 @@
 # Change request review conventions
 
-Host-neutral rules for `cdk:review-change-request`; host commands live in `github.md` / `gitlab.md` (`## Gather`, `## Criteria`, `## Publish`, `## Approve`, `## Merge`). Comment style and approval criteria: `${CLAUDE_SKILL_DIR}/guidelines.md`. A change request ("CR") is a pull request on GitHub and a merge request on GitLab.
+Host-neutral rules for `cdk:review-change-request`; host commands live in `github.md` / `gitlab.md` (`## Gather`, `## Criteria`, `## Publish`, `## Approve`, `## Merge`). Comment style and approval criteria: `${CLAUDE_SKILL_DIR}/references/guidelines.md`. A change request ("CR") is a pull request on GitHub and a merge request on GitLab.
 
 ## Local checks
 
@@ -21,7 +21,7 @@ Applied in step 7, so the review adds only what the existing discussion lacks. E
 ## Own threads
 
 - Digest entry per thread Self started that is open and resolvable: `own <thread id>`, `path:line`, the full first comment. Other people's threads are never replied to or resolved.
-- The `cdk:cr-correctness-reviewer` gets the digest and returns a `Threads:` block (`${CLAUDE_SKILL_DIR}/../prepare-change-request/findings.md`). In a direct review the parent judges each thread itself: read the path at the head and answer the same question.
+- The `cdk:cr-correctness-reviewer` gets the digest and returns a `Threads:` block (`${CLAUDE_SKILL_DIR}/../prepare-change-request/references/findings.md`). In a direct review the parent judges each thread itself: read the path at the head and answer the same question.
 - Kept thread = `addressed: yes`. Drop the rest and leave them untouched; never resolve an unaddressed thread.
 - Reply text: `**note:** Addressed in <short head SHA>. <reply>`; the host `## Publish` posts it and resolves the thread.
 
@@ -29,12 +29,12 @@ Applied in step 7, so the review adds only what the existing discussion lacks. E
 
 - A finding is inline-able when `file` is in `diff.patch` and `line` sits in a hunk of that path, read from the `@@ -a,b +c,d @@` headers: `new` → an added or context line (new numbering), `old` → a removed line (old numbering), `both` → a context line (new `line`, `old_line` from the hunk).
 - Anything else (no line, deleted file, collapsed or truncated diff, line outside a hunk) → General: posted as its own positionless thread when non-praise; praise goes to the summary. A suggestion on a removed line is dropped.
-- Comment body: the guidelines inline template, label and decoration from the finding (`${CLAUDE_SKILL_DIR}/guidelines.md` `## Labels`). Plain English, full sentences, no attribution.
+- Comment body: the guidelines inline template, label and decoration from the finding (`${CLAUDE_SKILL_DIR}/references/guidelines.md` `## Labels`). Plain English, full sentences, no attribution.
 - Host-specific position fields and suggestion syntax: host `## Positions`.
 
 ## Criteria
 
-`${CLAUDE_SKILL_DIR}/guidelines.md` `## Approval criteria`, judged after consolidation. A criterion no reviewer covered (incomplete reviewer, or none spawned and not judged) fails as `not assessed`.
+`${CLAUDE_SKILL_DIR}/references/guidelines.md` `## Approval criteria`, judged after consolidation. A criterion no reviewer covered (incomplete reviewer, or none spawned and not judged) fails as `not assessed`.
 
 - A1, A3, A5, A6: the parent judges each from the kept findings and reviewer `Summary` lines, never from a reviewer's own verdict. A1 fails on a kept finding that the change misses or contradicts what the title or description states. A3 fails on a kept `tests` finding of `medium` or above for changed behavior (docs-only or config-only changes pass with a stated reason) or an `incomplete` test reviewer. A5 fails on a kept `maintainability` finding of `medium` or above, or any blocking one. A6 fails on a kept finding about an uncalled-out breaking change, migration, config or flag change, or missing rollback path.
 - A2: pass only when no kept finding is `blocking`, inline or General.

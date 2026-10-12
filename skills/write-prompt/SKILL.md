@@ -10,17 +10,17 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Check every item in `${CLAUDE_SKILL_DIR}/checks.md`; each missed item is a known failure mode for agents.
-- Draft in the shape of `${CLAUDE_SKILL_DIR}/structure.md`.
+- Check every item in `${CLAUDE_SKILL_DIR}/references/checks.md`; each missed item is a known failure mode for agents.
+- Draft in the shape of `${CLAUDE_SKILL_DIR}/references/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
 - Never invent paths, commands, versions, or APIs; unverified → omit and report, since a wrong fact in a prompt misleads the agent.
 - Input holds several tasks → draft the first and list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Loops: clarify (step 3) max 2 batches.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-prompt` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

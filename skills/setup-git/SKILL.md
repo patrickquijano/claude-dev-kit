@@ -15,12 +15,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 - Caps: re-detect after a user-run command at most twice per step, then stop; the smoke test retries once; each identity value (steps 4 and 9) is asked at most 3 times (empty or invalid reply re-asks), then stop; step 9 runs one repair pass and step 10 allows one more, then stop.
 - AskUserQuestion: at most 4 questions per call, 2–4 options each; recommended option first with its reason. Free-text values with no 2 real options (name, email) → ask in plain text and wait for the reply.
 - Never commit, push, or untrack files without an explicit choice.
-- Path catalog: `${CLAUDE_SKILL_DIR}/ignores.md`.
+- Path catalog: `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 - Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 15 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers, `Ignores:` uncovered stacks or skipped groups, an unverifiable smoke test).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-git` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Verify:` inconsistent, `Smoke test:` ❌, `Tracked but ignored:`, `Repaired:` leftovers, `Ignores:` uncovered stacks or skipped groups, an unverifiable smoke test).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-git` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

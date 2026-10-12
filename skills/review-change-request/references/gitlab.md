@@ -1,6 +1,6 @@
 # GitLab review conventions
 
-Host section of `cdk:review-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/gitlab.md` (`## Pre-flight`, `## API rules`). Host-neutral rules: `review.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+Host section of `cdk:review-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` (`## Pre-flight`, `## API rules`). Host-neutral rules: `review.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
 
 ## Review pre-flight
 
@@ -58,4 +58,4 @@ Approval is `…/approve` with the head `sha` (`## Publish` step 4), set only wh
 
 ## API rules
 
-Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/gitlab.md` `## API rules`. Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.
+Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` `## API rules`. Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.

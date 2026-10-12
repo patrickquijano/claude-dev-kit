@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Orchestration per `${CLAUDE_SKILL_DIR}/../build-skill/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
+- Orchestration per `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
 - Host from `git remote get-url origin`: `github.com` → GitHub PR flow (`gh`); any other host → GitLab MR flow (`glab`).
 - Invoking this skill is the consent for atomic signed commits, normal pushes, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing, never `--admin`). Squash and source-branch deletion are asked once (step 6).
 - Never force-push, `--admin`, `--no-verify`, `git reset --hard`, or delete `main`. Never bypass a hook, check, or required review.
@@ -19,13 +19,13 @@ Input: $ARGUMENTS
 - Caps: 3 review-address-re-review rounds, 2 check waits of 30 minutes each, 2 blocker attempts per blocker; a cap hit stops that step and follows `## Blockers`.
 - Own PR or MR: GitHub rejects a self `APPROVE` or `REQUEST_CHANGES`, so the review is posted as `COMMENT` and a clean verdict (no `(blocking)` comment) with passing required checks counts as approval; any `(blocking)` comment counts as changes requested. GitLab approves for real when the project allows author approval, else the same rule.
 - Review comments use Conventional Comments: `issue (blocking)` (critical, high), `suggestion (non-blocking)` (medium, low), `question`, `nitpick`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md` (squash and delete default to the recommended options).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md` (squash and delete default to the recommended options).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
-1. **Pre-flight.** `git`, `node`, `npx` present (`--version`), plus `gh` (GitHub) or `glab` (GitLab). Repo root = `git rev-parse --show-toplevel`. No merge, rebase, or detached HEAD in progress (the states `hooks/scripts/git-state.mjs` treats as unsafe). Auth ok (`gh auth status` or `glab auth status`). Signing set per `${CLAUDE_SKILL_DIR}/../commit-changes/conventions.md` `## Signing` (missing → blocker `signing`, not a stop). Target = `--target`, else `.claude/release-policy.json` `defaultBranch`, else `git symbolic-ref --short refs/remotes/origin/HEAD` without `origin/`. `git fetch --prune origin`. Any failure so far → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last, at the absolute path `git rev-parse --path-format=absolute --git-path cdk-ship-release` with the Write tool; the plugin's commit Stop hook skips this tree until step 10 deletes it.
+1. **Pre-flight.** `git`, `node`, `npx` present (`--version`), plus `gh` (GitHub) or `glab` (GitLab). Repo root = `git rev-parse --show-toplevel`. No merge, rebase, or detached HEAD in progress (the states `hooks/scripts/git-state.mjs` treats as unsafe). Auth ok (`gh auth status` or `glab auth status`). Signing set per `${CLAUDE_SKILL_DIR}/../commit-changes/references/conventions.md` `## Signing` (missing → blocker `signing`, not a stop). Target = `--target`, else `.claude/release-policy.json` `defaultBranch`, else `git symbolic-ref --short refs/remotes/origin/HEAD` without `origin/`. `git fetch --prune origin`. Any failure so far → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last, at the absolute path `git rev-parse --path-format=absolute --git-path cdk-ship-release` with the Write tool; the plugin's commit Stop hook skips this tree until step 10 deletes it.
 2. **Resume detection.** Current = `git rev-parse --abbrev-ref HEAD`; its PR or MR = the open one (`gh pr list --head <current> --state all --json number,state,url,headRefOid`, or `glab mr list --source-branch <current> -F json`), else the latest.
    - Merged and its head equals `HEAD` (or `origin/<target>..HEAD` is empty) → step 9.
    - On the target, clean, and `git rev-list --count origin/<target>..HEAD` = 0 → "nothing to ship", `Result: nothing-to-do`, step 9.

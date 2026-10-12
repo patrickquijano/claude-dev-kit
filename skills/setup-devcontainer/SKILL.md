@@ -12,16 +12,16 @@ Input: $ARGUMENTS
 ## Rules
 
 - User interaction (AskUserQuestion) only here; writes only here or in the chained `cdk:write-dockerfile`; `cdk:devcontainer-analyzer` only reads.
-- Apply `${CLAUDE_SKILL_DIR}/practices.md`; each item says why. Skipped item → reason in the Output.
+- Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. Skipped item → reason in the Output.
 - No invented facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. Lookup fails → ask in step 3 call 3; never guess.
 - Pinning per practices.md: image approach at the `<image major>-…` tag per practices.md `## Images`, features at `:<major>` with the committed `devcontainer-lock.json`, service images at an exact release tag; a Dockerfile base at the exact full tag plus digest, as `cdk:write-dockerfile` requires.
-- Dockerfile needed (system packages, firewall, or a custom build step) → chain `cdk:write-dockerfile` per `${CLAUDE_SKILL_DIR}/../build-skill/orchestration.md`, for any approach; never write or fix the Dockerfile here.
+- Dockerfile needed (system packages, firewall, or a custom build step) → chain `cdk:write-dockerfile` per `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`, for any approach; never write or fix the Dockerfile here.
 - Credentials never land in git: `.devcontainer/.env` is gitignored and dockerignored, `.env.example` holds placeholders.
 - Every write to an existing file prints its diff; no approval asked, since the files are local and the diff is reviewable.
 - Loops: clarify (step 3) max 3 AskUserQuestion calls; verify-fix (step 9) max 3 attempts. Any stop from step 2 onward (clarify cap, lookup failure, step 8 stop, verify cap) → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>` and end; only a step 1 stop and cancels skip step 10 and print `Resolution: not run (stopped | cancelled)`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-devcontainer` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the analyzer's `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-devcontainer` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the analyzer's `Known issue:` lines.
 
 ## Workflow
 

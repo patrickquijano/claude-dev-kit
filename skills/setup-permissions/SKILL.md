@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Policy, syntax, baseline lists, and MCP rules: `${CLAUDE_SKILL_DIR}/catalog.md`. Follow it; never copy its rules here.
+- Policy, syntax, baseline lists, and MCP rules: `${CLAUDE_SKILL_DIR}/references/catalog.md`. Follow it; never copy its rules here.
 - Target only the user settings file: `$CLAUDE_CONFIG_DIR/settings.json` when set, else `~/.claude/settings.json` (`%USERPROFILE%\.claude\settings.json` on Windows). Never `settings.local.json` (read only in the home directory) and never project or managed files.
 - Never remove, reorder, or rewrite an existing key or rule. Append only new rules to `permissions.allow`, `permissions.ask`, `permissions.deny`.
 - Never write a wildcard-only or tool-wide rule (`Bash`, `Bash(*)`, `Bash(* x)`, a server-wide `mcp__<server>` or `mcp__<server>__*`). Each MCP tool gets one exact rule. Every Bash command (except the single rules in `catalog.md` Syntax) gets both its exact rule and its wildcard rule (`Bash(npm)` and `Bash(npm *)`), because auto mode may not recognize wildcard-only coverage.
@@ -22,9 +22,9 @@ Input: $ARGUMENTS
 - Caps: step 2 re-spawns the analyzer at most once; step 6 validate-fix at most 3 attempts. Every question is asked once.
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
 - A Stop answer (step 7) → `Result: cancelled`, `Resolution: not run (cancelled)`, `Stopped: <step>: <reason>`, end. Any other stop or failure after candidates exist (the step 5 invalid-settings stop; the step 6 validate-cap stop) → run step 9 once on what is left, without re-entering step 6, then print the Output with `Stopped: <step>: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-permissions` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-permissions` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

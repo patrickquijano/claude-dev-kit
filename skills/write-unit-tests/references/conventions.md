@@ -1,6 +1,6 @@
 # Test conventions
 
-Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and their `test-gap-analyzer` agent. Runner detection per stack lives in the sibling skill file `setup-test-hook/stacks.md`; JavaScript package managers in `setup-husky/package-manager.md`. `<x>`, `<py>`, `<mvn>`, `<gradle>` below follow stacks.md.
+Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and their `test-gap-analyzer` agent. Runner detection per stack lives in the sibling skill file `setup-test-hook/references/stacks.md`; JavaScript package managers in `setup-husky/references/package-manager.md`. `<x>`, `<py>`, `<mvn>`, `<gradle>` below follow stacks.md.
 
 ## Shared rules
 

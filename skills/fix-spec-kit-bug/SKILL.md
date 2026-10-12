@@ -10,15 +10,15 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/speckit-chain.md` with prefix `speckit-bug-` and group `bug`.
+- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/references/speckit-chain.md` with prefix `speckit-bug-` and group `bug`.
 - Pass `slug=<slug>` to every step after assess. All three commands share the slug and write only to `.specify/bugs/<slug>/`.
 - Pre-approved exceptions to relaying questions: on pass 2 and later, answer yes to overwriting `assessment.md`, `fix.md`, and `test.md` in the current slug; in step 5, answer yes to running skipped or not-run checks.
 - Passes: one pass = fix, then test; the first fix + test is pass 1. A re-assess uses up a pass (re-assess, fix, test count as one). Every step 6 entry starts a new pass, whether test runs or not. Max 3 passes.
 - Test re-runs (step 5 skipped checks): max 3 per pass.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Fix: partial|not-applied`, `Test: partial|failed|not run` with the failing or not-run checks from `test.md`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `fix-spec-kit-bug` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Fix: partial|not-applied`, `Test: partial|failed|not run` with the failing or not-run checks from `test.md`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `fix-spec-kit-bug` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

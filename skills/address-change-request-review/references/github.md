@@ -1,6 +1,6 @@
 # GitHub feedback commands
 
-Host section of `cdk:address-change-request-review` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/github.md` `## Pre-flight`. Item and state rules: `${CLAUDE_SKILL_DIR}/state.md`. A change request is a pull request; `<n>` is its number.
+Host section of `cdk:address-change-request-review` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/github.md` `## Pre-flight`. Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a pull request; `<n>` is its number.
 
 GraphQL and REST calls stay out of `allowed-tools` (a GraphQL call may be a mutation), so each is permission-prompted. Reads and writes use scratch files for any model-written text: `-F body=@<file>` or `--input <file>`.
 

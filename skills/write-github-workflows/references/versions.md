@@ -37,7 +37,7 @@ Source for pin guidance: <https://docs.github.com/en/actions/reference/security/
 
 ## Container and service images
 
-1. Docker Hub image: resolve the exact stable tag by the tag rule in `../write-dockerfile/practices.md` (relative to this file's directory) `## Structure` (base image tag resolution: Hub tag listing, release-tag allowlist, variant and distro rules, highest numeric semver, never `last_updated`); do not restate it here. Tag list API: <https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>.
+1. Docker Hub image: resolve the exact stable tag by the tag rule in `../write-dockerfile/references/practices.md` (relative to this file's directory) `## Structure` (base image tag resolution: Hub tag listing, release-tag allowlist, variant and distro rules, highest numeric semver, never `last_updated`); do not restate it here. Tag list API: <https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>.
 2. Other registries (`ghcr.io`, `mcr.microsoft.com`, …): the tag cannot be listed here → ask the user for the tag or the registry's tag page; never guess.
 3. Digest (SHA mode only, or when asked): `docker buildx imagetools inspect <image>:<tag> --format '{{json .Manifest}}'` and read its `digest` (the documented form; the top-level manifest or index digest). `--format '{{json .Manifest.Digest}}'`, used by `write-dockerfile` and `scan-vulnerabilities`, returned the same digest when tested 2026-10-10 but is not in the docs, so use the documented form here. No docker → `Unresolved`. Source: <https://docs.docker.com/reference/cli/docker/buildx/imagetools/inspect/>.
 4. Written form: tag mode `image: <name>:<tag>`; SHA mode `image: <name>:<tag>@sha256:<digest>`.

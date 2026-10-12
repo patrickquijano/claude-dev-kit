@@ -9,7 +9,7 @@ Detection signals, runners, and hook commands per stack. Commands call the runne
 
 ## JavaScript / TypeScript
 
-Signals: `package.json`. Package manager: detected per `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md` (`packageManager` field, else lockfile); the skill passes it to the analyzer.
+Signals: `package.json`. Package manager: detected per `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` (`packageManager` field, else lockfile); the skill passes it to the analyzer.
 
 | Runner     | Kind              | Signal                                             | Command                                                | Warnings                                              |
 | ---------- | ----------------- | -------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- |

@@ -12,7 +12,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Idempotent: check each step's state first and skip what is already done, so re-runs change nothing.
-- Commands call runners directly from `${CLAUDE_SKILL_DIR}/stacks.md`, never `package.json` scripts, Makefile targets, or other repo scripts, so fail-fast and strict-warning flags stay in the hook.
+- Commands call runners directly from `${CLAUDE_SKILL_DIR}/references/stacks.md`, never `package.json` scripts, Makefile targets, or other repo scripts, so fail-fast and strict-warning flags stay in the hook.
 - `${CLAUDE_SKILL_DIR}/assets/run-tests.mjs` is the canonical hook script (standalone ES module, Node builtins only). Copy it byte for byte except the `GROUPS` and `TIMEOUT` constants, so every project behaves the same.
 - The hook runs unit suites only: integration, e2e, and other suites are slow or need services, and a Stop hook would run them after every changed turn. Those suites go only into the project-context note and VS Code tasks, for the user to run.
 - Add only feasible unit suites; a suite that cannot run blocks every turn.
@@ -22,18 +22,18 @@ Input: $ARGUMENTS
 - Never overwrite a user file or edit tests.
 - User interaction (AskUserQuestion) only here; `cdk:test-suite-analyzer` cannot ask, so its `Questions:` are asked here. At most 4 questions per call, 2–4 options each; recommended option first with its reason.
 - Caps: step 3 re-spawns an analyzer at most once; step 12 script-error fix and re-run at most 3 times, then stop. Every question is asked once.
-- Shapes and texts for steps 9–12: `${CLAUDE_SKILL_DIR}/hook-files.md`. Package manager detection: `${CLAUDE_SKILL_DIR}/../setup-husky/package-manager.md`.
+- Shapes and texts for steps 9–12: `${CLAUDE_SKILL_DIR}/references/hook-files.md`. Package manager detection: `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`.
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 13 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Smoke test: blocks`, `Feasible unit: no` reasons, `Existing hook: kept`, feasible suites left unselected).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-test-hook` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Smoke test: blocks`, `Feasible unit: no` reasons, `Existing hook: kept`, feasible suites left unselected).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-test-hook` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
 1. **Pre-flight.** Project dir = `git rev-parse --show-toplevel`, else cwd. `node --version` fails → stop ("install Node.js; the hook script runs on Node"). Not a git repo → continue, and warn in the Output: no change-skip and no cache, so every unit suite runs on every turn and verifies at most one fix round; run `/cdk:setup-git` to enable the skip.
-2. **Packages.** Find every package: manifests from `${CLAUDE_SKILL_DIR}/stacks.md` Signals at the project dir and below (skip `node_modules/`, `vendor/`, `.venv/`, build output). Monorepo (workspaces, `go.work`, Cargo workspace, several manifests) → one package each; else the project dir. Input names package paths → limit to those. JS packages: package manager per package-manager.md Detect; ambiguous → ask here.
-3. **Analyze.** Spawn one `cdk:test-suite-analyzer` per package, all in one message, each with the package path, its package manager (`n/a` for non-JS), and the path `${CLAUDE_SKILL_DIR}/stacks.md`. Ask the user any returned `Questions:`, then re-spawn only those analyzers with the answers (once). `Known issue:` lines → known-issues rule.
+2. **Packages.** Find every package: manifests from `${CLAUDE_SKILL_DIR}/references/stacks.md` Signals at the project dir and below (skip `node_modules/`, `vendor/`, `.venv/`, build output). Monorepo (workspaces, `go.work`, Cargo workspace, several manifests) → one package each; else the project dir. Input names package paths → limit to those. JS packages: package manager per package-manager.md Detect; ambiguous → ask here.
+3. **Analyze.** Spawn one `cdk:test-suite-analyzer` per package, all in one message, each with the package path, its package manager (`n/a` for non-JS), and the path `${CLAUDE_SKILL_DIR}/references/stacks.md`. Ask the user any returned `Questions:`, then re-spawn only those analyzers with the answers (once). `Known issue:` lines → known-issues rule.
 4. **Suites.** Merge every analyzer's suites (all kinds) with their command objects, feasibility, parallel hint, and targeted argument. Names unique across packages (the cache is keyed by name): on a clash prefix the package dir. Every detected suite feeds steps 6, 10, and 11; only feasible unit suites can enter the hook.
 5. **Existing hook.** Read `hooks.Stop` and legacy `hooks.TaskCompleted` in `.claude/settings.json`, `.claude/settings.local.json`, and `~/.claude/settings.json`, plus any script those hooks run. Name the file each found hook lives in. A Stop hook already runs tests → keep it, report it (file and command), and skip steps 6–9 and 12; no question. Only a `TaskCompleted` hook runs tests → AskUserQuestion: Migrate to Stop (Recommended; TaskCompleted fires only when a task-list task completes, so most turns go untested) | Keep it and add Stop | Keep existing. Keep existing → skip steps 6–9 and 12.
 6. **Select.** Print the feasibility table (kind, runner, command, feasible, reason) for every detected suite. No feasible unit suite → skip steps 7–9 and 12. Else select every feasible unit suite, no question.

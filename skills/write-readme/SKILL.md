@@ -12,7 +12,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - User interaction (AskUserQuestion) only here; subagents can't ask.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Never invent facts: license, URLs, versions, contacts, badges. Not derivable → ask; user omits → leave out.
 - Every command in README must exist in repo (scripts, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, author voice. Change only stale, wrong, or missing items.
@@ -20,8 +20,8 @@ Input: $ARGUMENTS
 - Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Never re-ask an omitted item.
 - Score-only never writes; only an explicit Convert to README.md (step 1) answer leaves score-only.
 - Formatter and linter runs prompt for permission; expected.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, the target README only; sources: `Remaining gaps:` scorer deductions).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-readme` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit, the target README only; sources: `Remaining gaps:` scorer deductions).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-readme` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -35,13 +35,13 @@ Input: $ARGUMENTS
    - Archetype: input names one → use it. Else analyzer guess, no question.
    - Each analyzer `Gaps:` item → one question; always include "Omit" option. Order: gaps behind required sections, then license/visibility/contact, then rest.
    - Max 4 per AskUserQuestion; more → second call. Record omitted items as `Omitted:` list.
-4. **Draft.** Read `## Required sections` from `${CLAUDE_SKILL_DIR}/rubric.md`.
+4. **Draft.** Read `## Required sections` from `${CLAUDE_SKILL_DIR}/references/rubric.md`.
    - Create → read `${CLAUDE_SKILL_DIR}/templates/<archetype>.md`. Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then strip it. Drop optional sections with no content.
    - Update → read README. Map to archetype sections. Fix facts `Stale` items, add missing required sections. Keep order unless it breaks structure.
    - Final ≥100 lines → ToC after intro from final H2 list. <100 → no ToC.
    - Print archetype (analyzer Alternatives, if any), outline (headings), and changed/added sections, then write without asking.
 5. **Write** `README.md` at root. Facts `Formatter` not none → run it on README.
-6. **Score.** Facts `Visibility: unknown`, `License: none`, not answered or omitted → AskUserQuestion: Public | Private | Omit; merge answer into facts. Spawn `cdk:readme-scorer` with: README path, rubric path `${CLAUDE_SKILL_DIR}/rubric.md`, archetype, facts block (with answers merged), `Omitted:` list.
+6. **Score.** Facts `Visibility: unknown`, `License: none`, not answered or omitted → AskUserQuestion: Public | Private | Omit; merge answer into facts. Spawn `cdk:readme-scorer` with: README path, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (with answers merged), `Omitted:` list.
 7. **Gate.**
    - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; `Result: done`; go to step 8.
    - Total ≥95 → `Result: done`; go to step 8.

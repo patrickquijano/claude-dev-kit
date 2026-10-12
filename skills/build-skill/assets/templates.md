@@ -27,9 +27,9 @@ Input: $ARGUMENTS
 - <constraint>
 - Reference files: `${CLAUDE_SKILL_DIR}/<file>`.
 - <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`. # only if the skill asks the user or writes files
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`. # only if the skill asks the user or writes files
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -62,9 +62,9 @@ Input: $ARGUMENTS
 - Independent steps → spawn subagents in parallel (one message, many Agent calls).
 - Pass each subagent only needed context; require concise return.
 - <Loop> capped at <n> rounds; then print the Output with `Stopped: <step>: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields and agent returns>). # only if the Output reports findings
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers subagent `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields and agent returns>). # only if the Output reports findings
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers subagent `Known issue:` lines.
 
 ## Workflow
 

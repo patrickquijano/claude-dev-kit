@@ -1,6 +1,6 @@
 # GitHub review conventions
 
-Host section of `cdk:review-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/github.md` `## Pre-flight`. Host-neutral rules: `review.md`. A change request is a pull request; `<n>` is its number.
+Host section of `cdk:review-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/github.md` `## Pre-flight`. Host-neutral rules: `review.md`. A change request is a pull request; `<n>` is its number.
 
 ## Review pre-flight
 

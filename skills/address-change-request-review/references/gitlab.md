@@ -1,6 +1,6 @@
 # GitLab feedback commands
 
-Host section of `cdk:address-change-request-review` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/gitlab.md` (`## Pre-flight`, `## API rules`). Item and state rules: `${CLAUDE_SKILL_DIR}/state.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+Host section of `cdk:address-change-request-review` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` (`## Pre-flight`, `## API rules`). Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
 
 MR API reads, other reads (`glab api projects/<source_project_id>`), and every write stay permission-prompted. Model text goes through scratch files and `--input <file>`.
 

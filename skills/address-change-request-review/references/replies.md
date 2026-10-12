@@ -1,6 +1,6 @@
 # Review reply guide
 
-Bundled standard for `address-change-request-review` (GitHub and GitLab). Comment quality and labels come from `../review-change-request/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
+Bundled standard for `address-change-request-review` (GitHub and GitLab). Comment quality and labels come from `../review-change-request/references/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
 
 ## Dispositions
 

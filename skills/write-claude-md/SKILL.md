@@ -12,9 +12,9 @@ Input: $ARGUMENTS
 ## Rules
 
 - User interaction (AskUserQuestion) only here; subagents can't ask.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
-- Best practices + rubric: `${CLAUDE_SKILL_DIR}/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/template.md`.
-- Engineering principles: apply `${CLAUDE_SKILL_DIR}/principles.md` by default in create and update mode, adapted to facts and repo conventions, so every generated set of memory files carries them (placement: `principles.md` `## Placement`) without the user asking.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Best practices + rubric: `${CLAUDE_SKILL_DIR}/references/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/assets/template.md`.
+- Engineering principles: apply `${CLAUDE_SKILL_DIR}/references/principles.md` by default in create and update mode, adapted to facts and repo conventions, so every generated set of memory files carries them (placement: `principles.md` `## Placement`) without the user asking.
 - Write scope: project `CLAUDE.md` (or `.claude/CLAUDE.md` when that is the existing one) and `.claude/rules/**/*.md`. Never write `CLAUDE.local.md`, `~/.claude/**`, managed policy.
 - Never invent commands, paths, or policies. Not derivable → ask; user omits → leave out, add to `Omitted:`.
 - Update mode: keep correct content and author voice. Move any existing Known issues entries to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove the section; auto memory unavailable → keep the section and report it. Change only stale, wrong, duplicate, conflicting, or missing items.
@@ -22,8 +22,8 @@ Input: $ARGUMENTS
 - Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Never re-ask an omitted item.
 - Score-only never writes.
 - Formatter runs prompt for permission; expected.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, the target memory file and `.claude/rules/**/*.md` only; sources: `Remaining gaps:` scorer deductions).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-claude-md` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit, the target memory file and `.claude/rules/**/*.md` only; sources: `Remaining gaps:` scorer deductions).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-claude-md` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -40,12 +40,12 @@ Input: $ARGUMENTS
    - Each facts `Gaps:` item (architecture, precedence, boundaries, focused changes, done, maintenance) → one question with "Omit" option. Precedence → use the template order, no question.
    - `principles` gap → no question; draft from `principles.md` (step 4 plan lists it). Default requirement with no repo support (e.g. no test runner) → omit and list under `Omitted:`.
    - Max 4 per AskUserQuestion; more → next call. Record omitted items as `Omitted:` list. Nothing to ask → skip.
-4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/template.md`. Update → edit existing files in place. Place each instruction per rubric `## Placement rules`.
+4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/assets/template.md`. Update → edit existing files in place. Place each instruction per rubric `## Placement rules`.
    - Place principles per `principles.md` `## Placement`, using facts `Stack` for path-scoped rules and facts `Patterns` for in-use pattern lines.
    - Always-loaded non-blank lines stay <200; overflow → move component guidance to path-scoped rules.
    - Show file list (new | changed | deleted), outline per file, design trade-off order, dropped and moved items, suggested hooks for hard requirements. Write the edits without asking and print each file's diff. A tracked file to delete → AskUserQuestion: Delete (Recommended) | Keep; Keep → leave the file and mention it in the Output.
 5. **Write** files. Facts `Formatter` not none → run it on written files.
-6. **Score.** Spawn `cdk:claude-md-scorer` with: file paths (target memory file, its `@imports`, every file written in step 5, and every `.claude/rules/**/*.md` from facts `Memory files`, so Z1, P2, and E1 see all files), rubric path `${CLAUDE_SKILL_DIR}/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/principles.md`, facts block (answers merged), `Omitted:` list.
+6. **Score.** Spawn `cdk:claude-md-scorer` with: file paths (target memory file, its `@imports`, every file written in step 5, and every `.claude/rules/**/*.md` from facts `Memory files`, so Z1, P2, and E1 see all files), rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/references/principles.md`, facts block (answers merged), `Omitted:` list.
 7. **Gate.**
    - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; `Result: done`; go to step 8.
    - Total ≥95 → `Result: done`; go to step 8.
