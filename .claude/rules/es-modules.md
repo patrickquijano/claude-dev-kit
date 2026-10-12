@@ -7,7 +7,8 @@ paths:
 
 - Import built-ins with the `node:` specifier.
 - Run commands with `execFileSync` or `spawnSync` and an argument array; never `eval`, `new Function`, or input interpolated into a command. `shell: true` only for Windows `.cmd` shims, with fixed args or args rejected for cmd.exe metacharacters (`"`, `%`, `!`, `^`, CR, LF; see `WIN_UNSAFE` in `hooks/scripts/lib/tools.mjs`). Set an explicit `timeout` on every child process.
-- `JSON.parse` hook stdin inside a `try`, then check its shape and types before use.
+- Parse hook stdin with `readJsonStdin` (throws on empty, invalid, or non-object input); check field types before use.
+- A `catch` skips only a named expected condition (`expected(err, 'ENOENT', …)` or `instanceof SyntaxError`) and rethrows the rest; never a bare `catch {}`. Unexpected errors bubble to the entry script's boundary (`.claude/rules/hooks.md`).
 - Resolve file paths and check they stay inside `CLAUDE_PROJECT_DIR` or the repo root before reading or writing.
 - Never log secrets or env values. No network calls unless they are the module's purpose.
 - Exit codes and output follow `.claude/rules/hooks.md`.

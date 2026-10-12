@@ -17,7 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- The end-of-task commit and Graphify update now run from the `UserPromptSubmit` hook instead of `Stop` hooks, and commit only the files that task changed. The same hook asks before entering plan mode on every prompt and leaves plan mode only for `#noplan`.
+- The end-of-task commit and Graphify update now run from the `UserPromptSubmit` hook instead of `Stop` hooks, and commit only the files that task changed. The same hook asks before entering plan mode on every prompt, with Claude weighing from its context whether to recommend entering or continuing, and leaves plan mode only for `#noplan`.
+- Hooks fail fast: expected conditions (no git repo, missing tool or state file, unwritable temp dir) skip silently, and any other error ends the hook with one `cdk <hook>: <message>` line on stderr instead of being swallowed. The release and validate gates exit 2 on such an error; every other hook and the Husky and `run-tests` copies exit 1.
 - Hook scripts are named after their event (`post-tool-use.mjs`, `stop.mjs`, `pre-tool-use.mjs`, `session-start.mjs`, `user-prompt-submit.mjs`) and their logic and shared helpers moved to `hooks/scripts/lib/`; update any command that vendors or calls the old script paths.
 - Hook runs on Windows reject arguments with `cmd.exe` metacharacters, and `npx` formatters run only when installed or configured.
 - **Breaking:** `cdk:prepare-change-request` no longer switches the source branch for you; it stops and suggests `/cdk:switch-branch`. Review and address skills ask before posting on GitLab, as they already did on GitHub.
