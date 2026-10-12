@@ -96,7 +96,7 @@ Signals: `pom.xml` (Maven), `build.gradle*` (Gradle). `<mvn>` / `<gradle>` = wra
 | Gradle | unit, integration | `test` task, or integration task (`integrationTest`) | `<gradle> <task>` |
 
 - Recommended: unit JUnit 5 through Surefire or the Gradle `test` task; integration Failsafe (`*IT`) or a Gradle `integrationTest` task; e2e the integration runner with a started app (REST Assured for APIs, Playwright for web UIs).
-- Maven `verify` also runs unit tests; pick it instead of `test` when integration is selected, never both.
+- Maven `verify` also runs Surefire unit tests; for a separate integration run use `<mvn> -B failsafe:integration-test failsafe:verify` after a build, and say in the context note when only `verify` is available.
 
 ## Deno
 
