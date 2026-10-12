@@ -1,6 +1,6 @@
 ---
 name: write-integration-tests
-description: Write integration tests for the repo's stack (whole code base unless the input names paths or features). Detects stack, runner, and the boundaries to cover (database, HTTP handlers, queues, file storage, external APIs); picks per dependency a throwaway container, an HTTP stub, or a fake (recommended defaults); every test follows AAA and uses faker values instead of literals, in a suite kept separate from unit tests. Use only when the user explicitly asks to write, add, or implement integration tests, e.g. "add integration tests", "write integration tests for the orders API". Do not use on your own after finishing a task.
+description: Write integration tests for the repo stack, kept apart from unit tests. Pick a throwaway container, stub, or fake per boundary (database, HTTP, queues, storage, external APIs). Use only when the user explicitly asks to write integration tests, e.g. "add integration tests for the orders API". Do not use on your own after finishing a task.
 argument-hint: '[paths | feature description]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(docker info *)
 ---

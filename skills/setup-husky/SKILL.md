@@ -1,6 +1,6 @@
 ---
 name: setup-husky
-description: Install and configure Husky Git hooks in the current project. Detect the package manager, create package.json if missing, install husky and commitlint, run the commit message (Conventional Commits, header max 72 characters) and signed-commit checks on the recommended hook events, add cross-platform Node hooks for them, write Conventional Commits rules to .claude/rules/commits.md, keep hook files LF in .gitattributes, and add Husky paths to git, linter, formatter, npm, and Docker ignores. The signed-commit pre-check stops the skill until signing is configured (run cdk:setup-git first). Use only when the user explicitly asks to set up, install, add, or configure Husky, Git hooks, commit message checks, or signed-commit checks, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Install and configure Husky Git hooks. Add cross-platform Node hooks for Conventional Commits (header max 72 characters) and signed-commit checks. Stops until signing is configured (run cdk:setup-git first). Use only when the user explicitly asks to set up Husky or Git hooks, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
 allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v *)
 ---
 

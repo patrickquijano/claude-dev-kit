@@ -1,6 +1,6 @@
 ---
 name: write-unit-tests
-description: Write unit tests for the repo's stack until a target coverage is met (default 90%, whole code base unless the input names paths or features). Detects stack, runner, coverage tool, and faker library; every test follows AAA, uses faker values instead of literals, and each public function or method gets at least 2 positive and 2 negative cases; no integration in unit tests. Use only when the user explicitly asks to write, add, or implement unit tests or raise unit test coverage, e.g. "add unit tests", "write unit tests for src/auth", "get coverage to 85%". Do not use on your own after finishing a task.
+description: Write unit tests until a target coverage is met (default 90%). Every public function gets at least 2 positive and 2 negative AAA cases with faker values. Use only when the user explicitly asks to write unit tests or raise coverage, e.g. "write unit tests for src/auth". Do not use on your own after finishing a task.
 argument-hint: '[target coverage %] [paths | feature description]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *)
 ---

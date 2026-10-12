@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Set the plugin or package version in every version file named by the repo's release policy (.claude/release-policy.json) to the Semantic Versioning value its branch commits require (breaking = major, feat = minor, otherwise patch) relative to the target branch tip, then runs cdk:write-changelog when the repo has a changelog. A bump is only for an upcoming PR or MR and is never assumed: it always asks the user to confirm first (`confirmed` skips the question only for the release gate, which asks itself). Idempotent; edits files only. Use only when the user explicitly asks to bump the version, or when chained by the PR and MR skills' release gate or by cdk:ship-release, e.g. "bump the version", "update the plugin version for this PR".
+description: Set the version in every file named by .claude/release-policy.json to the SemVer value the branch commits require, then run cdk:write-changelog when a changelog exists. Always asks the user to confirm first. Use only when the user explicitly asks to bump the version, or when chained by the release gate or cdk:ship-release. Do not use on your own after finishing a task.
 argument-hint: '[target <branch>] [subject <path>] [confirmed]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs *) Bash(git rev-parse *)
 ---

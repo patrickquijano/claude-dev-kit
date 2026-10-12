@@ -1,6 +1,6 @@
 ---
 name: write-github-workflows
-description: Create or update modular GitHub Actions workflows from requirements, researched against GitHub's docs and the repo's own conventions. One orchestration workflow holds the triggers and calls one reusable `workflow_call` file per job, with least-privilege permissions, POSIX sh scripts, timeouts, concurrency, caching, artifacts, and always-run cleanup, and action, runner, and image versions resolved fresh each run. Use only when the user explicitly asks to write, create, add, update, or modularize GitHub Actions workflows or a CI/CD pipeline, e.g. "add a CI workflow", "set up GitHub Actions for this repo", "split my workflow into reusable workflows". Do not use on your own after finishing a task.
+description: Create or update modular GitHub Actions workflows: one orchestration workflow calls one reusable workflow per job, with least-privilege permissions, timeouts, caching, and freshly resolved action versions. Use only when the user explicitly asks to write or modularize GitHub Actions workflows, e.g. "add a CI workflow". Do not use on your own after finishing a task.
 argument-hint: '<requirements | workflow path>'
 allowed-tools: Bash(git rev-parse *) WebFetch(domain:docs.github.com) WebFetch(domain:github.com) WebFetch(domain:securitylab.github.com)
 ---

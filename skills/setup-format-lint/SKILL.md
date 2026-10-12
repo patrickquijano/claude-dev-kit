@@ -1,6 +1,6 @@
 ---
 name: setup-format-lint
-description: Set up formatters and linters for the file types in the current repository. Detect file types (JS/TS, JSON, CSS/SCSS/Less, HTML, Markdown, YAML, Dockerfile, Shell, Python, PHP, C#, Go, XML), pick one formatter and one or more linters per type (dedicated tool first, Prettier as fallback; ask when more than one linter fits), install missing tools, write missing configs with recommended defaults per tool, and add ignore paths. Use only when the user explicitly asks to set up, install, add, or configure formatters, linters, Prettier, ESLint, Stylelint, markdownlint, HTMLHint, yamlfmt, yamllint, hadolint, shfmt, ShellCheck, Ruff, Black, Flake8, xmllint, Pint, PHP-CS-Fixer, PHPStan, PHP_CodeSniffer, CSharpier, dotnet format, or code style tooling, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Set up formatters and linters for the repository file types. Pick one formatter and one or more linters per type, install missing tools, write missing configs, and add ignore paths. Use only when the user explicitly asks to set up formatters, linters, Prettier, or ESLint, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
 allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 ---
 

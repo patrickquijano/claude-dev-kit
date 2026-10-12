@@ -1,6 +1,6 @@
 ---
 name: run-spec-kit
-description: Run the full GitHub Spec Kit cycle from one feature brief. Split the brief into guiding principles, what and why, and implementation detail, then chain the speckit skills (constitution, specify, clarify, plan, checklist, tasks, analyze, implement, converge) without a gate before implementation, then address unchecked checklist items, open findings, and other open items over up to 5 rounds. Use only when the user explicitly asks to build or implement a feature with Spec Kit or to run the whole spec-driven development cycle, or when assess-spec-kit-idea hands off a go verdict. Do not use on your own after finishing a task.
+description: Run the full GitHub Spec Kit cycle from one feature brief: chain the speckit skills from constitution through implement and converge, then resolve open items over up to 5 rounds. Use only when the user explicitly asks to build a feature with Spec Kit, or when assess-spec-kit-idea hands off a go verdict. Do not use on your own after finishing a task.
 argument-hint: '<feature brief>'
 ---
 

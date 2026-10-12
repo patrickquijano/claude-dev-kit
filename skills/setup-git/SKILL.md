@@ -1,6 +1,6 @@
 ---
 name: setup-git
-description: Set up a git repository for signed, verified commits and a complete .gitignore. Initialize the repo, configure identity and SSH or OpenPGP commit signing in local config, validate and repair existing identity and signing settings until they are consistent, smoke-test a signature, and add stack, secret, OS, and editor ignores, applying recommended defaults and asking only for identity, signing key or format conflicts, allowed signers location, untracking, and the repo root when it is not the current directory. Use only when the user explicitly asks to set up, initialize, or configure git, git identity, commit or tag signing, SSH or GPG signing, verified commits, or .gitignore, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Set up a git repository for signed, verified commits and a complete .gitignore. Configure identity and SSH or OpenPGP signing in local config, repair inconsistent settings, and smoke-test a signature. Use only when the user explicitly asks to set up git, commit signing, or .gitignore, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
 allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *) Bash(git config --local --get *) Bash(git log -1 *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git cat-file *) Bash(ssh-add -L) Bash(ssh-keygen -l -f *.pub) Bash(gpg --list-secret-keys *) Bash(command -v *)
 ---
 

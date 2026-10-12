@@ -1,6 +1,6 @@
 ---
 name: setup-devcontainer
-description: Set up or update a Dev Container (.devcontainer/devcontainer.json, Codespaces config) for the current repository. Detect stacks, versions, ports, and the services the code uses, ask which databases, caches, queues, or dev tools to add and whether to include Claude Code and its firewall, derive the image, Dockerfile, or Docker Compose approach, write pinned config, and verify with devcontainer read-configuration. Use only when the user explicitly asks to set up, create, add, or update a devcontainer, dev container, devcontainer.json, or Codespaces config. Do not use on your own after finishing a task.
+description: Set up or update a Dev Container (.devcontainer/devcontainer.json, Codespaces config). Detect stacks, versions, ports, and services, ask which databases and tools to add, write pinned config, and verify it. Use only when the user explicitly asks to set up or update a devcontainer or Codespaces config. Do not use on your own after finishing a task.
 argument-hint: '[stack, services, or notes]'
 allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(devcontainer read-configuration *) Bash(docker compose -f * config --quiet) WebFetch(domain:hub.docker.com) WebFetch(domain:mcr.microsoft.com) WebFetch(domain:raw.githubusercontent.com) WebFetch(domain:marketplace.visualstudio.com)
 ---

@@ -1,6 +1,6 @@
 ---
 name: setup-permissions
-description: Configure user-scoped Claude Code allow, ask, and deny permission rules for the commands this repository uses and the MCP tools the session lists. Classify commands and tools as allow (safe), ask (recoverable-destructive), or deny (host-harming, privileged), and merge them safely into the user settings file. Use only when the user explicitly asks to set up, configure, add, or tidy Claude Code permissions, allow, ask, or deny rules, or fewer permission prompts, e.g. "set up my permissions", "add allow rules for this repo", "deny sudo in Claude Code". Do not use on your own after finishing a task.
+description: Configure user-scoped Claude Code allow, ask, and deny permission rules for the commands this repository uses and the MCP tools the session lists, merged safely into the user settings file. Use only when the user explicitly asks to set up Claude Code permissions or reduce permission prompts, e.g. "set up my permissions". Do not use on your own after finishing a task.
 argument-hint: '[optional extra commands or notes]'
 allowed-tools: Bash(git rev-parse *) Bash(printenv CLAUDE_CONFIG_DIR) Bash(printenv OS) Bash(uname) Bash(jq empty *) Bash(claude mcp list)
 ---
