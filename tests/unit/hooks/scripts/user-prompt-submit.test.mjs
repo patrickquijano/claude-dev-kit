@@ -9,7 +9,7 @@ const wrap = (additionalContext, extra = {}) => ({
 
 test('merge puts the plan-mode context before the end-of-task context', () => {
   // Arrange
-  const plan = wrap('PLAN', { systemMessage: 'Plan mode: suggesting (x)' });
+  const plan = wrap('PLAN', { systemMessage: 'Plan mode: asking (x)' });
   const task = wrap('TASK');
   // Act
   const result = merge(plan, task);

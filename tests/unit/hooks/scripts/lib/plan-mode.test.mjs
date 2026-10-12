@@ -19,7 +19,7 @@ test('classify: a plain prompt asks', () => {
   // Act
   const result = classify(prompt);
   // Assert
-  assert.deepEqual(result, { result: 'plan', rule: 'every prompt' });
+  assert.deepEqual(result, { result: 'plan', rule: 'context' });
 });
 
 test('classify: a question asks', () => {
@@ -28,7 +28,7 @@ test('classify: a question asks', () => {
   // Act
   const result = classify(prompt);
   // Assert
-  assert.deepEqual(result, { result: 'plan', rule: 'every prompt' });
+  assert.deepEqual(result, { result: 'plan', rule: 'context' });
 });
 
 test('classify: #noplan does not ask', () => {
@@ -121,7 +121,7 @@ for (const prompt of ['fix typo', 'What does X do?']) {
     // Act
     const result = decide(event);
     // Assert
-    assert.deepEqual(result, { action: 'enter', rule: 'every prompt' });
+    assert.deepEqual(result, { action: 'enter', rule: 'context' });
   });
 }
 
@@ -165,17 +165,42 @@ test('decide: ignores an unknown permission mode', () => {
   assert.deepEqual(result, { action: 'none' });
 });
 
-test('output: asks Claude to call EnterPlanMode on enter', () => {
+test('output: asks Claude to weigh the context and recommend an option', () => {
   // Arrange
-  const decision = { action: 'enter', rule: 'long change request' };
+  const decision = { action: 'enter', rule: 'context' };
   // Act
   const out = output(decision);
   // Assert
-  assert.equal(out.systemMessage, 'Plan mode: suggesting (long change request)');
+  const ctx = out.hookSpecificOutput.additionalContext;
+  assert.equal(out.systemMessage, 'Plan mode: asking (context)');
   assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
-  assert.match(out.hookSpecificOutput.additionalContext, /AskUserQuestion/);
-  assert.match(out.hookSpecificOutput.additionalContext, /EnterPlanMode/);
-  assert.match(out.hookSpecificOutput.additionalContext, /long change request/);
+  assert.match(ctx, /AskUserQuestion/);
+  assert.match(ctx, /weigh this prompt against everything in your context/);
+  assert.match(ctx, /\(Recommended\)/);
+  assert.match(ctx, /Lean Enter/);
+  assert.match(ctx, /Lean Continue/);
+  assert.match(ctx, /EnterPlanMode/);
+});
+
+test('output: #plan recommends entering without weighing', () => {
+  // Arrange
+  const decision = { action: 'enter', rule: 'override #plan' };
+  // Act
+  const out = output(decision);
+  // Assert
+  const ctx = out.hookSpecificOutput.additionalContext;
+  assert.equal(out.systemMessage, 'Plan mode: asking (override #plan)');
+  assert.match(ctx, /"Enter plan mode \(Recommended\)" first/);
+  assert.doesNotMatch(ctx, /Lean Continue/);
+});
+
+test('output: the enter ask never hard-codes the recommendation for the context rule', () => {
+  // Arrange
+  const decision = { action: 'enter', rule: 'context' };
+  // Act
+  const out = output(decision);
+  // Assert
+  assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /"Enter plan mode \(Recommended\)"/);
 });
 
 test('output: asks Claude to call ExitPlanMode on exit', () => {
