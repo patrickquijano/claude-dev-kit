@@ -1,6 +1,6 @@
 # Test conventions
 
-Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and their `test-gap-analyzer` agent. Runner detection per stack lives in the sibling skill file `setup-test-hook/references/stacks.md`; JavaScript package managers in `setup-husky/references/package-manager.md`. `<x>`, `<py>`, `<mvn>`, `<gradle>` below follow stacks.md.
+Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and their `test-gap-analyzer` agent. Runner detection per stack lives in the sibling skill file `setup-testing/references/stacks.md`; JavaScript package managers in `setup-husky/references/package-manager.md`. `<x>`, `<py>`, `<mvn>`, `<gradle>` below follow stacks.md.
 
 ## Shared rules
 
@@ -8,7 +8,7 @@ Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and 
 - Faker: generate every input with the stack's faker library (table below), never hand-typed literals, so tests do not pass by coincidence of one value. Seed faker once per test file or run (fixed seed, or a logged random seed) so a failure reproduces. Expected values derive from the generated inputs. Literals stay only where the value is the behavior under test: boundaries (`0`, empty string, `null`, max length), enum members, error codes, HTTP status codes.
 - Never edit production code. A test that fails because the code looks wrong → report the evidence (input, expected, actual, `file:line`) and keep the failing test, listing the suspected bug in the Output. Tests must never bend to a bug; a test kept failing leaves the pass loops.
 - Match the project: existing test location, file naming, runner, assertion style, helpers, and fixtures win over the defaults here. No tests yet → the runner's documented default layout.
-- Missing tooling (runner, coverage provider, faker library, e2e framework, browsers, containers) → AskUserQuestion per tool, each option naming its effect ("Install `@faker-js/faker` as dev dependency"): stack-standard option first (Recommended) with its reason, alternatives, Stop. Install only the picked tool, as a dev dependency (package-manager.md Add dev dependency for JS; the stack's own form otherwise). Never install unasked.
+- Missing tooling (runner, coverage provider, faker library, e2e framework, browsers, containers) → chain `cdk:setup-testing <kind> <package>` (orchestration.md): it asks per tool (stack-standard option Recommended, alternatives, Stop), installs only the picked tool as a dev dependency, and configures it. Never install unasked.
 - Decisions with more than one fitting answer (runner, mock library, layout, data strategy) → take the Recommended pick, no question, and report each pick with its reason in the Output. Derivable from the repo → use it.
 - Best practices: apply the kind's section below, then WebFetch the detected runner's official docs (Official docs list, else the runner's own site from its manifest `homepage`) for runner-specific rules. WebFetch unavailable or failing → bundled sections only; say so in the Output.
 - Independent and order-free: no test depends on another test's state or run order; each cleans up what it creates.
@@ -85,7 +85,7 @@ Code the test skills write or touch follows this checklist (target projects lack
 - Scope: two or more real components together, across a boundary the project owns: database repositories, HTTP handlers through the framework, message consumers, file storage, module wiring.
 - Dependency per boundary, Recommended pick taken without asking and reported: owned infrastructure (database, cache, queue) → real throwaway service (Testcontainers or `docker compose`) (Recommended; matches production behavior); third-party API → HTTP stub (MSW, WireMock, respx, nock) (Recommended; no live calls, no cost, no flake); in-memory fake → when Docker is unavailable.
 - Isolated data: faker-generated unique keys per test; reset by transaction rollback, truncate, or fresh container, so parallel and repeated runs never collide.
-- Separate suite from unit: own directory, config, marker, or build tag (stacks.md splits), so unit runs and the unit Stop hook stay fast.
+- Separate suite from unit: own directory, config, marker, or build tag (stacks.md splits), so unit runs stay fast.
 - Assert observable outcomes at the boundary (stored row, HTTP response, published message), not internals.
 - Never hit production or shared environments.
 - JS/TS ES modules: integration tests go in `tests/integration/` at the mirrored source path, apart from `tests/unit/`; each uses temp dirs it removes afterwards, and never touches the network.

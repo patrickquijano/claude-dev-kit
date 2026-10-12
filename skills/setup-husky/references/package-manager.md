@@ -1,6 +1,6 @@
 # Package Manager
 
-Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, `setup-test-hook` (and its `test-suite-analyzer` agent), and the `write-*-tests` skills (and their `test-gap-analyzer` agent). `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
+Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, `setup-testing`, and the `write-*-tests` skills (and their `test-gap-analyzer` agent). `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
 
 ## Package dir
 
@@ -11,7 +11,7 @@ For skills that install repo tooling into one package (Husky, formatters, linter
 - None → git root.
 - `<pkg>` = package dir relative to the git root (`.` at the root).
 
-Test suites are per package instead: each package with its own `package.json` is a suite `cwd` (`setup-test-hook` step 2).
+Test suites are per package instead: each package with its own `package.json` is a suite `cwd` (`setup-testing` step 1).
 
 ## Detect
 
