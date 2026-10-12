@@ -23,7 +23,7 @@ Signals: `package.json`. Package manager: detected per `setup-husky/references/p
 | TypeScript | other             | `typescript` dep, `tsconfig.json`                  | `<x> tsc --noEmit`    |
 
 - Recommended: unit Vitest (Vite project or TypeScript/ESM; Jest when the project is React Native or already Babel-Jest based); integration the same runner as a separate Vitest project or config (`vitest.integration.config.*`); e2e Playwright (`@playwright/test`).
-- Integration split: a separate config or project (for example `vitest.integration.config.*`, Jest `projects`) → its own suite with `--config <file>` or `--project <name>`.
+- Integration split: a separate config or project (for example `vitest.integration.config.*`, Jest `projects`) → its own suite with `--config <file>`, Vitest `--project <name>`, or Jest `--selectProjects <displayName>` (each Jest project needs a `displayName`).
 - Playwright needs installed browsers (`<x> playwright install`); a `webServer` block starts the app itself.
 - Cypress needs a running app unless the project starts one.
 
