@@ -4,7 +4,7 @@ import { classify, decide, output } from '../../../../hooks/scripts/plan-mode.mj
 
 const BIG = 'Implement X across multiple files\n- a\n- b\n- c';
 
-test('classify: #plan overrides a small request', () => {
+test('classify: #plan asks', () => {
   // Arrange
   const prompt = 'fix typo #plan';
   // Act
@@ -13,34 +13,25 @@ test('classify: #plan overrides a small request', () => {
   assert.deepEqual(result, { result: 'plan', rule: 'override #plan' });
 });
 
-test('classify: a change with 3+ list items needs a plan', () => {
+test('classify: a plain prompt asks', () => {
   // Arrange
-  const prompt = BIG;
+  const prompt = 'Add a flag';
   // Act
   const result = classify(prompt);
   // Assert
-  assert.deepEqual(result, { result: 'plan', rule: 'change with 3+ list items' });
+  assert.deepEqual(result, { result: 'plan', rule: 'every prompt' });
 });
 
-test('classify: a long change request needs a plan', () => {
+test('classify: a question asks', () => {
   // Arrange
-  const prompt = `Add ${'x '.repeat(300)}`;
+  const prompt = 'What does stop.mjs do?';
   // Act
   const result = classify(prompt);
   // Assert
-  assert.equal(result.rule, 'long change request');
+  assert.deepEqual(result, { result: 'plan', rule: 'every prompt' });
 });
 
-test('classify: a change with broad scope needs a plan', () => {
-  // Arrange
-  const prompt = 'Refactor the hooks architecture';
-  // Act
-  const result = classify(prompt);
-  // Assert
-  assert.equal(result.rule, 'change with broad scope');
-});
-
-test('classify: #noplan overrides a large change', () => {
+test('classify: #noplan does not ask', () => {
   // Arrange
   const prompt = 'Implement a feature across multiple files #noplan';
   // Act
@@ -49,31 +40,13 @@ test('classify: #noplan overrides a large change', () => {
   assert.deepEqual(result, { result: 'noplan', rule: 'override #noplan' });
 });
 
-test('classify: a question needs no plan', () => {
+test('classify: #noplan wins over a large change', () => {
   // Arrange
-  const prompt = 'What does stop.mjs do?';
+  const prompt = `${BIG} #noplan`;
   // Act
   const result = classify(prompt);
   // Assert
-  assert.deepEqual(result, { result: 'noplan', rule: 'question' });
-});
-
-test('classify: a question word with a long list is a small request', () => {
-  // Arrange
-  const prompt = 'How to do it\n- a\n- b\n- c';
-  // Act
-  const result = classify(prompt);
-  // Assert
-  assert.equal(result.rule, 'small request');
-});
-
-test('classify: a short change without scope needs no plan', () => {
-  // Arrange
-  const prompt = 'Add a flag';
-  // Act
-  const result = classify(prompt);
-  // Assert
-  assert.deepEqual(result, { result: 'noplan', rule: 'small request' });
+  assert.equal(result.result, 'noplan');
 });
 
 for (const permission_mode of ['default', 'acceptEdits', 'auto']) {
@@ -141,14 +114,27 @@ test('decide: stays in plan mode for a broad change', () => {
   assert.equal(result.action, 'none');
 });
 
-test('decide: does nothing for a small request in default mode', () => {
-  // Arrange
-  const event = { permission_mode: 'default', prompt: 'fix typo' };
-  // Act
-  const result = decide(event);
-  // Assert
-  assert.equal(result.action, 'none');
-});
+for (const prompt of ['fix typo', 'What does X do?']) {
+  test(`decide: enters plan mode in default mode for "${prompt}"`, () => {
+    // Arrange
+    const event = { permission_mode: 'default', prompt };
+    // Act
+    const result = decide(event);
+    // Assert
+    assert.deepEqual(result, { action: 'enter', rule: 'every prompt' });
+  });
+}
+
+for (const prompt of ['<task-notification>\n<task-id>a1</task-id>', '<agent-message from="a1">\nhi']) {
+  test(`decide: ignores the machine-started prompt ${prompt.slice(0, 18)}`, () => {
+    // Arrange
+    const event = { permission_mode: 'default', prompt };
+    // Act
+    const result = decide(event);
+    // Assert
+    assert.deepEqual(result, { action: 'none' });
+  });
+}
 
 for (const prompt of ['/compact', '!ls']) {
   test(`decide: ignores the command prompt ${prompt}`, () => {
@@ -205,7 +191,7 @@ test('output: asks Claude to call ExitPlanMode on exit', () => {
 
 test('output: prints nothing for action none', () => {
   // Arrange
-  const decision = { action: 'none', rule: 'small request' };
+  const decision = { action: 'none', rule: 'override #noplan' };
   // Act
   const out = output(decision);
   // Assert

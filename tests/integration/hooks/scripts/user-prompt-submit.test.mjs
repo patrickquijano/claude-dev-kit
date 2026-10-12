@@ -71,17 +71,17 @@ test('cli: the ship-release marker removes the commit part', () => {
   const r = run(d, prompt);
   // Assert
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, '');
+  assert.doesNotMatch(r.stdout, /cdk:commit-changes/);
 });
 
-test('cli: a non-git directory prints nothing', () => {
+test('cli: a non-git directory prints no commit step', () => {
   // Arrange
   const d = dir('te-none-');
   // Act
   const r = run(d, prompt);
   // Assert
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, '');
+  assert.doesNotMatch(r.stdout, /cdk:commit-changes/);
 });
 
 test('cli: a slash-command prompt prints nothing', () => {
@@ -103,14 +103,27 @@ test('cli: invalid JSON prints nothing and exits 0', () => {
   assert.equal(r.stdout, '');
 });
 
-test('cli: a question in default mode prints nothing', () => {
+test('cli: a question in default mode asks about plan mode', () => {
   // Arrange
   const d = repo();
   // Act
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: 'What does X do?' }));
   // Assert
+  const out = JSON.parse(r.stdout);
+  assert.match(out.systemMessage, /^Plan mode: suggesting \(every prompt\)/);
+});
+
+test('cli: a task-notification prompt asks nothing', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(
+    d,
+    JSON.stringify({ permission_mode: 'default', prompt: '<task-notification>\n<task-id>a1</task-id>' })
+  );
+  // Assert
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, '');
+  assert.doesNotMatch(r.stdout, /AskUserQuestion/);
 });
 
 test('cli: a question in plan mode prints nothing', () => {
