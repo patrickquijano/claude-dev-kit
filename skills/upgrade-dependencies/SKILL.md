@@ -24,7 +24,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Breaking changes come from the package's official changelog, release notes, or migration guide, never from memory. None found → say so in the plan and treat the major upgrade as high risk.
 - One package (or one tightly coupled set, like `react` + `react-dom`) per upgrade step, validated before the next, so a failure points at one cause. Exception: patch and minor upgrades go as one batch; a batch failure → split it and retry package by package.
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
-- Never commit, push, or change files outside the repo. The user commits (e.g. `/cdk:commit-changes`).
+- Never commit, push, or change files outside the repo. This skill never commits; the end-of-task hook does.
 - Loops: fix rounds per failing check (step 9) max 3, then revert that package and continue.
 - Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 11 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
@@ -56,7 +56,7 @@ Code and config changes: <file — change>, …
 Checks: <command: pass | fail | fail (baseline)>, …
 Reverted: <package: reason> | none
 Leftovers: <file: item>, … | none
-Next: review the diff, then commit (e.g. /cdk:commit-changes)
+Next: review the diff
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
