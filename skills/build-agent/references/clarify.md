@@ -1,0 +1,5 @@
+# Clarify
+
+Details step 3 of `${CLAUDE_SKILL_DIR}/SKILL.md`.
+
+Fill every item: location (create: infer when clear, plugin root → plugin, an existing scope that holds the spawning skill or sibling agents; ask personal | project | plugin otherwise; update: from the found path), name, description, task steps, tools, model, return shape, read-only or the exact writes, spawning skill (update: search `<root>/skills/*/SKILL.md` for the agent name; create: ask, or none), parallel-safe. Optional fields only when the task signals them, per practices `## Frontmatter`. Plugin location with a need for `hooks`, `mcpServers`, `permissionMode`, or `initialPrompt` → say plugin agents ignore them and offer personal or project instead. Spawning skill named → always edit its spawn step (inputs passed, Return fields used) in the same change. Missing or ambiguous → AskUserQuestion (≤4 per batch); each batch's first question also offers Stop. Repeat until complete, max 3 rounds. Stop → end, `Result: cancelled`.

@@ -8,6 +8,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: a type already configured (step 3) keeps its settings, so re-runs write nothing new.
 - No questions: apply the `defaults.md` defaults.
 - Defaults, globs, and reasons: `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`), so EditorConfig cores and plugins recognize them.
@@ -21,16 +22,16 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 ## Workflow
 
-1. **Pre-flight.** `git rev-parse --show-toplevel` fails → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
-2. **File types.** List files with `git ls-files` plus `git ls-files --others --exclude-standard`, so ignored files never count. Map each to a `defaults.md` type by extension or file name; count files per type. Types with no catalog entry, and extensionless scripts (EditorConfig matches names, not shebangs) → `uncovered`; the `[*]` base applies to them.
+1. **Pre-flight.** `repo-root` fails → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
+2. **File types.** List files with `tracked-files` plus `untracked-files`, so ignored files never count. Map each to a `defaults.md` type by extension or file name; count files per type. Types with no catalog entry, and extensionless scripts (EditorConfig matches names, not shebangs) → `uncovered`; the `[*]` base applies to them.
 3. **Existing config.** Read root `.editorconfig`. A type is configured when a section glob without a path separator matches its extensions or file names (for example `[*.{js,ts}]` matches `.ts`). Catch-all sections (`[*]`, `[**]`) and path-scoped globs (`[src/**.php]`) do not count. Note nested `.editorconfig` files from step 2 in the Output; they override the root for their directory.
 4. **Initialize.** No questions; apply what is missing:
    - File missing → write `root = true` and the `defaults.md` base `[*]` (every file UTF-8, LF, newline-terminated).
    - File exists without a `[*]` section → insert the `defaults.md` base per the Rules exception.
    - File exists without `root = true` in its preamble (match key and value case-insensitively, any spacing) → insert it as the first line, because parent-directory configs would otherwise apply.
 5. **Choose per type.** Base = the file's actual `[*]` after step 4. Unconfigured detected types whose properties differ from that base → group types with identical properties (for example PHP, Python, and .NET at 4 spaces) and write the `defaults.md` properties for each group. Types whose properties equal the base → no section.
-6. **Write.** Append one section per step 5 group, preceded by a blank line and a `# <Types>` comment. Write every property from `defaults.md` for the group, including `indent_style` and `indent_size`, so the section does not depend on `[*]`. Glob: use each type's full catalog patterns; one pattern → as is (`[*.php]`); several → one top-level brace list (`[{*.sh,*.bash,Makefile,*.mk}]`), because braces around one item are literal and nested braces mixing names and extensions are hard to read. Keep the file LF-terminated.
-7. **Check.** Checker = `editorconfig-checker` when `command -v` finds it; else `ec` only when `ec -version` exits 0 and prints just a version number (the editorconfig-checker binary; another tool named `ec` fails this). Found → run it once from the git root (no writes) and count problems. Else skip. Never auto-fix; existing files keep their style until re-saved or formatted.
+6. **Write.** Append one section per step 5 group, preceded by a blank line and a `# <Types>` comment, with every `defaults.md` property for the group. Detail: `${CLAUDE_SKILL_DIR}/references/write.md`.
+7. **Check.** `checker` when `tool-check` finds it, else `checker-ec` under the `ec-version` test; found → run it once from the git root (no writes) and count problems, else skip. Never auto-fix. Detail: `${CLAUDE_SKILL_DIR}/references/check.md`.
 8. **Resolve findings.** Per resolve-findings.md. Fix only sections this run wrote. Style problems in existing files stay `needs-decision` (step 7: never auto-fixed).
 9. **Report** the output below, plus the editor note: VS Code needs the EditorConfig for VS Code extension; JetBrains IDEs and Visual Studio support EditorConfig natively.
 
