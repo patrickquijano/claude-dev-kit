@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; subagents can't ask.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Never invent facts: license, URLs, versions, contacts, badges. Not derivable → ask; user omits → leave out.
@@ -25,10 +26,10 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `git rev-parse --show-toplevel`; fail → cwd. Find `README*` at root, case-insensitive.
-   - Input `score` or request is score/review/audit only → score-only: steps 2, 6, 7, 8, skip the mode bullets below; archetype = input's, else analyzer guess, no question. No README.md → tell user score-only needs README.md. Only non-`.md` README (`README`, `README.rst`, …) → AskUserQuestion: Convert to README.md (Recommended) | Stop; Stop → end, `Result: nothing-to-do`; Convert → leave score-only; continue as the Convert bullet below without re-asking. No README at all → report it, suggest create mode, end with `Result: nothing-to-do`.
+1. **Pre-flight.** Root = `repo-root`; fail → cwd. Find `README*` at root, case-insensitive.
+   - Input `score` or request is score/review/audit only → score-only: steps 2, 6, 7, 8. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
    - `README.md` found → update mode.
-   - Only non-`.md` README (`README`, `README.rst`, …) → AskUserQuestion: Convert to README.md (Recommended) | Leave it, stop. Leave it, stop → end, `Result: nothing-to-do`. Convert → update mode on its content converted to Markdown; keep the old file and mention it in the Output.
+   - Only non-`.md` README → AskUserQuestion Convert or leave. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
    - None → create mode.
 2. **Analyze.** Spawn `cdk:readme-analyzer` with root. Keep facts block for steps 3, 4, 6.
 3. **Clarify.** Nothing to ask → skip.
@@ -36,7 +37,7 @@ Input: $ARGUMENTS
    - Each analyzer `Gaps:` item → one question; always include "Omit" option. Order: gaps behind required sections, then license/visibility/contact, then rest.
    - Max 4 per AskUserQuestion; more → second call. Record omitted items as `Omitted:` list.
 4. **Draft.** Read `## Required sections` from `${CLAUDE_SKILL_DIR}/references/rubric.md`.
-   - Create → read `${CLAUDE_SKILL_DIR}/templates/<archetype>.md`. Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then strip it. Drop optional sections with no content.
+   - Create → read `${CLAUDE_SKILL_DIR}/assets/templates/<archetype>.md`. Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then strip it. Drop optional sections with no content.
    - Update → read README. Map to archetype sections. Fix facts `Stale` items, add missing required sections. Keep order unless it breaks structure.
    - Final ≥100 lines → ToC after intro from final H2 list. <100 → no ToC.
    - Print archetype (analyzer Alternatives, if any), outline (headings), and changed/added sections, then write without asking.
@@ -46,7 +47,7 @@ Input: $ARGUMENTS
    - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; `Result: done`; go to step 8.
    - Total ≥95 → `Result: done`; go to step 8.
    - <95 and rounds = 3 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`; go to step 8 with the remaining gaps.
-   - <95 and rounds < 3 → show deductions table (criterion, lost pts, fix), then improve without asking: rounds + 1; apply fixes; fix needs non-derivable fact not omitted → ask first. Write + format (step 5), back to step 6.
+   - <95 and rounds < 3 → show deductions table, then improve without asking. Detail: `${CLAUDE_SKILL_DIR}/references/improve.md`.
 8. **Resolve findings.** Per resolve-findings.md. Itemize each `Remaining gaps:` deduction (criterion, lost pts, scorer fix as Recommended fix); the step never re-enters the improve loop. Score-only → report and ask only (writes nothing). Then print the Output.
 
 ## Output

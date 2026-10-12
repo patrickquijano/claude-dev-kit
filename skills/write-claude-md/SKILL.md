@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; subagents can't ask.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Best practices + rubric: `${CLAUDE_SKILL_DIR}/references/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/assets/template.md`.
@@ -27,19 +28,14 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `git rev-parse --show-toplevel`; fail → cwd.
+1. **Pre-flight.** Root = `repo-root`; fail → cwd.
    - `CLAUDE.md` or `.claude/CLAUDE.md` exists → update mode. Both exist → AskUserQuestion which to keep as target.
    - None → create mode, target `CLAUDE.md`. Existing `.claude/rules/` files → edit in place, never re-template.
    - Input `score` or request is score/audit only → score-only: steps 2, 6, 7, 8. No target file → report it, suggest create mode, end with `Result: nothing-to-do`.
    - Split input: existing file paths → `Input files:`; rest → `Input text:`.
 2. **Analyze.** Spawn `cdk:claude-md-analyzer` with root, `Target:`, `Input files:`, `Input text:`. Keep facts block.
 3. **Combine.** Merge input + existing instructions per facts `Instructions`.
-   - `derivable` → drop. `duplicate` → keep copy in file placement rules assign, drop others. List dropped items for step 4.
-   - `stale` → fix from facts `Commands`/paths; no match → ask. `vague` → rewrite from facts; else ask with "Omit" option.
-   - Each facts `Conflicts:` item → one question: keep A | keep B | merge; recommend input (newer) unless it breaks a verified fact. One side unwritable (`CLAUDE.local.md`, ancestor) → options: override in project file (name winner) | keep unwritable side; say it can't be edited.
-   - Each facts `Gaps:` item (architecture, precedence, boundaries, focused changes, done, maintenance) → one question with "Omit" option. Precedence → use the template order, no question.
-   - `principles` gap → no question; draft from `principles.md` (step 4 plan lists it). Default requirement with no repo support (e.g. no test runner) → omit and list under `Omitted:`.
-   - Max 4 per AskUserQuestion; more → next call. Record omitted items as `Omitted:` list. Nothing to ask → skip.
+   - Drop derivable and duplicate items, fix stale and vague ones, ask each conflict and gap (max 4 per AskUserQuestion), draft the `principles` gap without a question. Detail: `${CLAUDE_SKILL_DIR}/references/combine.md`.
 4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/assets/template.md`. Update → edit existing files in place. Place each instruction per rubric `## Placement rules`.
    - Place principles per `principles.md` `## Placement`, using facts `Stack` for path-scoped rules and facts `Patterns` for in-use pattern lines.
    - Always-loaded non-blank lines stay <200; overflow → move component guidance to path-scoped rules.
@@ -50,7 +46,7 @@ Input: $ARGUMENTS
    - Score-only → show score + deductions table (criterion, lost pts, fix); write nothing; `Result: done`; go to step 8.
    - Total ≥95 → `Result: done`; go to step 8.
    - <95 and rounds = 3 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`; go to step 8 with the remaining gaps.
-   - <95 and rounds < 3 → show deductions table (criterion, lost pts, fix), then improve without asking: rounds + 1; apply fixes; fix needs non-derivable fact not omitted → ask first. Write + format (step 5), back to step 6.
+   - <95 and rounds < 3 → show deductions table, then improve without asking. Detail: `${CLAUDE_SKILL_DIR}/references/improve.md`.
 8. **Resolve findings.** Per resolve-findings.md. Itemize each `Remaining gaps:` deduction (criterion, lost pts, scorer fix as Recommended fix); the step never re-enters the improve loop. Score-only → report and ask only (writes nothing). Then print the Output.
 
 ## Output
