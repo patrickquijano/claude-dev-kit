@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Follow every rule in `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md` Shared rules, Faker libraries, and End to end; each says why.
 - User interaction (AskUserQuestion) and writes only here; `cdk:test-gap-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
 - Writes: test files, test-only config (framework config, seed scripts, auth setup), and dev-dependency and browser installs per a user pick only; never production code (conventions.md Shared rules).
@@ -23,8 +24,8 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Project dir = `git rev-parse --show-toplevel`, else cwd. From the input extract scope (paths, journeys, or a feature description; absent → `all`, the whole code base). Scope matches nothing → AskUserQuestion with the closest fits.
-2. **Packages.** List files with `git ls-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); find manifests from `${CLAUDE_SKILL_DIR}/../setup-test-hook/references/stacks.md` Signals. Monorepo → one package per app with a UI, API, or CLI entry point; else the project dir. Limit to packages the scope touches. JS packages: package manager per `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` Detect; ambiguous → ask here.
+1. **Pre-flight.** Project dir = `git-root`, else cwd. From the input extract scope (paths, journeys, or a feature description; absent → `all`, the whole code base). Scope matches nothing → AskUserQuestion with the closest fits.
+2. **Packages.** List files with `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); find manifests from `${CLAUDE_SKILL_DIR}/../setup-test-hook/references/stacks.md` Signals. Monorepo → one package per app with a UI, API, or CLI entry point; else the project dir. Limit to packages the scope touches. JS packages: package manager per `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` Detect; ambiguous → ask here.
 3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `e2e`, scope, package manager (`n/a` for non-JS), and the paths of stacks.md and `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`. Use its `Runner:`, `Faker:`, and `Conventions:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers (cap in Rules). `Known issue:` lines → known-issues rule.
 4. **Decide.** Per `Missing:` line and per decision with several fitting answers: framework per journey type (conventions.md End to end), how the app starts (framework-managed server from the repo's start command, or an already running URL the user confirms is local or safe), browsers or devices, test data strategy (API seed, seed script), sign-in reuse. Take the Recommended pick for each and report it. App start `unknown` or an already running URL → ask whether it is local or safe; never assume a URL or port. AskUserQuestion only for that and to install a missing tool (at most 4 questions per call). Install picked tools and browsers; install fails → stop.
 5. **Practices.** WebFetch the picked framework's official docs per conventions.md Best practices rule; note framework-specific rules to apply.

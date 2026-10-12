@@ -10,6 +10,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → omit and report.
 - No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask.
 - Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → sibling files.
@@ -38,7 +39,7 @@ Input: $ARGUMENTS
 7. **Maintain.** Location is a plugin root (`.claude-plugin/plugin.json` exists) → in the same change update its `README.md` skills/agents tables, `CLAUDE.md`, and `.claude/rules/` for the added or changed component, per its CLAUDE.md Maintenance rule.
 8. **Verify.**
    - Self-check: valid YAML; skill `name` kebab-case = dir name; `description` + `when_to_use` ≤1,536 chars; SKILL.md <500 lines; agent `name` unique, kebab-case, no `:`; `tools` names valid.
-   - Plugin root → `claude plugin validate --strict .`.
+   - Plugin root → `validate-plugin`.
    - Spawn in one message, in parallel: `plugin-dev:skill-reviewer` per skill written (its SKILL.md path); `plugin-dev:plugin-validator` when an agent was written to a plugin location (plugin root, agent paths); `cdk:skill-auditor` with location root (`~/.claude`, `<repo>/.claude`, or plugin root), repo root (for `.claude/rules/`; none for `~/.claude`), and every written path; read its `Rules:` and `Contracts:` (`Rules: none` or no rule matched → warning).
    - plugin-dev agents unavailable → skip them, note in Output `Checks`.
    - Merge all findings, deduplicated by file:line; collect agents' `Known issue:` lines. Any error or warning → fix; recurring or blocking → save per Known issues rule; re-verify (max 3 attempts).
