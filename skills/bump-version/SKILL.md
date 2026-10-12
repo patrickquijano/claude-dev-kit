@@ -11,6 +11,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - All logic lives in `${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs`; never compute a level or version yourself and never edit a version file by hand.
 - No release policy (`.claude/release-policy.json` absent) → stop, `Stopped: 1: no release policy`; never create a policy.
@@ -23,10 +24,10 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `git rev-parse --show-toplevel`; fail → stop, `Stopped: 1: not a git repository`. Parse input: `target <branch>` → target override; `subject <path>` → a file whose first line is the subject of the commit still to come, passed to every `release-check.mjs` call as `--subject <path>` so the required level covers it; anything else → ask (chained or unattended: stop, `Stopped: 1: unknown input`). Run `node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs bump --json` from the root (add `--target <branch>` and `--subject <path>` when given); the JSON `skipped` with note `no release policy` → stop as in Rules.
+1. **Pre-flight.** `repo-root`; fail → stop, `Stopped: 1: not a git repository`. Parse input: `target <branch>` → target override; `subject <path>` → a file whose first line is the subject of the commit still to come, passed to every `release-check.mjs` call (`bump`, `check`) as `--subject <path>` so the required level covers it; anything else → ask (chained or unattended: stop, `Stopped: 1: unknown input`). Run `bump` from the root (add `--target <branch>` and `--subject <path>` when given); the JSON `skipped` with note `no release policy` → stop as in Rules.
 2. **Bump.** Read `level`, `required`, `base`, `target`, `drivers`, and `changed` from the JSON: `skipped` (no release-relevant changes) → `Result: nothing-to-do`. `failures` with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → `Blocked:` with its fix, `Result: stopped`, `Stopped: 2: <code>: <fix>`, then step 5; any other failure code that is not `version-*`, `changelog-*`, or `uncommitted` → `Blocked:` with its fix. Otherwise `changed` lists each `path from -> to`; empty → "unchanged".
 3. **Changelog.** The policy's `changelog` path (default `CHANGELOG.md`) absent at the repo root → `Changelog: skipped (no <path>)`; never create one. Present → Skill `cdk:write-changelog` with `base <target>` (the resolved `target` from the JSON); read its `CHANGELOG:` and `Result:` lines → `Changelog: <path> (created | updated | unchanged)`. `stopped` or `cancelled` → `Result: stopped`, `Stopped: 3: write-changelog <result>`, then step 5 (version edits stay; the caller commits).
-4. **Check.** Re-run `release-check.mjs check --pre-push --json` (with the same `--target` and `--subject`); no `version-*` failure → `Checks: version ok`. `uncommitted` is expected after a bump (the caller commits) and is not a finding. A `changelog-*` failure is listed under `Blocked:` with its fix, and leaves `Result: done`, only when step 3 was skipped or did not fix it.
+4. **Check.** Re-run `check` (with the same `--target` and `--subject`); no `version-*` failure → `Checks: version ok`. `uncommitted` is expected after a bump (the caller commits) and is not a finding. A `changelog-*` failure is listed under `Blocked:` with its fix, and leaves `Result: done`, only when step 3 was skipped or did not fix it.
 5. **Resolve findings.** Per resolve-findings.md. Itemize each `Blocked:` item and each non-ok `Checks:` entry.
 6. **Report.** Print the Output.
 

@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 
 1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → review it; request is review-only → review-only mode. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
 2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; `Result: done`; go to step 6, then print the review-only Output and stop.
-3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps. Existing prompt → also fix each failed check.
+3. **Clarify.** Remaining gaps → AskUserQuestion in batches (max 2), then draft and list open gaps. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Draft** per structure.md.
 5. **Check.** Walk checks.md against the draft; fix each failure.
 6. **Resolve findings.** Per resolve-findings.md. Itemize each `Open gaps:` entry (draft) or `Failed checks:` entry (review-only); the step never re-enters the clarify loop and asks only for a choice step 3 did not already offer.
