@@ -13,10 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Inline review comments on both hosts use Conventional Comments labels such as `issue (blocking)`, `suggestion`, `question`, and `nit`, and the review skips findings already discussed.
 - `cdk:review-change-request` replies to and resolves your own threads that the new code addresses, on GitHub as well as GitLab.
 - `cdk:address-change-request-review` keeps a state file, protects uncommitted changes, asks before pushing and before posting replies, and re-requests review on GitLab as well as GitHub.
+- The end-of-task hook now tells Claude to update the README and related docs when the task changed what they describe, before the commit step.
 
 ### Changed
 
 - The end-of-task commit and Graphify update now run from the `UserPromptSubmit` hook instead of `Stop` hooks, and commit only the files that task changed. The same hook asks before entering plan mode on every prompt and leaves plan mode only for `#noplan`.
+- Hook scripts are named after their event (`post-tool-use.mjs`, `stop.mjs`, `pre-tool-use.mjs`, `session-start.mjs`, `user-prompt-submit.mjs`) and their logic and shared helpers moved to `hooks/scripts/lib/`; update any command that vendors or calls the old script paths.
 - Hook runs on Windows reject arguments with `cmd.exe` metacharacters, and `npx` formatters run only when installed or configured.
 - **Breaking:** `cdk:prepare-change-request` no longer switches the source branch for you; it stops and suggests `/cdk:switch-branch`. Review and address skills ask before posting on GitLab, as they already did on GitHub.
 - **Breaking:** `/cdk:ship-release` commits atomically before opening the PR or MR and reviews it there, up to 3 rounds, instead of reviewing locally and making one commit. It asks once whether to squash and delete the source branch.
