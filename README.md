@@ -19,7 +19,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - The project's package manager for `/cdk:upgrade-dependencies`.
 - The project's own test runners for the `/cdk:write-*-tests` skills; Docker for containerized integration dependencies.
 - Docker for `/cdk:write-dockerfile` build checks; `hadolint` optional.
-- `/cdk:write-github-workflows`: authenticated [`gh`](https://cli.github.com/) optional for release and pinning-policy lookups; [`actionlint`](https://github.com/rhysd/actionlint) optional for validation.
+- `/cdk:write-github-workflows`: authenticated [`gh`](https://cli.github.com/) optional for release and pinning-policy lookups; [`actionlint`](https://github.com/rhysd/actionlint) and [`zizmor`](https://docs.zizmor.sh/) optional for validation.
 - Docker for `/cdk:setup-devcontainer` Compose checks; [`@devcontainers/cli`](https://github.com/devcontainers/cli) optional for `devcontainer read-configuration`.
 - Docker for `/cdk:scan-vulnerabilities` (every scanner runs as a container at its latest stable version, digest-locked per run) and Spec Kit (`/cdk:setup-spec-kit`) for its remediation.
 - Development only: Node.js with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
@@ -69,7 +69,7 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:write-claude-md`               | Merge guidelines and engineering principles into CLAUDE.md and `.claude/rules`; score /100 until ≥95.                                                                                                                                 |
 | `/cdk:write-dockerfile`              | Write a multi-stage, digest-pinned Debian/Ubuntu/Alpine slim Dockerfile and `.dockerignore` from input and repo facts.                                                                                                                |
 | `/cdk:write-e2e-tests`               | Write AAA, faker-based end-to-end tests for critical journeys; run-fix until new tests pass (max 3).                                                                                                                                  |
-| `/cdk:write-github-workflows`        | Write or update modular GitHub Actions workflows: one orchestrator calling a reusable workflow per job, POSIX sh, least privilege, versions resolved per run.                                                                         |
+| `/cdk:write-github-workflows`        | Write or update modular GitHub Actions workflows: deterministic names, one orchestrator calling a reusable workflow per job, POSIX sh, least privilege, versions resolved per run, plus a Dependabot `github-actions` entry.          |
 | `/cdk:write-integration-tests`       | Write AAA, faker-based integration tests per boundary with containers, stubs, or fakes (max 3 fix rounds).                                                                                                                            |
 | `/cdk:write-prompt`                  | Draft a brief Claude Code prompt from a rough task, checked against prompt anti-patterns.                                                                                                                                             |
 | `/cdk:write-readme`                  | Create or update README.md from templates, score it /100, iterate until ≥95.                                                                                                                                                          |
@@ -111,7 +111,7 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 | `cdk:test-suite-analyzer`         | Detect one package's test suites and runners for `setup-test-hook`.                                                                                                         |
 | `cdk:topic-researcher`            | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                                         |
 | `cdk:workflow-analyzer`           | Collect workflows, commands, services, naming, and pinning signals for `write-github-workflows`.                                                                            |
-| `cdk:workflow-reviewer`           | Check workflows against practices, contracts, POSIX sh, the gate job, and actionlint for `write-github-workflows`.                                                          |
+| `cdk:workflow-reviewer`           | Check workflows against practices, naming, contracts, POSIX sh, the gate job, actionlint, and zizmor for `write-github-workflows`.                                          |
 
 ### Hooks
 
