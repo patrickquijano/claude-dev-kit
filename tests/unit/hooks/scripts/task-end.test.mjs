@@ -41,6 +41,33 @@ test('decide asks for the commit step in a git repo', () => {
   assert.match(result[0], /cdk:commit-changes/);
 });
 
+test('decide scopes the commit step to the paths this task changed', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /paths: <the files this task created, edited, or deleted>/);
+});
+
+test('decide tells Claude to skip the commit step when this task changed no files', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /changed no files, skip this step/);
+});
+
+test('decide does not tell Claude to commit every dirty file', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.doesNotMatch(result[0], /If this task changed files,/);
+});
+
 test('decide runs graphify update before the commit when the graph exists', () => {
   // Arrange
   const deps = make({ configured: true, present: true });

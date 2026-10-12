@@ -21,7 +21,7 @@ export const realDeps = {
 const STATUS = 'Run `git status --porcelain`.';
 const GRAPHIFY_UPDATE = `${STATUS} If this task changed code files (not only docs or config), run \`graphify update .\` so the knowledge graph matches the code.`;
 const GRAPHIFY_BUILD = `${STATUS} If this task changed code files (not only docs or config), invoke the \`graphify\` skill with the argument \`.\` via the Skill tool to build the knowledge graph.`;
-const COMMIT = `${STATUS} If this task changed files, invoke the \`cdk:commit-changes\` skill via the Skill tool to group the changes atomically and logically, commit, and push; leave changes that existed before this task alone.`;
+const COMMIT = `${STATUS} If this task created, edited, or deleted files, invoke the \`cdk:commit-changes\` skill via the Skill tool with the argument \`paths: <the files this task created, edited, or deleted>\` to group them atomically and logically, commit, and push; files that were already dirty before this task stay out. If this task changed no files, skip this step.`;
 
 // Ordered end-of-task steps for a prompt; empty when none apply.
 export function decide(input, deps = realDeps) {
