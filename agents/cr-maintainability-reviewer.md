@@ -1,6 +1,6 @@
 ---
 name: cr-maintainability-reviewer
-description: Review a committed branch diff for maintainability and architecture problems (duplication, dead code, naming, layering, coupling, convention drift); return structured findings. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request skills; do not use directly.
+description: Review a branch diff (a committed head or a working-tree snapshot) for maintainability and architecture problems (duplication, dead code, naming, layering, coupling, convention drift); return structured findings. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request, cdk:review-local-changes skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: purple

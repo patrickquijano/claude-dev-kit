@@ -1,6 +1,6 @@
 ---
 name: cr-test-reviewer
-description: Review a committed branch diff for test coverage and missing cases, and run the repository's documented lint, typecheck, test, and build commands; return structured findings and command results. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request skills; do not use directly.
+description: Review a branch diff (a committed head or a working-tree snapshot) for test coverage and missing cases, and run the repository's documented lint, typecheck, test, and build commands; return structured findings and command results. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request, cdk:review-local-changes skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: blue

@@ -1,6 +1,6 @@
 ---
 name: cr-security-reviewer
-description: Review a committed branch diff for secrets, authorization gaps, input validation, injection, and dependency risks; return structured findings. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request skills; do not use directly.
+description: Review a branch diff (a committed head or a working-tree snapshot) for secrets, authorization gaps, input validation, injection, and dependency risks; return structured findings. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request, cdk:review-local-changes skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: opus
 color: red
