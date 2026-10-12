@@ -1,8 +1,7 @@
 // End-of-task logic for the UserPromptSubmit dispatcher (user-prompt-submit.mjs): tell Claude what to do once the whole
 // task is done (refresh the Graphify graph, update docs, then group, commit, and push this task's changes). Context only, no state.
 import { existsSync, realpathSync } from 'node:fs';
-import path from 'node:path';
-import { git, unsafeState } from './git-state.mjs';
+import { git, shipReleaseMarker, unsafeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist } from './graphify.mjs';
 import { contextOutput, projectDir } from './hook-io.mjs';
 import { NOPLAN_RE, PLAN_RE, isSkippedPrompt } from './prompt.mjs';
@@ -46,8 +45,7 @@ export function decide(input, deps = realDeps) {
   const inside = deps.git(cwd, ['rev-parse', '--is-inside-work-tree']);
   if (inside.status !== 0) return parts;
   // /cdk:ship-release owns its commits while its marker exists.
-  const hold = deps.git(cwd, ['rev-parse', '--git-path', 'cdk-ship-release']);
-  if (hold.status === 0 && deps.existsSync(path.resolve(cwd, hold.stdout.toString().trim()))) return parts;
+  if (shipReleaseMarker(cwd, deps.git, deps.existsSync)) return parts;
   if (!deps.unsafeState(cwd)) parts.push(DOCS, COMMIT);
   return parts;
 }

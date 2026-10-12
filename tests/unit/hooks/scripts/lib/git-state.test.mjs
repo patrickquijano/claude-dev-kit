@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import {
   git,
   readState,
   sha,
+  shipReleaseMarker,
   statePath,
   unsafeState,
   writeState
@@ -300,4 +301,29 @@ test('writeState rethrows an unexpected write error', () => {
   const act = () => writeState('f', { a: 1 }, deps);
   // Assert
   assert.throws(act, { code: 'EMFILE' });
+});
+
+describe('shipReleaseMarker', () => {
+  const run = (status) => () => ({ status, stdout: Buffer.from('.git/cdk-ship-release\n') });
+
+  test('returns the absolute marker path when it exists', () => {
+    // Arrange / Act
+    const result = shipReleaseMarker('/repo', run(0), () => true);
+    // Assert
+    assert.equal(result, '/repo/.git/cdk-ship-release');
+  });
+
+  test('returns an empty string when the marker file is absent', () => {
+    // Arrange / Act
+    const result = shipReleaseMarker('/repo', run(0), () => false);
+    // Assert
+    assert.equal(result, '');
+  });
+
+  test('returns an empty string outside a git repo', () => {
+    // Arrange / Act
+    const result = shipReleaseMarker('/repo', run(128), () => true);
+    // Assert
+    assert.equal(result, '');
+  });
 });

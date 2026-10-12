@@ -1,4 +1,4 @@
-// Release gate shared by the PR/MR skills, the project PreToolUse hook, and CI: changelog and version checks.
+// Release gate shared by the PR/MR skills, the plugin PreToolUse hook, and CI: changelog and version checks.
 // Modes: `check` (validate), `bump` (write the required version), `hook` (PreToolUse stdin JSON; exit 2 blocks).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -440,10 +440,10 @@ export function report(r) {
   return lines.join('\n');
 }
 
-// PreToolUse hook body; resolves to the exit code (2 blocks).
-export async function runHook(deps = {}) {
+// PreToolUse hook body; resolves to the exit code (2 blocks). The dispatcher passes the event it already parsed.
+export async function runHook(deps = {}, parsed) {
   const d = withDeps(deps);
-  const event = await d.readJsonStdin();
+  const event = parsed ?? (await d.readJsonStdin());
   const cwd = (typeof event.cwd === 'string' && event.cwd) || d.env.CLAUDE_PROJECT_DIR || d.cwd();
   let loaded;
   try {

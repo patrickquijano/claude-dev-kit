@@ -126,3 +126,45 @@ test('sessionStart lets a missing project directory bubble', () => {
   // Assert
   assert.throws(act, /ENOENT/);
 });
+
+const withMarker = (deps, present) => {
+  deps.git = () => ({ status: 0, stdout: Buffer.from('.git/cdk-ship-release\n') });
+  deps.existsSync = () => present;
+  deps.statSync = () => ({ mtime: new Date(Date.UTC(2026, 9, 13, 1, 2, 3)) });
+  return deps;
+};
+
+for (const source of ['startup', 'clear', 'fork']) {
+  test(`sessionStart warns about a stale ship-release marker on ${source}`, () => {
+    // Arrange
+    const deps = withMarker(make().deps, true);
+    // Act
+    const result = sessionStart({ source }, deps);
+    // Assert
+    assert.match(
+      result.hookSpecificOutput.additionalContext,
+      /ship-release marker exists \(\/repo\/\.git\/cdk-ship-release/
+    );
+    assert.match(result.hookSpecificOutput.additionalContext, /2026-10-13T01:02:03/);
+  });
+}
+
+for (const source of ['resume', 'compact', undefined]) {
+  test(`sessionStart skips the marker warning on ${source}`, () => {
+    // Arrange
+    const deps = withMarker(make().deps, true);
+    // Act
+    const result = sessionStart({ source }, deps);
+    // Assert
+    assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /ship-release/);
+  });
+}
+
+test('sessionStart omits the marker warning when the marker is absent', () => {
+  // Arrange
+  const deps = withMarker(make().deps, false);
+  // Act
+  const result = sessionStart({ source: 'startup' }, deps);
+  // Assert
+  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /ship-release/);
+});
