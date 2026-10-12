@@ -5,9 +5,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { bump, evaluate } from '../../../../hooks/scripts/release-check.mjs';
+import { bump, evaluate } from '../../../../../hooks/scripts/lib/release-check.mjs';
 
-const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/release-check.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../../../../../hooks/scripts/lib/release-check.mjs', import.meta.url));
+const HOOK = fileURLToPath(new URL('../../../../../hooks/scripts/pre-tool-use.mjs', import.meta.url));
 const POLICY = {
   changelog: 'CHANGELOG.md',
   defaultBranch: 'main',
@@ -67,7 +68,7 @@ function repo({ policy = POLICY } = {}) {
   return { dir, work };
 }
 const runHook = (input) =>
-  spawnSync('node', [SCRIPT, 'hook'], { input: JSON.stringify(input), encoding: 'utf8', timeout: 60_000 });
+  spawnSync('node', [HOOK], { input: JSON.stringify(input), encoding: 'utf8', timeout: 60_000 });
 const runCli = (cwd, args) => spawnSync('node', [SCRIPT, ...args], { cwd, encoding: 'utf8', timeout: 60_000 });
 
 after(() => {

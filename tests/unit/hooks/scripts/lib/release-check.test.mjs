@@ -12,7 +12,7 @@ import {
   report,
   runHook,
   segments
-} from '../../../../hooks/scripts/release-check.mjs';
+} from '../../../../../hooks/scripts/lib/release-check.mjs';
 
 const ROOT = '/repo';
 const POLICY = {
@@ -709,7 +709,13 @@ describe('runHook', () => {
     const stderr = [];
     const deps = {
       ...w.deps,
-      readStdin: async () => (typeof input === 'string' ? input : JSON.stringify(input)),
+      readJsonStdin: async () => {
+        try {
+          return typeof input === 'string' ? JSON.parse(input) : input;
+        } catch {
+          return null;
+        }
+      },
       env: { CLAUDE_PROJECT_DIR: ROOT },
       cwd: () => ROOT,
       statePath: () => 'state-file',

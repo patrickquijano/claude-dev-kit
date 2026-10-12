@@ -1,117 +1,52 @@
 import assert from 'node:assert/strict';
+import { Readable } from 'node:stream';
 import { test } from 'node:test';
-import { dateLine, sessionStart } from '../../../../hooks/scripts/session-start.mjs';
+import { main } from '../../../../hooks/scripts/session-start.mjs';
 
-function make({ configured = false, present = false, rules = 'RULES\n', readFails = false } = {}) {
-  const deps = {
-    env: { CLAUDE_PROJECT_DIR: '/repo', CLAUDE_PLUGIN_ROOT: '/plugin' },
-    cwd: () => '/cwd',
-    now: () => new Date(2026, 9, 13, 15, 5),
-    defaultRoot: () => '/default',
-    realpathSync: (p) => p,
-    graphifyConfigured: () => configured,
-    graphifyFilesExist: () => present,
-    readFileSync: (p) => {
-      if (readFails) throw new Error('ENOENT');
-      return `${rules}|${p}`;
-    }
-  };
-  return { deps };
-}
+const run = async (input) => {
+  const writes = [];
+  const seen = [];
+  await main({
+    stream: Readable.from([input]),
+    write: (t) => writes.push(t),
+    sessionStart: (i) => (seen.push(i), { ok: true })
+  });
+  return { writes, seen };
+};
 
-test('dateLine formats the weekday, date, and 12-hour time', () => {
+test('main: prints the sessionStart result as JSON', async () => {
   // Arrange
-  const now = new Date(2026, 9, 13, 15, 5);
+  const input = '{"source":"startup"}';
   // Act
-  const result = dateLine(now);
+  const { writes } = await run(input);
   // Assert
-  assert.equal(result, 'Today is Tuesday, October, 13, 2026 and the current time is 3:05 PM');
+  assert.deepEqual(writes, ['{"ok":true}']);
 });
 
-test('dateLine marks the morning as AM', () => {
+test('main: passes the parsed event to sessionStart', async () => {
   // Arrange
-  const now = new Date(2026, 0, 2, 3, 9);
+  const input = '{"source":"resume"}';
   // Act
-  const result = dateLine(now);
+  const { seen } = await run(input);
   // Assert
-  assert.match(result, /3:09 AM$/);
+  assert.deepEqual(seen, [{ source: 'resume' }]);
 });
 
-test('dateLine does not leak the previous day across midnight', () => {
+test('main: still prints with an empty object for invalid JSON', async () => {
   // Arrange
-  const now = new Date(2026, 0, 2, 0, 0);
+  const input = 'not json';
   // Act
-  const result = dateLine(now);
+  const { writes, seen } = await run(input);
   // Assert
-  assert.match(result, /Friday, January, 2, 2026 .* 12:00 AM$/);
+  assert.equal(writes.length, 1);
+  assert.deepEqual(seen, [{}]);
 });
 
-test('dateLine defaults to the current time without throwing', () => {
+test('main: prints exactly one object per run', async () => {
   // Arrange
-  const pattern = /^Today is \w+, \w+, \d+, \d{4} and the current time is \d+:\d{2} (AM|PM)$/;
+  const input = '';
   // Act
-  const result = dateLine();
+  const { writes } = await run(input);
   // Assert
-  assert.match(result, pattern);
-});
-
-test('sessionStart returns the date line as additional context', () => {
-  // Arrange
-  const { deps } = make();
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.equal(result.hookSpecificOutput.hookEventName, 'SessionStart');
-  assert.match(result.hookSpecificOutput.additionalContext, /^Today is Tuesday, October, 13, 2026/);
-});
-
-test('sessionStart adds the Graphify rules when a graph is ready', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /Use Graphify to navigate this repository:\n\nRULES/);
-  assert.match(
-    result.hookSpecificOutput.additionalContext,
-    /\/plugin\/skills\/setup-graphify\/assets\/graphify-rules\.md/
-  );
-});
-
-test('sessionStart falls back to the default plugin root', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true });
-  delete deps.env.CLAUDE_PLUGIN_ROOT;
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /\/default\/skills\/setup-graphify/);
-});
-
-test('sessionStart omits Graphify rules when Graphify is not configured', () => {
-  // Arrange
-  const { deps } = make({ configured: false, present: true });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart omits Graphify rules when the graph files are missing', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: false });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart still returns the date line when the rules file is unreadable', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true, readFails: true });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
+  assert.equal(writes.length, 1);
 });

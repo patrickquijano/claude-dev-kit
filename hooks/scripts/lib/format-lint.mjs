@@ -2,8 +2,20 @@
 // Prints one JSON object; failures block with the tool output so Claude can fix them.
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { FILE, TABLE, WIN_UNSAFE, available, isFile, keyOf, readStdin, run, win } from './tools.mjs';
+import { blockOutput, projectDir as resolveProjectDir } from './hook-io.mjs';
+import {
+  TABLE,
+  WIN_UNSAFE,
+  available,
+  failureText,
+  isFile,
+  keyOf,
+  resolveStep,
+  run,
+  stepCommand,
+  win,
+  writeStdout
+} from './tools.mjs';
 
 const REAL_DEPS = {
   isFile,
@@ -26,7 +38,7 @@ export function formatLint(input, deps = {}) {
   if (typeof file !== 'string' || !d.isFile(file) || (d.win && WIN_UNSAFE.test(file))) return null;
   let projectDir, abs;
   try {
-    projectDir = d.realpath(d.env.CLAUDE_PROJECT_DIR || input.cwd || d.cwd());
+    projectDir = resolveProjectDir(input, d);
     abs = d.realpath(file);
   } catch {
     return null;
@@ -41,44 +53,18 @@ export function formatLint(input, deps = {}) {
   const lines = [];
   const failures = [];
   for (const entry of TABLE[key] || []) {
-    const step = entry.alt ? entry.alt.find((c) => d.available(c, projectDir)) : entry;
-    if (!step || !d.available(step, projectDir)) continue;
-    if (step.skip?.(d.readFile(abs))) continue;
-    const args = step.args.includes(FILE) ? step.args.map((a) => (a === FILE ? target : a)) : [...step.args, target];
-    const [cmd, argv] = step.npx ? ['npx', ['--no-install', step.cmd, ...args]] : [step.cmd, args];
+    const step = resolveStep(entry, projectDir, d);
+    if (!step || step.skip?.(d.readFile(abs))) continue;
+    const [cmd, argv] = stepCommand(step, [target]);
     const r = d.run(cmd, argv, projectDir);
     const ok = !r.error && r.status === 0;
-    if (ok && step.stdout) {
-      const tmp = `${abs}.${d.pid}.tmp`;
-      d.writeFile(tmp, r.stdout);
-      d.rename(tmp, abs);
-    }
+    if (ok && step.stdout) writeStdout(abs, r.stdout, d);
     lines.push(`${ok ? '✅' : '❌'} ${entry.kind}: ${target}`);
-    if (!ok) {
-      const out = [step.stdout ? '' : r.stdout, r.stderr, r.error?.message].filter(Boolean).join('\n').trim();
-      failures.push(`$ ${[cmd, ...argv].join(' ')}\n${out}`);
-    }
+    if (!ok) failures.push(failureText(cmd, argv, r, step));
   }
   if (!lines.length) return null;
-  const result = { systemMessage: lines.join(' | ') };
-  if (failures.length) {
-    result.decision = 'block';
-    result.reason = `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`.slice(0, 8000);
-  }
-  return result;
-}
-
-async function main() {
-  let input;
-  try {
-    input = JSON.parse(await readStdin());
-  } catch {
-    return;
-  }
-  const result = formatLint(input);
-  if (result) process.stdout.write(JSON.stringify(result));
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await main();
+  const message = lines.join(' | ');
+  return failures.length
+    ? blockOutput(message, `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`)
+    : { systemMessage: message };
 }

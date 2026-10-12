@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { isProjectScoped, main, parseEvent, plan, validate } from '../../../../.claude/hooks/plugin-validate.mjs';
+import { isProjectScoped, main, parseEvent, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
 
 const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };

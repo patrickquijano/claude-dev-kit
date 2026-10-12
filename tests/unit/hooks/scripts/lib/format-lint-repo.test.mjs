@@ -8,15 +8,14 @@ import {
   groupFiles,
   list,
   pathspecs,
-  runStep,
-  stateFile
-} from '../../../../hooks/scripts/format-lint-repo.mjs';
+  runStep
+} from '../../../../../hooks/scripts/lib/format-lint-repo.mjs';
 
 const out = (text = '', status = 0) => ({ status, stdout: Buffer.from(text), stderr: Buffer.from('') });
 // Fake git: `diff` text, untracked files (`ls-files -o`), and tracked+untracked files (`ls-files -co`).
 const fakeGit =
   ({ diff = '', untracked = [], all = [], status = 0 } = {}) =>
-  (cwd, ...args) => {
+  (cwd, args) => {
     if (args[0] === 'diff') return out(diff, status);
     if (args[0] === 'ls-files') return out((args[1] === '-o' ? untracked : all).map((f) => `${f}\0`).join(''), status);
     return out('', 1);
@@ -35,7 +34,7 @@ const baseDeps = (over = {}) => ({
   env: { CLAUDE_PROJECT_DIR: '/p' },
   cwd: () => '/elsewhere',
   pid: 7,
-  stateDir: () => '/tmp',
+  statePath: () => '/tmp/cdk-format-lint-test.json',
   ...over
 });
 
@@ -323,25 +322,6 @@ test('runStep: wraps npx steps and caps the per-command timeout', () => {
   runStep(step, ['a.md'], '/p', [], 10_000_000, deps);
   // Assert
   assert.deepEqual(calls[0], ['npx', ['--no-install', 'prettier', '-w', 'a.md'], '/p', 300_000]);
-});
-
-test('stateFile: is stable for one project directory', () => {
-  // Arrange
-  const cwd = '/p';
-  // Act
-  const again = stateFile(cwd, '/tmp');
-  // Assert
-  assert.equal(again, stateFile(cwd, '/tmp'));
-  assert.match(again, /^\/tmp\/cdk-format-lint-[0-9a-f]{16}\.json$/);
-});
-
-test('stateFile: differs between project directories', () => {
-  // Arrange
-  const a = stateFile('/p1', '/tmp');
-  // Act
-  const b = stateFile('/p2', '/tmp');
-  // Assert
-  assert.notEqual(a, b);
 });
 
 test('formatLintRepo: reports each step for stale groups', () => {

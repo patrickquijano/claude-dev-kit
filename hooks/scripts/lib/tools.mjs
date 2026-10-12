@@ -176,9 +176,28 @@ export function available(step, cwd, deps = {}) {
   return !r.error && r.status === 0;
 }
 
-// Reads stdin asynchronously; sync reads of a piped fd 0 can throw EAGAIN on Windows.
-export async function readStdin(stream = process.stdin) {
-  let data = '';
-  for await (const chunk of stream) data += chunk;
-  return data;
+// First available step of a table entry (its `alt` candidates or itself), or null when none can run.
+export function resolveStep(entry, cwd, d = { available }) {
+  const step = entry.alt ? entry.alt.find((c) => d.available(c, cwd)) : entry;
+  return step && d.available(step, cwd) ? step : null;
+}
+
+// [command, argv] for a step over `targets`; `extra` args (strict flags) follow the step's own. `{file}` takes the first target.
+export function stepCommand(step, targets, extra = []) {
+  const base = [...step.args, ...extra];
+  const args = base.includes(FILE) ? base.map((a) => (a === FILE ? targets[0] : a)) : [...base, ...targets];
+  return step.npx ? ['npx', ['--no-install', step.cmd, ...args]] : [step.cmd, args];
+}
+
+// Writes a stdout-formatter's output over `abs` atomically (temp file, then rename).
+export function writeStdout(abs, stdout, d) {
+  const tmp = `${abs}.${d.pid}.tmp`;
+  d.writeFile(tmp, stdout);
+  d.rename(tmp, abs);
+}
+
+// Failure block for one failed command: the command line, then its output.
+export function failureText(cmd, argv, r, step) {
+  const out = [step.stdout ? '' : r.stdout, r.stderr, r.error?.message].filter(Boolean).join('\n').trim();
+  return `$ ${[cmd, ...argv].join(' ')}\n${out}`;
 }

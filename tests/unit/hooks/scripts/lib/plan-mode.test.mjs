@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { classify, decide, output } from '../../../../hooks/scripts/plan-mode.mjs';
+import { classify, decide, output } from '../../../../../hooks/scripts/lib/plan-mode.mjs';
 
 const BIG = 'Implement X across multiple files\n- a\n- b\n- c';
 

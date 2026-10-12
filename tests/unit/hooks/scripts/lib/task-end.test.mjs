@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decide, output } from '../../../../hooks/scripts/task-end.mjs';
+import { decide, output } from '../../../../../hooks/scripts/lib/task-end.mjs';
 
 function make({
   configured = false,
@@ -37,8 +37,8 @@ test('decide asks for the commit step in a git repo', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 1);
-  assert.match(result[0], /cdk:commit-changes/);
+  assert.equal(result.length, 2);
+  assert.match(result[1], /cdk:commit-changes/);
 });
 
 test('decide scopes the commit step to the paths this task changed', () => {
@@ -47,7 +47,7 @@ test('decide scopes the commit step to the paths this task changed', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[0], /paths: <the files this task created, edited, or deleted>/);
+  assert.match(result[1], /paths: <the files this task created, edited, or deleted>/);
 });
 
 test('decide tells Claude to skip the commit step when this task changed no files', () => {
@@ -56,7 +56,7 @@ test('decide tells Claude to skip the commit step when this task changed no file
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[0], /changed no files, skip this step/);
+  assert.match(result[1], /changed no files, skip this step/);
 });
 
 test('decide does not tell Claude to commit every dirty file', () => {
@@ -65,7 +65,7 @@ test('decide does not tell Claude to commit every dirty file', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.doesNotMatch(result[0], /If this task changed files,/);
+  assert.doesNotMatch(result[1], /If this task changed files,/);
 });
 
 test('decide runs graphify update before the commit when the graph exists', () => {
@@ -75,7 +75,7 @@ test('decide runs graphify update before the commit when the graph exists', () =
   const result = decide(prompt, deps);
   // Assert
   assert.match(result[0], /graphify update \./);
-  assert.match(result[1], /cdk:commit-changes/);
+  assert.match(result[2], /cdk:commit-changes/);
 });
 
 test('decide asks for the graphify skill when the graph is missing', () => {
@@ -114,7 +114,7 @@ test('decide still adds the steps for a change prompt with a #plan override', ()
   // Act
   const result = decide({ prompt: 'Why is it slow? #plan' }, deps);
   // Assert
-  assert.equal(result.length, 1);
+  assert.equal(result.length, 2);
 });
 
 test('decide makes every step conditional on git status', () => {
@@ -123,7 +123,7 @@ test('decide makes every step conditional on git status', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 2);
+  assert.equal(result.length, 3);
   for (const step of result) assert.match(step, /git status --porcelain/);
 });
 
@@ -226,4 +226,60 @@ test('output is null when there are no steps', () => {
   const result = output(parts);
   // Assert
   assert.equal(result, null);
+});
+
+test('decide puts the docs step between Graphify and the commit step', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /graphify update/);
+  assert.match(result[1], /README\.md or related docs/);
+  assert.match(result[2], /cdk:commit-changes/);
+});
+
+test('decide tells Claude to skip the docs step when nothing documented changed', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /otherwise skip this step/);
+});
+
+test('decide omits the docs step while the ship-release marker exists', () => {
+  // Arrange
+  const deps = make({ marker: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the docs step in an unsafe git state', () => {
+  // Arrange
+  const deps = make({ unsafe: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the docs step outside a git repo', () => {
+  // Arrange
+  const deps = make({ inside: false });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the docs step for a question prompt', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide({ prompt: 'How does it work?' }, deps);
+  // Assert
+  assert.deepEqual(result, []);
 });

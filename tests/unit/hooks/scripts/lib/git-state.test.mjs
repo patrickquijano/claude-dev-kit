@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import { git, readState, sha, statePath, unsafeState, writeState } from '../../../../hooks/scripts/git-state.mjs';
+import {
+  git,
+  readState,
+  sha,
+  statePath,
+  unsafeState,
+  writeState
+} from '../../../../../hooks/scripts/lib/git-state.mjs';
 
 const out = (text, status = 0) => ({ status, stdout: Buffer.from(text) });
 const fail = { status: 1, stdout: Buffer.from('') };

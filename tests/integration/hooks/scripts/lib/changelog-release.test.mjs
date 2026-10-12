@@ -6,7 +6,7 @@ import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/changelog-release.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../../../../../hooks/scripts/lib/changelog-release.mjs', import.meta.url));
 const REPO = 'https://example.com/a/b';
 const CL = [
   '# Changelog',

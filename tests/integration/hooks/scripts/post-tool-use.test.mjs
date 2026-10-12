@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/format-lint.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/post-tool-use.mjs', import.meta.url));
 const run = (input) => spawnSync('node', [SCRIPT], { input, encoding: 'utf8', timeout: 15_000 });
 
 test('cli: invalid JSON prints nothing and exits 0', () => {

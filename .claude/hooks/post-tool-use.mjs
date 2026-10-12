@@ -3,23 +3,18 @@
 // Hooks cannot run slash commands, so each valid plugin or project component edit prints a reload notice instead.
 import { spawnSync } from 'node:child_process';
 import { isAbsolute, relative, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { MAX, contextOutput, readStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
 
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
 const PLUGIN_RELOAD = ['skills', 'commands', 'agents', 'hooks'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
 const PROJECT_FILES = ['settings.json', 'CLAUDE.md'];
-const MAX = 8000;
 
 const defaults = {
   spawn: spawnSync,
   platform: process.platform,
   env: process.env,
-  readStdin: async () => {
-    let data = '';
-    for await (const chunk of process.stdin) data += chunk;
-    return data;
-  },
+  readStdin,
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text)
 };
@@ -58,10 +53,13 @@ export function plan(file, cwd) {
     systemMessage: `${rel} changed: run ${[...commands].join(' and ')}${plugin ? ', then /compact to refresh memory' : ''}.`
   };
   if (project) {
-    notice.hookSpecificOutput = {
-      hookEventName: 'PostToolUse',
-      additionalContext: `${rel} was updated; treat its current on-disk content as authoritative and re-read it before relying on it.`
-    };
+    Object.assign(
+      notice,
+      contextOutput(
+        'PostToolUse',
+        `${rel} was updated; treat its current on-disk content as authoritative and re-read it before relying on it.`
+      )
+    );
   }
   return { rel, validate, notice };
 }
@@ -102,6 +100,6 @@ export async function main(deps = defaults) {
   return 0;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+await runIfMain(import.meta.url, async () => {
   process.exitCode = await main();
-}
+});

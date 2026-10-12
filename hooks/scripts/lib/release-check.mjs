@@ -2,9 +2,8 @@
 // Modes: `check` (validate), `bump` (write the required version), `hook` (PreToolUse stdin JSON; exit 2 blocks).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { git, readState, sha, statePath, unsafeState, writeState } from './git-state.mjs';
-import { readStdin } from './tools.mjs';
+import { readJsonStdin, runIfMain } from './hook-io.mjs';
 
 export const POLICY_FILE = '.claude/release-policy.json';
 const MCP_CREATE = 'mcp__plugin_gitlab_gitlab__save_merge_request';
@@ -20,7 +19,7 @@ const realDeps = {
   readState,
   writeState,
   statePath,
-  readStdin,
+  readJsonStdin,
   stderr: (text) => process.stderr.write(text),
   log: (text) => console.log(text),
   error: (text) => console.error(text),
@@ -442,13 +441,8 @@ export function report(r) {
 // PreToolUse hook body; resolves to the exit code (2 blocks).
 export async function runHook(deps = {}) {
   const d = withDeps(deps);
-  let event;
-  try {
-    event = JSON.parse(await d.readStdin());
-  } catch {
-    return 0;
-  }
-  if (!event || typeof event !== 'object') return 0;
+  const event = await d.readJsonStdin();
+  if (!event) return 0;
   const cwd = (typeof event.cwd === 'string' && event.cwd) || d.env.CLAUDE_PROJECT_DIR || d.cwd();
   let loaded;
   try {
@@ -527,6 +521,6 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+await runIfMain(import.meta.url, async () => {
   process.exitCode = await main();
-}
+});

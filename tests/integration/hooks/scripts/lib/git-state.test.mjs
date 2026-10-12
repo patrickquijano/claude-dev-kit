@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
-import { readState, statePath, unsafeState, writeState } from '../../../../hooks/scripts/git-state.mjs';
+import { readState, statePath, unsafeState, writeState } from '../../../../../hooks/scripts/lib/git-state.mjs';
 
 const dirs = [];
 const sh = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();

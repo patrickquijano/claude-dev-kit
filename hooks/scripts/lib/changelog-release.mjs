@@ -2,8 +2,8 @@
 // Writes only the `--notes-out` file. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { git } from './git-state.mjs';
+import { runIfMain } from './hook-io.mjs';
 
 // Official SemVer 2.0.0 regex (semver.org).
 /* eslint-disable security/detect-unsafe-regex -- the official pattern, applied to a version string only */
@@ -258,5 +258,6 @@ export function main(argv, deps = {}) {
   return res.ok ? 0 : 1;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+await runIfMain(import.meta.url, () => {
   process.exitCode = main(process.argv.slice(2));
+});

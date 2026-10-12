@@ -9,8 +9,8 @@ import path from 'node:path';
 export const realDeps = { proc: spawnSync, existsSync, readFileSync, statSync, writeFileSync, tmpdir };
 export const sha = (s) => createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
 
-export function git(cwd, args, timeout = 15_000, deps = realDeps) {
-  return deps.proc('git', args, { cwd, maxBuffer: 1 << 28, timeout, windowsHide: true });
+export function git(cwd, args, timeout = 15_000, deps = realDeps, maxBuffer = 1 << 28) {
+  return deps.proc('git', args, { cwd, maxBuffer, timeout, windowsHide: true });
 }
 
 // True mid-merge, rebase, cherry-pick, revert, bisect, on a detached HEAD, or with unmerged paths: no commit there.

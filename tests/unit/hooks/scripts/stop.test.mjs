@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { Readable } from 'node:stream';
+import { test } from 'node:test';
+import { main } from '../../../../hooks/scripts/stop.mjs';
+
+const run = async (input, result) => {
+  const writes = [];
+  const seen = [];
+  await main({
+    stream: Readable.from([input]),
+    write: (t) => writes.push(t),
+    formatLintRepo: (i) => (seen.push(i), result)
+  });
+  return { writes, seen };
+};
+
+test('main: prints the formatLintRepo result as JSON', async () => {
+  // Arrange
+  const result = { decision: 'block', reason: 'fix' };
+  // Act
+  const { writes } = await run('{}', result);
+  // Assert
+  assert.deepEqual(writes, ['{"decision":"block","reason":"fix"}']);
+});
+
+test('main: passes the parsed event to formatLintRepo', async () => {
+  // Arrange
+  const input = '{"cwd":"/p"}';
+  // Act
+  const { seen } = await run(input, null);
+  // Assert
+  assert.deepEqual(seen, [{ cwd: '/p' }]);
+});
+
+test('main: prints nothing when no group changed', async () => {
+  // Arrange
+  const input = '{}';
+  // Act
+  const { writes } = await run(input, null);
+  // Assert
+  assert.deepEqual(writes, []);
+});
+
+test('main: prints nothing and skips formatLintRepo for invalid JSON', async () => {
+  // Arrange
+  const input = '';
+  // Act
+  const { writes, seen } = await run(input, { systemMessage: 'x' });
+  // Assert
+  assert.deepEqual(writes, []);
+  assert.deepEqual(seen, []);
+});

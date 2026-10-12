@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { Readable } from 'node:stream';
 import { test } from 'node:test';
-import { available, installed, isFile, keyOf, readStdin, run } from '../../../../hooks/scripts/tools.mjs';
+import {
+  available,
+  failureText,
+  installed,
+  isFile,
+  keyOf,
+  resolveStep,
+  run,
+  stepCommand,
+  writeStdout
+} from '../../../../../hooks/scripts/lib/tools.mjs';
 
 test('keyOf: returns the lowercased extension', () => {
   // Arrange
@@ -354,20 +363,135 @@ test('available: resolves a relative command against the project directory', () 
   assert.equal(result, true);
 });
 
-test('readStdin: concatenates all chunks', async () => {
+test('resolveStep: returns a plain entry when it is available', () => {
   // Arrange
-  const stream = Readable.from(['{"a":', '1}']);
+  const entry = { cmd: 'a', args: [] };
   // Act
-  const data = await readStdin(stream);
+  const step = resolveStep(entry, '/p', { available: () => true });
   // Assert
-  assert.equal(data, '{"a":1}');
+  assert.equal(step, entry);
 });
 
-test('readStdin: returns an empty string for an empty stream', async () => {
+test('resolveStep: returns the first available alt candidate', () => {
   // Arrange
-  const stream = Readable.from([]);
+  const entry = { alt: [{ cmd: 'a' }, { cmd: 'b' }, { cmd: 'c' }] };
   // Act
-  const data = await readStdin(stream);
+  const step = resolveStep(entry, '/p', { available: (s) => s.cmd !== 'a' });
   // Assert
-  assert.equal(data, '');
+  assert.equal(step.cmd, 'b');
+});
+
+test('resolveStep: is null when a plain entry is unavailable', () => {
+  // Arrange
+  const entry = { cmd: 'a', args: [] };
+  // Act
+  const step = resolveStep(entry, '/p', { available: () => false });
+  // Assert
+  assert.equal(step, null);
+});
+
+test('resolveStep: is null when no alt candidate is available', () => {
+  // Arrange
+  const entry = { alt: [{ cmd: 'a' }, { cmd: 'b' }] };
+  // Act
+  const step = resolveStep(entry, '/p', { available: () => false });
+  // Assert
+  assert.equal(step, null);
+});
+
+test('stepCommand: appends the targets to the args', () => {
+  // Arrange
+  const step = { cmd: 'prettier', args: ['-w'] };
+  // Act
+  const result = stepCommand(step, ['a.md', 'b.md']);
+  // Assert
+  assert.deepEqual(result, ['prettier', ['-w', 'a.md', 'b.md']]);
+});
+
+test('stepCommand: substitutes {file} with the first target and wraps npx steps', () => {
+  // Arrange
+  const step = { cmd: 'tool', args: ['--in', '{file}'], npx: true };
+  // Act
+  const result = stepCommand(step, ['a.md']);
+  // Assert
+  assert.deepEqual(result, ['npx', ['--no-install', 'tool', '--in', 'a.md']]);
+});
+
+test('stepCommand: puts extra args after the step args', () => {
+  // Arrange
+  const step = { cmd: 'eslint', args: ['--fix'] };
+  // Act
+  const result = stepCommand(step, ['a.js'], ['--max-warnings', '0']);
+  // Assert
+  assert.deepEqual(result, ['eslint', ['--fix', '--max-warnings', '0', 'a.js']]);
+});
+
+test('stepCommand: does not wrap a non-npx step', () => {
+  // Arrange
+  const step = { cmd: 'shfmt', args: [] };
+  // Act
+  const [cmd] = stepCommand(step, ['a.sh']);
+  // Assert
+  assert.equal(cmd, 'shfmt');
+});
+
+test('writeStdout: writes a temp file, then renames it over the target', () => {
+  // Arrange
+  const calls = [];
+  const d = {
+    pid: 9,
+    writeFile: (...a) => calls.push(['write', ...a]),
+    rename: (...a) => calls.push(['rename', ...a])
+  };
+  // Act
+  writeStdout('/p/a.md', 'text', d);
+  // Assert
+  assert.deepEqual(calls, [
+    ['write', '/p/a.md.9.tmp', 'text'],
+    ['rename', '/p/a.md.9.tmp', '/p/a.md']
+  ]);
+});
+
+test('writeStdout: does not rename when the write throws', () => {
+  // Arrange
+  const calls = [];
+  const d = {
+    pid: 9,
+    writeFile: () => {
+      throw new Error('disk full');
+    },
+    rename: () => calls.push('rename')
+  };
+  // Act
+  const act = () => writeStdout('/p/a.md', 'text', d);
+  // Assert
+  assert.throws(act, /disk full/);
+  assert.equal(calls.length, 0);
+});
+
+test('failureText: shows the command line and its stdout and stderr', () => {
+  // Arrange
+  const r = { stdout: 'out', stderr: 'err' };
+  // Act
+  const text = failureText('npx', ['--no-install', 'eslint', 'a.js'], r, {});
+  // Assert
+  assert.equal(text, '$ npx --no-install eslint a.js\nout\nerr');
+});
+
+test('failureText: includes the spawn error message', () => {
+  // Arrange
+  const r = { stdout: '', stderr: '', error: new Error('ENOENT') };
+  // Act
+  const text = failureText('x', [], r, {});
+  // Assert
+  assert.equal(text, '$ x\nENOENT');
+});
+
+test('failureText: drops stdout for a stdout-writing step', () => {
+  // Arrange
+  const r = { stdout: 'formatted file', stderr: 'bad' };
+  // Act
+  const text = failureText('fmt', ['a'], r, { stdout: true });
+  // Assert
+  assert.equal(text, '$ fmt a\nbad');
 });

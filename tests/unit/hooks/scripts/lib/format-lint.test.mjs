@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { formatLint } from '../../../../hooks/scripts/format-lint.mjs';
+import { formatLint } from '../../../../../hooks/scripts/lib/format-lint.mjs';
 
 const ok = { status: 0, stdout: '', stderr: '' };
 const base = (over = {}) => ({

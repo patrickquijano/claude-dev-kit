@@ -7,7 +7,7 @@ import {
   OUT_FILES,
   runGraphify,
   which
-} from '../../../../hooks/scripts/graphify.mjs';
+} from '../../../../../hooks/scripts/lib/graphify.mjs';
 
 const BIN = path.join('/bin', 'graphify');
 // Deps where `graphify` is an executable file at /bin/graphify and `existing` paths exist.
