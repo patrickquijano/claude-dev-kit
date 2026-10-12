@@ -3,7 +3,7 @@
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { FILE, TABLE, available, isFile, keyOf, readStdin, run, win } from './tools.mjs';
+import { FILE, TABLE, WIN_UNSAFE, available, isFile, keyOf, readStdin, run, win } from './tools.mjs';
 
 const REAL_DEPS = {
   isFile,
@@ -23,7 +23,7 @@ const REAL_DEPS = {
 export function formatLint(input, deps = {}) {
   const d = { ...REAL_DEPS, ...deps };
   const file = input?.tool_input?.file_path;
-  if (typeof file !== 'string' || !d.isFile(file) || (d.win && file.includes('"'))) return null;
+  if (typeof file !== 'string' || !d.isFile(file) || (d.win && WIN_UNSAFE.test(file))) return null;
   let projectDir, abs;
   try {
     projectDir = d.realpath(d.env.CLAUDE_PROJECT_DIR || input.cwd || d.cwd());

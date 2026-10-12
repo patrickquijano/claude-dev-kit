@@ -6,7 +6,7 @@ import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { FILE, available, groups, isFile, keyOf, readStdin, run } from './tools.mjs';
+import { FILE, WIN_UNSAFE, available, groups, isFile, keyOf, readStdin, run, win } from './tools.mjs';
 
 const MAX = 8000;
 // Total budget in ms; below the hook `timeout` (600 s) so this script reports the timeout itself.
@@ -20,6 +20,7 @@ const REAL_DEPS = {
   isFile,
   available,
   run,
+  win,
   readFile: (f) => readFileSync(f),
   realpath: realpathSync,
   writeFile: writeFileSync,
@@ -69,7 +70,11 @@ export function groupFiles(cwd, exts, specs, deps = {}) {
   if (res.error || res.status !== 0) return [];
   const files = list(res).filter((f) => {
     const segments = f.split('/');
-    return !segments.some((s) => s === 'node_modules' || s === '.git') && exts.includes(keyOf(f));
+    return (
+      !segments.some((s) => s === 'node_modules' || s === '.git') &&
+      exts.includes(keyOf(f)) &&
+      !(d.win && WIN_UNSAFE.test(f))
+    );
   });
   return [...new Set(files)].filter((f) => d.isFile(path.join(cwd, f))).sort();
 }

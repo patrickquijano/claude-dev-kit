@@ -143,6 +143,15 @@ test('formatLint: skips a Dockerfile with a heredoc', () => {
   assert.equal(result, null);
 });
 
+test('formatLint: returns null for a path with a percent sign on Windows', () => {
+  // Arrange
+  const deps = base({ win: true });
+  // Act
+  const result = formatLint(event('/p/100%.md'), deps);
+  // Assert
+  assert.equal(result, null);
+});
+
 test('formatLint: returns null for a quoted path on Windows', () => {
   // Arrange
   const deps = base({ win: true });

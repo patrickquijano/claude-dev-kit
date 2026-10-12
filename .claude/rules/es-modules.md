@@ -6,7 +6,7 @@ paths:
 # ES modules
 
 - Import built-ins with the `node:` specifier.
-- Run commands with `execFileSync` or `spawnSync` and an argument array; never `shell: true`, `eval`, `new Function`, or input interpolated into a command. Set an explicit `timeout` on every child process.
+- Run commands with `execFileSync` or `spawnSync` and an argument array; never `eval`, `new Function`, or input interpolated into a command. `shell: true` only for Windows `.cmd` shims, with fixed args or args rejected for cmd.exe metacharacters (`"`, `%`, `!`, `^`, CR, LF; see `WIN_UNSAFE` in `hooks/scripts/tools.mjs`). Set an explicit `timeout` on every child process.
 - `JSON.parse` hook stdin inside a `try`, then check its shape and types before use.
 - Resolve file paths and check they stay inside `CLAUDE_PROJECT_DIR` or the repo root before reading or writing.
 - Never log secrets or env values. No network calls unless they are the module's purpose.

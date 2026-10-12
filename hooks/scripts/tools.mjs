@@ -5,6 +5,8 @@ import path from 'node:path';
 
 export const win = process.platform === 'win32';
 export const FILE = '{file}';
+// Characters cmd.exe treats specially even inside double quotes; Windows runs go through a shell, so none may reach it.
+export const WIN_UNSAFE = /["%!^\r\n]/;
 
 // Step: {kind, cmd, args, strict?, npx?, probe?, configs?, pkgKey?, requireConfig?, stdout?, skip?}; `alt` runs the first
 // available candidate. `configs` (files in the project root) and `pkgKey` (a package.json key) mark a step as configured;
@@ -132,6 +134,8 @@ export function run(cmd, args, cwd, timeout = 60_000, deps = {}) {
   const { spawn = spawnSync, win: isWin = win, env = process.env } = deps;
   const opts = { cwd, encoding: 'utf8', timeout, maxBuffer: 1 << 26, env: { ...env, NO_COLOR: '1' } };
   if (!isWin) return spawn(cmd, args, opts);
+  if ([cmd, ...args].some((a) => WIN_UNSAFE.test(a)))
+    return { error: new Error('argument has a cmd.exe metacharacter'), status: null };
   const quoted = [path.normalize(cmd), ...args].map((a) => `"${a}"`);
   return spawn(quoted[0], quoted.slice(1), { ...opts, shell: true });
 }

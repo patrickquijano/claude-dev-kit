@@ -98,6 +98,72 @@ test('run: quotes every argument and uses a shell on Windows', () => {
   assert.equal(calls[0][2].shell, true);
 });
 
+test('run: refuses an argument with a double quote on Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: true, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a"b'], '/p', 1000, deps);
+  // Assert
+  assert.ok(result.error);
+  assert.equal(calls.length, 0);
+});
+
+test('run: refuses an argument with a percent sign on Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: true, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a%b'], '/p', 1000, deps);
+  // Assert
+  assert.ok(result.error);
+  assert.equal(calls.length, 0);
+});
+
+test('run: refuses an argument with an exclamation mark on Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: true, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a!b'], '/p', 1000, deps);
+  // Assert
+  assert.ok(result.error);
+  assert.equal(calls.length, 0);
+});
+
+test('run: refuses an argument with a caret on Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: true, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a^b'], '/p', 1000, deps);
+  // Assert
+  assert.ok(result.error);
+  assert.equal(calls.length, 0);
+});
+
+test('run: refuses an argument with a newline on Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: true, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a\nb'], '/p', 1000, deps);
+  // Assert
+  assert.ok(result.error);
+  assert.equal(calls.length, 0);
+});
+
+test('run: allows the same characters off Windows', () => {
+  // Arrange
+  const calls = [];
+  const deps = { win: false, env: {}, spawn: (...a) => (calls.push(a), { status: 0 }) };
+  // Act
+  const result = run('tool', ['a%b', 'c"d'], '/p', 1000, deps);
+  // Assert
+  assert.equal(result.status, 0);
+  assert.equal(calls.length, 1);
+});
+
 test('run: defaults the timeout to 60 seconds', () => {
   // Arrange
   const calls = [];

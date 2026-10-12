@@ -207,6 +207,24 @@ test('groupFiles: drops files under node_modules and .git', () => {
   assert.deepEqual(files, ['ok.md']);
 });
 
+test('groupFiles: drops file names with cmd.exe metacharacters on Windows', () => {
+  // Arrange
+  const deps = { win: true, git: fakeGit({ all: ['a"b.md', '100%.md', 'ok.md'] }), isFile: () => true };
+  // Act
+  const files = groupFiles('/p', ['md'], ['x'], deps);
+  // Assert
+  assert.deepEqual(files, ['ok.md']);
+});
+
+test('groupFiles: keeps the same file names off Windows', () => {
+  // Arrange
+  const deps = { win: false, git: fakeGit({ all: ['100%.md', 'ok.md'] }), isFile: () => true };
+  // Act
+  const files = groupFiles('/p', ['md'], ['x'], deps);
+  // Assert
+  assert.deepEqual(files, ['100%.md', 'ok.md']);
+});
+
 test('groupFiles: drops files that no longer exist on disk', () => {
   // Arrange
   const deps = { git: fakeGit({ all: ['gone.md', 'here.md'] }), isFile: (f) => f.endsWith('here.md') };
