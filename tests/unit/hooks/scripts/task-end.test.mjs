@@ -1,0 +1,165 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { decide, output } from '../../../../hooks/scripts/task-end.mjs';
+
+function make({
+  configured = false,
+  present = false,
+  inside = true,
+  marker = false,
+  unsafe = false,
+  badCwd = false
+} = {}) {
+  return {
+    env: { CLAUDE_PROJECT_DIR: '/repo' },
+    cwd: () => '/cwd',
+    realpathSync: (p) => {
+      if (badCwd) throw new Error('ENOENT');
+      return p;
+    },
+    graphifyConfigured: () => configured,
+    graphifyFilesExist: () => present,
+    git: (cwd, args) => {
+      if (args[0] === 'rev-parse' && args[1] === '--is-inside-work-tree') {
+        return { status: inside ? 0 : 128, stdout: Buffer.from('true\n') };
+      }
+      return { status: 0, stdout: Buffer.from('.git/cdk-ship-release\n') };
+    },
+    existsSync: () => marker,
+    unsafeState: () => unsafe
+  };
+}
+const prompt = { prompt: 'Fix the bug' };
+
+test('decide asks for the commit step in a git repo', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 1);
+  assert.match(result[0], /cdk:commit-changes/);
+});
+
+test('decide runs graphify update before the commit when the graph exists', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /graphify update \./);
+  assert.match(result[1], /cdk:commit-changes/);
+});
+
+test('decide asks for the graphify skill when the graph is missing', () => {
+  // Arrange
+  const deps = make({ configured: true, present: false });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /`graphify` skill with the argument `\.`/);
+});
+
+test('decide omits the Graphify step when Graphify is not configured', () => {
+  // Arrange
+  const deps = make({ configured: false, present: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(
+    result.some((p) => /graphify/i.test(p)),
+    false
+  );
+});
+
+test('decide skips slash-command prompts', () => {
+  // Arrange
+  const deps = make({ configured: true });
+  // Act
+  const result = decide({ prompt: '/cdk:ship-release' }, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide skips bang prompts', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide({ prompt: '  !ls' }, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide skips a missing or blank prompt', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const results = [decide({}, deps), decide({ prompt: '   ' }, deps), decide(null, deps)];
+  // Assert
+  assert.deepEqual(results, [[], [], []]);
+});
+
+test('decide omits the commit step while the ship-release marker exists', () => {
+  // Arrange
+  const deps = make({ marker: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the commit step in an unsafe git state', () => {
+  // Arrange
+  const deps = make({ unsafe: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the commit step outside a git repo but keeps Graphify', () => {
+  // Arrange
+  const deps = make({ inside: false, configured: true, present: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 1);
+  assert.match(result[0], /graphify update/);
+});
+
+test('decide returns nothing when the project dir cannot be resolved', () => {
+  // Arrange
+  const deps = make({ badCwd: true, configured: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('output numbers the steps under the end-of-task heading', () => {
+  // Arrange
+  const parts = ['one', 'two'];
+  // Act
+  const result = output(parts);
+  // Assert
+  assert.equal(result.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
+  assert.match(result.hookSpecificOutput.additionalContext, /^After the whole task is complete.*:\n1\. one\n2\. two$/);
+});
+
+test('output has no systemMessage so normal prompts stay quiet', () => {
+  // Arrange
+  const parts = ['one'];
+  // Act
+  const result = output(parts);
+  // Assert
+  assert.equal('systemMessage' in result, false);
+});
+
+test('output is null when there are no steps', () => {
+  // Arrange
+  const parts = [];
+  // Act
+  const result = output(parts);
+  // Assert
+  assert.equal(result, null);
+});
