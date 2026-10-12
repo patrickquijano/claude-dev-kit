@@ -6,7 +6,7 @@ import path from 'node:path';
 import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/task-end.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/user-prompt-submit.mjs', import.meta.url));
 const dirs = [];
 const sh = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
 const dir = (prefix) => {
@@ -34,7 +34,8 @@ const run = (cwd, input) =>
     encoding: 'utf8',
     timeout: 15_000
   });
-const prompt = JSON.stringify({ prompt: 'Fix X' });
+const prompt = JSON.stringify({ permission_mode: 'default', prompt: 'Fix X' });
+const BIG = 'Implement X across multiple files\n- a\n- b\n- c';
 
 after(() => {
   for (const d of dirs) rmSync(d, { recursive: true, force: true });
@@ -87,7 +88,7 @@ test('cli: a slash-command prompt prints nothing', () => {
   // Arrange
   const d = repo();
   // Act
-  const r = run(d, JSON.stringify({ prompt: '/cdk:ship-release' }));
+  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/cdk:ship-release' }));
   // Assert
   assert.equal(r.stdout, '');
 });
@@ -100,4 +101,37 @@ test('cli: invalid JSON prints nothing and exits 0', () => {
   // Assert
   assert.equal(r.status, 0);
   assert.equal(r.stdout, '');
+});
+
+test('cli: a question in default mode prints nothing', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: 'What does X do?' }));
+  // Assert
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, '');
+});
+
+test('cli: a question in plan mode prints only the exit instruction', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, JSON.stringify({ permission_mode: 'plan', prompt: 'What does X do?' }));
+  // Assert
+  const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /ExitPlanMode/);
+  assert.doesNotMatch(ctx, /cdk:commit-changes/);
+});
+
+test('cli: a large change asks about plan mode before the commit step', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: BIG }));
+  // Assert
+  const out = JSON.parse(r.stdout);
+  const ctx = out.hookSpecificOutput.additionalContext;
+  assert.match(out.systemMessage, /^Plan mode: suggesting/);
+  assert.ok(ctx.indexOf('AskUserQuestion') < ctx.indexOf('cdk:commit-changes'));
 });

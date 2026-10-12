@@ -18,15 +18,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/plan-mode.mjs\"",
-            "timeout": 10,
-            "statusMessage": "Checking plan mode"
-          },
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/task-end.mjs\"",
-            "timeout": 10,
-            "statusMessage": "Adding end-of-task steps"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-submit.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Preparing prompt context"
           }
         ]
       }

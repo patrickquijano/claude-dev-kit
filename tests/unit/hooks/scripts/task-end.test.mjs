@@ -72,6 +72,43 @@ test('decide omits the Graphify step when Graphify is not configured', () => {
   );
 });
 
+test('decide returns nothing for a question prompt', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true });
+  // Act
+  const result = decide({ prompt: 'What does stop.mjs do?' }, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide still adds the steps for a change prompt with a #plan override', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide({ prompt: 'Why is it slow? #plan' }, deps);
+  // Assert
+  assert.equal(result.length, 1);
+});
+
+test('decide makes every step conditional on git status', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 2);
+  for (const step of result) assert.match(step, /git status --porcelain/);
+});
+
+test('decide limits the Graphify step to code changes', () => {
+  // Arrange
+  const deps = make({ configured: true, present: false });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /changed code files \(not only docs or config\)/);
+});
+
 test('decide skips slash-command prompts', () => {
   // Arrange
   const deps = make({ configured: true });

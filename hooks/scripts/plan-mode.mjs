@@ -1,7 +1,5 @@
-// UserPromptSubmit hook: decide whether the prompt needs plan mode and ask Claude to switch with
-// EnterPlanMode or ExitPlanMode. Hooks cannot change the mode themselves; never blocks a prompt.
-import { pathToFileURL } from 'node:url';
-import { readStdin } from './tools.mjs';
+// Plan-mode logic for the UserPromptSubmit dispatcher (user-prompt-submit.mjs): decide whether the prompt needs plan
+// mode and ask Claude to ask the user, or to leave plan mode. Hooks cannot change the mode themselves.
 
 const MODES = ['default', 'plan', 'acceptEdits', 'auto', 'dontAsk', 'bypassPermissions'];
 const QUESTION_WORDS = /^(what|why|how|where|when|which|who|is|are|can|could|does|do|should|explain)\b/i;
@@ -44,27 +42,12 @@ export function output({ action, rule }) {
   if (action === 'none') return null;
   const enter = action === 'enter';
   return {
-    systemMessage: `Plan mode: ${enter ? 'entering' : 'exiting'} (${rule})`,
+    systemMessage: `Plan mode: ${enter ? 'suggesting' : 'exiting'} (${rule})`,
     hookSpecificOutput: {
       hookEventName: 'UserPromptSubmit',
       additionalContext: enter
-        ? 'Before any other tool call, call EnterPlanMode (load it with ToolSearch if deferred), then plan this prompt.'
+        ? `Before any other tool call, ask the user with AskUserQuestion whether to enter plan mode (options: Enter plan mode (Recommended) / Continue without plan mode; give the reason: ${rule}). If they choose to enter, call EnterPlanMode (load it with ToolSearch if deferred) and plan this prompt. Otherwise do the prompt in the current mode.`
         : `Before any other tool call, write the one-line plan \`No plan needed: ${rule}\` to the plan file and call ExitPlanMode; after approval, do the prompt.`
     }
   };
-}
-
-async function main() {
-  let event;
-  try {
-    event = JSON.parse(await readStdin());
-  } catch {
-    return;
-  }
-  const out = output(decide(event));
-  if (out) process.stdout.write(JSON.stringify(out));
-}
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await main();
 }

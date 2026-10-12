@@ -149,9 +149,11 @@ test('output: asks Claude to call EnterPlanMode on enter', () => {
   // Act
   const out = output(decision);
   // Assert
-  assert.equal(out.systemMessage, 'Plan mode: entering (long change request)');
+  assert.equal(out.systemMessage, 'Plan mode: suggesting (long change request)');
   assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
+  assert.match(out.hookSpecificOutput.additionalContext, /AskUserQuestion/);
   assert.match(out.hookSpecificOutput.additionalContext, /EnterPlanMode/);
+  assert.match(out.hookSpecificOutput.additionalContext, /long change request/);
 });
 
 test('output: asks Claude to call ExitPlanMode on exit', () => {
