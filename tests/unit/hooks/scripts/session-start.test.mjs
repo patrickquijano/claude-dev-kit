@@ -1,0 +1,177 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { dateLine, recordBaseline, sessionStart } from '../../../../hooks/scripts/session-start.mjs';
+
+function make({
+  configured = false,
+  present = false,
+  state = {},
+  snap = { fp: 'fp' },
+  rules = 'RULES\n',
+  readFails = false
+} = {}) {
+  const writes = [];
+  const deps = {
+    env: { CLAUDE_PROJECT_DIR: '/repo', CLAUDE_PLUGIN_ROOT: '/plugin' },
+    cwd: () => '/cwd',
+    now: () => new Date(2026, 9, 13, 15, 5),
+    defaultRoot: () => '/default',
+    realpathSync: (p) => p,
+    graphifyConfigured: () => configured,
+    graphifyFilesExist: () => present,
+    readFileSync: (p) => {
+      if (readFails) throw new Error('ENOENT');
+      return `${rules}|${p}`;
+    },
+    statePath: () => '/state.json',
+    readState: () => structuredClone(state),
+    treeSnapshot: () => snap,
+    writeState: (f, s) => writes.push(s)
+  };
+  return { deps, writes };
+}
+
+test('dateLine formats the weekday, date, and 12-hour time', () => {
+  // Arrange
+  const now = new Date(2026, 9, 13, 15, 5);
+  // Act
+  const result = dateLine(now);
+  // Assert
+  assert.equal(result, 'Today is Tuesday, October, 13, 2026 and the current time is 3:05 PM');
+});
+
+test('dateLine marks the morning as AM', () => {
+  // Arrange
+  const now = new Date(2026, 0, 2, 3, 9);
+  // Act
+  const result = dateLine(now);
+  // Assert
+  assert.match(result, /3:09 AM$/);
+});
+
+test('dateLine does not leak the previous day across midnight', () => {
+  // Arrange
+  const now = new Date(2026, 0, 2, 0, 0);
+  // Act
+  const result = dateLine(now);
+  // Assert
+  assert.match(result, /Friday, January, 2, 2026 .* 12:00 AM$/);
+});
+
+test('dateLine defaults to the current time without throwing', () => {
+  // Arrange
+  const pattern = /^Today is \w+, \w+, \d+, \d{4} and the current time is \d+:\d{2} (AM|PM)$/;
+  // Act
+  const result = dateLine();
+  // Assert
+  assert.match(result, pattern);
+});
+
+test('recordBaseline stores the tree fingerprint', () => {
+  // Arrange
+  const { deps, writes } = make();
+  // Act
+  recordBaseline({ session_id: 's', source: 'startup' }, deps);
+  // Assert
+  assert.equal(writes[0].baseline, 'fp');
+});
+
+test('recordBaseline refreshes the baseline on a fresh start even when one exists', () => {
+  // Arrange
+  const { deps, writes } = make({ state: { baseline: 'old' } });
+  // Act
+  recordBaseline({ source: 'startup' }, deps);
+  // Assert
+  assert.equal(writes[0].baseline, 'fp');
+});
+
+test('recordBaseline keeps an existing baseline on compact', () => {
+  // Arrange
+  const { deps, writes } = make({ state: { baseline: 'old' } });
+  // Act
+  recordBaseline({ source: 'compact' }, deps);
+  // Assert
+  assert.equal(writes.length, 0);
+});
+
+test('recordBaseline writes nothing when git cannot snapshot the tree', () => {
+  // Arrange
+  const { deps, writes } = make({ snap: null });
+  // Act
+  recordBaseline({ source: 'startup' }, deps);
+  // Assert
+  assert.equal(writes.length, 0);
+});
+
+test('sessionStart returns the date line as additional context', () => {
+  // Arrange
+  const { deps } = make();
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.equal(result.hookSpecificOutput.hookEventName, 'SessionStart');
+  assert.match(result.hookSpecificOutput.additionalContext, /^Today is Tuesday, October, 13, 2026/);
+});
+
+test('sessionStart adds the Graphify rules when a graph is ready', () => {
+  // Arrange
+  const { deps } = make({ configured: true, present: true });
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.match(result.hookSpecificOutput.additionalContext, /Use Graphify to navigate this repository:\n\nRULES/);
+  assert.match(
+    result.hookSpecificOutput.additionalContext,
+    /\/plugin\/skills\/setup-graphify\/assets\/graphify-rules\.md/
+  );
+});
+
+test('sessionStart falls back to the default plugin root', () => {
+  // Arrange
+  const { deps } = make({ configured: true, present: true });
+  delete deps.env.CLAUDE_PLUGIN_ROOT;
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.match(result.hookSpecificOutput.additionalContext, /\/default\/skills\/setup-graphify/);
+});
+
+test('sessionStart omits Graphify rules when Graphify is not configured', () => {
+  // Arrange
+  const { deps } = make({ configured: false, present: true });
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
+});
+
+test('sessionStart omits Graphify rules when the graph files are missing', () => {
+  // Arrange
+  const { deps } = make({ configured: true, present: false });
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
+});
+
+test('sessionStart still returns the date line when the rules file is unreadable', () => {
+  // Arrange
+  const { deps } = make({ configured: true, present: true, readFails: true });
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
+  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
+});
+
+test('sessionStart still returns the date line when the baseline cannot be recorded', () => {
+  // Arrange
+  const { deps } = make();
+  deps.treeSnapshot = () => {
+    throw new Error('boom');
+  };
+  // Act
+  const result = sessionStart({}, deps);
+  // Assert
+  assert.match(result.hookSpecificOutput.additionalContext, /^Today is/);
+});
