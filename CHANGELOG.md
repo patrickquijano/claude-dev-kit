@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - **Breaking:** `/cdk:ship-release` commits atomically before opening the PR or MR and reviews it there, up to 3 rounds, instead of reviewing locally and making one commit. It asks once whether to squash and delete the source branch.
+- Known issues no longer need a commit: skill fixes are saved to `${CLAUDE_PLUGIN_DATA}/known-issues/<skill>.md`, shared across projects, and project fixes go to Claude auto memory. `cdk:write-claude-md` no longer generates a `## Known issues` section and moves existing entries to auto memory.
 
 ### Removed
 
