@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Loops: clarify (step 3) max 2 batches.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Loops: clarify (step 3) max 3 AskUserQuestion calls; verify-fix (step 9) max 3 attempts. Any stop from step 2 onward (clarify cap, lookup failure, step 8 stop, verify cap) → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>` and end; only a step 1 stop and cancels skip step 10 and print `Resolution: not run (stopped | cancelled)`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-devcontainer`; it covers the analyzer's `Known issue:` lines.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-devcontainer` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the analyzer's `Known issue:` lines.
 
 ## Workflow
 

@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: failed approval criteria A1–A7, merge blockers, own threads still unresolved (`Threads resolved: n of m`), General findings that could not be placed, `Merged: not offered`, `Merged: no (<error or reason>)`, `Approval: not approved (declined)`, a failed reviewer-add PUT (step 8)).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `review-merge-request`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `review-merge-request` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

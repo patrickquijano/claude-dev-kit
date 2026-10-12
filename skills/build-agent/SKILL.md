@@ -17,7 +17,7 @@ Input: $ARGUMENTS
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Never run `claude plugin eval` (LLM-graded); structural validation only.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: reviewer, validator, and auditor findings left after the verify cap, itemized; `Checks:` fail or skipped).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `build-agent`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `build-agent` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -46,7 +46,7 @@ Files:
 Invoke: @-mention [<plugin>:]<name> | spawned by [<plugin>:]<skill>
 Checks: validate <pass | fail>, plugin-validator <pass | n findings | skipped — reason>, skill-reviewer <pass | n findings | n/a | skipped — reason>, skill-auditor <pass | n findings>, rules <files | none>, contracts <ok | n findings | none>
 Reload: restart (new agents dir) | /reload-plugins (plugin) | none
-Known issues: <saved memory file | printed line>, … | none
+Known issues: <saved store file | memory file | printed line>, … | none
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Next: blocking questions open` (list the questions), `Verdict: unknown`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `assess-spec-kit-idea`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `assess-spec-kit-idea` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

@@ -29,4 +29,4 @@ Replies:
 Question: <only when input is missing; omit otherwise>
 ```
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

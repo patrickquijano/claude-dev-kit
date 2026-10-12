@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Reviewer severities appear in posted comments as labels: `blocker:` (critical, high), `suggestion:` (medium, low), `question:`, `nit:`.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md` (squash and delete default to the recommended options).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-release`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -43,14 +43,14 @@ Input: $ARGUMENTS
    4. **Blockers or open items** (a `blocker:` comment, failing checks, or other open findings) → GitHub: invoke `cdk:address-pull-request-review <n> self-review --yes`. GitLab: invoke `cdk:address-merge-request-review <iid> auto`. Then run step 5 again and start the next round at 8.1. A round = one review plus its fix cycle, so the third round ends with a final review and no fix. An item that needs a person (required approval from someone else, conflicts, draft, branch policy) → record it as a blocker and leave the loop.
    5. After the third review with items left → blocker `review rounds`, leave the loop. GitHub reads "approved" as: no `blocker:` comment and required checks passing (own PR), else `reviewDecision` `APPROVED`.
 9. **Sync target.** `git switch <target>`, `git fetch --prune origin`, `git merge --ff-only origin/<target>`. A dirty tree is a blocker. A non-fast-forward is allowed only when every extra local `<target>` commit is in the merged PR or MR (`git merge-base --is-ancestor <target> <source branch tip>` succeeds, which also holds after a squash merge); report it as `Main: <target> not fast-forwarded (local pre-release commits are in the merged PR or MR)`; this is a note and does not make `Release` unmet. Never reset. A skipped sync (blocker above) leaves local `<target>` as is.
-10. **Resolve findings.** Per resolve-findings.md; record a fix in auto memory per known-issues.md only when the issue recurs. Then delete the marker (`rm -f -- <absolute marker path>`); this runs on every path out of the run after step 1 wrote it, including a stop and a skipped step 9.
+10. **Resolve findings.** Per resolve-findings.md; record a fix per known-issues.md only when the issue recurs. Then delete the marker (`rm -f -- <absolute marker path>`); this runs on every path out of the run after step 1 wrote it, including a stop and a skipped step 9.
 11. **Output.** Print `## Output`.
 
 ## Blockers
 
 Applies to every step; blockers are reported, never asked. A blocked step does not end the run: run every step that does not depend on it and is still safe.
 
-1. **Investigate.** In order: the failing command's exact output; auto memory per known-issues.md (slug `ship-release`), the repo's `CLAUDE.md` `Known issues`, and `.claude/rules/`; CI logs (`gh run list --branch <b>` then `gh run view <id> --log-failed`, or `glab ci` job logs); the chained skill's `Stopped:`, `Blocked:`, and `Resolution:` lines; for an external tool or host error, the official docs via `cdk:topic-researcher` (cited sources). Write down the root cause, or `unknown` with what was ruled out.
+1. **Investigate.** In order: the failing command's exact output; the known-issues store per known-issues.md (slug `ship-release`), auto memory, and `.claude/rules/`; CI logs (`gh run list --branch <b>` then `gh run view <id> --log-failed`, or `glab ci` job logs); the chained skill's `Stopped:`, `Blocked:`, and `Resolution:` lines; for an external tool or host error, the official docs via `cdk:topic-researcher` (cited sources). Write down the root cause, or `unknown` with what was ruled out.
 2. **Resolve safely.** At most 2 attempts per blocker, each backed by evidence.
    - Allowed: re-run after a transient error, run a missing documented step, fix code or config in the working tree through the chained skills, re-run a chained skill with corrected input.
    - Never: `--no-verify`, `--admin`, force-push, `git reset --hard`, editing the release policy or a check to make it pass, skipping or weakening a test or required check, treating a person's approval or review as satisfied.

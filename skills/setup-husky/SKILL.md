@@ -20,7 +20,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: smoke test results (step 15) and the `Signed` line, kept files that differ from the assets, `CLAUDE.md mention: missing` in `Rules:`, `Commitlint config:` with `report-only` or `kept <value>`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-husky`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-husky` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

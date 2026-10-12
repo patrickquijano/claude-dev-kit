@@ -41,4 +41,4 @@ Conflicts: <item ids and the clash | none>
 Question: <item id | general>: <decision + 2–4 options + recommendation + why>   (one line per question; omit when none)
 ```
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

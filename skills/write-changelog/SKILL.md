@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Idempotent: match by meaning against existing bullets; write only when content differs.
 - Review loop (step 7) capped at 3 rounds; then go to step 8 with `Stopped: 7: <open items>`. A user `Stop` answer in step 7 after `Blocked:` items exist also runs step 8 once, then `Stopped: 7: <reason>`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, `CHANGELOG.md` only; sources: `Blocked:`, non-ok `Checks:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-changelog`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-changelog` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

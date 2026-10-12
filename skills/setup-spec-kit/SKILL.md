@@ -19,7 +19,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Pre-flight stops (steps 1–2) and cancels → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later stop (for example the step 3 Stop answer with `Extensions: failed` or `Required skills: missing`) → run step 6 (**Resolve findings.**) once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped, `skipped (not a git repo)` items).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-spec-kit`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-spec-kit` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

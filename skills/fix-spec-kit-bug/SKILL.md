@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Fix: partial|not-applied`, `Test: partial|failed|not run` with the failing or not-run checks from `test.md`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `fix-spec-kit-bug`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `fix-spec-kit-bug` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

@@ -29,7 +29,7 @@ Input: $ARGUMENTS
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Follow-up:`, `Failures:`, `Validation:` fail|skipped, `Resolved:` remaining open, `Items:` blocked, conflicting, or needing clarification, `Pushed: no`, `Review requested: no`, `Replies:` skipped or not posted).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `address-pull-request-review`; it covers agent `Known issue:` lines.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `address-pull-request-review` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers agent `Known issue:` lines.
 
 ## Workflow
 

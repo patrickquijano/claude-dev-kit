@@ -1,6 +1,6 @@
 # Package managers
 
-Verified 2026-09-28 against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs and use them from step 2 of `SKILL.md` on; save the missing row to auto memory per its Known issues rule (never edit this file from a run).
+Verified 2026-09-28 against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs and use them from step 2 of `SKILL.md` on; save the missing row to the known-issues store per its Known issues rule (never edit this file from a run).
 
 ## Detect, list, upgrade
 

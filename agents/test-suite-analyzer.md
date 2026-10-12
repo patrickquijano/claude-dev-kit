@@ -28,4 +28,4 @@ Suites:
 Questions: <missing info the skill must ask the user, e.g. package manager unknown | none>
 ```
 
-No suite detected → `Suites: none` with the reason. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+No suite detected → `Suites: none` with the reason. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

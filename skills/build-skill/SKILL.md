@@ -17,7 +17,7 @@ Input: $ARGUMENTS
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/fallbacks.md`.
 - Never run `claude plugin eval` (LLM-graded); structural validation only.
 - Final step: follow `${CLAUDE_SKILL_DIR}/resolve-findings.md` (scope: edit; sources: reviewer, validator, and auditor findings left after the verify cap, itemized; `Checks:` fail or skipped).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/known-issues.md` with slug `build-skill`, or the target skill when the issue belongs to it.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/known-issues.md` with slug `build-skill` and store `${CLAUDE_PLUGIN_DATA}/known-issues`, or the target skill when the issue belongs to it.
 - Platform facts:
   - Subagents never get AskUserQuestion → all user interaction in main-thread skill.
   - Orchestrator skill and every skill it chains must NOT set `context: fork` (runs as subagent → loses AskUserQuestion, nests spawns). Chain via the Skill tool in the main thread, never the Agent tool.
@@ -54,7 +54,7 @@ Files:
 - <path> — <purpose>
 Invoke: /[<plugin>:]<name> <args>
 Checks: validate --strict <pass | fail | n/a>, skill-reviewer <pass | n findings | skipped — reason>, plugin-validator <pass | n findings | skipped — reason>, skill-auditor <pass | n findings>, rules <files | none>, contracts <ok | n findings | none>
-Known issues: <saved memory file | printed line>, … | none
+Known issues: <saved store file | memory file | printed line>, … | none
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

@@ -16,7 +16,7 @@ Input: $ARGUMENTS
 - The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Open:` items, `Addressed:` skipped, `Analyze:` open, `Implement: not converged`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `run-spec-kit`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `run-spec-kit` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

@@ -17,7 +17,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 - Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Check:` problems, `uncovered` file types).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-editorconfig`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-editorconfig` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

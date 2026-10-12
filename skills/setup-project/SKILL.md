@@ -15,7 +15,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 - Any sub-skill stop or failure → run step 6 on what the chained skills left, without re-running any skill, then print the Output with `Stopped: <step>: <reason>` and end. A step 3 cancel or `nothing-to-do` skips step 6 and prints `Resolution: not run (cancelled | nothing-to-do)`.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines, `skipped (needs git)` skills, and open `Resolution:` lines of the chained setup skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-project`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `setup-project` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

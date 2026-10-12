@@ -54,4 +54,4 @@ Criteria:
 
 Judge A1, A3, A5, A6 per guidelines `## Approval criteria`. Uncertain → fail with reason. Never judge A2, A4, A7 (parent has CI and approval data).
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

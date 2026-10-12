@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 - Caps: iterations `max-iterations` (default 5, range 1–10); 2 attempts per finding across all iterations; one agent re-spawn per agent error or missing Return (steps 4, 6, 8), then stop (`scanner agent failed`); a scanner `failed` or `timeout` runs again in the next scan, and after its second failure goes in `retry-used`; approval questions: the top 4 `needs-approval` items by priority per iteration, the rest wait for the next iteration, or for step 7.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Remaining:` items itemized, `Validation:` fail|pre-existing fail|unavailable, failed|unavailable|skipped `Scanners:`, `Manual actions:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `scan-vulnerabilities`; it covers the agent's `Known issue:` lines.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `scan-vulnerabilities` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the agent's `Known issue:` lines.
 
 ## Workflow
 

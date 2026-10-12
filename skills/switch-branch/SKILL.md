@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 - Caps: analyzer respawn after `Questions` 1; name suffix search max 10, then stop.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `switch-branch`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `switch-branch` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

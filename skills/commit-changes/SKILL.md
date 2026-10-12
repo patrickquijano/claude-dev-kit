@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Excluded:` secret-flagged files, `Commitlint:` skipped or `fail (<error line>)`, `Branch:` `not pushed` with no origin).
 - Unattended when run by the cdk `Stop` hook or chained by another skill: it asks nothing, and step 11 only reports open items with their recommended fix.
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `commit-changes`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `commit-changes` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

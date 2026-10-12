@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Step 3 cap hit, or a failure before findings exist → print the Output, `Result: stopped`, `Stopped: <step>: <reason>`, and end. Step 7 cap hit, or a failure after findings exist → run step 8 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - Chained by `cdk:setup-devcontainer` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: unfixed `Findings:`, `Skipped practices:`, `Checks:` fail or not installed).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-dockerfile`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-dockerfile` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

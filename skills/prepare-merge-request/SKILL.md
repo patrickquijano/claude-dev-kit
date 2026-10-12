@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Template: bundled`, `Template` fallbacks, `Commitlint:` skipped or `fail (<error line>)`, a step 14 verify mismatch, `Release: failed (<codes>)`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `prepare-merge-request`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `prepare-merge-request` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

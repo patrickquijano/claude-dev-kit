@@ -29,7 +29,7 @@ Input: $ARGUMENTS
 - <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`. # only if the skill asks the user or writes files
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -64,7 +64,7 @@ Input: $ARGUMENTS
 - <Loop> capped at <n> rounds; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields and agent returns>). # only if the Output reports findings
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>`; it covers subagent `Known issue:` lines.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers subagent `Known issue:` lines.
 
 ## Workflow
 
@@ -102,5 +102,5 @@ model: <haiku|inherit> # only when needed: haiku cheap lookups, inherit otherwis
 ## Return
 
 <concise fixed structure; parent sees only this>
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
 ```

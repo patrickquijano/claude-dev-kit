@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Score-only never writes; only an explicit Convert to README.md (step 1) answer leaves score-only.
 - Formatter and linter runs prompt for permission; expected.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit, the target README only; sources: `Remaining gaps:` scorer deductions).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-readme`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-readme` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

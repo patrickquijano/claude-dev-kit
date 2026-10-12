@@ -37,4 +37,4 @@ Pinning signals: sha_pinning_required <true | false | unknown>, org <true | fals
 Questions: <question — options>, … | none
 ```
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
