@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) WebFetch(domain:docs.github.com) WebFetch(d
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -28,7 +34,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`, else cwd. Mode: input names or matches an existing workflow, or `.github/workflows/` has files the request touches → update; else create. Input too thin to name any trigger or job → step 3.
+1. **Pre-flight.** Root = Context → Repo root, else cwd. Mode: input names or matches an existing workflow, or `.github/workflows/` has files the request touches → update; else create. Input too thin to name any trigger or job → step 3.
 2. **Analyze.** Spawn `cdk:workflow-analyzer` with the root, a request summary, and `${CLAUDE_SKILL_DIR}/references/versions.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
 3. **Clarify.** Derive the design from the input and the analyzer; ask only what stays missing, in one AskUserQuestion call; nothing left to change → `Result: nothing-to-do`; max 3 rounds. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Docs check.** WebFetch only the pages named in `practices.md` for features this request uses (for example services, environments, concurrency); a fact that differs from `practices.md` → follow the doc, record it under `Docs checked`. Skip for features unused.

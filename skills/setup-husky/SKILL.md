@@ -6,6 +6,13 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 
 # Setup Husky
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Node version: !`node --version 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -25,7 +32,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 
 ## Workflow
 
-1. **Pre-flight.** `git-root` fails → stop ("not a git repository"). `node-version` fails → stop ("install Node.js").
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Context Node version `<none>` → stop ("install Node.js").
 2. **Package dir.** Per `${CLAUDE_SKILL_DIR}/references/package-manager.md` Package dir (monorepo: hooks belong at the root). `<pkg>` = package dir relative to git root (`.` at root).
 3. **Package manager.** Per `${CLAUDE_SKILL_DIR}/references/package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
 4. **package.json.** Missing → per `${CLAUDE_SKILL_DIR}/references/package-manager.md` Missing package.json (Husky needs it).

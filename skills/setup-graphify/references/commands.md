@@ -2,7 +2,7 @@
 
 | Name                   | Command                             | Purpose                             |
 | ---------------------- | ----------------------------------- | ----------------------------------- |
-| `git-root`             | `git rev-parse --show-toplevel`     | Repo root                           |
+| `git-root`             | `git rev-parse --show-toplevel`     | Repo root (preloaded in Context)    |
 | `has-graphify`         | `command -v graphify`               | Succeeds when installed             |
 | `has-uv`               | `command -v uv`                     | Succeeds when uv exists             |
 | `has-pipx`             | `command -v pipx`                   | Succeeds when pipx exists           |

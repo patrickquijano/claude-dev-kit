@@ -9,11 +9,22 @@ allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+- Origin: !`git remote get-url origin 2>/dev/null || echo '<none>'`
+- Git version: !`git --version 2>/dev/null || echo '<none>'`
+- Node version: !`node --version 2>/dev/null || echo '<none>'`
+- npx version: !`npx --version 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Orchestration per `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
-- Host from `origin-url`: `github.com` → GitHub PR flow (`gh`); any other host → GitLab MR flow (`glab`).
+- Host from Context → Origin: `github.com` → GitHub PR flow (`gh`); any other host → GitLab MR flow (`glab`).
 - Invoking this skill is the consent for atomic signed commits, normal pushes, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing, never `--admin`). Squash and source-branch deletion are asked once (step 6).
 - Never force-push, `--admin`, `--no-verify`, `git reset --hard`, or delete `main`. Never bypass a hook, check, or required review.
 - Every step is idempotent and resumes from the observed state (branch, commits, PR or MR, version, merge state), so a re-run continues instead of repeating.
@@ -26,8 +37,8 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `git-version`, `node-version`, `npx-version`, plus `gh-version` or `glab-version`; `root`; auth (`gh-auth` or `glab-auth`); signing, target, `fetch`. Any failure → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last (Write tool, absolute path from `marker-path`); the plugin's end-of-task hook skips this tree until step 10 deletes it. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
-2. **Resume detection.** Current = `current-branch`; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest. Merged or nothing to ship → step 9; open PR or MR with a clean tree → step 5; else continue at step 3. Detail: `${CLAUDE_SKILL_DIR}/references/resume.md`.
+1. **Pre-flight.** Context → Git, Node, and npx version (`<none>` → blocker), plus `gh-version` or `glab-version`; Context → Repo root; auth (`gh-auth` or `glab-auth`); signing, target, `fetch`. Any failure → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last (Write tool, absolute path from `marker-path`); the plugin's end-of-task hook skips this tree until step 10 deletes it. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+2. **Resume detection.** Current = Context → Branch; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest. Merged or nothing to ship → step 9; open PR or MR with a clean tree → step 5; else continue at step 3. Detail: `${CLAUDE_SKILL_DIR}/references/resume.md`.
 3. **Branch.** On the target or a protected branch (per `conventions.md` `## Protected branch`) with changes (dirty tree, or `unshipped-count` > 0) → invoke `cdk:switch-branch`; step 9 then reconciles local `<target>`.
 4. **Commit.** Dirty tree → invoke `cdk:commit-changes` (atomic, signed, pushed). A clean tree with unpushed commits needs no step here; step 7 pushes them.
 5. **Release files.** `.claude/release-policy.json` present → invoke `cdk:bump-version target <target>` (it always asks the user to confirm the bump, and chains `cdk:write-changelog`); else invoke `cdk:write-changelog base <target>` (creates `CHANGELOG.md` when missing). The shipped change alters documented behavior, setup, config, usage, or examples (compare `target-diff` with the README sections) → invoke `cdk:write-readme`. Dirty tree → invoke `cdk:commit-changes`. Each skill is idempotent, so this step also runs after every fix round (step 8).

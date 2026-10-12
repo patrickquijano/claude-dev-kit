@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(printenv CLAUDE_CONFIG_DIR) Bash(print
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -29,7 +35,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Repo root = `repo-root`, else cwd. Platform = Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` → macOS, `Linux` → Linux). Settings dir = `config-dir` when it prints a path (a failed command means unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Note that managed settings, if any, still outrank it.
+1. **Pre-flight.** Repo root = Context → Repo root, `<none>` → cwd. Platform = Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` → macOS, `Linux` → Linux). Settings dir = `config-dir` when it prints a path (a failed command means unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Note that managed settings, if any, still outrank it.
 2. **Analyze.** Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS`. Ask its `Questions:`, then re-spawn once with the answers appended to the prompt as extra notes. `Known issue:` lines → known-issues rule.
 3. **MCP inventory.** Never from the analyzer or from memory. Servers = `mcp-list` (a failed command → none known). Tools = every `mcp__<server>__<tool>` name in this session's own tool list, including deferred tools listed by name, copied exactly. A listed server with no listed tool (failed, pending approval, needs authentication) → `Skipped: <server> — unavailable`; never guess its tools. Servers or tools that are not listed are not classified.
 4. **Classify.** Apply `catalog.md` to the analyzer's commands plus the baseline for the platform, and its `## MCP` section to each listed MCP tool. Use `Package managers` to scope the read-only package-manager allows, `Installed` to skip programs that are missing, and `Gaps` as `skipped` notes. Produce candidate rules per list, each with its reason: `Bash`/`PowerShell` commands as exact + wildcard pairs, each MCP tool as one exact rule. `Destructive`, `Interpreter/exec`, and `Privileged` entries, and anything unclassifiable → ask or deny per the catalog. Record `reclassified` = a command that looks allowable but the catalog moved to ask or deny, with the reason.

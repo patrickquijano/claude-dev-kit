@@ -4,7 +4,7 @@ Steps 1–3 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/co
 
 ## Pre-flight (step 1)
 
-- `current-branch` = `HEAD` (detached) → stop.
+- Context → Branch = `HEAD` (detached) → stop.
 - `status` shows "rebase in progress" → stop, tell user to finish or `rebase-abort`.
 - `dirty-tracked` non-empty → stop, suggest `/cdk:commit-changes`.
 - Signing per `${CLAUDE_SKILL_DIR}/../commit-changes/references/conventions.md` `## Signing` (read the allowed signers file to check the key). Missing or mismatch → stop, tell user what to set.

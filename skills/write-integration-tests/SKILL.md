@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -24,7 +30,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Project dir = `git-root`, else cwd. From the input extract scope (paths, symbols, or a feature description; absent → `all`, the whole code base). Scope matches no file → AskUserQuestion with the closest fits.
+1. **Pre-flight.** Project dir = Context → Repo root, else cwd. From the input extract scope (paths, symbols, or a feature description; absent → `all`, the whole code base). Scope matches no file → AskUserQuestion with the closest fits.
 2. **Packages.** List files with `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); find manifests from `${CLAUDE_SKILL_DIR}/../setup-test-hook/references/stacks.md` Signals. Monorepo → one package each; else the project dir. Limit to packages the scope touches. JS packages: package manager per `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` Detect; ambiguous → ask here.
 3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `integration`, scope, package manager (`n/a` for non-JS), and the paths of stacks.md and `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`. Use its `Runner:`, `Faker:`, and `Conventions:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers (cap in Rules). `Known issue:` lines → known-issues rule.
 4. **Decide.** Per `Missing:` line and per decision with several fitting answers: runner and suite split (conventions.md Integration: separate from unit), and per dependency behind a boundary: container | HTTP stub (library from `Mocks:` when present) | fake (conventions.md Integration gives the recommendation and why): take the Recommended pick and report it; AskUserQuestion only to install a missing tool (at most 4 questions per call). Container picked and `docker-info` fails → use a fake for it and report it. Install picked tools as dev dependencies; install fails → stop.

@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symboli
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -31,7 +37,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`; not a git repo → stop (`no git checkpoint possible`). `docker-info` fails → stop (`Docker unavailable; no scan run`). Then the conflict check, argument parsing, run dir, manifest, and `.specify/` check. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` (not a git repo) → stop (`no git checkpoint possible`). `docker-info` fails → stop (`Docker unavailable; no scan run`). Then the conflict check, argument parsing, run dir, manifest, and `.specify/` check. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 2. **DAST gate.** Only when `zap-target` is given: a non-local host, or `zap-mode=api` without `zap-spec` → ZAP `skipped`, no question; else ask. Detail: `${CLAUDE_SKILL_DIR}/references/dast.md`.
 3. **Baseline.** Detect and run the validation commands per `remediation.md` `## Validation commands`. Record pass, fail, or unavailable. When build and every test command are unavailable → scan only, with stop reason `validation unavailable`.
 4. **Scan.** Iteration `i` (starts at 1): spawn `cdk:security-scanner` with `mode=full`. Copy its scan records and counts into `manifest.json`. Store its `Newer major:` line in `manifest.json`. Its `Images:` (informational except for jq) or `Scans:` line shows jq `unavailable` or unverified, in any iteration → stop (`redaction image unverified; no scan run`).

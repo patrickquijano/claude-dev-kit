@@ -9,6 +9,12 @@ allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git conf
 
 Input: $ARGUMENTS
 
+## Context
+
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -33,7 +39,7 @@ Input: $ARGUMENTS
 2. **Unstage.** Staged files (`staged-names` non-empty) → `unstage`.
 3. **Collect.** `status`; with `paths:`, keep only the entries under those paths and set the rest aside as `Excluded: pre-existing`. Nothing left → report "nothing to commit", `Result: nothing-to-do`, stop. Scratch = `scratch` (commit message and patch files).
 4. **Classify.** Counts only: `numstat` (fails, e.g. no commits yet → analyzed) plus per untracked file `untracked-numstat`. Small = all of: ≤5 files; ≤150 added + deleted lines; no binary (`-` in numstat); no delete or rename (`D`, `R`); no secret-pattern file name (`.env*`, key files); no lockfile, CI, migration, or infra path (`*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `.github/`, `.gitlab-ci.yml`, `migrations/`, `Dockerfile*`, `docker-compose*`, Terraform); one top-level directory (root-level files count as one area); no grouping hints in the input. Else → analyzed. Small also needs no secret-pattern hit (Rules `Secrets`) in `diff-head` or the untracked files; any hit → analyzed.
-5. **Branch guard.** Decide only; switch in step 8. Current = `current-branch`; `HEAD` (detached) → current = `detached@<sha>` (sha from `short-head`), counts as protected. Default = `default-branch` minus `origin/` (unset → `main`). Protected check per conventions.md `## Protected branch`. Current = default or protected → switch needed (`branch=yes` for step 6 analyzed); the target name comes from the analyzer (analyzed) or step 6 (small). Step 6 sets and checks it; step 7 shows it.
+5. **Branch guard.** Decide only; switch in step 8. Current = Context → Branch; `HEAD` (detached) → current = `detached@<sha>` (sha from `short-head`), counts as protected. Default = `default-branch` minus `origin/` (unset → `main`). Protected check per conventions.md `## Protected branch`. Current = default or protected → switch needed (`branch=yes` for step 6 analyzed); the target name comes from the analyzer (analyzed) or step 6 (small). Step 6 sets and checks it; step 7 shows it.
 6. **Group.** Small: one group of every changed file, subject drafted here. Analyzed: spawn `cdk:change-analyzer` (`mode=group`), take `Groups`, `Split`, `Branch`, `Excluded`. Commitlint config exists → check each subject (cap in Rules). Switching → name the branch. Detail: `${CLAUDE_SKILL_DIR}/references/group.md`.
 7. **Plan.** Show `Branch: <current> → <target>` (if switching), then per group subject + files, then `Excluded` files with a warning to the user. No prompt; continue to step 8.
 8. **Commit.** Switching → `switch-branch` (name from step 6). Per group: whole files → `stage-files`; split files → `stage-patch` instead. Write subject to `<scratch>/msg`, then `commit` (never inline the subject in shell args). Failures: `${CLAUDE_SKILL_DIR}/references/failures.md`.

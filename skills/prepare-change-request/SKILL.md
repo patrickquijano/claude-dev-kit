@@ -11,11 +11,17 @@ Input: $ARGUMENTS
 
 A change request (CR) is a GitHub pull request or a GitLab merge request.
 
+## Context
+
+- Origin: !`git remote get-url origin 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; subagents cannot ask. Missing or ambiguous repository state, target, template, check result, or CR identity → stop with the reason; never guess.
-- Host from `origin-url`: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`). One workflow; each step names the host-file section it uses.
+- Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`). One workflow; each step names the host-file section it uses.
 - Review only the committed range `merge-base..HEAD`; uncommitted changes are out of scope, so reviewers and the CR never describe them.
 - Target: `--target <branch>` (set by `cdk:ship-release` and `cdk:scan-vulnerabilities`), else the host's default branch when step 4 finds one; ask only when none is found. The step 13 confirmation shows the branches and Revise can change them.
 - Only this skill writes: `git push`, CR create and update, the draft flag, and (GitLab) the merge options, and only in step 14 after the step 13 confirmation, or with `--yes`; the release gate's chained `cdk:commit-changes` also pushes, under the gate's own consent. They stay out of `allowed-tools`, so the permission prompt is a second guard.

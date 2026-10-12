@@ -6,6 +6,12 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 
 # Setup Format Lint
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -27,7 +33,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 
 ## Workflow
 
-1. **Pre-flight.** `git-root` fails → stop ("not a git repository"). Work from the git root.
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
 2. **Detect.** Spawn `cdk:format-lint-analyzer` with root, `mode=detect`, `${CLAUDE_SKILL_DIR}/references/tools.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/references/ignores.md`, and `${CLAUDE_SKILL_DIR}/../setup-git/references/ignores.md`. Take `File types`, `Uncovered`, `Lists` (Dockerfile, shell, and XML files for step 9), `Filled roles`, `Unfilled roles`, `Package`, and `Ignore candidates`; keep them for steps 3–9. `Gaps` non-empty → AskUserQuestion for each fact only the user can give, then respawn once.
 3. **Existing.** The analyzer applied the catalog rules for a filled role (configured candidate; `none`-config tools installed; Prettier needs its plugin and no ignore for YAML, XML, PHP; toolchain tools only when sole candidate). Filled roles keep their tool.
 4. **Choose tools.** Per `Unfilled roles` entry: one candidate → use it. More than one → formatter: use the catalog's first candidate, no question (two formatters on one type rewrite each other), and report it. Linter → AskUserQuestion `multiSelect: true` with the candidates, recommended first, since linters stack (for example PHPStan and PHP_CodeSniffer). Options follow the catalog order; a fallback option says it is the fallback. Group types that share one tool into one question.

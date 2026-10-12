@@ -2,7 +2,7 @@
 
 Details step 2 (**Resume detection**). Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
 
-Current = `current-branch`; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest.
+Current = Context → Branch; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest.
 
 - Merged and its head equals `HEAD` (or `origin/<target>..HEAD` is empty) → step 9.
 - On the target, clean, and `unshipped-count` = 0 → "nothing to ship", `Result: nothing-to-do`, step 9.

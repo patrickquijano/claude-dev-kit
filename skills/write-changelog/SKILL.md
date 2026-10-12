@@ -9,6 +9,13 @@ allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url 
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -26,8 +33,8 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `root`; fail → stop. Read `format.md`. Parse input: `release <version> [date]` → release mode; `base <branch>` → base override; anything else → ask. Find `CHANGELOG.md` at root, case-insensitive; read it (absent → create from the template). Existing file lacking `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop.
-2. **Base.** Current = `current-branch`. Base: input `base`, else the open PR or MR base, else the origin default branch; `fetch`, then `merge-base`. Detail: `${CLAUDE_SKILL_DIR}/references/base.md`.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop. Read `format.md`. Parse input: `release <version> [date]` → release mode; `base <branch>` → base override; anything else → ask. Find `CHANGELOG.md` at root, case-insensitive; read it (absent → create from the template). Existing file lacking `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop.
+2. **Base.** Current = Context → Branch. Base: input `base`, else the open PR or MR base, else the origin default branch; `fetch`, then `merge-base`. Detail: `${CLAUDE_SKILL_DIR}/references/base.md`.
 3. **Collect.** Committed: `commits`, `committed-names`, `committed-stat`. Working tree: `status`, `staged-names`, `unstaged-names`, untracked files (read each text file). Read per-file diffs (committed, staged, unstaged) only for candidate user-facing paths; skip generated, lock, and binary files. Nothing at all → report, `Result: nothing-to-do`.
 4. **Classify.** Map each change to Added, Changed, Deprecated, Removed, Fixed, or Security, or to an exclusion with its reason (`format.md` `## Exclusions`). Consolidate related changes into one entry per user-visible effect. Mark breaking changes.
 5. **Draft.** Compare with existing entries by meaning. Non-release: add or update bullets in `## [Unreleased]` only. Release: per `format.md` `## Workflows`; version and date asks, and the existing-version stop: `${CLAUDE_SKILL_DIR}/references/release.md`.

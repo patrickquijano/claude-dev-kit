@@ -6,6 +6,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 
 # Setup Project
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -20,7 +26,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`; fails → not a git repo yet (only `cdk:setup-git` can initialize one), root = cwd.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → not a git repo yet (only `cdk:setup-git` can initialize one), root = cwd.
 2. **Detect.** Read-only, cheap checks at the root; each skill is `configured`, `partial`, or `missing` (git, EditorConfig, formatters and linters, Husky, test hook). Detail: `${CLAUDE_SKILL_DIR}/references/detect.md`.
 3. **Choose.** Print the detection table. AskUserQuestion, one call, two multiSelect questions per Rules; each option says its state and what the skill writes. Not a git repo → git is Recommended, and the description of every other option says it needs git. Nothing selected → `nothing-to-do`; skip step 6 and print `Resolution: not run (nothing-to-do)`.
 4. **Run.** For each selected skill in the fixed order, invoke it via the Skill tool (`cdk:setup-git`, `cdk:setup-editorconfig`, `cdk:setup-format-lint`, `cdk:setup-husky`, `cdk:setup-test-hook`), no arguments. Read its Output `Result:` line and keep its `Next:`, `Stopped:`, and `Resolution:` lines for the Output. `done` or `nothing-to-do` → next skill. Root still not a git repo (git not selected) → mark each later skill `skipped (needs git)` and do not run it.

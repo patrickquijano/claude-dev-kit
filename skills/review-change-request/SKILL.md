@@ -11,11 +11,17 @@ Input: $ARGUMENTS
 
 A change request (CR) is a GitHub pull request or a GitLab merge request.
 
+## Context
+
+- Origin: !`git remote get-url origin 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; subagents cannot ask. Missing authentication, permission, or CR identity → stop with the exact error; never guess.
-- Host from `origin-url`: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`). One workflow; each step names the host-file section it uses. Host-neutral rules: `${CLAUDE_SKILL_DIR}/references/review.md`; standard and comment style: `${CLAUDE_SKILL_DIR}/references/guidelines.md`.
+- Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`). One workflow; each step names the host-file section it uses. Host-neutral rules: `${CLAUDE_SKILL_DIR}/references/review.md`; standard and comment style: `${CLAUDE_SKILL_DIR}/references/guidelines.md`.
 - Mode is Advisory until the user picks Post or Merge in step 9, or `--yes` (see `review.md` `## Yes mode`) acts on the settings the caller already collected. Writes: the review (host `## Publish`), own-thread replies and resolves, approval, and the merge. All stay out of `allowed-tools`, so each permission prompt is a second guard.
 - Merge only in step 12, only when the host `## Merge` offers it and the user picks Merge (or `--yes`). Never push, check out, edit the CR or its branches, dismiss reviews, or modify source files. Resolve only threads Self started and only when addressed (`review.md` `## Own threads`). Approve only per the host `## Approve`. Never pass auto-merge, never bypass repository policy, except the own-PR `--admin` case in the GitHub `## Merge`.
 - Select only the branch-matched CR, a CR from the printed list of open CRs, or a numbered argument confirmed open by the host `## Select`; an unrelated CR is never a fallback.

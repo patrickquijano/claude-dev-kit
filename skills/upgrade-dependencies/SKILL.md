@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(co
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -27,7 +33,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`. Not a git repo → stop ("init git first; without git there is no diff to review and no clean revert"). `dirty-tree` not empty → stop ("commit or stash first; keeps upgrade changes reviewable and revertible"). No question.
+1. **Pre-flight.** Root = Context → Repo root. `<none>` (not a git repo) → stop ("init git first; without git there is no diff to review and no clean revert"). `dirty-tree` not empty → stop ("commit or stash first; keeps upgrade changes reviewable and revertible"). No question.
 2. **Projects.** Find every project: manifests from `${CLAUDE_SKILL_DIR}/references/managers.md` at root and below (skip `node_modules/`, `vendor/`, `.venv/`, build output), grouped by workspace (npm/pnpm/yarn workspaces, Cargo workspace, `go.work`, Maven modules, Gradle subprojects). Workspace = one project. Input names a path or packages → limit to those.
 3. **Analyze.** Spawn one `cdk:dependency-analyzer` per project, all in one message, each with the project path, its package manager, the path `${CLAUDE_SKILL_DIR}/references/managers.md`, and the input's package filter. Missing package manager (`tool-check` fails) → the analyzer still reports from the lockfile and registry, but that project is excluded from steps 5–9 with the reason (upgrades need the tool).
 4. **Report.** Print one table per project: package, current, latest stable, bump (patch | minor | major), dev?, breaking changes (one line + source URL), affected files, config files, requires (analyzer `Requires:`). Nothing outdated → print the Output with `Result: nothing-to-do` and `Stopped: none` ("all dependencies are up to date").

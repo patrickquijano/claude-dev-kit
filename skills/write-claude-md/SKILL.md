@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *)
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -28,7 +34,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`; fail → cwd.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd.
    - `CLAUDE.md` or `.claude/CLAUDE.md` exists → update mode. Both exist → AskUserQuestion which to keep as target.
    - None → create mode, target `CLAUDE.md`. Existing `.claude/rules/` files → edit in place, never re-template.
    - Input `score` or request is score/audit only → score-only: steps 2, 6, 7, 8. No target file → report it, suggest create mode, end with `Result: nothing-to-do`.

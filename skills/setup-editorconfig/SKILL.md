@@ -6,6 +6,12 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 # Setup EditorConfig
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -22,7 +28,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 ## Workflow
 
-1. **Pre-flight.** `repo-root` fails → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
 2. **File types.** List files with `tracked-files` plus `untracked-files`, so ignored files never count. Map each to a `defaults.md` type by extension or file name; count files per type. Types with no catalog entry, and extensionless scripts (EditorConfig matches names, not shebangs) → `uncovered`; the `[*]` base applies to them.
 3. **Existing config.** Read root `.editorconfig`. A type is configured when a section glob without a path separator matches its extensions or file names (for example `[*.{js,ts}]` matches `.ts`). Catch-all sections (`[*]`, `[**]`) and path-scoped globs (`[src/**.php]`) do not count. Note nested `.editorconfig` files from step 2 in the Output; they override the root for their directory.
 4. **Initialize.** No questions; apply what is missing:

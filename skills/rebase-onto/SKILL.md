@@ -9,6 +9,12 @@ allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git config --get *)
 
 Input: $ARGUMENTS
 
+## Context
+
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -25,7 +31,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `current-branch`, `status`, `dirty-tracked`, and signing checks; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+1. **Pre-flight.** Context → Branch, `status`, `dirty-tracked`, and signing checks; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 2. **Remote branches.** `fetch`, then list candidates and the default; stop on failure or no candidates. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 3. **Target.** No ask: named branch, else the default; report `divergence`. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 4. **Check.** Behind = 0 → report "already up to date", `Result: nothing-to-do`, stop. `merge-commits` non-empty → keep merges with `--rebase-merges` (preserves history shape), no ask.

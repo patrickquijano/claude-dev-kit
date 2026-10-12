@@ -9,6 +9,12 @@ allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.m
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -25,7 +31,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `repo-root`; fail → stop, `Stopped: 1: not a git repository`. Parse input: `target <branch>` → target override; `subject <path>` → a file whose first line is the subject of the commit still to come, passed to every `release-check.mjs` call (`check`, `bump`) as `--subject <path>` so the required level covers it; `confirmed` → the caller already asked; anything else → ask (chained or unattended: stop, `Stopped: 1: unknown input`).
+1. **Pre-flight.** Context → Repo root; `<none>` → stop, `Stopped: 1: not a git repository`. Parse input: `target <branch>` → target override; `subject <path>` → a file whose first line is the subject of the commit still to come, passed to every `release-check.mjs` call (`check`, `bump`) as `--subject <path>` so the required level covers it; `confirmed` → the caller already asked; anything else → ask (chained or unattended: stop, `Stopped: 1: unknown input`).
 2. **Confirm.** Run `check` from the root (add `--target <branch>` and `--subject <path>` when given); the JSON `skipped` with note `no release policy` → stop as in Rules. `failures` with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → `Blocked:` with its fix, `Result: stopped`, `Stopped: 2: <code>: <fix>`, then step 7. Read `level`, `required`, `base`, `target`, and `drivers`. `skipped` (no release-relevant changes) or no `version-*` failure → `Result: nothing-to-do`, no question: a repeat run stays silent once the bump is done. Otherwise, without `confirmed`, one AskUserQuestion: `Bump <base> → <required> (<level>) for the upcoming PR/MR (Recommended)` (reason: release-check blocks PR/MR creation and CI without it) | `Skip: no PR/MR planned`. `Skip` → `Result: cancelled`, `Stopped: 2: bump declined`, then step 7. Nothing is written before this step ends.
 3. **Bump.** Run `bump` (same `--target` and `--subject`). Read `changed`: each `path from -> to`; empty → "unchanged". Any failure code that is not `version-*`, `changelog-*`, or `uncommitted` → `Blocked:` with its fix.
 4. **Changelog.** The policy's `changelog` path (default `CHANGELOG.md`) absent at the repo root → `Changelog: skipped (no <path>)`; never create one. Present → Skill `cdk:write-changelog` with `base <target>` (the resolved `target` from the JSON); read its `CHANGELOG:` and `Result:` lines → `Changelog: <path> (created | updated | unchanged)`. `stopped` or `cancelled` → `Result: stopped`, `Stopped: 4: write-changelog <result>`, then step 7 (version edits stay; the caller commits).

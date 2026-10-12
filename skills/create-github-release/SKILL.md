@@ -9,6 +9,14 @@ allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/changelog-relea
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+- Origin: !`git remote get-url origin 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -26,7 +34,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Run in order: `root`, `remotes`, `gh-version`, `gh-auth`, `repo-view`, `status`, `current-branch`; any failure → `Stopped: 1: <exact error>`, `Resolution: not run (stopped)`, then step 8. Never fix state yourself (no stash, commit, checkout). Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+1. **Pre-flight.** Run in order: Context → Repo root, `remotes`, `gh-version`, `gh-auth`, `repo-view`, `status`, Context → Branch; any failure → `Stopped: 1: <exact error>`, `Resolution: not run (stopped)`, then step 8. Never fix state yourself (no stash, commit, checkout). Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 2. **Sync.** `fetch`, then `fetch-tags` (no force), then `ff-main`; require `head-sha` = `origin-main-sha` (commit = that sha). Failures: `${CLAUDE_SKILL_DIR}/references/sync.md`.
 3. **Plan.** Scratch = `$CLAUDE_JOB_DIR/tmp` if set, else `scratch`. Run `plan` (with `--prefix` when given). `ok: false` → for `prefix-unknown` or `prefix-ambiguous` ask which form to use (`v1.0.0` or `1.0.0`, justification: no clear convention in tags or changelog links) unless unattended (then stop), and rerun with `--prefix`; every other error → `Stopped: 3: <code>: <message>; <fix>`. Keep `version`, `date`, `tag`, `prefixSource`, `previousTag`.
 4. **Check state.** Read-only, before any write: `release-view` and `release-list` (release exists → `nothing-to-do`, stop), `local-tag`, `remote-tag`; a tag not at the verified commit → `Stopped: 4: tag-mismatch`. Detail: `${CLAUDE_SKILL_DIR}/references/state.md`.

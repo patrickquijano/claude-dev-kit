@@ -6,6 +6,12 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 
 # Setup Graphify
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -25,7 +31,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 
 ## Workflow
 
-1. **Pre-flight.** `git-root` → repo root; run every later step from it. Not a git repo → use the current directory, skip only the git hooks in step 4 and step 7.
+1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip only the git hooks in step 4 and step 7.
 2. **CLI.** `has-graphify` succeeds → skip. Else `install-uv` (when `has-uv` succeeds) or `install-pipx` (when `has-pipx` succeeds); record `version`. Neither tool, install failure, or `graphify` still missing after install → stop. Detail: `${CLAUDE_SKILL_DIR}/references/cli.md`.
 3. **Skill.** `.claude/skills/graphify/.graphify_version` exists in the project, or `~/.claude/skills/graphify/.graphify_version` exists → skip. Else run `install-skill` (also does the Claude half of step 4).
 4. **Hooks.**

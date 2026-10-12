@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker buildx image
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -28,7 +34,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`, else cwd. Read the input; app dir = `dir=`, else root; target and mode (review | update | create) from the input. Review mode, no Dockerfile → `Result: nothing-to-do`. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+1. **Pre-flight.** Root = Context → Repo root, else cwd. Read the input; app dir = `dir=`, else root; target and mode (review | update | create) from the input. Review mode, no Dockerfile → `Result: nothing-to-do`. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 2. **Analyze.** Collect the stack, build and start facts, and existing Docker files; devcontainer target collects less. Review mode → step 7, then steps 8 and 9. Detail: `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 3. **Clarify.** Devcontainer target → skip. Ask only missing facts (max 4 per call); apply the Recommended defaults without asking. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Draft.** Build the `Dockerfile` and `.dockerignore` from practices.md; update mode keeps its intent and lists each change with its reason. Detail: `${CLAUDE_SKILL_DIR}/references/draft.md`.

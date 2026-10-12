@@ -9,6 +9,13 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *) Bash(git status *)
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Node version: !`node --version 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -32,7 +39,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Project dir = `repo-root`, else cwd. `node-version` fails → stop ("install Node.js; the hook script runs on Node"). Not a git repo → continue, and warn in the Output: no change-skip and no cache, so every unit suite runs on every turn and verifies at most one fix round; run `/cdk:setup-git` to enable the skip.
+1. **Pre-flight.** Project dir = Context → Repo root, `<none>` → cwd. Context Node version `<none>` → stop ("install Node.js; the hook script runs on Node"). Not a git repo → continue, and warn in the Output: no change-skip and no cache, so every unit suite runs on every turn and verifies at most one fix round; run `/cdk:setup-git` to enable the skip.
 2. **Packages.** Find every package: manifests from `${CLAUDE_SKILL_DIR}/references/stacks.md` Signals at the project dir and below (skip `node_modules/`, `vendor/`, `.venv/`, build output). Monorepo (workspaces, `go.work`, Cargo workspace, several manifests) → one package each; else the project dir. Input names package paths → limit to those. JS packages: package manager per package-manager.md Detect; ambiguous → ask here.
 3. **Analyze.** Spawn one `cdk:test-suite-analyzer` per package, all in one message, each with the package path, its package manager (`n/a` for non-JS), and the path `${CLAUDE_SKILL_DIR}/references/stacks.md`. Ask the user any returned `Questions:`, then re-spawn only those analyzers with the answers (once). `Known issue:` lines → known-issues rule.
 4. **Suites.** Merge every analyzer's suites (all kinds) with their command objects, feasibility, parallel hint, and targeted argument. Names unique across packages (the cache is keyed by name): on a clash prefix the package dir. Every detected suite feeds steps 6, 10, and 11; only feasible unit suites can enter the hook.

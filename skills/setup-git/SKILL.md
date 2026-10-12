@@ -6,6 +6,13 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 
 # Setup Git
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Git version: !`git --version 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -25,8 +32,8 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 
 ## Workflow
 
-1. **Pre-flight.** `git-version` fails → stop ("install git"). Record the version; SSH signing needs git ≥ 2.34.
-2. **Repository.** `toplevel` fails → run `init` in `<cwd>` (signing and ignores need a repo; respects `init.defaultBranch`). Root is not cwd (for example a home-directory repo) → AskUserQuestion: Use `<root>` (Recommended; git writes local config there) | Stop. Work from the git root.
+1. **Pre-flight.** Context Git version `<none>` → stop ("install git"). Record it; SSH signing needs git ≥ 2.34.
+2. **Repository.** Context Repo root `<none>` → run `init` in `<cwd>` (signing and ignores need a repo; respects `init.defaultBranch`). Root is not cwd (for example a home-directory repo) → AskUserQuestion: Use `<root>` (Recommended; git writes local config there) | Stop. Work from the git root.
 3. **Detect.** For each key run `config-get`: `user.name`, `user.email`, `gpg.format`, `user.signingkey`, `commit.gpgsign`, `tag.gpgsign`, `gpg.ssh.allowedSignersFile`, `gpg.program`, `gpg.ssh.program`, `gpg.x509.program`; then `config-local` for each to see which values are local. Unset `gpg.format` means `openpgp`. Record each value's scope for the Output.
 4. **Identity.** Unset `user.name` or `user.email` → ask in plain text; an empty reply, or an email without `@`, re-asks (cap in Rules). When a commit exists, show `last-author` as "last commit author" and ask the user to confirm it is them; in a clone it is often someone else. Say the email must be a verified email on the forge account, else the forge marks commits unverified.
 5. **Signing format.** `gpg.format` set in any scope → keep (step 9 validates it). Else set `ssh` (reuses an SSH key, no GPG agent, GitLab and GitHub verify it); git < 2.34 → set `openpgp` (SSH signing needs git ≥ 2.34).

@@ -9,6 +9,12 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(devcontainer read-c
 
 Input: $ARGUMENTS
 
+## Context
+
+- Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -26,7 +32,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = `repo-root`, else cwd. Mode: `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists → update; else create. Update → read each config and the files it references (Dockerfile, compose files) fully.
+1. **Pre-flight.** Root = Context → Repo root, `<none>` → cwd. Mode: `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists → update; else create. Update → read each config and the files it references (Dockerfile, compose files) fully.
 2. **Analyze.** Spawn `cdk:devcontainer-analyzer` with the root. Use its Return for every later step.
 3. **Clarify.** AskUserQuestion, recommended option first with the reason; derivable facts and facts the input gives are never asked. Call 1: services and Claude Code (approach derived, no question); call 2: only the questions that apply; call 3: only the gaps left. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Look up** per practices.md: base image tag, feature majors, and each service's tag, port, data directory, env vars, and health command. Failure → call 3; call 3 already used → step 10, then stop.

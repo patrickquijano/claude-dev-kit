@@ -9,6 +9,13 @@ allowed-tools: Bash(git status *) Bash(git diff *) Bash(git rev-parse *) Bash(gi
 
 Input: $ARGUMENTS
 
+## Context
+
+- Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
+- Origin: !`git remote get-url origin 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -24,9 +31,9 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `inside-work-tree` fails → stop ("not a git repository"). `status` shows a rebase, merge, or cherry-pick in progress → stop, tell user to finish or abort it. Origin = `origin-url` succeeds; fails → no origin: step 5 skips the remote check, step 8 skips push.
+1. **Pre-flight.** `inside-work-tree` fails → stop ("not a git repository"). `status` shows a rebase, merge, or cherry-pick in progress → stop, tell user to finish or abort it. Origin = Context → Origin; `<none>` → no origin: step 5 skips the remote check, step 8 skips push.
 2. **Unstage.** Staged files (`staged-files` non-empty) → `unstage`. Fails (no HEAD, unborn branch) → report, stop.
-3. **Collect.** Current = `current-branch`; `HEAD` (detached) → `detached@` plus `short-head`. Base = `origin-head` when that ref resolves (`verify-ref`); else the first that resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master` (`verify-full-ref`), shown without `refs/…/`. Current equals the base's branch name (base minus `origin/`) → base = `origin/<name>` when that remote-tracking ref resolves (the unpushed commits), else no base. None resolves, or `rev-parse`/`rev-list` fails (unborn HEAD) → no base, 0 commits. Unique commits = `unique-commits`. `changes` empty, no unique commits, and no input → report "nothing to branch", `Result: nothing-to-do`, stop.
+3. **Collect.** Current = Context → Branch; `HEAD` (detached) → `detached@` plus `short-head`. Base = `origin-head` when that ref resolves (`verify-ref`); else the first that resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master` (`verify-full-ref`), shown without `refs/…/`. Current equals the base's branch name (base minus `origin/`) → base = `origin/<name>` when that remote-tracking ref resolves (the unpushed commits), else no base. None resolves, or `rev-parse`/`rev-list` fails (unborn HEAD) → no base, 0 commits. Unique commits = `unique-commits`. `changes` empty, no unique commits, and no input → report "nothing to branch", `Result: nothing-to-do`, stop.
 4. **Analyze.** Spawn `cdk:change-analyzer` with root, `mode=branch-name`, `base=<base>` (`none` with no base), `$ARGUMENTS` as hints (input wins over commits and changes on a type or description conflict), and `${CLAUDE_SKILL_DIR}/../commit-changes/references/conventions.md`. Take `Branch` (name + reason) and the `Changes` count (for `Changes carried`; `none` → 0); `Commits carried` is the step 3 count (the agent's `Commits` line is informational); `Questions` non-empty → AskUserQuestion, then respawn once with the answers.
 5. **Name.** Use the analyzer's name. Exists (`local-branch-exists` exit 0, or `remote-branch-exists` non-empty) → append `-2`, `-3`, …. `ls-remote` error → treat as not on remote; push step reports real failure.
 6. **Show.** Show `Branch: <current> → <name>` + one-line reason; no confirmation.
