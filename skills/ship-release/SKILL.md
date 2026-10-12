@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** `git-version`, `node-version`, `npx-version`, plus `gh-version` or `glab-version`; `root`; auth (`gh-auth` or `glab-auth`); signing, target, `fetch`. Any failure → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last (Write tool, absolute path from `marker-path`); the plugin's commit Stop hook skips this tree until step 10 deletes it. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+1. **Pre-flight.** `git-version`, `node-version`, `npx-version`, plus `gh-version` or `glab-version`; `root`; auth (`gh-auth` or `glab-auth`); signing, target, `fetch`. Any failure → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last (Write tool, absolute path from `marker-path`); the plugin's end-of-task hook skips this tree until step 10 deletes it. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
 2. **Resume detection.** Current = `current-branch`; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest. Merged or nothing to ship → step 9; open PR or MR with a clean tree → step 5; else continue at step 3. Detail: `${CLAUDE_SKILL_DIR}/references/resume.md`.
 3. **Branch.** On the target or a protected branch (per `conventions.md` `## Protected branch`) with changes (dirty tree, or `unshipped-count` > 0) → invoke `cdk:switch-branch`; step 9 then reconciles local `<target>`.
 4. **Commit.** Dirty tree → invoke `cdk:commit-changes` (atomic, signed, pushed). A clean tree with unpushed commits needs no step here; step 7 pushes them.

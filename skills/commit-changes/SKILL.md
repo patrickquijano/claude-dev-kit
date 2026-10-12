@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Group uncommitted changes into atomic, signed Conventional Commits, switch off default/protected branches, and push. Use only when the user explicitly asks to commit their changes, e.g. "commit and push", "commit my changes", "split this into atomic commits". Also runs when the cdk Stop hook instructs it. Do not use on your own after finishing a task.
+description: Group uncommitted changes into atomic, signed Conventional Commits, switch off default/protected branches, and push. Use only when the user explicitly asks to commit their changes, e.g. "commit and push", "commit my changes", "split this into atomic commits". Also runs when the cdk end-of-task hook instructs it. Do not use on your own after finishing a task.
 argument-hint: '[optional grouping hints]'
 allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(git restore --staged *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(git switch -c *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *) Bash(git ls-remote *)
 ---
