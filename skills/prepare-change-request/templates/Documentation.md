@@ -1,4 +1,4 @@
-## What does this MR do and why?
+## What does this change do and why?
 
 <!-- Describe the documentation change and the reason for it. -->
 

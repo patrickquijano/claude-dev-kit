@@ -12,7 +12,7 @@
 
 ## Fix
 
-<!-- Explain how this MR fixes the root cause. -->
+<!-- Explain how this change fixes the root cause. -->
 
 ## How to reproduce (before)
 
