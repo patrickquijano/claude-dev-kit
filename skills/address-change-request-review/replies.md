@@ -1,12 +1,12 @@
 # Review reply guide
 
-Bundled standard for `address-merge-request-review`; `address-pull-request-review` reuses `## Dispositions` and `## Reply templates`. Comment quality and labels come from `../review-merge-request/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
+Bundled standard for `address-change-request-review` (GitHub and GitLab). Comment quality and labels come from `../review-change-request/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
 
 ## Dispositions
 
 - **Fix**: the reviewer is right, or the change is cheap and safe. Default for `issue`, `todo`, `chore`, and `blocking` threads.
 - **Clarify**: the thread is ambiguous, or more than one fix is valid. Ask one specific question. Do not change code until answered.
-- **Decline**: the recommendation is intentionally not adopted. Allowed only with a concrete reason: conflicts with a documented standard, out of scope for this MR, or a measurable cost. Offer an alternative or a follow-up issue.
+- **Decline**: the recommendation is intentionally not adopted. Allowed only with a concrete reason: conflicts with a documented standard, out of scope for this CR, or a measurable cost. Offer an alternative or a follow-up issue.
 - **Answer**: `question` threads with no code change needed. Answer directly.
 
 Every `blocking` thread MUST get Fix, Clarify, or Decline; a blocking `question` may get Answer and stays open for the reviewer. Never ignore a thread.
