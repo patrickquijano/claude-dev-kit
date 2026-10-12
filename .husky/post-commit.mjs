@@ -27,6 +27,16 @@ export function main(deps = defaults) {
   return 0;
 }
 
+// The one error boundary: an unexpected error prints one stderr line and exits 1 (the commit already happened).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = main();
+  try {
+    process.exitCode = main();
+  } catch (error) {
+    console.error(
+      `cdk post-commit: ${String(error?.message ?? error)
+        .split('\n')[0]
+        .slice(0, 300)}`
+    );
+    process.exitCode = 1;
+  }
 }

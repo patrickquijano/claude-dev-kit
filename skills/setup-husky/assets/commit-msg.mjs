@@ -89,8 +89,9 @@ export function packageManager(pmFlag, deps = defaults) {
   try {
     const name = JSON.parse(deps.readFile(join(deps.packageDir, 'package.json'), 'utf8')).packageManager?.split('@')[0];
     if (Object.hasOwn(COMMITLINT, name)) return name;
-  } catch {
+  } catch (error) {
     // Missing or invalid package.json falls through to lockfiles.
+    if (error?.code !== 'ENOENT' && !(error instanceof SyntaxError)) throw error;
   }
   const root = deps
     .spawn('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8', timeout: 15_000 })
@@ -229,6 +230,16 @@ export function main(argv, deps = defaults) {
   return messageErrors.length || lengthError || signError ? 1 : 0;
 }
 
+// The one error boundary: an unexpected error prints one stderr line and rejects the commit (exit 1).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = main(process.argv.slice(2));
+  try {
+    process.exitCode = main(process.argv.slice(2));
+  } catch (error) {
+    console.error(
+      `cdk commit-msg: ${String(error?.message ?? error)
+        .split('\n')[0]
+        .slice(0, 300)}`
+    );
+    process.exitCode = 1;
+  }
 }

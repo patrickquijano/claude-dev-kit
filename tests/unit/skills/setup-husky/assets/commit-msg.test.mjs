@@ -43,7 +43,7 @@ function makeDeps({
       return lint;
     },
     readFile: (path) => {
-      if (!(path in files)) throw new Error(`ENOENT ${path}`);
+      if (!(path in files)) throw Object.assign(new Error(`ENOENT ${path}`), { code: 'ENOENT' });
       return files[path];
     },
     exists: (path) => path in files,
@@ -195,6 +195,27 @@ describe('packageManager', () => {
     const result = packageManager(undefined, deps);
     // Assert
     assert.equal(result, 'pnpm');
+  });
+
+  test('falls back to lockfiles when package.json is invalid JSON', () => {
+    // Arrange
+    const { deps } = makeDeps({ files: { [`${PKG}/package.json`]: '{', [`${PKG}/yarn.lock`]: '' } });
+    // Act
+    const result = packageManager(undefined, deps);
+    // Assert
+    assert.equal(result, 'yarn');
+  });
+
+  test('rethrows an unexpected read error', () => {
+    // Arrange
+    const { deps } = makeDeps();
+    deps.readFile = () => {
+      throw Object.assign(new Error('boom'), { code: 'EIO' });
+    };
+    // Act
+    const act = () => packageManager(undefined, deps);
+    // Assert
+    assert.throws(act, /boom/);
   });
 
   test('falls back to a lockfile in the package dir', () => {
