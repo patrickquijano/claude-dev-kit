@@ -1,6 +1,6 @@
 # Findings contract
 
-Shared by `cdk:prepare-pull-request` and `cdk:review-pull-request`, their `## Direct review` path, and their reviewers (`cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch, or `WORKTREE` from `/cdk:ship-release`: the uncommitted tree against the merge-base, read from disk, so `git show <head>:<path>` becomes the file on disk).
+Shared by `cdk:prepare-pull-request` and `cdk:review-pull-request`, their `## Direct review` path, and their reviewers (`cdk:pr-correctness-reviewer`, `cdk:pr-test-reviewer`, `cdk:pr-security-reviewer`, `cdk:pr-maintainability-reviewer`, `cdk:pr-docs-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
 
 ## Block
 
@@ -38,7 +38,7 @@ Summary: <two sentences, facts only>
 
 ## Evidence rules
 
-- Review only the committed range `merge-base..<head>`; uncommitted changes are out of scope unless head is `WORKTREE`.
+- Review only the committed range `merge-base..<head>`; uncommitted changes are out of scope.
 - `file` must be in the diff's changed-file list, or a file the change affects (cite why in `evidence`); `line` is a line in that file at `<head>`, on the changed (added or context) side when one exists.
 - `blocking: yes` only when `status: confirmed` and severity is `critical` or `high`; every other finding is `no`.
 - `evidence` quotes real code or output; no evidence → drop the finding or mark it `suspected` with `severity` at most `medium`.
@@ -47,7 +47,7 @@ Summary: <two sentences, facts only>
 ## Parent validation
 
 1. Block parses and `Role` matches the agent; else respawn that reviewer once, then stop.
-2. Drop a finding whose `file` is not in the name-status list (and not justified in `evidence`), whose `line` exceeds the file length at `<head>` (`git show <head>:<file>`, or the file on disk when `<head>` is `WORKTREE`), or whose `evidence` is empty. List dropped ones in the Output.
+2. Drop a finding whose `file` is not in the name-status list (and not justified in `evidence`), whose `line` exceeds the file length at `<head>` (`git show <head>:<file>`), or whose `evidence` is empty. List dropped ones in the Output.
 3. Deduplicate by `file` + overlapping `line` + same underlying issue: keep the highest severity, record every role that raised it.
 4. Gate (`prepare-pull-request` only; `review-pull-request` maps findings to a verdict instead): any `critical` or `high` finding, confirmed or suspected, any `check-failed`, or an `incomplete` test reviewer whose limitation names a required check → stop. Any other reviewer with `Status: incomplete` does not gate but is shown in the managed block with its limitations.
 

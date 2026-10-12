@@ -1,6 +1,6 @@
 ---
 name: pr-feedback-validator
-description: Run the repository's documented lint, type check, test, and build commands against changed files in check mode and report each result. Never edits files. Spawned by the cdk:address-pull-request-review skill and the /cdk:ship-release command; do not use directly.
+description: Run the repository's documented lint, type check, test, and build commands against changed files in check mode and report each result. Never edits files. Spawned by the cdk:address-pull-request-review skill; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: blue
