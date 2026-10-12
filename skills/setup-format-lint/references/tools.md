@@ -1,6 +1,6 @@
 # Tools
 
-Catalog for `setup-format-lint`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML, Markdown); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits. For JS/TS, JSON, CSS/SCSS, HTML, Markdown, YAML, Dockerfile, PHP, C#, and XML, the cdk plugin's format-lint hooks (`hooks/scripts/tools.mjs`) run the installed tools they know, so Claude's edits get formatted and linted automatically.
+Catalog for `setup-format-lint`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML, Markdown); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits. For JS/TS, JSON, CSS/SCSS, HTML, Markdown, YAML, Dockerfile, PHP, C#, and XML, the cdk plugin's format-lint hooks (`hooks/scripts/lib/tools.mjs`) run the installed tools they know, so Claude's edits get formatted and linted automatically.
 
 ## Candidates by file type
 

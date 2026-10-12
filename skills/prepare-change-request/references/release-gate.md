@@ -1,12 +1,12 @@
 # Release gate
 
-Shared by `cdk:prepare-change-request` (step 5). Layer one of the changelog and version enforcement; the project `PreToolUse` hook and CI run the same script (`hooks/scripts/release-check.mjs`), so this gate never re-implements a check.
+Shared by `cdk:prepare-change-request` (step 5). Layer one of the changelog and version enforcement; the project `PreToolUse` hook and CI run the same script (`hooks/scripts/lib/release-check.mjs`), so this gate never re-implements a check.
 
 Inputs from the caller: target branch, `unattended` (`--yes`), `dry-run`, and its step number for `Stopped:`. Run from the repo root.
 
 ## Procedure
 
-1. **Check.** `node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs check --target <target> --pre-push --json`. The script fetches the target, uses `merge-base..HEAD` (so a rebased branch is judged against the new target tip), and reads `.claude/release-policy.json`.
+1. **Check.** `node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/release-check.mjs check --target <target> --pre-push --json`. The script fetches the target, uses `merge-base..HEAD` (so a rebased branch is judged against the new target tip), and reads `.claude/release-policy.json`.
    - `skipped` (no policy, or only exempt or non-user-facing changes) → `Release: skipped (<note>)`; done.
    - `ok` → `Release: ok (<level> → <required>)`; done.
    - `failures` with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → stop with the failure's `message` and `fix`; remediation cannot help.

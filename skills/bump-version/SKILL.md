@@ -2,7 +2,7 @@
 name: bump-version
 description: Set the version in every file named by .claude/release-policy.json to the SemVer value the branch commits require, then run cdk:write-changelog when a changelog exists. Always asks the user to confirm first. Use only when the user explicitly asks to bump the version, or when chained by the release gate or cdk:ship-release. Do not use on your own after finishing a task.
 argument-hint: '[target <branch>] [subject <path>] [confirmed]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs *) Bash(git rev-parse *)
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/release-check.mjs *) Bash(git rev-parse *)
 ---
 
 # Bump Version
@@ -19,7 +19,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- All logic lives in `${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs`; never compute a level or version yourself and never edit a version file by hand.
+- All logic lives in `${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/release-check.mjs`; never compute a level or version yourself and never edit a version file by hand.
 - A bump needs the user's confirmation every time (step 2) and only serves a PR or MR; never bump on your own, and `--yes`, `auto`, or unattended mode never skip the question. Only the input `confirmed`, passed by the release gate after its own question, does. AskUserQuestion unavailable and no `confirmed` → `Stopped: 2: needs confirmation`; never assume.
 - No release policy (`.claude/release-policy.json` absent) → stop, `Stopped: 1: no release policy`; never create a policy.
 - Never commit or push; the caller commits (`cdk:commit-changes`). Never edit the changelog directly: `cdk:write-changelog` owns it and is chained via the Skill tool in this main thread per `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`.

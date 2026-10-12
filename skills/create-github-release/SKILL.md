@@ -2,7 +2,7 @@
 name: create-github-release
 description: Create the annotated git tag and the GitHub release for the latest released version in CHANGELOG.md, from the verified tip of main, with the changelog section as release notes. Idempotent; never moves a tag, force-pushes, or edits an existing release. Use only when the user explicitly asks to create or publish a GitHub release or tag, e.g. "create the release", "tag and release 1.0.0", "publish the GitHub release for this version". Do not use on your own after finishing a task.
 argument-hint: '[--prefix v|none] [--yes]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote origin *) Bash(git remote) Bash(git remote get-url *) Bash(git tag --list *) Bash(git merge --ff-only origin/main) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote origin *) Bash(git remote) Bash(git remote get-url *) Bash(git tag --list *) Bash(git merge --ff-only origin/main) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
 ---
 
 # Create GitHub Release
@@ -21,7 +21,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Parsing, SemVer and date validation, tag-prefix detection, and notes rendering live in `${CLAUDE_SKILL_DIR}/../../hooks/scripts/changelog-release.mjs`; never parse the changelog or build notes by hand. Notes come only from that section, never invented. Template and mapping: `${CLAUDE_SKILL_DIR}/references/release-notes.md`.
+- Parsing, SemVer and date validation, tag-prefix detection, and notes rendering live in `${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/changelog-release.mjs`; never parse the changelog or build notes by hand. Notes come only from that section, never invented. Template and mapping: `${CLAUDE_SKILL_DIR}/references/release-notes.md`.
 - Release only the verified tip of `main`: clean tree, current branch `main`, local `main` fast-forwarded to the remote's, never a rebase or reset.
 - Never `--force`, `-f`, `--prune-tags`, `git tag -d`, `gh release edit`, `gh release delete`, or `--draft`/`--prerelease`/`--target`; a wrong tag or release is reported, never fixed here. Published releases may be immutable (the tag can then never be reused), so the confirmation names the tag and commit.
 - One confirmation before any write (tag, push, release); it covers exactly those pushes and the release, nothing else. `--yes` or an unattended run skips the question, never any check.
