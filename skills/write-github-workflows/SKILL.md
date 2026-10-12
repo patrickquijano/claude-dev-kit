@@ -43,7 +43,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 7. **Plan.** Print the file list with a one-line purpose each, the resolved versions table, and the diff for existing files; then write without asking.
 8. **Write** the files under `.github/workflows/` and `.github/dependabot.yml`.
 9. **Verify.** Spawn `cdk:workflow-reviewer` with the workflow paths and `.github/dependabot.yml` when written, `${CLAUDE_SKILL_DIR}/references/practices.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, the resolver table, the pinning mode, the list of files written, the existing names kept or renamed with approval, and in update mode the diff. Use its `Findings`, `Checks`, `Tool output`. Each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
-10. **Resolve findings.** Per resolve-findings.md. Edit only the files this run wrote. Itemize `Unresolved:` and each `Checks:` entry (including `naming` and `zizmor`) with `n findings`, `fail`, or `not installed`.
+10. **Resolve findings.** Per resolve-findings.md. Edit only the files this run wrote. Itemize `Unresolved:` and each `Checks:` entry (including `naming` and `zizmor`) with `n findings`, `fail`, `unverified`, `error (…)`, or `not installed`; a tool `error` is reported with no fix loop.
 11. **Report** the output below.
 
 ## Output
@@ -58,7 +58,7 @@ Versions:
 Runner: <label> (<basis>)
 Pinning: <tag | SHA> (<rule matched | user choice>)
 Docs checked: <page — result>, … | none
-Checks: actionlint <pass | fail | not installed>, contracts <ok | n findings>, posix <ok | n findings>, naming <ok | n findings>, zizmor <pass | fail | not installed>, pins <ok | n findings>, gate <ok | n findings | n/a>, yaml <pass | fail>
+Checks: actionlint <pass | fail | not installed | error (<first line>)>, contracts <ok | n findings>, posix <ok | n findings>, naming <ok | n findings>, zizmor <pass | fail | not installed | error (<first line>)>, pins <ok | n findings>, gate <ok | n findings | n/a>, yaml <pass | fail | unverified>
 Assumptions: <item>, … | none
 Retained constraints: <item (branch protection or rulesets must require the gate check; never edited here)>, … | none
 Skipped practices: <item — reason> | none

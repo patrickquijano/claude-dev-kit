@@ -44,7 +44,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
    - Review mode → report its findings; write nothing.
    - Create or update → each `error` or `warning` finding → fix, print the diff, write the fixes without asking; re-run this step (cap in Rules). `info` findings → list only.
    - Full `docker build` only when the user asks (it downloads images and runs build commands).
-8. **Resolve findings.** Per resolve-findings.md. Edit only the `Dockerfile` and `.dockerignore` this run wrote or updated; review mode writes nothing, so its items are reported with their recommended fix. Itemize the unfixed `Findings:`; `Checks:` fail or not installed (a skipped hadolint for a heredoc is not an item). Devcontainer target chained by `cdk:setup-devcontainer` is unattended: ask nothing.
+8. **Resolve findings.** Per resolve-findings.md. Edit only the `Dockerfile` and `.dockerignore` this run wrote or updated; review mode writes nothing, so its items are reported with their recommended fix. Itemize the unfixed `Findings:`; `Checks:` fail, `error (…)`, or not installed (a tool `error` is reported with no fix loop; a skipped hadolint for a heredoc is not an item). Devcontainer target chained by `cdk:setup-devcontainer` is unattended: ask nothing.
 9. **Report** the output below.
 
 ## Output
@@ -59,7 +59,7 @@ Files: Dockerfile (<written | updated | kept>), .dockerignore (<written | update
 Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
 Distro: <debian | ubuntu | alpine> (<reason when not Debian slim>)
-Checks: docker build --check <pass | fail | not installed>, hadolint <pass | fail | skipped (heredoc) | not installed>
+Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>
 Findings: <path:line practice id — fix>, … | none
 Build: docker build -t <name> -f <Dockerfile> <context>
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
