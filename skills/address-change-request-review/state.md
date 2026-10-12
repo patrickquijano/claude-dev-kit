@@ -17,6 +17,7 @@ Used by `cdk:address-change-request-review` and its `cr-feedback-*` agents (GitH
 | `author`, `isBot`                      | Login and whether the author is a bot (`__typename` `Bot` or login ending `[bot]`).               |
 | `path`, `line`, `outdated`, `resolved` | From the thread; `line` falls back to `originalLine`.                                             |
 | `viewerCanReply`, `viewerCanResolve`   | From the thread; both must be true before replying or resolving.                                  |
+| `awaiting`                             | `yes` when the thread's last note is Self's (reviewer's turn); optional, default no.              |
 | `body`, `replies[]`, `url`             | Normalized text, each reply as `{author, body, createdAt}`, and the link.                         |
 | `classification`                       | One of the nine below.                                                                            |
 | `group`, `plan`, `files`               | Planner output.                                                                                   |
