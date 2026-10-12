@@ -1,6 +1,6 @@
 ---
 name: pr-test-reviewer
-description: Review a committed branch diff or uncommitted tree for test coverage and missing cases, and run the repository's documented lint, typecheck, test, and build commands; return structured findings and command results. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
+description: Review a committed branch diff for test coverage and missing cases, and run the repository's documented lint, typecheck, test, and build commands; return structured findings and command results. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: blue

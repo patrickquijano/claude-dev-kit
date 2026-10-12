@@ -1,6 +1,6 @@
 ---
 name: pr-security-reviewer
-description: Review a committed branch diff or uncommitted tree for secrets, authorization gaps, input validation, injection, and dependency risks; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
+description: Review a committed branch diff for secrets, authorization gaps, input validation, injection, and dependency risks; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: opus
 color: red

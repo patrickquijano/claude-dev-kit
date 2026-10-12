@@ -1,6 +1,6 @@
 ---
 name: pr-maintainability-reviewer
-description: Review a committed branch diff or uncommitted tree for maintainability and architecture problems (duplication, dead code, naming, layering, coupling, convention drift); return structured findings. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
+description: Review a committed branch diff for maintainability and architecture problems (duplication, dead code, naming, layering, coupling, convention drift); return structured findings. Read-only. Spawned by the cdk:prepare-pull-request, cdk:review-pull-request skills; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: purple

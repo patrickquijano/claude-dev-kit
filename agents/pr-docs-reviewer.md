@@ -1,6 +1,6 @@
 ---
 name: pr-docs-reviewer
-description: Review a committed branch diff or uncommitted tree for documentation, configuration, migration, and changelog requirements the change creates; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request skill; do not use directly.
+description: Review a committed branch diff for documentation, configuration, migration, and changelog requirements the change creates; return structured findings. Read-only. Spawned by the cdk:prepare-pull-request skill; do not use directly.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: purple
