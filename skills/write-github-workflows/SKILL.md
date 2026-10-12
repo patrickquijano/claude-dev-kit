@@ -25,8 +25,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Versions are never hardcoded in this skill: resolve every action, reusable workflow, runner label, and image per `${CLAUDE_SKILL_DIR}/references/versions.md` on each run, then write the verified values into the workflows (Actions cannot resolve them at run time). Never `ubuntu-latest`, `latest`, a bare major, or a floating alias. Unverifiable → ask or stop; never guess or use an older remembered value.
 - Structure per `${CLAUDE_SKILL_DIR}/references/layout.md`: one orchestrator holding triggers and caller jobs, one `workflow_call` file per job, inputs, secrets, permissions, and outputs passed explicitly (never `secrets: inherit`).
 - Scripts are POSIX `sh` only, set via `defaults.run.shell: sh`; untrusted and secret values only through step `env:`.
-- Update mode changes only what the request needs; keep triggers and behavior; keep job `name` values unless modularizing renames a required check, in which case the gate job supersedes that rule and required checks move to it. Modularize only workflows the request touches. Existing repo naming and layout win.
-- Never run a workflow, push, open a PR, or change repository or organization settings.
+- Update mode changes only what the request needs; keep triggers and behavior; keep job `name` values unless modularizing renames a required check, in which case the gate job supersedes that rule and required checks move to it. Modularize only workflows the request touches. New names follow `${CLAUDE_SKILL_DIR}/references/practices.md` `## Naming`; existing names are kept unless the user approves a rename.
+- Never run a workflow, push, open a PR, or change repository or organization settings. Writes are limited to `.github/workflows/` and `.github/dependabot.yml` (update mode touches Dependabot only per `practices.md` `## Dependabot`).
 - Every write to an existing file prints its diff; no approval asked, since the files are local and reviewable.
 - Loops: clarify (step 3) max 3 rounds; verify-fix (step 9) max 3 attempts; clarify cap hit, or a failure before findings exist → print the Output with `Stopped: <step>: <reason>` and end; verify cap hit, or a failure after findings exist → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>` and end.
 - Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Skipped practices:`, `Retained constraints:`, `Checks:` findings, fail, or not installed).
@@ -35,15 +35,15 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root, else cwd. Mode: input names or matches an existing workflow, or `.github/workflows/` has files the request touches → update; else create. Input too thin to name any trigger or job → step 3.
-2. **Analyze.** Spawn `cdk:workflow-analyzer` with the root, a request summary, and `${CLAUDE_SKILL_DIR}/references/versions.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
+2. **Analyze.** Spawn `cdk:workflow-analyzer` with the root, a request summary, `${CLAUDE_SKILL_DIR}/references/versions.md`, and `${CLAUDE_SKILL_DIR}/references/practices.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming` (with per-file conformance), `Dependabot`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
 3. **Clarify.** Derive the design from the input and the analyzer; ask only what stays missing, in one AskUserQuestion call; nothing left to change → `Result: nothing-to-do`; max 3 rounds. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
-4. **Docs check.** WebFetch only the pages named in `practices.md` for features this request uses (for example services, environments, concurrency); a fact that differs from `practices.md` → follow the doc, record it under `Docs checked`. Skip for features unused.
+4. **Docs check.** WebFetch only the pages named in `practices.md` for features this request uses (for example services, environments, concurrency), always the Dependabot options page; a fact that differs from `practices.md` → follow the doc, record it under `Docs checked`. Skip for features unused.
 5. **Resolve.** Spawn `cdk:actions-version-resolver` with `${CLAUDE_SKILL_DIR}/references/versions.md`, the actions, remote reusable workflows, images (with variant and major.minor), runner need and architecture, and the analyzer's pinning signals. Items in its `Unresolved` → one AskUserQuestion (inside the step 3 cap) or `Stopped` (run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped:`); this includes `Pinning: unknown` (options SHA recommended, tag) and a newest runner label that is not an LTS `.04` release (options newest, newest LTS). Keep its table for steps 6, 9, and 11.
-6. **Draft.** Per `layout.md` and `practices.md`: the orchestrator and one callee per job from the resolver table, plus the `_gate.yml` callee for a touched job with a required check. Update mode → edit in place, list each change with its reason. Detail: `${CLAUDE_SKILL_DIR}/references/draft.md`.
+6. **Draft.** Per `layout.md` and `practices.md`: the orchestrator and one callee per job from the resolver table, plus the `_gate.yml` callee for a touched job with a required check, and `.github/dependabot.yml`. Update mode → edit in place, list each change with its reason. Detail: `${CLAUDE_SKILL_DIR}/references/draft.md`.
 7. **Plan.** Print the file list with a one-line purpose each, the resolved versions table, and the diff for existing files; then write without asking.
-8. **Write** the files under `.github/workflows/`.
-9. **Verify.** Spawn `cdk:workflow-reviewer` with the paths, `${CLAUDE_SKILL_DIR}/references/practices.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, the resolver table, the pinning mode, the list of files written, and in update mode the diff. Use its `Findings`, `Checks`, `Tool output`. Each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
-10. **Resolve findings.** Per resolve-findings.md. Edit only the workflows this run wrote. Itemize `Unresolved:` and each `Checks:` entry with `n findings`, `fail`, or `not installed`.
+8. **Write** the files under `.github/workflows/` and `.github/dependabot.yml`.
+9. **Verify.** Spawn `cdk:workflow-reviewer` with the workflow paths and `.github/dependabot.yml` when written, `${CLAUDE_SKILL_DIR}/references/practices.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, the resolver table, the pinning mode, the list of files written, the existing names kept or renamed with approval, and in update mode the diff. Use its `Findings`, `Checks`, `Tool output`. Each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
+10. **Resolve findings.** Per resolve-findings.md. Edit only the files this run wrote. Itemize `Unresolved:` and each `Checks:` entry (including `naming` and `zizmor`) with `n findings`, `fail`, or `not installed`.
 11. **Report** the output below.
 
 ## Output
@@ -51,14 +51,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ```text
 Mode: create | update
 Files:
-- <path> — <created | modified> — <purpose>
+- <path> — <created | modified> — <purpose> (workflows and `.github/dependabot.yml`)
 Workflows: <orchestrator> → <callee>, …
 Versions:
 - <ref> — <tag or label> — <sha | digest | -> — <source URL>
 Runner: <label> (<basis>)
 Pinning: <tag | SHA> (<rule matched | user choice>)
 Docs checked: <page — result>, … | none
-Checks: actionlint <pass | fail | not installed>, contracts <ok | n findings>, posix <ok | n findings>, pins <ok | n findings>, gate <ok | n findings | n/a>, yaml <pass | fail>
+Checks: actionlint <pass | fail | not installed>, contracts <ok | n findings>, posix <ok | n findings>, naming <ok | n findings>, zizmor <pass | fail | not installed>, pins <ok | n findings>, gate <ok | n findings | n/a>, yaml <pass | fail>
 Assumptions: <item>, … | none
 Retained constraints: <item (branch protection or rulesets must require the gate check; never edited here)>, … | none
 Skipped practices: <item — reason> | none

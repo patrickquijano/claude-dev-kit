@@ -4,15 +4,15 @@ Skeletons for the orchestrator and callee files. `<…>` is filled from the requ
 
 ## Files
 
-- `.github/workflows/<purpose>.yml`: orchestrator, one per trigger set (for example `ci.yml`).
-- `.github/workflows/_<verb>-<noun>.yml`: one callee per job (for example `_lint.yml`, `_test.yml`, `_build-image.yml`).
+- `.github/workflows/<file>.yml`: orchestrator, one per trigger set; the file comes from the `practices.md` `## Naming` table (`ci.yml`, `release.yml`, `deploy.yml`, `scheduled.yml`, `manual.yml`).
+- `.github/workflows/_<job-id>.yml`: one callee per job, named from the job id (for example `_lint.yml`, `_test-unit.yml`, `_build-image.yml`).
 - Shared by several orchestrators → keep the one callee; never copy it. A job used once still gets its own file.
-- Existing repo layout or naming wins; update mode adds callees beside the existing files.
+- Names follow `practices.md` `## Naming`; existing files and ids are kept unless the user approved a rename. Update mode adds callees beside the existing files.
 
 ## Orchestrator
 
 ```yaml
-name: <Title Case>
+name: <Workflow name> # file stem in Title Case (CI, Release, Deploy, Scheduled, Manual)
 
 on:
   <event>: # only the events the request names; filters (branches, paths, types) explicit
@@ -26,8 +26,8 @@ concurrency:
 
 jobs:
   <job-id>:
-    name: <Job Name> # shown with the callee's job name in checks; see practices Naming
-    uses: ./.github/workflows/_<verb>-<noun>.yml
+    name: <Job Name> # Title Case of <job-id>; check-name format unverified, see practices Naming
+    uses: ./.github/workflows/_<job-id>.yml
     needs: [<job-id>] # only real dependencies
     permissions:
       contents: read
@@ -39,7 +39,7 @@ jobs:
 
 - Caller job keys: `name`, `uses`, `with`, `secrets`, `strategy`, `needs`, `if`, `concurrency`, `permissions` only. `environment`, `runs-on`, `steps`, `timeout-minutes`, `env` belong to the callee.
 - Callee outputs are read as `needs.<job-id>.outputs.<output_name>` and passed on through `with:`.
-- Untrusted event data (titles, bodies, branch names) never goes in `with:` for a callee that uses it in a script; see practices `## Untrusted input and secrets`.
+- Untrusted event data (titles, bodies, branch names) may be passed in `with:` only to a callee that reads it through step `env:` or an action input, never interpolated into a script; see practices `## Untrusted input and secrets`.
 
 ## Gate (only when a touched job has a required check)
 
@@ -76,7 +76,7 @@ Required checks should point at the gate. The gate gets results only (`success`,
 ## Callee
 
 ```yaml
-name: '<Orchestrator>: <Job>' # quoted: an unquoted `: ` is a YAML error
+name: '<Workflow name>: <Job Name>' # quoted: an unquoted `: ` is a YAML error
 
 on:
   workflow_call:

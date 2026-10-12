@@ -1,6 +1,6 @@
 # GitHub Actions workflow practices
 
-Verified 2026-10-10 against docs.github.com, github.com/actions, and github.com/rhysd/actionlint. Items marked **cdk** are plugin policy, not GitHub guidance. Items marked **Required** always apply; apply every other item that fits, and skip one only with a reason in the Output. Doc base: `https://docs.github.com/en/actions/`.
+Verified 2026-10-13 against docs.github.com, github.com/actions, github.com/rhysd/actionlint, and docs.zizmor.sh. Items marked **cdk** are plugin policy, not GitHub guidance. Items marked **Required** always apply; apply every other item that fits, and skip one only with a reason in the Output. Doc base: `https://docs.github.com/en/actions/`.
 
 ## Reusable-workflow contract
 
@@ -17,12 +17,25 @@ Verified 2026-10-10 against docs.github.com, github.com/actions, and github.com/
 
 ## Naming (**cdk**; GitHub states no naming convention)
 
-- Files: orchestrator `<purpose>.yml` (for example `ci.yml`); callees `_<verb>-<noun>.yml`, except the gate `_gate.yml` (underscore prefix groups reusables apart from entry points). Lowercase, hyphen-separated.
-- Workflow `name`: Title Case orchestrator name; callee `name` = `'<Orchestrator>: <Job>'`-style short label without the leading underscore, always quoted (an unquoted `:` is a YAML error). Job IDs: lowercase `kebab-case` starting with a letter or `_`, only alphanumerics, `-`, `_` (the doc's rule). Caller job ID = callee job ID where possible, so check names stay stable.
-- Step `name`: sentence-case verb phrase. Inputs, outputs, secrets: `snake_case` for inputs/outputs, `UPPER_SNAKE_CASE` for secrets and `env`. Artifacts: `<job>-<what>` with a unique name per run (upload-artifact requires a unique name per run in its current majors; see its README). Environments: lowercase noun (`production`). Concurrency groups: `${{ github.workflow }}-${{ github.ref }}`, adding a scope segment only when one workflow needs several groups.
-- Existing repo conventions win over this section (step 2 of the skill collects them).
+Names are derived, never chosen: the same request always yields the same names.
+
+- Orchestrator file, chosen by trigger set from this closed table; any other set → ask in Clarify.
+
+  | Trigger set                                                | File            |
+  | ---------------------------------------------------------- | --------------- |
+  | `push` (branches), `pull_request`, `merge_group` (any mix) | `ci.yml`        |
+  | `push` with only `tags:` filters, or `release`             | `release.yml`   |
+  | jobs with `environment:` deploys (no CI)                   | `deploy.yml`    |
+  | `schedule` only                                            | `scheduled.yml` |
+  | `workflow_dispatch` only                                   | `manual.yml`    |
+
+- Workflow `name` = file stem in Title Case, with `ci` as `CI`: CI, Release, Deploy, Scheduled, Manual.
+- Job id = `<verb>[-<noun>]`. `<verb>` is from the closed list lint, format, typecheck, test, build, scan, publish, deploy, release, gate; a job outside it → ask in Clarify. Add the noun only when the verb repeats in the workflow: the distinguishing target in kebab-case (`test-unit`, `test-integration`, `build-image`, `build-docs`). Ids are lowercase `kebab-case` starting with a letter or `_`, only alphanumerics, `-`, `_` (the doc's rule).
+- Everything else derives from the job id: callee file `_<job-id>.yml` (underscore prefix groups reusables apart from entry points); caller and callee job id = `<job-id>`, so check names stay stable; job `name` = Title Case of the id (`Build Image`); callee workflow `name` = `'<Workflow name>: <Job name>'`, always quoted (an unquoted `:` is a YAML error); artifact = `<job-id>-<what>`, unique per run (upload-artifact requires a unique name per run in its current majors; see its README). The gate is `gate` / `Gate` / `_gate.yml`.
+- Step `name`: sentence-case verb phrase. Inputs and outputs: `snake_case`; secrets and `env`: `UPPER_SNAKE_CASE`. Environments: lowercase noun (`production`). Concurrency groups: `${{ github.workflow }}-${{ github.ref }}`, adding a scope segment only when one workflow needs several groups.
+- Existing workflows: new files and jobs always follow this scheme; existing files, ids, and `name` values are kept. A rename happens only when the user chooses it in Clarify, and it then goes into `Check-name map`.
 - **cdk** Required checks: a touched job with a required check gets a gate callee (`_gate.yml`, see `layout.md`) as the one stable check. The caller job `needs` every other job and has `if: ${{ always() }}`; the callee fails when any result is `failure` or `cancelled`, or when there are no results (`skipped` is accepted). Print an old→new check-name map; never edit branch protection or rulesets. The `<caller> / <callee>` check-name format comes from secondary sources, so the map labels it unverified.
-- Update mode keeps existing job IDs and `name` values. Modularizing a job can change the check name it reports (the called job's check is shown with the caller's name), so when the analyzer lists required checks for a touched job, add the gate (no question) and report the rename in `Check-name map` and under Retained constraints. The gate supersedes keeping those `name` values.
+- Modularizing a job can change the check name it reports (the called job's check is shown with the caller's name), so when the analyzer lists required checks for a touched job, add the gate (no question) and report the rename in `Check-name map` and under Retained constraints. The gate supersedes keeping those `name` values.
 
 ## Shell
 
@@ -38,8 +51,11 @@ Verified 2026-10-10 against docs.github.com, github.com/actions, and github.com/
 
 ## Untrusted input and secrets
 
-- **Required** never put untrusted contexts in `run:` or `with:` script text. `${{ }}` is substituted before the shell runs. Route through a step `env:` variable and use `"$VAR"` double-quoted. Untrusted: issue/PR title and body, comment and review bodies, commit messages, author names and emails, `head_ref`, `pull_request.head.ref`, `head.label`. Preferred over `env` where an action input exists: pass it via `with:`. `reference/security/secure-use`, securitylab.github.com/resources/github-actions-untrusted-input
-- Avoid `pull_request_target` and `workflow_run` unless a privileged context is needed; never check out or run fork PR code in them. Treat artifacts from other workflows as untrusted. `reference/security/securely-using-pull_request_target` (checkout's README documents an `allow-unsafe-pr-checkout` input that gates fork PR checkouts there; check the resolved version's README before relying on it).
+- **Required** never put untrusted contexts in `run:` or in `with:` script text (`actions/github-script` `script:`). `${{ }}` is substituted before the shell runs. Route through a step `env:` variable and use `"$VAR"` double-quoted. Untrusted: issue/PR title and body, comment and review bodies, commit messages, author names and emails, `head_ref`, `pull_request.head.*` (ref, label, repo), and `steps.*.outputs`/`needs.*.outputs` derived from them. A caller may pass untrusted strings through `with:` as inputs; the callee consumes them only via step `env:` or an action input, never interpolated into `run:` or `script:`. `reference/security/secure-use`, securitylab.github.com/resources/github-actions-untrusted-input
+- **Required** never write untrusted values to `$GITHUB_ENV` or `$GITHUB_PATH` (a later step runs with them, so a newline or path entry injects variables or code).
+- **Required** avoid `pull_request_target` and `workflow_run` unless a privileged context is needed, and never check out or run fork PR head code in them. Treat artifacts from other workflows as untrusted. `reference/security/securely-using-pull_request_target` (checkout's README documents an `allow-unsafe-pr-checkout` input that gates fork PR checkouts there; check the resolved version's README before relying on it).
+- **Required** never `toJSON(secrets)` or pass the whole `secrets` context; reference each secret by name.
+- **Required** an `if:` is one expression: never mix literal text with `${{ }}` (a non-empty string is truthy), write `if: ${{ <expr> }}`.
 - Secrets: never plaintext in files, never on a command line (visible to other jobs on the runner), one secret per value (redaction is exact match, so no JSON/YAML blobs), `::add-mask::` for derived sensitive values, scope to the narrowest step `env:`. Leaked secret → rotate.
 - Environments: only jobs naming an environment read its secrets and trigger its protection rules; set `environment:` in the callee job, not the caller. `reference/workflows-and-actions/deployments-and-environments`
 
@@ -72,6 +88,10 @@ Verified 2026-10-10 against docs.github.com, github.com/actions, and github.com/
 - Pinning mode comes from `versions.md` `## Pinning mode`: SHA when the repo or org enforces it or existing `uses:` are SHA-pinned; otherwise the most specific exact release tag (`vX.Y.Z`), never a bare major. With a SHA, add a same-line comment `# vX.Y.Z` (Dependabot updates it).
 - The `sha_pinning_required` setting exempts reusable workflows, so they may use tags; **cdk** still pins them to the exact tag or SHA.
 
+## Dependabot (**cdk**)
+
+- Create or update `.github/dependabot.yml` with a `package-ecosystem: github-actions` entry: `directory: /` (Dependabot then scans `/.github/workflows` and the root `action.yml`), `schedule.interval: weekly`, and `cooldown.default-days: 3` (the only `cooldown` key this ecosystem supports; 3 is the documented default, written explicitly). Use the existing `.github/dependabot.yml` or `.yaml` if present: add the entry only when none exists, keep every other entry and any existing `cooldown`. Create the file only in create mode or when the analyzer reports `Dependabot: none`; in update mode touch it only then. In SHA mode Dependabot also updates the `# vX.Y.Z` comment. Options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference` (fetch it in step 4 before writing).
+
 ## Maintenance links
 
-- Re-fetch targets (step 4 of the skill) are the doc pages named in each section above; fetch only those for features the request uses.
+- Re-fetch targets (step 4 of the skill) are the doc pages named in each section above; fetch only those for features the request uses. zizmor (reviewer tool): `https://docs.zizmor.sh/usage/`.
