@@ -16,7 +16,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Release enforcement: opt-in policy `.claude/release-policy.json`; one script `hooks/scripts/lib/release-check.mjs` (tests `tests/{unit,integration}/hooks/scripts/lib/release-check.test.mjs`) shared by the release gate in `prepare-change-request` (`references/release-gate.md`), the plugin `PreToolUse` hook (`hooks/scripts/pre-tool-use.mjs`), and the required CI check `.github/workflows/release-check.yml`. Rules `.claude/rules/release.md`.
 - GitHub release: `skills/create-github-release/` (`SKILL.md`, `references/release-notes.md`); parsing, SemVer, tag-prefix, and notes logic in `hooks/scripts/lib/changelog-release.mjs` (tests `tests/{unit,integration}/hooks/scripts/lib/changelog-release.test.mjs`); one confirmation covers the tag push and release, never force.
 - Skill layout (Agent Skills spec): `skills/<name>/SKILL.md` plus `references/` (docs Claude reads; `commands.md` holds every runnable command, referenced by name from a thin SKILL.md; conditional branches in `references/<topic>.md`; `## Context` `` !`cmd || echo '<none>'` `` lines preload fixed git and tool-version reads, rule in `.claude/rules/skills.md`), `assets/` (content copied or filled into output), `scripts/` (executables). Rules `.claude/rules/skills.md`.
-- Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks and `commit-rules.md`, `setup-test-hook` `run-tests.mjs`, `setup-graphify` `graphify-rules.md`).
+- Skill assets: `skills/<name>/assets/` copied into target projects (`setup-husky` hooks and `commit-rules.md`, `setup-graphify` `graphify-rules.md`).
 - GitHub: PR template `.github/pull_request_template.md`.
 
 ## Commands

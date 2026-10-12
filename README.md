@@ -15,7 +15,6 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
 - [`uv`](https://docs.astral.sh/uv/) or `pipx` (Python 3.10+) for `/cdk:setup-graphify` when `graphify` is not installed.
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
-- Node.js for `/cdk:setup-test-hook` (the hook script runs on Node); the project's own test runners.
 - The project's package manager for `/cdk:upgrade-dependencies`.
 - The project's own test runners for the `/cdk:write-*-tests` skills; Docker for containerized integration dependencies.
 - Docker for `/cdk:write-dockerfile` build checks; `hadolint` optional.
@@ -61,9 +60,9 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 | `/cdk:setup-graphify`                | Install graphify, add Claude and git hooks, build the graph, name communities, share graph and report, add ignores and rules.                                                                                                         |
 | `/cdk:setup-husky`                   | Install Husky; add commit message (header ≤72) and signing checks, commit rules file; LF endings, ignores.                                                                                                                            |
 | `/cdk:setup-permissions`             | Inventory repo commands and the session's MCP tools; merge user-scoped allow, ask, deny rules (Bash pairs, exact MCP tool rules); validate, summarize.                                                                                |
-| `/cdk:setup-project`                 | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -test-hook.                                                                                                                            |
+| `/cdk:setup-project`                 | Detect missing setup, multi-select, then chain setup-git, -editorconfig, -format-lint, -husky, -testing.                                                                                                                              |
 | `/cdk:setup-spec-kit`                | Install Spec Kit, init with Claude, add agent-context/assess/bug extensions, set ignores.                                                                                                                                             |
-| `/cdk:setup-test-hook`               | Add a unit-only, fail-fast Stop test hook with per-suite cache; note commands, add VS Code tasks.                                                                                                                                     |
+| `/cdk:setup-testing`                 | Detect stack and framework, recommend unit, integration, and e2e testers, install and configure missing ones in the native layout, add run scripts, note commands.                                                                    |
 | `/cdk:ship-release`                  | Ship a GitHub PR or GitLab MR end to end: switch branch, atomic commits, version, changelog, README, create the PR or MR, review with labeled comments, address findings (3 rounds), merge, sync, summarize.                          |
 | `/cdk:switch-branch`                 | Derive a Conventional Branch name from unique commits and changes, switch to it, push.                                                                                                                                                |
 | `/cdk:upgrade-dependencies`          | Find outdated packages, check breaking changes, apply fixes, and validate each upgrade.                                                                                                                                               |
@@ -109,8 +108,7 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 | `cdk:security-scanner`            | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                                           |
 | `cdk:skill-auditor`               | Check skills and agents against repo rules and skill-agent contracts for `build-skill`, `build-agent`.                                                                        |
 | `cdk:speckit-open-items`          | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                                                      |
-| `cdk:test-gap-analyzer`           | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills.                                                                                 |
-| `cdk:test-suite-analyzer`         | Detect one package's test suites and runners for `setup-test-hook`.                                                                                                           |
+| `cdk:test-gap-analyzer`           | Detect stack, test tooling, conventions, and untested targets for the `write-*-tests` skills; report tester state for `setup-testing`.                                        |
 | `cdk:topic-researcher`            | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                                           |
 | `cdk:workflow-analyzer`           | Collect workflows, commands, services, naming, and pinning signals for `write-github-workflows`.                                                                              |
 | `cdk:workflow-reviewer`           | Check workflows against practices, naming, contracts, POSIX sh, the gate job, actionlint, and zizmor for `write-github-workflows`.                                            |
