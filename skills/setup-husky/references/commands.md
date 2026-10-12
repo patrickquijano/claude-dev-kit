@@ -1,0 +1,14 @@
+# Commands
+
+| Name               | Command                                       | Purpose                             |
+| ------------------ | --------------------------------------------- | ----------------------------------- |
+| `git-root`         | `git rev-parse --show-toplevel`               | Fails outside a git repo            |
+| `node-version`     | `node --version`                              | Fails when Node.js is missing       |
+| `gpgsign`          | `git config --get commit.gpgsign`             | Must be `true`                      |
+| `signingkey`       | `git config --get user.signingkey`            | Must be set                         |
+| `allowed-signers`  | `git config --get gpg.ssh.allowedSignersFile` | Needed for SSH signing              |
+| `hooks-path`       | `git config --get core.hooksPath`             | Current hooks directory             |
+| `husky-init`       | `<exec> husky init`                           | Initialize Husky                    |
+| `run-prepare`      | `<pm> run prepare`                            | Install hooks, set `core.hooksPath` |
+| `chmod-exec`       | `chmod +x`                                    | Make copied stubs executable        |
+| `smoke-commit-msg` | `node <pkg>/.husky/commit-msg.mjs <file>`     | Check the commit-msg hook           |

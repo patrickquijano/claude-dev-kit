@@ -8,9 +8,10 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 
 ## Rules
 
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
-- Not pre-approved on purpose: `graphify install --project`, `graphify claude install --project`, `graphify hook install`, `graphify label`. The first three write `.claude/settings.json` and `.git/hooks`; `label` spends LLM tokens and rewrites `graphify-out/`. The permission prompt is the second guard.
+- Not pre-approved on purpose: `install-skill`, `install-claude-hooks`, `install-git-hooks`, `label-missing`. The first three write `.claude/settings.json` and `.git/hooks`; `label` spends LLM tokens and rewrites `graphify-out/`. The permission prompt is the second guard.
 - Chaining the `graphify` skill: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`.
 - Ignore files: append only missing entries; keep existing entries, order, and syntax form.
 - Edit only linter and formatter configs that already exist. Only `.gitignore` and `.claude/rules/graphify.md` may be created.
@@ -24,15 +25,15 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 
 ## Workflow
 
-1. **Pre-flight.** `git rev-parse --show-toplevel` → repo root; run every later step from it. Not a git repo → use the current directory, skip only the git hooks in step 4 and step 7.
-2. **CLI.** `command -v graphify` succeeds → skip. Else `command -v uv` succeeds → `uv tool install graphifyy`; else `command -v pipx` succeeds → `pipx install graphifyy`; neither → report "install uv: <https://docs.astral.sh/uv/>", stop. Install fails → quote the error line, stop. Install succeeds but `command -v graphify` still fails → tell the user to run `uv tool update-shell` (uv) or `pipx ensurepath` (pipx) and restart the shell, stop. Record `graphify --version`.
-3. **Skill.** `.claude/skills/graphify/.graphify_version` exists in the project, or `~/.claude/skills/graphify/.graphify_version` exists → skip. Else run `graphify install --project` (also does the Claude half of step 4).
+1. **Pre-flight.** `git-root` → repo root; run every later step from it. Not a git repo → use the current directory, skip only the git hooks in step 4 and step 7.
+2. **CLI.** `has-graphify` succeeds → skip. Else `install-uv` (when `has-uv` succeeds) or `install-pipx` (when `has-pipx` succeeds); record `version`. Neither tool, install failure, or `graphify` still missing after install → stop. Detail: `${CLAUDE_SKILL_DIR}/references/cli.md`.
+3. **Skill.** `.claude/skills/graphify/.graphify_version` exists in the project, or `~/.claude/skills/graphify/.graphify_version` exists → skip. Else run `install-skill` (also does the Claude half of step 4).
 4. **Hooks.**
-   - Claude: `.claude/settings.json` contains `hook-guard` → skip. Else run `graphify claude install --project` (adds the `## graphify` section to `CLAUDE.md` and the PreToolUse hooks).
-   - Git: `graphify hook status` reports post-commit, post-checkout, and the merge driver installed → skip. Else run `graphify hook install` (also adds `graphify-out/graph.json merge=graphify` to `.gitattributes`).
+   - Claude: `.claude/settings.json` contains `hook-guard` → skip. Else run `install-claude-hooks` (adds the `## graphify` section to `CLAUDE.md` and the PreToolUse hooks).
+   - Git: `hook-status` reports post-commit, post-checkout, and the merge driver installed → skip. Else run `install-git-hooks` (also adds `graphify-out/graph.json merge=graphify` to `.gitattributes`).
 5. **Graph.** `graphify-out/graph.html`, `graphify-out/GRAPH_REPORT.md`, and `graphify-out/graph.json` all exist → skip. Any missing → invoke the `graphify` skill via the Skill tool with `.`; code is parsed free, but docs and images spend session tokens, so say so before invoking. Skill not available in this session → tell the user to run `/graphify .` after `/reload-plugins` or a restart, report the graph as pending. A large repo makes `/graphify` ask which folder to scan; let it.
-6. **Names.** Graph pending (step 5) → skip. Grep `graphify-out/GRAPH_REPORT.md` for `^### Community [0-9]+ - "Community [0-9]+"` (placeholder names left by `graphify update` or a label-less build). No match → skip. Else say it spends LLM tokens (an API key, or the `claude` CLI on its subscription; neither → graphify falls back to hub-based names, no LLM), then run `graphify label . --missing-only` once: it keeps existing names and names only the placeholders. Fails → quote the error line, report the placeholders as left, continue. Grep again and report how many placeholders remain.
-7. **Git ignore.** Ensure the root `.gitignore` (create it in a git repo) has:
+6. **Names.** Graph pending (step 5) → skip. Grep `graphify-out/GRAPH_REPORT.md` for `^### Community [0-9]+ - "Community [0-9]+"`. No match → skip. Else `label-missing` once (it spends LLM tokens; say so first), then report how many placeholders remain. Detail: `${CLAUDE_SKILL_DIR}/references/names.md`.
+7. **Git ignore.** Ensure the root `.gitignore` (create it in a git repo) has the block below, which shares only `graph.json` and `GRAPH_REPORT.md`. Existing `graphify-out/` line, or the post-commit rebuild: `${CLAUDE_SKILL_DIR}/references/git-ignore.md`.
 
    ```gitignore
    graphify-out/*
@@ -40,9 +41,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
    !graphify-out/GRAPH_REPORT.md
    ```
 
-   `graphify-out/*`, not `graphify-out/`: git cannot re-include a file whose parent folder is excluded. An existing `graphify-out/` or `/graphify-out` line blocks the negations → AskUserQuestion: Replace it with the block (Recommended; shares the graph and report with the team) | Keep local only. Keep local only → leave the line, report it. Tell the user the post-commit hook rebuilds the tracked `graph.json`, so it shows as modified after commits and goes in the next commit.
-
-8. **Lint and format ignores.** Generated JSON, Markdown, and HTML only add noise. Add `graphify-out/` to each existing config in that tool's syntax from `${CLAUDE_SKILL_DIR}/../setup-husky/references/ignores.md` (Linters and formatters and Docker lines; `<entry>` = `graphify-out/`, Biome negation `!**/graphify-out`, ignore form `graphify-out`). Skip conditions in that file that rely on `.gitignore` do not apply: step 7 un-ignores two files there, so tools that read `.gitignore` would lint them. dprint has no entry syntax there: report it instead of editing. Skip the npm line; report that the shared graph files are the user's call for a published package.
+8. **Lint and format ignores.** Add `graphify-out/` to each existing linter and formatter config in that tool's syntax from `${CLAUDE_SKILL_DIR}/../setup-husky/references/ignores.md`. Exceptions (dprint, npm, `.gitignore`-based skips): `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 9. **Rules.** Copy `${CLAUDE_SKILL_DIR}/assets/graphify-rules.md` to `.claude/rules/graphify.md`: absent → write; identical → skip; differs → keep the user's file, report it. Then check `CLAUDE.md` has a `## graphify` section. Missing → report it; graphify owns that section, so never hand-write it.
 10. **Resolve findings.** Per resolve-findings.md. Resolve only what this skill may write (ignores, rules file). Token-spending runs, user-kept files, and graphify-owned sections stay `needs-decision` or `blocked`; never hand-write the `CLAUDE.md` section.
 11. **Report** the output below. Also tell the user: each teammate runs `graphify hook install` once per clone (git hooks and the merge driver live in `.git/` and are not shared); `graphify-mcp` (`uv tool install "graphifyy[mcp]"`) is an optional manual step; graphify's README suggests a `.claudeignore`, which is skipped because Claude Code docs do not list that file.

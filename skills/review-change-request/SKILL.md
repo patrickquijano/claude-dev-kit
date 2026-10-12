@@ -32,7 +32,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 ## Workflow
 
 1. **Args.** `$ARGUMENTS`: an optional number (strip a leading `#` or `!`), `--yes`, `--squash yes|no`, `--delete-branch yes|no`. Anything else, a flag without its `yes`/`no` value, or `--yes` without a number → stop. `--squash` and `--delete-branch` preset the step 9 questions with or without `--yes`; absent under `--yes`, the CR's own settings apply (GitLab) or the repository settings (GitHub).
-2. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/<host>.md` `## Pre-flight`; keep the values it names (Repo or Project, Root, Branch, Self, Scratch). Then the host `## Review pre-flight`.
+2. **Pre-flight.** Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/<host>.md` `## Pre-flight`; keep the values it names (Repo or Project, Root, Branch, Self, Scratch). Then the host `## Review pre-flight`.
 3. **Select.** Per the host `## Select`. Exactly one branch match → use it; a number argument → confirm it is open, else stop. Else print the numbered table and ask which; no open CRs → `Result: nothing-to-do`. Detail: `${CLAUDE_SKILL_DIR}/references/choose.md`.
 4. **Gather.** Per the host `## Gather`: details, diff, name-status, log, checks, all threads, reviews and comments, own threads, local objects, merge base. With the Write tool (scratch path under the system temp directory, so it may be permission-prompted) save `diff.patch`, `name-status.txt`, `log.txt` where the host section says to. Empty diff → `Result: nothing-to-do`.
 5. **Local checks.** Per `review.md` `## Local checks`: decide run or `checks: skip <reason>`.
