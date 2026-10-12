@@ -2,7 +2,7 @@
 name: ship-release
 description: Ship current changes end to end through a GitHub pull request or GitLab merge request. Switch off a protected branch, make atomic signed commits, update the version, changelog, and README, create or update the PR or MR, review it with labeled inline comments, address open items and re-review (up to 3 rounds), merge when clean (squash and branch deletion asked once), sync the target branch, and summarize. Continues past blockers and reports them. Use only when the user explicitly asks to ship a change through a pull request or merge request, e.g. "ship this", "commit, open a PR, review, and merge". Not for tagging or publishing a GitHub Release (use create-github-release).
 argument-hint: '[--target <branch>]'
-allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash(gh --version) Bash(glab --version) Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git rev-list *) Bash(git merge-base *) Bash(git cherry *) Bash(gh run list *) Bash(gh run view *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(node *release-check.mjs *) Bash(rm -f -- *cdk-ship-release) Bash(gh auth status) Bash(glab auth status) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr checks *) Bash(glab mr list *) Bash(glab mr view *) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
+allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash(gh --version) Bash(glab --version) Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git rev-list *) Bash(git merge-base *) Bash(git cherry *) Bash(gh run list *) Bash(gh run view *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/release-check.mjs *) Bash(gh auth status) Bash(glab auth status) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr checks *) Bash(glab mr list *) Bash(glab mr view *) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---
 
 # Ship Release
@@ -42,31 +42,6 @@ Input: $ARGUMENTS
 
 Applies to every step; blockers are reported, never asked. A blocked step does not end the run: run every step that does not depend on it and is still safe. Investigate, resolve safely (at most 2 attempts), record when unresolved, continue per the table, honest result: `${CLAUDE_SKILL_DIR}/references/blockers.md`.
 
-## Output`
-
-## Blockers
-
-Applies to every step; blockers are reported, never asked. A blocked step does not end the run: run every step that does not depend on it and is still safe.
-
-1. **Investigate.** In order: the failing command's exact output; the known-issues store per known-issues.md (slug `ship-release`), auto memory, and `.claude/rules/`; CI logs (`gh run list --branch <b>` then `gh run view <id> --log-failed`, or `glab ci` job logs); the chained skill's `Stopped:`, `Blocked:`, and `Resolution:` lines; for an external tool or host error, the official docs via `cdk:topic-researcher` (cited sources). Write down the root cause, or `unknown` with what was ruled out.
-2. **Resolve safely.** At most 2 attempts per blocker, each backed by evidence.
-   - Allowed: re-run after a transient error, run a missing documented step, fix code or config in the working tree through the chained skills, re-run a chained skill with corrected input.
-   - Never: `--no-verify`, `--admin`, force-push, `git reset --hard`, editing the release policy or a check to make it pass, skipping or weakening a test or required check, treating a person's approval or review as satisfied.
-3. **Record when unresolved.** One `Blockers:` entry: step, blocker, root cause, research (sources checked), attempts (what was tried and the result), impact, recommended follow-up (who acts).
-4. **Continue** per the table. List each skipped step with the blocker it depends on.
-
-   | Blocked step                                               | Skipped (dependent)            | Still runs                                     |
-   | ---------------------------------------------------------- | ------------------------------ | ---------------------------------------------- |
-   | Pre-flight (not git, no CLI or auth)                       | everything                     | report                                         |
-   | Signing missing                                            | commit onward                  | release files (left uncommitted), report       |
-   | Switch or commit failure                                   | release files, PR or MR onward | report                                         |
-   | Release files failure                                      | PR or MR onward                | report                                         |
-   | PR or MR create failure                                    | review, merge                  | target sync (only when already merged), report |
-   | Review findings, failing or pending checks, needs a person | merge, target sync             | report                                         |
-   | Target sync failure                                        | none                           | report                                         |
-
-5. **Honest result.** `Release: shipped` only when the commits are pushed, the PR or MR is merged with required checks passing, and the target is synced or only held back by pre-release commits already in the merge. Any unmet critical requirement gives `Result: stopped` and `Stopped: <first blocked step>: <reason>` even though later independent steps ran.
-
 ## Output
 
 ```text
@@ -87,4 +62,4 @@ Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` only when `Release: shipped`, or on nothing-to-do. If a run is interrupted before step 10, delete the marker at `git rev-parse --git-path cdk-ship-release`.
+`done` only when `Release: shipped`, or on nothing-to-do. If a run is interrupted before step 10, delete the marker (`marker-path`, then `remove-marker`).

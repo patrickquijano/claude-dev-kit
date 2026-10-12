@@ -26,3 +26,4 @@
 | `remove-marker`   | `rm -f -- <absolute marker path>`                                            | Delete the hold marker         |
 | `run-list`        | `gh run list --branch <b>`                                                   | CI runs for a branch           |
 | `run-failed-log`  | `gh run view <id> --log-failed`                                              | Failed CI job logs             |
+| `glab-ci-log`     | `glab ci trace <job>`                                                        | GitLab CI job log              |
