@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Breaking:** `cdk:prepare-change-request` no longer switches the source branch for you; it stops and suggests `/cdk:switch-branch`. Review and address skills ask before posting on GitLab, as they already did on GitHub.
 - **Breaking:** `/cdk:ship-release` commits atomically before opening the PR or MR and reviews it there, up to 3 rounds, instead of reviewing locally and making one commit. It asks once whether to squash and delete the source branch.
+- Skills follow the Agent Skills layout (`references/`, `assets/`, `scripts/`) and keep their shell commands in a per-skill `references/commands.md`; workflows are shorter and move conditional steps into topic files, so runs read less and load detail only when needed.
 - Known issues no longer need a commit: skill fixes are saved to `${CLAUDE_PLUGIN_DATA}/known-issues/<skill>.md`, shared across projects, and project fixes go to Claude auto memory. `cdk:write-claude-md` no longer generates a `## Known issues` section and moves existing entries to auto memory.
 
 ### Removed
