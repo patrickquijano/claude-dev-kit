@@ -40,7 +40,7 @@ First hit wins; search names case-insensitively.
 1. `--template <v>`: first resolve a tracked repo path with `git ls-files` (`.github/PULL_REQUEST_TEMPLATE/<v>` or `<v>.md`, case-insensitive); else an existing file path outside the repo tree. Not found → stop (never fall back silently).
 2. Inferred kind (the SKILL.md template step) among `.github/PULL_REQUEST_TEMPLATE/*.md`, matched case-insensitively by name.
 3. Repository default: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `pull_request_template.md`, `PULL_REQUEST_TEMPLATE.md`, `docs/pull_request_template.md`.
-4. Bundled `${CLAUDE_SKILL_DIR}/templates/<Kind>.md` (`Default` when no kind matches).
+4. Bundled `${CLAUDE_SKILL_DIR}/assets/templates/<Kind>.md` (`Default` when no kind matches).
 
 Read a tracked repo template with `git show HEAD:<path>` (path resolved via `git ls-files`) so uncommitted edits never change the body; read an external `--template` path or the bundled fallback with Read. Source label for the Output: `explicit`, `repository`, or `bundled`.
 

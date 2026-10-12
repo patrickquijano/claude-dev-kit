@@ -1,0 +1,3 @@
+Details step 10 (Template). Host file sections: `${CLAUDE_SKILL_DIR}/references/github.md`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`.
+
+`--template` resolves per the host file `## Templates`. Else infer the kind (no ask): branch prefix, then the dominant subject type in `<scratch>/log.txt`: `fix/` → Bugfix, `hotfix/` → Hotfix, `release/` → Release, `docs/` → Documentation, other → Default; the repository's templates come first, the bundled `assets/templates/<Kind>.md` last. Keep its text and source (`explicit`, `repository`, `bundled`). `--template` unresolved → stop. Update path → the body is kept, so only the managed block is drafted; a Revise to another template needs no respawn then.

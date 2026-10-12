@@ -35,7 +35,7 @@ First hit wins; search names case-insensitively.
 1. `--template <v>`: a repo `.gitlab/merge_request_templates/<v>.md` (`git ls-files`), else a template of that name from `glab api projects/:id/templates/merge_requests` (`[{key,name}]`, includes group/instance), else an existing file path outside the repo tree. Not found → stop (never fall back silently).
 2. Inferred kind (the SKILL.md template step) among the repo `.gitlab/merge_request_templates/*.md`, then among the `glab api projects/:id/templates/merge_requests` names.
 3. Repository default: the repo or API template named `Default`, else the only one available.
-4. Bundled `${CLAUDE_SKILL_DIR}/templates/<Kind>.md` (`Default` when no kind matches).
+4. Bundled `${CLAUDE_SKILL_DIR}/assets/templates/<Kind>.md` (`Default` when no kind matches).
 
 Content of an API template: `glab api projects/:id/templates/merge_requests/<key>` (`.content`; URL-encode the key, space → `%20`). Read a tracked repo template with `git show HEAD:<path>`; read an external `--template` path or the bundled fallback with Read. Source label for the Output: `explicit`, `repository` (repo or group/instance), or `bundled`.
 
