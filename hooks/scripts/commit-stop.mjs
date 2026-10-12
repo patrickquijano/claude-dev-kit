@@ -32,7 +32,7 @@ async function main() {
   // `graphify update .` output never counts as a change to commit.
   const snap = treeSnapshot(cwd, { exclude: ['graphify-out'] });
   if (!snap) return;
-  // /cdk:ship-release holds the single commit until review passes.
+  // /cdk:ship-release owns its commits while its marker exists.
   const hold = git(cwd, ['rev-parse', '--git-path', 'cdk-ship-release']);
   if (hold.status === 0 && existsSync(path.resolve(cwd, hold.stdout.toString().trim()))) {
     emit('⏸ ship-release pending: not committing');
