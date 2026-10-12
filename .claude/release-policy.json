@@ -5,10 +5,5 @@
   "remote": "origin",
   "versionFiles": [{ "path": ".claude-plugin/plugin.json", "key": "version" }],
   "userFacing": ["skills/**", "commands/**", "agents/**", "hooks/**", ".claude-plugin/**"],
-  "exempt": [
-    {
-      "glob": "hooks/scripts/*.test.mjs",
-      "reason": "test files do not change shipped behavior"
-    }
-  ]
+  "exempt": []
 }

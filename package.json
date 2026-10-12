@@ -4,8 +4,10 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0 && markdownlint-cli2 \"**/*.md\" && yamllint --strict . && yamlfmt -lint . && prettier --check .",
     "format": "prettier --write . && yamlfmt . && markdownlint-cli2 --fix \"**/*.md\"",
-    "test": "node --test \"hooks/scripts/*.test.mjs\"",
-    "prepare": "husky"
+    "test": "npm run test:unit && npm run test:integration",
+    "prepare": "husky",
+    "test:unit": "node --test \"tests/unit/**/*.test.mjs\" \"tests/unit/.claude/**/*.test.mjs\" \"tests/unit/.husky/**/*.test.mjs\"",
+    "test:integration": "node --test \"tests/integration/**/*.test.mjs\" \"tests/integration/.claude/**/*.test.mjs\" \"tests/integration/.husky/**/*.test.mjs\""
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
@@ -24,6 +26,6 @@
     "katex": "^0.18.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
