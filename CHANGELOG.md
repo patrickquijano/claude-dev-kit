@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `/cdk:ship-release` is now a skill that ships through a GitHub pull request or a GitLab merge request, chosen by the `origin` host: it switches off a protected branch, makes atomic signed commits, updates the version, changelog, and README, opens the PR or MR, reviews it, addresses open items, merges a clean one, and syncs the target branch.
+- `cdk:review-merge-request` and `cdk:address-merge-request-review` accept an `auto` input that asks nothing and reports what is left.
+- Inline review comments on GitHub pull requests carry `blocker:`, `suggestion:`, `question:`, or `nit:` labels.
+
+### Changed
+
+- **Breaking:** `/cdk:ship-release` commits atomically before opening the PR or MR and reviews it there, up to 3 rounds, instead of reviewing locally and making one commit. It asks once whether to squash and delete the source branch.
+
+### Removed
+
+- **Breaking:** the PR reviewer agents no longer review an uncommitted working tree, and the plugin no longer ships a `commands/` directory.
+
 ## [2.1.0] - 2026-10-11
 
 ### Added
