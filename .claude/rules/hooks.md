@@ -26,5 +26,6 @@ paths:
 - `suppressOutput` no effect. `async` hooks can't show `systemMessage` to user.
 - Idempotent: same input → same result, no extra side effects.
 - Validate + quote all hook input; never `eval`.
+- Unit tests per module, integration tests for the stdin→stdout contract: `.claude/rules/tests.md`.
 - Verify: pipe sample stdin JSON into script, check exit code + stdout (plugin hook: smoke test in `.claude/CLAUDE.md` Commands).
 - Docs: <https://code.claude.com/docs/en/hooks>
