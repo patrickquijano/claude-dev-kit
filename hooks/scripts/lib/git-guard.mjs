@@ -2,7 +2,7 @@
 // `classify` is pure; `decide` reads the git context and calls it.
 import { existsSync } from 'node:fs';
 import { git, shipReleaseMarker } from './git-state.mjs';
-import { segments } from './release-check.mjs';
+import { segments } from '../../../skills/bump-version/scripts/release-check.mjs';
 
 const realDeps = { git, existsSync, env: process.env, cwd: () => process.cwd() };
 

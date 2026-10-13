@@ -1,9 +1,71 @@
 // Release gate shared by the PR/MR skills, the plugin PreToolUse hook, and CI: changelog and version checks.
 // Modes: `check` (validate), `bump` (write the required version), `hook` (PreToolUse stdin JSON; exit 2 blocks).
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { git, readState, sha, statePath, unsafeState, writeState } from './git-state.mjs';
-import { readJsonStdin, runIfMain } from './hook-io.mjs';
+import { pathToFileURL } from 'node:url';
+
+// Standalone helpers (git runner, state files, stdin, entry guard); the script imports nothing from the plugin.
+const sha = (s) => createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
+const git = (cwd, args, timeout = 15_000) =>
+  spawnSync('git', args, { cwd, maxBuffer: 1 << 28, timeout, windowsHide: true });
+const expected = (err, ...codes) => codes.includes(err?.code);
+
+// True mid-merge, rebase, cherry-pick, revert, bisect, on a detached HEAD, or with unmerged paths.
+const unsafeState = (cwd, status = '') => {
+  if (git(cwd, ['symbolic-ref', '-q', 'HEAD']).status !== 0) return true;
+  for (const name of ['MERGE_HEAD', 'CHERRY_PICK_HEAD', 'REVERT_HEAD', 'rebase-merge', 'rebase-apply', 'BISECT_LOG']) {
+    const r = git(cwd, ['rev-parse', '--git-path', name]);
+    if (r.status === 0 && existsSync(path.resolve(cwd, r.stdout.toString().trim()))) return true;
+  }
+  return status.split('\0').some((entry) => /^(U.|.U|AA|DD) /.test(entry));
+};
+
+const statePath = (name, cwd) => path.join(tmpdir(), `cdk-${name}-${sha(cwd)}-${sha('')}.json`);
+const readState = (file) => {
+  try {
+    const s = JSON.parse(readFileSync(file, 'utf8'));
+    return s && typeof s === 'object' ? s : {};
+  } catch (e) {
+    if (expected(e, 'ENOENT', 'ENOTDIR') || e instanceof SyntaxError) return {};
+    throw e;
+  }
+};
+const writeState = (file, state) => {
+  try {
+    writeFileSync(file, JSON.stringify(state));
+  } catch (e) {
+    // Unwritable temp dir; at worst the next run repeats.
+    if (!expected(e, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw e;
+  }
+};
+
+const readJsonStdin = async (stream = process.stdin) => {
+  let data = '';
+  for await (const chunk of stream) data += chunk;
+  const parsed = JSON.parse(data);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+    throw new TypeError('hook input is not a JSON object');
+  return parsed;
+};
+
+// Runs `fn` only when this file is the entry script; an error it throws prints one line and sets `failCode`.
+const runIfMain = async (metaUrl, fn, { label, failCode = 1 }) => {
+  if (!process.argv[1] || metaUrl !== pathToFileURL(realpathSync(process.argv[1])).href) return;
+  try {
+    const code = await fn();
+    if (typeof code === 'number') process.exitCode = code;
+  } catch (err) {
+    process.stderr.write(
+      `cdk ${label}: ${String(err?.message ?? err)
+        .split('\n')[0]
+        .slice(0, 300)}\n`
+    );
+    process.exitCode = failCode;
+  }
+};
 
 export const POLICY_FILE = '.claude/release-policy.json';
 const MCP_CREATE = 'mcp__plugin_gitlab_gitlab__save_merge_request';

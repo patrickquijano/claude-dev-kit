@@ -172,7 +172,7 @@ Claude scores the existing `README.md` against the 100-point rubric and prints a
 
 ## Versioning and changelog
 
-A repo opts in with `.claude/release-policy.json` (changelog path, version files, `userFacing` globs, `exempt` entries with a reason). Without it nothing below runs. With it, a PR or MR cannot be created until `CHANGELOG.md` has a new `Unreleased` entry and every version file holds the version the branch commits require: breaking = major, `feat` = minor, otherwise patch, measured from the target branch tip. Three layers run the same script, `hooks/scripts/lib/release-check.mjs`:
+A repo opts in with `.claude/release-policy.json` (changelog path, version files, `userFacing` globs, `exempt` entries with a reason). Without it nothing below runs. With it, a PR or MR cannot be created until `CHANGELOG.md` has a new `Unreleased` entry and every version file holds the version the branch commits require: breaking = major, `feat` = minor, otherwise patch, measured from the target branch tip. Three layers run the same script, `skills/bump-version/scripts/release-check.mjs`:
 
 1. `/cdk:prepare-change-request` runs a release gate first: on failure it chains `/cdk:bump-version` (after asking you to confirm the bump; it runs `/cdk:write-changelog` when a changelog exists), then `/cdk:write-changelog` for any changelog failure left, then `/cdk:commit-changes` (atomic commits and push), and revalidate.
 2. The plugin `PreToolUse` hook (`hooks/scripts/pre-tool-use.mjs`, active in every repo) blocks `gh pr create`, `gh api` PR creation, `glab mr create`, `glab api` MR creation, and the GitLab MCP create call with the fix.

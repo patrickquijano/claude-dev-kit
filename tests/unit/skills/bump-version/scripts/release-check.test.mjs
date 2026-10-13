@@ -12,7 +12,7 @@ import {
   report,
   runHook,
   segments
-} from '../../../../../hooks/scripts/lib/release-check.mjs';
+} from '../../../../../skills/bump-version/scripts/release-check.mjs';
 
 const ROOT = '/repo';
 const POLICY = {

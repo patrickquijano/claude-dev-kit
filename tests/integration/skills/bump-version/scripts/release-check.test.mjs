@@ -5,9 +5,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { bump, evaluate } from '../../../../../hooks/scripts/lib/release-check.mjs';
+import { bump, evaluate } from '../../../../../skills/bump-version/scripts/release-check.mjs';
 
-const SCRIPT = fileURLToPath(new URL('../../../../../hooks/scripts/lib/release-check.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../../../../../skills/bump-version/scripts/release-check.mjs', import.meta.url));
 const HOOK = fileURLToPath(new URL('../../../../../hooks/scripts/pre-tool-use.mjs', import.meta.url));
 const POLICY = {
   changelog: 'CHANGELOG.md',

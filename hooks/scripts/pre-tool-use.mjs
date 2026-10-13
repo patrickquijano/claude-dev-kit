@@ -1,8 +1,8 @@
 // Plugin PreToolUse dispatcher: the git safety guard first, then the release gate (logic in lib/git-guard.mjs and
-// lib/release-check.mjs). Exit 2 blocks; a guard "ask" prints the permission JSON once the release gate passes.
+// skills/bump-version/scripts/release-check.mjs). Exit 2 blocks; a guard "ask" prints the permission JSON once the release gate passes.
 import { decide } from './lib/git-guard.mjs';
 import { readJsonStdin, runIfMain } from './lib/hook-io.mjs';
-import { runHook } from './lib/release-check.mjs';
+import { runHook } from '../../skills/bump-version/scripts/release-check.mjs';
 
 // Resolves to the exit code (2 blocks); `deps` are passed to the guard and to runHook.
 export async function main(deps = {}) {
