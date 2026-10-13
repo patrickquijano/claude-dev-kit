@@ -1,6 +1,6 @@
 # Ignore Catalog
 
-A stack is detected when any of its markers is found by step 11. Always-on groups need no marker. Step 12 takes the Recommended groups. Step 13 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
+A stack is detected when any of its markers is found by step 11 of SKILL.md. Always-on groups need no marker. Step 12 takes the Recommended groups. Step 13 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
 
 | Group            | Markers                                                   | Patterns                                                                                                                                 | Why                                     | Recommended |
 | ---------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------- |
@@ -19,4 +19,4 @@ A stack is detected when any of its markers is found by step 11. Always-on group
 | Editors (always) | —                                                         | `.idea/`, `.vscode/*`, `*.swp`, `*~`                                                                                                     | personal editor state                   | yes         |
 | Claude Code      | `.claude/*`                                               | `.claude/settings.local.json`                                                                                                            | personal Claude Code settings           | yes         |
 
-Stacks not listed get only the always-on groups; name them as uncovered in the step 14 report so the user can add patterns.
+Stacks not listed get only the always-on groups; name them as uncovered in the Output `Ignores:` line so the user can add patterns.
