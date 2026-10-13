@@ -29,12 +29,12 @@
 
 ## Design (15)
 
-| ID  | Pts | Criterion                                                                  |
-| --- | --- | -------------------------------------------------------------------------- |
-| D1  | 5   | One job                                                                    |
-| D2  | 4   | A subagent is the right primitive (not a skill, hook, or main-thread work) |
-| D3  | 3   | The file sits at the chosen scope's path and `name` is unique there        |
-| D4  | 3   | `isolation: worktree` when it writes in parallel (N/A otherwise)           |
+| ID  | Pts | Criterion                                                                                    |
+| --- | --- | -------------------------------------------------------------------------------------------- |
+| D1  | 5   | One job (split or narrowed with the user if several) and `name` an actor noun, not an action |
+| D2  | 4   | A subagent is the right primitive (not a skill, hook, or main-thread work)                   |
+| D3  | 3   | The file sits at the chosen scope's path and `name` is unique there                          |
+| D4  | 3   | `isolation: worktree` when it writes in parallel (N/A otherwise)                             |
 
 ## Contract (10)
 

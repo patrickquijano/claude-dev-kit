@@ -20,8 +20,23 @@ Agents cost about 4× a chat's tokens and multi-agent about 15×; spawn only whe
 
 ## One job
 
-- One agent, one job, and a return shape the parent can use. Several jobs found → ask Split | Pick one | Stop; never build a multi-job agent.
-- Name by role or action noun (`code-reviewer`); no `:`, no leading `-`.
+- One agent, one job, and a return shape the parent can use. A job is one verb on one object; "and" or "also" in the purpose, or two unrelated return shapes, signals several.
+- Several jobs found → ask Split | Pick one | Stop, never build a multi-job agent:
+
+| Signal                                                      | Recommend | Why                                                          |
+| ----------------------------------------------------------- | --------- | ------------------------------------------------------------ |
+| Jobs are independent and each has its own return shape      | Split     | Separate agents run in parallel and keep tools minimal       |
+| One job is the goal and the rest are steps that serve it    | Pick one  | Steps belong in `## Task`, not in a second agent             |
+| The jobs need different tools, models, or read-only vs edit | Split     | A mixed allowlist breaks least privilege                     |
+| The input cannot say which job matters most                 | Stop      | Guessing builds the wrong agent; ask the user to narrow down |
+
+- Split → build the first agent now and list the rest in `Gaps:`; Pick one → drop the others and list them in `Gaps:`.
+
+### Name
+
+- Name the agent as an actor: a noun for who does the job (`code-reviewer`, `change-analyzer`), never the action (`review-code`, `analyze-changes`) or a gerund (`reviewing`). Actions name skills; actors name agents.
+- A requested name that is an action → ask Rename | Keep, recommending Rename with the actor form (`review-code` → `code-reviewer`).
+- Lowercase, hyphen-separated; no `:`, no leading `-`; the file stem matches `name`.
 
 ## Scope
 
