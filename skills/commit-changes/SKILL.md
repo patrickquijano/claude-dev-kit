@@ -47,6 +47,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 10. **Push.** `origin-url` fails → report "no origin remote", skip push, `Branch:` line says `not pushed`. Else `push`; use `push-upstream` when `upstream` fails or ≠ `origin/<branch>` (never follow an upstream like `origin/main`). Fail → report exact error line, run step 11, then stop.
 11. **Resolve findings.** Per resolve-findings.md, only when a source holds an item; otherwise `Resolution: none` or `not run`. Detail: `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For subject, branch name, protected-branch, and signing rules (shared with other git skills), see `${CLAUDE_SKILL_DIR}/references/conventions.md`.
+- For grouping and branch naming (step 6), see `${CLAUDE_SKILL_DIR}/references/group.md`.
+- For commit failure paths (step 8), see `${CLAUDE_SKILL_DIR}/references/failures.md`.
+- For the findings step (step 11), see `${CLAUDE_SKILL_DIR}/references/resolve.md`.
+
 ## Output
 
 ```text
