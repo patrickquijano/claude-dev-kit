@@ -102,6 +102,9 @@ const items = (value) =>
   (Array.isArray(value) ? value : String(value ?? '').split(','))
     .map((item) => item.trim())
     .filter((item) => item !== '');
+// A plugin-qualified skill or agent name, or a spawned-by phrase; bare names stay a rubric judgment.
+const REFERENCE = /\b[a-z0-9-]+:[a-z0-9]+-[a-z0-9-]+\b|\bspawned by\b/i;
+
 const toolName = (entry) => entry.replace(/\(.*$/, '').trim();
 
 // A1, A2, A3, A7 on the parsed fields; `lineOf` maps a field to its line; `stem` is the file name without `.md`.
@@ -123,8 +126,17 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
       found.push(warning('name-stem', 'A2', line, `name "${name}" differs from the file name "${stem}"`));
     }
   }
-  if (!String(fields.description ?? '').trim()) {
+  const description = String(fields.description ?? '').trim();
+  if (!description) {
     found.push(error('description-missing', 'A3', 1, 'description is missing or empty'));
+  } else {
+    const line = at('description');
+    if (description.length > 200)
+      found.push(error('description-length', 'A3', line, `description is ${description.length} chars, max 200`));
+    if (!/use proactively/i.test(description))
+      found.push(error('description-proactive', 'A3', line, 'description must contain "Use proactively"'));
+    if (REFERENCE.test(description))
+      found.push(error('description-reference', 'A3', line, 'description names a skill, subagent, or spawner'));
   }
   for (const [key, values] of Object.entries(ENUMS)) {
     if (key in fields && !values.includes(fields[key])) {

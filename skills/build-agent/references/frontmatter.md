@@ -17,7 +17,7 @@ Sources: <https://code.claude.com/docs/en/sub-agents>, <https://code.claude.com/
 | Field                   | Type and values                                                                                                 | Default    | Scope note                                                               |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
 | `name`                  | string                                                                                                          | required   |                                                                          |
-| `description`           | string: when to delegate                                                                                        | required   |                                                                          |
+| `description`           | string: when to delegate, ≤200 chars                                                                            | required   |                                                                          |
 | `tools`                 | allowlist; omitted = inherit all                                                                                | all        |                                                                          |
 | `disallowedTools`       | denylist, applied first; an entry with a specifier removes the whole tool                                       | none       |                                                                          |
 | `model`                 | `sonnet`, `opus`, `haiku`, `fable`, a full id, `inherit`                                                        | main model | order: call param, frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL`, main model |
@@ -44,8 +44,8 @@ Sources: <https://code.claude.com/docs/en/sub-agents>, <https://code.claude.com/
 
 ## Description
 
-- Says when to delegate, in one or two short sentences; all agent descriptions share one context budget (a warning above 15,000 tokens in total).
-- Add "use proactively" only when Claude should delegate on its own. A skill-spawned agent ends with `Spawned by the <skill> skill; do not use directly.`
+- ≤200 chars; says when to delegate, starting `Use proactively to/when …`; all agent descriptions share one context budget (a warning above 15,000 tokens in total).
+- Never name a skill or subagent (bare or `plugin:name`) or say `spawned by`.
 - Distinct from every other agent in scope, so the parent picks the right one.
 
 ## Don'ts

@@ -1,6 +1,6 @@
 ---
 name: build-agent
-description: Create or update a Claude Code custom subagent (a markdown file under agents/) in a Personal, Project, or Plugin scope. Interviews for task, tools, model, color, return shape, and only the optional fields the task needs, writes it under the bundled frontmatter and body rules, checks it with a script, scores it against a 100-point rubric (pass 95), and checks the spawning skill's contract read-only. Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a subagent or custom agent, e.g. "create a subagent that reviews Python security". Do not use on your own after finishing a task.
+description: Creates or updates a custom subagent in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, or update a subagent.
 argument-hint: '[agent name or path] [what it should do]'
 allowed-tools: Read Glob Grep Agent AskUserQuestion Write Edit Bash(claude plugin validate *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
 ---

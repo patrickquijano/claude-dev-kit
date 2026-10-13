@@ -12,7 +12,7 @@ import {
 
 const ids = (found) => found.map((f) => f.id);
 const BODY = 'Read-only reviewer.\n\n## Task\n\n1. Read the inputs.\n\n## Return\n\n```text\nScore: 1\n```\n';
-const GOOD = `---\nname: demo\ndescription: Reviews things. Use when asked.\ntools: Read, Grep\n---\n\n${BODY}`;
+const GOOD = `---\nname: demo\ndescription: Use proactively to review things.\ntools: Read, Grep\n---\n\n${BODY}`;
 
 function makeDeps(content) {
   const out = { logs: [], errors: [] };
@@ -79,7 +79,7 @@ describe('parseFrontmatter', () => {
 describe('checkFrontmatter', () => {
   test('returns nothing for a valid agent', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'Does x.', tools: 'Read, Grep', model: 'haiku' };
+    const fields = { name: 'demo', description: 'Use proactively to do x.', tools: 'Read, Grep', model: 'haiku' };
     // Act
     const found = checkFrontmatter(fields, 'demo');
     // Assert
@@ -88,7 +88,13 @@ describe('checkFrontmatter', () => {
 
   test('accepts a full model id and camelCase fields', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'x', model: 'claude-sonnet-5-5', maxTurns: '5', omitClaudeMd: 'true' };
+    const fields = {
+      name: 'demo',
+      description: 'Use proactively.',
+      model: 'claude-sonnet-5-5',
+      maxTurns: '5',
+      omitClaudeMd: 'true'
+    };
     // Act
     const found = checkFrontmatter(fields, 'demo');
     // Assert
@@ -97,7 +103,7 @@ describe('checkFrontmatter', () => {
 
   test('flags an unknown field', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'x', max_turns: '3' };
+    const fields = { name: 'demo', description: 'Use proactively.', max_turns: '3' };
     // Act
     const found = checkFrontmatter(fields, 'demo', { max_turns: 4 });
     // Assert
@@ -114,9 +120,53 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found), ['name-missing', 'description-missing']);
   });
 
+  test('flags a description over 200 chars', () => {
+    // Arrange
+    const fields = { name: 'demo', description: `Use proactively ${'a'.repeat(190)}` };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), ['description-length']);
+    assert.equal(
+      checkFrontmatter({ name: 'demo', description: `Use proactively ${'a'.repeat(184)}` }, 'demo').length,
+      0
+    );
+  });
+
+  test('flags a description without "Use proactively"', () => {
+    // Arrange
+    const fields = { name: 'demo', description: 'Reviews things when asked.' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), ['description-proactive']);
+    assert.deepEqual(ids(checkFrontmatter({ name: 'demo', description: 'USE PROACTIVELY to review.' }, 'demo')), []);
+  });
+
+  test('flags a plugin-qualified name or a spawned-by phrase in the description', () => {
+    // Arrange
+    const qualified = { name: 'demo', description: 'Use proactively after cdk:write-readme.' };
+    const spawned = { name: 'demo', description: 'Use proactively. Spawned by a skill.' };
+    // Act
+    const a = checkFrontmatter(qualified, 'demo');
+    const b = checkFrontmatter(spawned, 'demo');
+    // Assert
+    assert.deepEqual(ids(a), ['description-reference']);
+    assert.deepEqual(ids(b), ['description-reference']);
+  });
+
+  test('allows a plain colon and generic words in the description', () => {
+    // Arrange
+    const fields = { name: 'demo', description: 'Use proactively at 10:30 to check: a skill file.' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), []);
+  });
+
   test('flags a colon, a leading hyphen, and an overlong name', () => {
     // Arrange
-    const fields = { name: `-a:${'b'.repeat(260)}`, description: 'x' };
+    const fields = { name: `-a:${'b'.repeat(260)}`, description: 'Use proactively.' };
     // Act
     const found = checkFrontmatter(fields, 'x');
     // Assert
@@ -125,7 +175,7 @@ describe('checkFrontmatter', () => {
 
   test('warns when name differs from the file name', () => {
     // Arrange
-    const fields = { name: 'a', description: 'x' };
+    const fields = { name: 'a', description: 'Use proactively.' };
     // Act
     const found = checkFrontmatter(fields, 'b');
     // Assert
@@ -137,7 +187,7 @@ describe('checkFrontmatter', () => {
     // Arrange
     const fields = {
       name: 'a',
-      description: 'x',
+      description: 'Use proactively.',
       effort: 'ultra',
       color: 'teal',
       background: 'yes',
@@ -152,7 +202,11 @@ describe('checkFrontmatter', () => {
 
   test('flags more than 32 skills', () => {
     // Arrange
-    const fields = { name: 'a', description: 'x', skills: Array.from({ length: 33 }, (_, i) => `s${i}`) };
+    const fields = {
+      name: 'a',
+      description: 'Use proactively.',
+      skills: Array.from({ length: 33 }, (_, i) => `s${i}`)
+    };
     // Act
     const found = checkFrontmatter(fields, 'a');
     // Assert
@@ -161,7 +215,7 @@ describe('checkFrontmatter', () => {
 
   test('flags fields a plugin agent ignores only for plugin scope', () => {
     // Arrange
-    const fields = { name: 'a', description: 'x', permissionMode: 'plan', hooks: '', mcpServers: '' };
+    const fields = { name: 'a', description: 'Use proactively.', permissionMode: 'plan', hooks: '', mcpServers: '' };
     // Act
     const plugin = checkFrontmatter(fields, 'a', {}, 'plugin');
     const project = checkFrontmatter(fields, 'a', {}, 'project');
@@ -174,7 +228,7 @@ describe('checkFrontmatter', () => {
     // Arrange
     const fields = {
       name: 'a',
-      description: 'x',
+      description: 'Use proactively.',
       tools: 'Read, AskUserQuestion',
       disallowedTools: ['Bash(git push *)']
     };
@@ -186,7 +240,7 @@ describe('checkFrontmatter', () => {
 
   test('warns when memory is set but tools lacks Write and Edit', () => {
     // Arrange
-    const fields = { name: 'a', description: 'x', tools: 'Read', memory: 'project' };
+    const fields = { name: 'a', description: 'Use proactively.', tools: 'Read', memory: 'project' };
     // Act
     const found = checkFrontmatter(fields, 'a');
     // Assert
@@ -195,8 +249,8 @@ describe('checkFrontmatter', () => {
 
   test('does not warn about memory when tools is omitted or has Write', () => {
     // Arrange
-    const inherit = { name: 'a', description: 'x', memory: 'user' };
-    const writes = { name: 'a', description: 'x', tools: 'Read, Write', memory: 'user' };
+    const inherit = { name: 'a', description: 'Use proactively.', memory: 'user' };
+    const writes = { name: 'a', description: 'Use proactively.', tools: 'Read, Write', memory: 'user' };
     // Act
     const found = [...checkFrontmatter(inherit, 'a'), ...checkFrontmatter(writes, 'a')];
     // Assert

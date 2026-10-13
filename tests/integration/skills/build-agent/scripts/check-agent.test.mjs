@@ -15,7 +15,7 @@ describe('check-agent CLI', () => {
     root = mkdtempSync(join(tmpdir(), 'check-agent-'));
     writeFileSync(
       join(root, 'good.md'),
-      `---\nname: good\ndescription: Reviews. Use when asked.\ntools: Read\n---\n\n${BODY}`
+      `---\nname: good\ndescription: Use proactively to review.\ntools: Read\n---\n\n${BODY}`
     );
     writeFileSync(join(root, 'bad.md'), '---\nname: bad\ncolour: red\npermissionMode: plan\n---\n\n# Heading\n');
   });
