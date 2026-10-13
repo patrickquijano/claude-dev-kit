@@ -4,7 +4,16 @@ Claude Code plugin providing a development kit — skills, custom agents, and ho
 
 Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requests, reviews) plus skill, README, and CLAUDE.md authoring with scored rubrics, so Claude follows the same conventions in every repository.
 
-> **Status:** experimental (v0.1.0). Skills, names, and behavior may change without notice.
+> **Status:** experimental (v3.0.0). Skills, names, and behavior may change without notice.
+
+- [Compatibility](#compatibility)
+- [Install](#install)
+- [Components](#components)
+- [Versioning and changelog](#versioning-and-changelog)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Compatibility
 
@@ -21,7 +30,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - `/cdk:write-github-workflows`: authenticated [`gh`](https://cli.github.com/) optional for release and pinning-policy lookups; [`actionlint`](https://github.com/rhysd/actionlint) and [`zizmor`](https://docs.zizmor.sh/) optional for validation.
 - Docker for `/cdk:setup-devcontainer` Compose checks; [`@devcontainers/cli`](https://github.com/devcontainers/cli) optional for `devcontainer read-configuration`.
 - Docker for `/cdk:scan-vulnerabilities` (every scanner runs as a container at its latest stable version, digest-locked per run) and Spec Kit (`/cdk:setup-spec-kit`) for its remediation.
-- Development only: Node.js with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
+- Development only: Node.js >=22 with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
 
 ## Install
 
@@ -115,13 +124,40 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 
 ### Hooks
 
-| Event                      | Script                                 | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| -------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PostToolUse` (Write/Edit) | `hooks/scripts/post-tool-use.mjs`      | Format, then lint each file Claude edits with the repo's configured tools.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `Stop`                     | `hooks/scripts/stop.mjs`               | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; blocks Claude until errors and warnings are fixed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `UserPromptSubmit`         | `hooks/scripts/user-prompt-submit.mjs` | One ordered dispatcher: plan-mode context first (ask the user via `AskUserQuestion` before `EnterPlanMode` on every prompt, with Claude weighing the recommended answer from its context, or `ExitPlanMode` for `#noplan` in plan mode; skips `/`, `!`, and background-agent or agent-message turns), then end-of-task steps: refresh the Graphify graph when configured, then update README and related docs when the task changed what they describe, then `cdk:commit-changes` (atomic commits, push); each step checks `git status --porcelain`; skips question, `/`, and `!` prompts, a `/cdk:ship-release` run in progress, and merge, rebase, or detached-HEAD states; never blocks. |
-| `PreToolUse` (Bash)        | `hooks/scripts/pre-tool-use.mjs`       | Git-safety guard, then the release check. Blocks force pushes, `--no-verify`, `HUSKY=0` outside CI, deleting the default branch, `claude plugin eval`, and `gh pr merge --admin` during ship-release; asks before a bare `--force-with-lease`, a commit or push on the default branch, `reset --hard`, `clean -f`, and `branch -D`. Tag pushes pass.                                                                                                                                                                                                                                                                                                                                        |
-| `SessionStart`             | `hooks/scripts/session-start.mjs`      | Inject today's date and time, plus Graphify navigation rules when its graph files exist; warns about a stale ship-release marker on a fresh session.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Event                      | Script                                 | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PostToolUse` (Write/Edit) | `hooks/scripts/post-tool-use.mjs`      | Format, then lint each file Claude edits with the repo's configured tools.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `Stop`                     | `hooks/scripts/stop.mjs`               | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; blocks Claude until errors and warnings are fixed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `UserPromptSubmit`         | `hooks/scripts/user-prompt-submit.mjs` | One ordered dispatcher: plan-mode context first (ask the user via `AskUserQuestion` before `EnterPlanMode` on every prompt, with Claude weighing the recommended answer from its context, or `ExitPlanMode` for `#noplan` in plan mode; skips `/`, `!`, and background-agent or agent-message turns), then end-of-task steps: run the unit tests when a unit-test command is detected (`test:unit` or `test` script, pytest, go, cargo, or phpunit; fix and re-run until they pass), then refresh the Graphify graph when configured, then update README and related docs when the task changed what they describe, then `cdk:commit-changes` (atomic commits, push); each step checks `git status --porcelain`; skips all steps for question, `/`, and `!` prompts, and skips only the docs and commit steps outside a git repo, during a `/cdk:ship-release` run, and in merge, rebase, or detached-HEAD states; never blocks. |
+| `PreToolUse` (Bash)        | `hooks/scripts/pre-tool-use.mjs`       | Git-safety guard, then the release check. Blocks force pushes, `--no-verify`, `HUSKY=0` outside CI, deleting the default branch, `claude plugin eval`, and `gh pr merge --admin` during ship-release; asks before a bare `--force-with-lease`, a commit or push on the default branch, `reset --hard`, `clean -f`, and `branch -D`. Tag pushes pass.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `SessionStart`             | `hooks/scripts/session-start.mjs`      | Inject today's date and time, plus Graphify navigation rules when its graph files exist; warns about a stale ship-release marker on a fresh session.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+### Hook flow
+
+How the hooks fire across a session:
+
+```mermaid
+flowchart TD
+    A["SessionStart: inject date and time, Graphify rules, stale-marker warning"] --> B["UserPromptSubmit: plan-mode ask"]
+    B --> C{"Question, / prompt, or ! prompt?"}
+    C -- yes --> D["Skip all end-of-task steps"]
+    C -- no --> E["After the task: unit tests, then Graphify"]
+    E --> P{"ship-release marker or unsafe git state?"}
+    P -- yes --> Q["Skip docs and commit"]
+    P -- no --> R["Docs, then commit"]
+    D --> F["PreToolUse on Bash git, gh, glab, claude"]
+    Q --> F
+    R --> F
+    F --> G{"git-guard"}
+    G -- unsafe --> H["Block or ask"]
+    G -- safe --> I{"release-check on PR or MR creation"}
+    I -- fails --> J["Block with the fix"]
+    I -- passes --> K["PostToolUse on Write or Edit: format, then lint each file"]
+    K --> L["Stop: format, then lint the repo per changed file-type group"]
+    L --> M{"Errors or warnings left?"}
+    M -- yes --> N["Block until clean"]
+    M -- no --> O["Turn ends"]
+```
 
 ### Example
 
@@ -155,7 +191,10 @@ No configuration.
 npm install                        # also installs Husky git hooks via prepare
 npm run format
 npm run lint                       # eslint, markdownlint-cli2, yamllint, yamlfmt, prettier
-npm test                           # release-check script tests (node:test)
+npm test                           # unit, then integration (node:test)
+npm run test:unit
+npm run test:integration
+npm audit --audit-level=moderate
 claude plugin validate --strict .
 claude plugin eval .               # LLM-graded eval suite in evals/; manual only, not run by hooks
 claude --plugin-dir .              # test local checkout; /reload-plugins after edits
