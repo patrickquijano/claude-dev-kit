@@ -19,6 +19,6 @@ paths:
 - Plugin agents ignore `hooks`, `mcpServers`, `permissionMode`, `initialPrompt`.
 - Return concise results; parent sees only final message.
 - Issue hit + fix → return a `Known issue: <symptom> → <fix>` line; parent skill decides whether to save it to the known-issues store. No `## Known issues` section.
-- Build or update with `/cdk:build-agent`; field and tool details in `skills/build-agent/references/practices.md`.
+- Build or update with `/cdk:build-agent`; field and tool details in `skills/build-agent/references/frontmatter.md`.
 - Verify: `plugin-dev:plugin-validator` agent.
 - Docs: <https://code.claude.com/docs/en/sub-agents>

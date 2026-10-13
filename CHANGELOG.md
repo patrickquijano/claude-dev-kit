@@ -13,11 +13,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/cdk:build-skill` is rebuilt as a companion to `skill-creator`: it asks the scope (personal, project, or plugin) and kind (reference, task, or background-only) with a reasoned recommendation, hands the draft to `skill-creator` under bundled frontmatter and body rules (and stops with install steps when `skill-creator` is missing), then scores it against a 100-point rubric (pass at 95) and fixes deductions for up to 3 rounds. Orchestrator and subagent building is dropped; use `/cdk:build-agent` for subagents.
 - `cdk:skill-scorer` agent scores a skill directory against the `build-skill` rubric.
 - `/cdk:build-skill` now runs a self-contained check script (`scripts/check-skill.mjs`) for the mechanical skill rules (frontmatter, size, layout, links, injection fallbacks, Output) and passes its JSON to `cdk:skill-scorer`. It names skills by their action, keeps each skill to one job (asking Split, Pick one, or Stop when it finds several), and requires a `## Files` navigation section; the rubric adds F8, B9, B10, and Q3 and stays at 100 points.
+- `/cdk:build-agent` is rebuilt the same way as `/cdk:build-skill`: self-contained, it asks scope, checks fit and one job, interviews only for what the agent needs, drafts under bundled frontmatter and body rules, runs a check script (`scripts/check-agent.mjs`), and scores with the new `cdk:agent-scorer` against a 100-point rubric (pass at 95) for up to 3 fix rounds. It reads the spawning skill's contract without editing it, lists mismatches under `Gaps:`, and writes only the agent file.
+- `/cdk:build-skill` now errors on links that leave the skill directory, so every skill it builds is standalone; its templates tell drafts to copy, never link, another skill's files.
 
 ### Changed
 
-- Files shared across skills (known issues, fallbacks, resolve-findings, orchestration) moved from `build-skill` to a new never-invoked `shared` skill, and the subagent template moved to `build-agent`; `cdk:skill-auditor` is now spawned by `build-agent` only.
+- Files shared across skills (known issues, fallbacks, resolve-findings, orchestration) moved from `build-skill` to a new never-invoked `shared` skill, and the subagent template moved to `build-agent`.
 - The end-of-task hook now injects its steps on every prompt, including questions and `/` and `!` prompts, and leaves a step out only when it cannot run: the changelog step needs git and a safe state (not `CHANGELOG.md`), the Graphify step needs the `graphify` binary (with a `/cdk:setup-graphify` hint when no graph exists), the docs step always runs, and a `/cdk:ship-release` run removes only the commit step.
+
+### Removed
+
+- `cdk:skill-auditor` agent and the old `build-agent` reference files; the check and scoring they did now live in each builder's script and scorer.
 
 ### Fixed
 
