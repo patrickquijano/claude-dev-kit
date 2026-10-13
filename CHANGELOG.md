@@ -10,10 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - The end-of-task hook now tells Claude to run the project's unit tests first, using the detected command (`test:unit` or `test` script, pytest, go, cargo, or phpunit), and to fix and re-run until they pass.
 - The end-of-task hook now tells Claude to add Unreleased entries with `cdk:write-changelog` when the task changed user-facing behavior and `CHANGELOG.md` exists, before the docs and commit steps; it never cuts a release or bumps the version.
-- `/cdk:build-skill` now builds reference and background-only skills as well as task skills, in personal, project, or plugin scope, recommending each choice from your input, and can hand a finished draft to `skill-creator` for evals when you opt in. It recommends `disable-model-invocation: true` only for task skills with side effects that nothing chains.
+- `/cdk:build-skill` is rebuilt as a companion to `skill-creator`: it asks the scope (personal, project, or plugin) and kind (reference, task, or background-only) with a reasoned recommendation, hands the draft to `skill-creator` under bundled frontmatter and body rules (and stops with install steps when `skill-creator` is missing), then scores it against a 100-point rubric (pass at 95) and fixes deductions for up to 3 rounds. Orchestrator and subagent building is dropped; use `/cdk:build-agent` for subagents.
+- `cdk:skill-scorer` agent scores a skill directory against the `build-skill` rubric.
 
 ### Changed
 
+- Files shared across skills (known issues, fallbacks, resolve-findings, orchestration) moved from `build-skill` to a new never-invoked `shared` skill, and the subagent template moved to `build-agent`; `cdk:skill-auditor` is now spawned by `build-agent` only.
 - The end-of-task hook now injects its steps on every prompt, including questions and `/` and `!` prompts, and leaves a step out only when it cannot run: the changelog step needs git and a safe state (not `CHANGELOG.md`), the Graphify step needs the `graphify` binary (with a `/cdk:setup-graphify` hint when no graph exists), the docs step always runs, and a `/cdk:ship-release` run removes only the commit step.
 
 ### Fixed
