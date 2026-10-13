@@ -26,9 +26,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Layout: stack-native first, `tests/{unit,integration,e2e}` fallback (`${CLAUDE_SKILL_DIR}/references/layout.md`); integration is always a separate suite.
 - Caps: step 2 re-spawns an analyzer at most once, still-open `Questions:` → `Stopped: 2: analyzer questions unresolved`; install and smoke failures stop the skill, no retries.
 - Stop answer → print the Output with `Result: cancelled`, `Stopped: <step>: <reason>`, and end. A pre-flight or step 2 stop prints `Resolution: not run (stopped)`. Any later failure → run step 9 (**Resolve findings.**) on what is left, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Stopped:`, failed smoke runs, skipped installs).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-testing` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Stopped:`, failed smoke runs, skipped installs).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `setup-testing` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

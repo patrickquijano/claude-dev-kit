@@ -29,9 +29,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Caps: step 2 re-spawns the analyzer at most once; step 6 validate-fix at most 3 attempts. Every question is asked once.
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
 - A Stop answer (step 7) → `Result: cancelled`, `Resolution: not run (cancelled)`, `Stopped: <step>: <reason>`, end. Any other stop or failure after candidates exist (the step 5 invalid-settings stop; the step 6 validate-cap stop) → run step 9 once on what is left, without re-entering step 6, then print the Output with `Stopped: <step>: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-permissions` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `setup-permissions` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

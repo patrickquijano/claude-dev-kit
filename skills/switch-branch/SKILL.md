@@ -25,9 +25,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Always new branch; uncommitted changes carry over untouched. Never commit, stash, reset, or `--force`.
 - Switch and push without asking; the request to switch counts as consent to a normal push. `git push` stays out of `allowed-tools`, so the permission prompt is a second guard.
 - Caps: analyzer respawn after `Questions` 1; name suffix search max 10, then stop.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `switch-branch` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `switch-branch` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

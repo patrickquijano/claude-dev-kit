@@ -18,16 +18,16 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
 - Not pre-approved on purpose: `install-skill`, `install-claude-hooks`, `install-git-hooks`, `label-missing`. The first three write `.claude/settings.json` and `.git/hooks`; `label` spends LLM tokens and rewrites `graphify-out/`. The permission prompt is the second guard.
-- Chaining the `graphify` skill: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`.
+- Chaining the `graphify` skill: follow `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`.
 - Ignore files: append only missing entries; keep existing entries, order, and syntax form.
 - Edit only linter and formatter configs that already exist. Only `.gitignore` and `.claude/rules/graphify.md` may be created.
 - Each command runs once, no retries. The step 7 question is asked once.
 - Pre-flight and step 2 (CLI) stops → print the Output with `Resolution: not run (stopped)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines). Everything else in `graphify-out/` holds absolute paths or per-machine state.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Graph: pending`, placeholder community names left, `Git ignore: kept local only`, `Rules: kept (differs)`, `CLAUDE.md section missing`, `skipped (not a git repo)` items).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-graphify` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Graph: pending`, placeholder community names left, `Git ignore: kept local only`, `Rules: kept (differs)`, `CLAUDE.md section missing`, `skipped (not a git repo)` items).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `setup-graphify` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

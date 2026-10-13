@@ -25,9 +25,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Every `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` runs only after the AskUserQuestion option that names its effect; empty-commit `skip` (step 6) runs without asking; `git rm` stays out of `allowed-tools`.
 - Conflict analysis: ≥3 conflicted files → one `cdk:conflict-analyzer` per file, spawned in batches of ≤4 in one message; fewer → analyze inline. Agents only propose; every AskUserQuestion and git write stays here.
 - Caps: Revise loop 5 rounds per file; conflict loop runs once per replayed commit (bounded by the commit count). Cap hit → tell user the rebase is still in progress (`rebase-abort` undoes it), run step 9 once on what is left, then print the Output with `Stopped: <step>: <reason>`. Step 5 signing failure, step 7 verify failure, and step 8 push failure do the same. Steps 1–3 stops print `Resolution: not run (stopped)`; Abort rebase prints `not run (cancelled)`; step 4 prints `not run (nothing-to-do)`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `rebase-onto` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `rebase-onto` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

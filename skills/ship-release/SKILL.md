@@ -23,7 +23,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Orchestration per `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
+- Orchestration per `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
 - Host from Context → Origin: `github.com` → GitHub PR flow (`gh`); any other host → GitLab MR flow (`glab`).
 - Invoking this skill is the consent for atomic signed commits, normal pushes, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing, never `--admin`). Squash and source-branch deletion are asked once (step 6).
 - Never force-push, `--admin`, `--no-verify`, `git reset --hard`, or delete `main`. Never bypass a hook, check, or required review.
@@ -31,9 +31,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Caps: 3 review-address-re-review rounds, 2 check waits of 30 minutes each, 2 blocker attempts per blocker; a cap hit stops that step and follows `## Blockers` (`${CLAUDE_SKILL_DIR}/references/blockers.md`).
 - Own PR or MR: GitHub rejects a self `APPROVE` or `REQUEST_CHANGES`, so the review is posted as `COMMENT` and a clean verdict (no `(blocking)` comment) with passing required checks counts as approval; any `(blocking)` comment counts as changes requested. GitLab approves for real when the project allows author approval, else the same rule.
 - Review comments use Conventional Comments: `issue (blocking)` (critical, high), `suggestion (non-blocking)` (medium, low), `question`, `nitpick`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md` (squash and delete default to the recommended options).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md` (squash and delete default to the recommended options).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

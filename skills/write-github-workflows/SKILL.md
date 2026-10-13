@@ -19,7 +19,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) and writes only here; `cdk:workflow-analyzer`, `cdk:actions-version-resolver`, and `cdk:workflow-reviewer` are read-only.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - No invented facts: triggers, commands, runtime versions, secret and variable names, environments, and services come from the input, the repo, or the resolver. Not derivable → ask. Nothing is written until every item is settled.
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md` and every other item that fits; each says why. Skipped item → reason in the Output.
 - Versions are never hardcoded in this skill: resolve every action, reusable workflow, runner label, and image per `${CLAUDE_SKILL_DIR}/references/versions.md` on each run, then write the verified values into the workflows (Actions cannot resolve them at run time). Never `ubuntu-latest`, `latest`, a bare major, or a floating alias. Unverifiable → ask or stop; never guess or use an older remembered value.
@@ -29,8 +29,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never run a workflow, push, open a PR, or change repository or organization settings. Writes are limited to `.github/workflows/` and `.github/dependabot.yml` (update mode touches Dependabot only per `practices.md` `## Dependabot`).
 - Every write to an existing file prints its diff; no approval asked, since the files are local and reviewable.
 - Loops: clarify (step 3) max 3 rounds; verify-fix (step 9) max 3 attempts; clarify cap hit, or a failure before findings exist → print the Output with `Stopped: <step>: <reason>` and end; verify cap hit, or a failure after findings exist → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>` and end.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Skipped practices:`, `Retained constraints:`, `Checks:` findings, fail, or not installed).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-github-workflows` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers subagent `Known issue:` lines.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Unresolved:`, `Skipped practices:`, `Retained constraints:`, `Checks:` findings, fail, or not installed).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `write-github-workflows` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers subagent `Known issue:` lines.
 
 ## Workflow
 

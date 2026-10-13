@@ -27,9 +27,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never commit, push, or change files outside the repo. This skill never commits; the end-of-task hook does.
 - Loops: fix rounds per failing check (step 9) max 3, then revert that package and continue.
 - Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 11 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Skipped:`, `Reverted:`, `Checks:` failures, `Leftovers:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `upgrade-dependencies` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Skipped:`, `Reverted:`, `Checks:` failures, `Leftovers:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `upgrade-dependencies` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

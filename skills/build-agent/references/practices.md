@@ -1,6 +1,6 @@
 # Subagent practices
 
-Shared by `cdk:build-agent` and `cdk:build-skill` when they draft `agents/<name>.md`. Source: <https://code.claude.com/docs/en/sub-agents>.
+Used by `cdk:build-agent` when it drafts `agents/<name>.md`. Source: <https://code.claude.com/docs/en/sub-agents>.
 
 ## Fit
 

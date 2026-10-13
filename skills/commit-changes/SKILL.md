@@ -27,11 +27,11 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - `paths: <file> ...` in the input (the end-of-task hook passes the files this task changed) → scope the run to those paths: classify, group, stage, and commit only them, and list every other dirty file under `Excluded: pre-existing` without staging it. No `paths:` → all changes.
 - Atomic: one logical change per commit. Group related files; config goes with the files it configures. Rename (`D` old + `??` new) stays in one commit.
 - Secrets never committed: the analyzer (small path: step 4) flags file names (`.env`, keys) and diff content (`-----BEGIN`, `AKIA`, `ghp_`, `glpat-`, `xox[bp]-`) under `Excluded`. Flagged → leave unstaged, list under Excluded, warn user.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Excluded:` secret-flagged files, `Commitlint:` skipped or `fail (<error line>)`, `Branch:` `not pushed` with no origin).
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Excluded:` secret-flagged files, `Commitlint:` skipped or `fail (<error line>)`, `Branch:` `not pushed` with no origin).
 - Unattended when run by the cdk end-of-task hook or chained by another skill: it asks nothing, and step 11 only reports open items with their recommended fix.
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `commit-changes` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `commit-changes` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

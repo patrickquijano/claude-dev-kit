@@ -17,10 +17,10 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
 - Step 3: `extension-add` or `extension-set-priority` runs once per extension in the list (3), no retries. Only exception: one user-approved reinstall per extension whose skill dirs are missing.
 - `specify extension remove` is deliberately not in `allowed-tools`: the reinstall deletes extension files, so its permission prompt is a second guard after the AskUserQuestion.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - Pre-flight stops (steps 1–2) and cancels → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later stop (for example the step 3 Stop answer with `Extensions: failed` or `Required skills: missing`) → run step 6 (**Resolve findings.**) once on what is left, without re-entering the loop, then print the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped, `skipped (not a git repo)` items).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-spec-kit` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Extensions:` failed, `Required skills: missing`, ignore edits skipped, `skipped (not a git repo)` items).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `setup-spec-kit` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

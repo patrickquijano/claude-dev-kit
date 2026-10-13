@@ -19,7 +19,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) and writes only here; `cdk:dockerfile-reviewer` only reviews.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - No invented facts: runtime version, build and start commands, port, env vars, and system packages come from the input or the repo (manifests, lockfiles, version files, scripts, CI, existing Docker files). Not derivable → ask (default target only).
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`, and every other item that fits; each item says why. Skipped item → reason in the Output. Required items: multi-stage; distribution order Debian, Ubuntu, Alpine (first the runtime's official image supports, slim when compatible); base images at an exact tag (never `latest`, `lts`, or a bare major) plus digest, resolved at run time per practices.md, via `<NAME>_IMAGE`, `<NAME>_TAG`, `<NAME>_DIGEST` ARGs; tools from official or trusted images via a digest-pinned stage and `COPY --link --from` instead of installs; no versions in system or application package installs (freshness comes from unversioned system and package-manager upgrades); caches, indexes, build dependencies, and temp files removed in the same layer (cache-mounted paths exempt). Input `target=devcontainer` → practices `## Devcontainer target` replaces the items it names.
 - Multi-line `RUN` → heredoc (`RUN <<EOF` … `EOF`) starting with `set -eux` (`set -eu` when it uses a secret, so `-x` never prints it), so a failing line stops the build. Consecutive `RUN` instructions in a stage with the same cache inputs → merge into one, so the image has fewer layers. Never merge across a `COPY` or across different inputs (system packages vs lockfile vs source); that would rerun installs on every source edit.
@@ -29,8 +29,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Loops: clarify (step 3) max 3 AskUserQuestion calls, then Stopped with the facts still missing; verify-fix (step 7) max 3 attempts, still failing → Stopped.
 - Step 3 cap hit, or a failure before findings exist → print the Output, `Result: stopped`, `Stopped: <step>: <reason>`, and end. Step 7 cap hit, or a failure after findings exist → run step 8 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
 - Chained by `cdk:setup-devcontainer` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: unfixed `Findings:`, `Skipped practices:`, `Checks:` fail or not installed).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-dockerfile` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: unfixed `Findings:`, `Skipped practices:`, `Checks:` fail or not installed).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `write-dockerfile` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

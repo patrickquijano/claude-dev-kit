@@ -15,14 +15,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Orchestration: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`. Detection here is read-only; every write belongs to a chained skill.
+- Orchestration: follow `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`. Detection here is read-only; every write belongs to a chained skill.
 - Fixed order: `cdk:setup-git` > `cdk:setup-editorconfig` > `cdk:setup-format-lint` > `cdk:setup-husky` > `cdk:setup-testing`. The later skills need a git repo; Prettier and shfmt read `.editorconfig`; Husky adds its paths to the formatter and linter configs that exist; testing goes last so its config follows the finished tooling.
 - One selection call: AskUserQuestion allows at most 4 options per question, so the 5 skills split into two multiSelect questions in that one call: "Repository" (git, EditorConfig) and "Tooling" (formatters and linters, Husky, test tooling). Missing or partial setups get "(Recommended)" with the reason. Husky selected → git is also Recommended, its description noting that allowed signers (setup-git step 8) must be set or `cdk:setup-husky` stops.
 - Selection is asked once. No loops or retries.
 - Any sub-skill stop or failure → run step 6 on what the chained skills left, without re-running any skill, then print the Output with `Stopped: <step>: <reason>` and end. A step 3 cancel or `nothing-to-do` skips step 6 and prints `Resolution: not run (cancelled | nothing-to-do)`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines, `skipped (needs git)` skills, and open `Resolution:` lines of the chained setup skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-project` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Stopped:` lines, `skipped (needs git)` skills, and open `Resolution:` lines of the chained setup skills).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `setup-project` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

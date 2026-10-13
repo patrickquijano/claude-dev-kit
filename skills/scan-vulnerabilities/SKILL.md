@@ -26,14 +26,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Verify each finding's applicability before changing code; never apply a scanner recommendation blindly. Exclude only conclusive false positives, logging evidence and justification. A low or medium accepted risk needs logged evidence and justification; a high or critical one needs approval.
 - One finding, or one tightly related group (same package, or same rule in the same file), per remediation. Never combine unrelated fixes. Fix rules, checkpoint, validation, and rollback: `${CLAUDE_SKILL_DIR}/references/remediation.md`.
 - Never modify generated, vendored, compiled, minified, or third-party code. Never weaken tests or security controls, delete a failing test, or use a destructive or forceful git command. Never commit or push, except through step 10 after explicit approval.
-- Remediate through `cdk:run-spec-kit`, as its build step. Never invoke `cdk:assess-spec-kit-idea`. Chaining: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`; a run-spec-kit `stopped` or `cancelled` fails only that attempt, not the chain.
+- Remediate through `cdk:run-spec-kit`, as its build step. Never invoke `cdk:assess-spec-kit-idea`. Chaining: follow `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`; a run-spec-kit `stopped` or `cancelled` fails only that attempt, not the chain.
 - Agent spawns pass root, run dir, `iteration`, `mode`, images, the ZAP decision, `${CLAUDE_SKILL_DIR}/references/scanners.md`, and `${CLAUDE_SKILL_DIR}/references/reports.md`; rescans add `rescan=<k>`, scanners, changed paths, and finding ids; every spawn adds `retry-used=<scanners>`.
 - Statuses carry forward by `F-id`: the skill owns `status`, `attempts`, and `asked` in `manifest.json` `findings`, and writes them after each triage decision, attempt, and approval question (steps 5–7). The agent copies them into each `findings.json`. Only `open` findings are triaged again.
 - Never claim the code is secure, bug-free, or free of vulnerabilities. State only what the listed builds, tests, and rescans verified.
 - Caps: iterations `max-iterations` (default 5, range 1–10); 2 attempts per finding across all iterations; one agent re-spawn per agent error or missing Return (steps 4, 6, 8), then stop (`scanner agent failed`); a scanner `failed` or `timeout` runs again in the next scan, and after its second failure goes in `retry-used`; approval questions: the top 4 `needs-approval` items by priority per iteration, the rest wait for the next iteration, or for step 7.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Remaining:` items itemized, `Validation:` fail|pre-existing fail|unavailable, failed|unavailable|skipped `Scanners:`, `Manual actions:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `scan-vulnerabilities` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the agent's `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Remaining:` items itemized, `Validation:` fail|pre-existing fail|unavailable, failed|unavailable|skipped `Scanners:`, `Manual actions:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `scan-vulnerabilities` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers the agent's `Known issue:` lines.
 
 ## Workflow
 

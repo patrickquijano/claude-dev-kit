@@ -37,9 +37,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - `allowed-tools` pre-approves reads only. Every graphql call, POST, PUT, `git switch`, `git pull`, `git add`, `git commit`, and `git push` stay permission-prompted.
 - Caps: CR choice re-asks 3; planner respawn with answers 1; fix attempts per group 3; verify rounds 2; commitlint redrafts 3; stale-head re-fetch 3 × 5 s; Revise rounds 3. Cap hit from step 6 onward → run step 16 once, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end; a cap hit in steps 1–5 (CR choice) prints `Resolution: not run (stopped)`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Follow-up:`, `Failures:`, `Validation:` fail|skipped, `Resolved:` remaining open, `Items:` blocked, conflicting, or needing clarification, `Pushed: no`, `Review requested: no`, `Replies:` skipped or not posted).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `address-change-request-review` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers agent `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Follow-up:`, `Failures:`, `Validation:` fail|skipped, `Resolved:` remaining open, `Items:` blocked, conflicting, or needing clarification, `Pushed: no`, `Review requested: no`, `Replies:` skipped or not posted).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `address-change-request-review` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers agent `Known issue:` lines.
 
 ## Workflow
 

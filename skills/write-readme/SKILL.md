@@ -19,7 +19,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; subagents can't ask.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - Never invent facts: license, URLs, versions, contacts, badges. Not derivable → ask; user omits → leave out.
 - Every command in README must exist in repo (scripts, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, author voice. Change only stale, wrong, or missing items.
@@ -27,8 +27,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Pass score = 95/100. Improve rounds max 3; the round counter starts at 0 and increments each improve round (step 7). Never re-ask an omitted item.
 - Score-only never writes; only an explicit Convert to README.md (step 1) answer leaves score-only.
 - Formatter and linter runs prompt for permission; expected.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit, the target README only; sources: `Remaining gaps:` scorer deductions).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-readme` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit, the target README only; sources: `Remaining gaps:` scorer deductions).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `write-readme` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

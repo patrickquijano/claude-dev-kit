@@ -15,11 +15,11 @@ Input: $ARGUMENTS
 - Pre-approved exceptions to relaying questions: accept the slug intake suggests (step 3); during step 7 re-runs only, answer yes to overwriting artifacts in the current slug; on the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - `handoff=no` in the input (any position) → strip it from the idea; a go verdict then stops at step 6 without invoking run-spec-kit. Default: hand off.
 - Clarify loop (step 7): max 2 re-runs, then stop.
-- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
+- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Next: blocking questions open` (list the questions), `Verdict: unknown`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `assess-spec-kit-idea` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Next: blocking questions open` (list the questions), `Verdict: unknown`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `assess-spec-kit-idea` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

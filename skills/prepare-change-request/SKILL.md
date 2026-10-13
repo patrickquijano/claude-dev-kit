@@ -38,9 +38,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never `--force`, `--no-verify`, stash, or reset. Never commit directly; the only commits come from `cdk:commit-changes` chained by the release gate (`${CLAUDE_SKILL_DIR}/references/release-gate.md`). Never clear existing reviewers or assignees silently.
 - Release gate: step 5 runs `${CLAUDE_SKILL_DIR}/references/release-gate.md` (target, `--yes` as unattended, `--dry-run` as dry-run, step 5) on every create or update; it blocks the CR until `CHANGELOG.md` and the plugin version satisfy `.claude/release-policy.json` (repos without a policy are skipped). It never skips or overrides; a gate stop ends the run through step 16 (Resolve findings) with `Release: failed (<codes>)`, `Result: stopped`, and `Stopped: <step>: release gate <codes>: <fix>`; a Revise back to the range or collect step never re-runs the gate; remediation is capped at 2 rounds, and its push is covered by the gate's consent (or `--yes`).
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true`.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: medium and low findings in the managed section, `Dropped findings`, `Excluded:`, reviewers with `Status: incomplete`, failed or skipped checks, `Template: bundled`, `Commitlint:` skipped or `fail (<error line>)`, `Release: failed (<codes>)`, a step 15 verify mismatch).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `prepare-change-request` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers reviewer `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: medium and low findings in the managed section, `Dropped findings`, `Excluded:`, reviewers with `Status: incomplete`, failed or skipped checks, `Template: bundled`, `Commitlint:` skipped or `fail (<error line>)`, `Release: failed (<codes>)`, a step 15 verify mismatch).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `prepare-change-request` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers reviewer `Known issue:` lines.
 
 ## Workflow
 

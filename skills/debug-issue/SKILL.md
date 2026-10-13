@@ -27,9 +27,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never commit, push, stash, or `reset --hard`; a bisect always ends with `bisect-reset`.
 - Test conventions: `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`; an integration test only when a unit test cannot reproduce the bug.
 - `--yes` picks the recommended option of step 7 and of the bisect ask and counts as unattended for step 10.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Verify:` failed or skipped checks, `Hypotheses:` left open, `Regression test:` not failing before the fix).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `debug-issue` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Verify:` failed or skipped checks, `Hypotheses:` left open, `Regression test:` not failing before the fix).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `debug-issue` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 

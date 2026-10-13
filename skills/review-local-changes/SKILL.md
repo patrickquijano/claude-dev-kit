@@ -25,9 +25,9 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Local checks run by default: the working tree is the code under review (pass no `checks:` to `cdk:cr-test-reviewer`).
 - Caps: reviewer respawn on a malformed return 1; fix attempts per item 2 (resolve-findings.md).
 - `--yes` counts as unattended for step 7: ask nothing and report each item's recommended fix.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: kept findings, incomplete reviewers, `Checks:` failed or skipped).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `review-local-changes` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers reviewer `Known issue:` lines.
+- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: kept findings, incomplete reviewers, `Checks:` failed or skipped).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `review-local-changes` and store `${CLAUDE_PLUGIN_DATA}/known-issues`; it covers reviewer `Known issue:` lines.
 
 ## Workflow
 
