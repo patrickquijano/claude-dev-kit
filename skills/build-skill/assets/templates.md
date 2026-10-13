@@ -6,7 +6,7 @@
 - Strip all `# ...` template comments from output.
 - Target outside the `cdk` plugin (no `skills/build-skill/` sibling) → replace each `${CLAUDE_SKILL_DIR}/../build-skill/references/<file>` link line with that file's rules inline.
 
-## Skill — `<root>/skills/<name>/SKILL.md`
+## Task — `<root>/skills/<name>/SKILL.md`
 
 ````markdown
 ---
@@ -15,7 +15,7 @@ description: <what it does>. Use when <trigger phrases/situations>.
 # Side-effect skill → description: <what it does>. Use only when the user explicitly asks to <action>, e.g. "<phrase>", "<phrase>". Do not use on your own after finishing a task.
 argument-hint: '<args>'
 allowed-tools: <minimal list> # only if pre-approval needed
-disable-model-invocation: true # only if the user explicitly asked to disable model invocation (build-skill step 2)
+disable-model-invocation: true # only an unchained Task skill with side effects (decide.md)
 ---
 
 # <Title>
@@ -29,7 +29,7 @@ Input: $ARGUMENTS
 - Reference files: `${CLAUDE_SKILL_DIR}/references/<file>`.
 - <Loop> capped at <n> attempts; then print the Output with `Stopped: <step>: <reason>` and end.
 - AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`. # only if the skill asks the user or writes files
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; omit when it has its own equivalent capped loop
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit | ask-only; sources: <Output fields>). # only if the skill's Output reports findings; runs once after any own capped loop
 - Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `<name>` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
@@ -48,9 +48,49 @@ Stopped: <step>: <reason> | none
 ```
 ````
 
+## Reference — `<root>/skills/<name>/SKILL.md`
+
+Conventions or domain knowledge applied while doing other work. Never set `disable-model-invocation`; add `paths` when tied to file globs.
+
+```markdown
+---
+name: <kebab-case, = dir name>
+description: <what knowledge it holds>. Use when <situations where it applies>.
+paths: <globs> # only if tied to file globs
+---
+
+# <Title>
+
+## <Topic>
+
+- <convention, with its reason>
+
+## <Topic>
+
+Details: `${CLAUDE_SKILL_DIR}/references/<file>`. # only for conditional or large content
+```
+
+## Background-only — `<root>/skills/<name>/SKILL.md`
+
+Knowledge with no meaning as a `/command`. Never combine with `disable-model-invocation: true`.
+
+```markdown
+---
+name: <kebab-case, = dir name>
+description: <what knowledge it holds>. Use when <situations where it applies>.
+user-invocable: false
+---
+
+# <Title>
+
+## <Topic>
+
+- <fact or convention, with its reason>
+```
+
 ## Orchestrator — `<root>/skills/<name>/SKILL.md`
 
-Same frontmatter as Skill; never `context: fork`. Body:
+Same frontmatter as Task; never `context: fork`. Body:
 
 ````markdown
 # <Title>
