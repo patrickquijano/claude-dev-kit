@@ -1,6 +1,6 @@
 ---
 name: setup-graphify
-description: Installs graphify (`graphifyy`) if missing, registers its Claude skill in the project, adds its Claude and git hooks, builds the first knowledge graph, names placeholder communities, shares the graph and report through git, adds ignores for linters and formatters, and writes usage rules. Use only when the user explicitly asks to set up, install, or configure graphify or a code knowledge graph, e.g. "set up graphify", "install graphify in this repo". Do not use on your own after finishing a task.
+description: Installs graphify, adds its hooks, builds the first code knowledge graph, and writes usage rules. Use only when the user explicitly asks to set up graphify or a code knowledge graph.
 allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook status) Bash(git rev-parse *) Bash(uv tool install graphifyy) Bash(pipx install graphifyy)
 ---
 

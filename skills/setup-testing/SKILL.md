@@ -1,6 +1,6 @@
 ---
 name: setup-testing
-description: Sets up unit, integration, and end-to-end test tooling per package. Detects the stack and framework, recommends a tester for each kind, installs and configures the missing ones in the stack's native folder layout, adds run scripts, and notes the commands in the project context. Use only when the user explicitly asks to set up testing, test frameworks, or test tooling, or when cdk:setup-project or a write-*-tests skill chains it. Do not use on your own after finishing a task.
+description: Sets up unit, integration, and end-to-end test tooling per package, with a recommended tester per kind and run scripts. Use only when the user explicitly asks to set up testing, or when chained.
 argument-hint: '[unit|integration|e2e …] [package paths]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(docker info *)
 ---

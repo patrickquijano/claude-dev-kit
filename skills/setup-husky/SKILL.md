@@ -1,6 +1,6 @@
 ---
 name: setup-husky
-description: Installs and configures Husky Git hooks with cross-platform Node hooks for Conventional Commits (header max 72 characters) and signed-commit checks. Stops until signing is configured (run cdk:setup-git first). Use only when the user explicitly asks to set up Husky or Git hooks, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Installs Husky Git hooks that enforce Conventional Commits and signed commits; needs signing configured first. Use only when the user explicitly asks to set up Husky or Git hooks, or when chained.
 allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v *)
 ---
 

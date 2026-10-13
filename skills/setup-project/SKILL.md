@@ -1,6 +1,6 @@
 ---
 name: setup-project
-description: Sets up a project's developer tooling in one run. Detects which of git signing and ignores, EditorConfig, formatters and linters, Husky hooks, and test tooling are already configured, asks once which to run (missing ones recommended), then chains cdk:setup-git, cdk:setup-editorconfig, cdk:setup-format-lint, cdk:setup-husky, and cdk:setup-testing in that order. Use only when the user explicitly asks to set up a project or all setup tooling, e.g. "set up this project", "run all the setup skills", "bootstrap the repo tooling". Do not use on your own after finishing a task.
+description: Sets up git signing, EditorConfig, formatters and linters, Husky hooks, and test tooling in one run, asking once which to run. Use only when the user explicitly asks to set up a project's tooling.
 allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 ---
 

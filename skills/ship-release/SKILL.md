@@ -1,6 +1,6 @@
 ---
 name: ship-release
-description: Ships current changes end to end through a GitHub pull request or GitLab merge request: atomic signed commits, version, changelog, README, PR or MR, review rounds, merge when clean, and target sync. Use only when the user explicitly asks to ship a change, e.g. "ship this". Not for tagging a release (use create-github-release). Do not use on your own after finishing a task.
+description: 'Ships changes end to end through a GitHub PR or GitLab MR: signed commits, version, changelog, review rounds, merge, and sync. Use only when the user explicitly asks to ship a change; not for tagging.'
 argument-hint: '[--target <branch>]'
 allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash(gh --version) Bash(glab --version) Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git config --get *) Bash(git fetch --prune origin) Bash(git rev-list *) Bash(git merge-base *) Bash(gh run list *) Bash(gh run view *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(gh auth status) Bash(glab auth status) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr checks *) Bash(glab mr list *) Bash(glab mr view *) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---

@@ -1,6 +1,6 @@
 ---
 name: write-project-instructions
-description: Creates, updates, or scores a project's CLAUDE.md and .claude/rules/*.md from input guidelines plus existing memory files, adding repo-adapted engineering principles, using bundled Claude Code best practices and a 100-point rubric (pass ≥95), iterating improvements up to 3 rounds. Use only when the user explicitly asks to write, update, merge, improve, audit, or score CLAUDE.md or project rules, e.g. "update CLAUDE.md", "merge these guidelines into CLAUDE.md", "improve my project rules", "score my CLAUDE.md". Do not use on your own after finishing a task.
+description: Creates, updates, or scores a project's CLAUDE.md and .claude/rules against a 100-point rubric, merging input guidelines. Use only when the user explicitly asks to write, improve, or score them.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *)
 ---

@@ -1,6 +1,6 @@
 ---
 name: address-change-request-review
-description: Addresses review feedback on your own GitHub pull request or GitLab merge request. Classifies items, implements the smallest fixes, runs the checks, then commits, pushes, replies, resolves threads, and re-requests review, each after your approval. Use only when the user explicitly asks to address review feedback, e.g. "fix the MR feedback". Do not use on your own after finishing a task.
+description: 'Addresses review feedback on your own GitHub PR or GitLab MR: fixes, checks, commits, replies, and resolves threads after approval. Use only when the user explicitly asks to address review feedback.'
 argument-hint: '[optional number] [--self-review] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote -v) Bash(git remote get-url *) Bash(git fetch *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git config --get *) Bash(mktemp *) Bash(sleep 5) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *)
 ---

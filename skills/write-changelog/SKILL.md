@@ -1,6 +1,6 @@
 ---
 name: write-changelog
-description: Create or update the repository's CHANGELOG.md idempotently per Keep a Changelog 1.1.0 from the branch's unique commits plus staged, unstaged, and untracked changes. Adds user-focused entries under Unreleased, or with `release` moves them into a dated version section and updates compare links. Use only when the user explicitly asks to write, update, or generate the changelog, add changelog entries, or cut a changelog release, e.g. "update the changelog", "add this to CHANGELOG.md", "release 1.2.0 in the changelog". Do not use on your own after finishing a task.
+description: Creates or updates CHANGELOG.md per Keep a Changelog from branch commits and local changes, or cuts a dated release with `release`. Use only when the user explicitly asks to update the changelog.
 argument-hint: '[release <version> [YYYY-MM-DD]] [base <branch>]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref *) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(gh pr list *) Bash(glab mr list *)
 ---

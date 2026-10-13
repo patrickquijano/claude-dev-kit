@@ -1,6 +1,6 @@
 ---
 name: scan-vulnerabilities
-description: Scans the repository for security vulnerabilities with Docker-only free scanners chosen by stack, then remediates via cdk:run-spec-kit, validates, rolls back failures, and rescans, with a before-and-after report. Use only when the user explicitly asks to scan for or fix security vulnerabilities, e.g. "run a security scan". Do not use on your own after finishing a task.
+description: Scans the repo for vulnerabilities with free Docker scanners, remediates, validates, rescans, and reports before and after. Use only when the user explicitly asks to scan for or fix vulnerabilities.
 argument-hint: '[max-iterations=<n>] [image=<ref>]... [zap-target=<local url>] [zap-mode=baseline|api|full] [zap-spec=<openapi path or local url>]'
 allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git status *) Bash(git diff *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git stash create) Bash(docker info *) Bash(command -v *)
 ---

@@ -1,6 +1,6 @@
 ---
 name: bump-version
-description: Sets the version in every file named by .claude/release-policy.json to the SemVer value the branch commits require, then runs cdk:write-changelog when a changelog exists; with `check` it only reports the release status. Always asks the user to confirm a bump first. Use only when the user explicitly asks to bump the version, or when chained by the release gate or cdk:ship-release. Do not use on your own after finishing a task.
+description: Bumps the version in release-policy files to the SemVer level the branch commits require, after confirmation; `check` only reports. Use only when the user explicitly asks or when chained.
 argument-hint: '[check] [target <branch>] [subject <path>] [confirmed]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/release-check.mjs *) Bash(git rev-parse *)
 ---

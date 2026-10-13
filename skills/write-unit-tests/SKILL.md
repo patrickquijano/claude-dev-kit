@@ -1,6 +1,6 @@
 ---
 name: write-unit-tests
-description: Writes unit tests until a target coverage is met (default 90%). Every public function gets at least 2 positive and 2 negative AAA cases with faker values. Use only when the user explicitly asks to write unit tests or raise coverage, e.g. "write unit tests for src/auth". Do not use on your own after finishing a task.
+description: Writes unit tests until a target coverage is met (default 90%), with AAA positive and negative cases using faker values. Use only when the user explicitly asks to write unit tests or raise coverage.
 argument-hint: '[target coverage %] [paths | feature description]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *)
 ---

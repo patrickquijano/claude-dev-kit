@@ -1,6 +1,6 @@
 ---
 name: write-e2e-tests
-description: Writes end-to-end tests for the repo's stack (whole code base unless the input names paths, journeys, or features). Detects stack, framework, app start command, and critical user journeys through the UI, API, or CLI; every test follows AAA, uses faker values instead of literals, user-facing locators, and no fixed sleeps. Use only when the user explicitly asks to write, add, or implement end-to-end or e2e tests, e.g. "add e2e tests", "write Playwright tests for checkout". Do not use on your own after finishing a task.
+description: Writes end-to-end tests for critical user journeys through the UI, API, or CLI, in AAA form with faker values and no fixed sleeps. Use only when the user explicitly asks to write e2e tests.
 argument-hint: '[paths | journeys | feature description]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *)
 ---

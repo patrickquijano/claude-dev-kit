@@ -1,6 +1,6 @@
 ---
 name: setup-format-lint
-description: Sets up formatters and linters for the repository file types. Picks one formatter and one or more linters per type, installs missing tools at freshly verified versions, writes missing configs, and adds ignore paths. Use only when the user explicitly asks to set up formatters, linters, Prettier, or ESLint, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Sets up a formatter and linters per repo file type at verified versions, with configs and ignore paths. Use only when the user explicitly asks to set up formatters or linters, or when chained.
 allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 ---
 

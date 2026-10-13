@@ -1,6 +1,6 @@
 ---
 name: switch-branch
-description: Unstage staged files, derive a Conventional Branch name from the commits unique to the current branch, the uncommitted changes, and optional input, switch to that new branch, and push it. Use only when the user explicitly asks to create/switch to a branch for their changes, e.g. "branch these changes", "switch to a new branch and push", "move my changes to a new branch", "put this on a feature branch". Do not use on your own after finishing a task.
+description: Derives a Conventional Branch name from the current commits and changes, switches to that new branch, and pushes it. Use only when the user explicitly asks to move their changes to a new branch.
 argument-hint: '[optional branch hint or description]'
 allowed-tools: Bash(git status *) Bash(git diff *) Bash(git rev-parse *) Bash(git restore --staged *) Bash(git show-ref *) Bash(git symbolic-ref *) Bash(git rev-list *) Bash(git ls-remote *) Bash(git remote get-url *) Bash(git switch -c *)
 ---

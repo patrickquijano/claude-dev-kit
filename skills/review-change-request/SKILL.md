@@ -1,6 +1,6 @@
 ---
 name: review-change-request
-description: Reviews an existing GitHub pull request or GitLab merge request once across the whole change set with parallel read-only reviewers, and prepares Conventional Comments plus a verdict. Advisory; posts only after you approve. Use only when the user explicitly asks to review a PR or MR, e.g. "review this PR", "review !42". Do not use on your own after finishing a task.
+description: Reviews an existing GitHub PR or GitLab MR as a whole and drafts Conventional Comments plus a verdict; posts after approval. Use only when the user explicitly asks to review a PR or MR.
 argument-hint: '[optional number] [--yes] [--reuse-findings <file>] [--squash <yes|no>] [--delete-branch <yes|no>]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch * pull/*/head) Bash(git fetch origin refs/merge-requests/*/head) Bash(git cat-file *) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr checks *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *)
 ---

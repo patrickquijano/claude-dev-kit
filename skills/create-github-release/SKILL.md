@@ -1,6 +1,6 @@
 ---
 name: create-github-release
-description: Create the annotated git tag and the GitHub release for the latest released version in CHANGELOG.md, from the verified tip of main, with the changelog section as release notes. Idempotent; never moves a tag, force-pushes, or edits an existing release. Use only when the user explicitly asks to create or publish a GitHub release or tag, e.g. "create the release", "tag and release 1.0.0", "publish the GitHub release for this version". Do not use on your own after finishing a task.
+description: Creates the annotated tag and GitHub release for the latest CHANGELOG.md version from main, with its section as notes. Use only when the user explicitly asks to create a release or tag.
 argument-hint: '[--prefix v|none] [--yes]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote origin *) Bash(git remote) Bash(git remote get-url *) Bash(git tag --list *) Bash(git merge --ff-only origin/main) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
 ---

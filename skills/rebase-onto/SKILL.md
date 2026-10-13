@@ -1,6 +1,6 @@
 ---
 name: rebase-onto
-description: Fetch remote branches, rebase the current branch onto the default branch (or one the user names) with signed commits, and resolve each conflict with the user. Use only when the user explicitly asks to rebase, e.g. "rebase onto main", "rebase my branch", "rebase on latest main", "sync my branch with main via rebase". Do not use on your own after finishing a task.
+description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use only when the user explicitly asks to rebase or sync with main via rebase.
 argument-hint: '[optional target branch]'
 allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git config --get *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref *) Bash(git log *) Bash(git show *) Bash(git diff *) Bash(git merge-base *) Bash(git rev-list *) Bash(git cherry *) Bash(glab mr list *) Bash(git rebase --abort) Bash(git rebase --skip) Bash(git -c core.editor=true rebase --continue) Bash(git checkout --ours *) Bash(git checkout --theirs *) Bash(git add *)
 ---

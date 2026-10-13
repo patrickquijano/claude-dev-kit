@@ -1,6 +1,6 @@
 ---
 name: setup-spec-kit
-description: Installs GitHub Spec Kit (`specify-cli`) if missing, initializes the current project with the Claude integration, installs the agent-context, assess, and bug extensions with set priorities, and adds Spec Kit paths to git, linter, and formatter ignores. Use only when the user explicitly asks to set up, install, or initialize Spec Kit in a project. Do not use on your own after finishing a task.
+description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit.
 allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension add *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
 ---
 

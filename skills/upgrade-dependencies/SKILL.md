@@ -1,6 +1,6 @@
 ---
 name: upgrade-dependencies
-description: Upgrades a project's outdated dependencies to their latest stable versions. Detects the stack, looks up breaking changes, applies the code and config fixes, then builds, lints, and tests until everything passes. Use only when the user explicitly asks to upgrade or bump dependencies, e.g. "upgrade my dependencies". Do not use on your own after finishing a task.
+description: Upgrades outdated dependencies to their latest stable versions, fixes breaking changes, then builds, lints, and tests until green. Use only when the user explicitly asks to upgrade dependencies.
 argument-hint: '[optional package names | project path | patch-minor-only]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(command -v *)
 ---

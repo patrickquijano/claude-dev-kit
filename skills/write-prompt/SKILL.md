@@ -1,6 +1,6 @@
 ---
 name: write-prompt
-description: Drafts a brief, effective Claude Code prompt from a rough task, or reviews an existing one, grounded in the repo and checked against common prompt anti-patterns. Prints the prompt in chat; writes no project files. Use when the user asks to write, draft, rewrite, tighten, or review a prompt for Claude Code, or to turn a rough task into a prompt.
+description: Drafts a brief, effective prompt from a rough task, or reviews one, grounded in the repo and checked for anti-patterns; prints it in chat. Use when the user asks to write, tighten, or review a prompt.
 argument-hint: '<rough task | existing prompt>'
 ---
 

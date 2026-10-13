@@ -1,6 +1,6 @@
 ---
 name: write-dockerfile
-description: Writes, improves, or reviews a Dockerfile and .dockerignore for the repo's stack per Docker's official best practices (multi-stage, digest-pinned base images, cache and secret mounts, optional non-root user), verified by docker build --check (and hadolint when the file has no heredoc). Use only when the user explicitly asks to write, create, dockerize, optimize, or review a Dockerfile or container image build. Do not use on your own after finishing a task.
+description: Writes, improves, or reviews a Dockerfile and .dockerignore per Docker best practices, verified by docker build --check. Use only when the user explicitly asks to write or review a Dockerfile.
 argument-hint: '<app description | path | existing Dockerfile>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker buildx imagetools inspect *) WebFetch(domain:hub.docker.com)
 ---

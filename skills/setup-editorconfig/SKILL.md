@@ -1,6 +1,6 @@
 ---
 name: setup-editorconfig
-description: Sets up .editorconfig for the file types in the current repository. Detects file types, adds root = true and a [*] base section if missing, then adds missing per-type sections with recommended indentation and line-ending defaults. Use only when the user explicitly asks to set up, add, initialize, or configure EditorConfig, .editorconfig, tabs vs spaces, indentation, line endings, trailing whitespace, or final newlines, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Sets up .editorconfig for the repo's file types with a root base section and per-type indentation and line endings. Use only when the user explicitly asks to set up EditorConfig, or when chained.
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec)
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: fix-spec-kit-bug
-description: Fixes a bug with the GitHub Spec Kit bug extension from a stack trace, error or warning, URL, or bug report. Extracts the evidence, then chains speckit-bug-assess, speckit-bug-fix, and speckit-bug-test, re-running fix (or assess when the assessment proves wrong) until the test verifies the fix, up to 3 passes. Use only when the user explicitly asks to fix, triage, or assess a bug with Spec Kit. Do not use on your own after finishing a task.
+description: Fixes a bug with GitHub Spec Kit's bug extension (assess, fix, test, up to 3 passes) from a stack trace, error, URL, or report. Use only when the user explicitly asks to fix a bug with Spec Kit.
 argument-hint: '<stack trace | error | URL | bug report>'
 ---
 

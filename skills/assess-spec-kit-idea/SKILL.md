@@ -1,6 +1,6 @@
 ---
 name: assess-spec-kit-idea
-description: Assess an idea with the GitHub Spec Kit assess extension before building it. Extract the idea from the input, then chain speckit-assess-intake, research, define, shape, and decide under one slug. A go verdict hands the decision.md handoff summary to run-spec-kit (handoff=no stops at go instead); needs-clarification re-runs the named stage after the user answers; kill stops. Use only when the user explicitly asks to assess, evaluate, or vet an idea with Spec Kit. Do not use on your own after finishing a task.
+description: Assesses an idea with the GitHub Spec Kit assess extension before building it and returns a go, clarify, or kill verdict. Use only when the user explicitly asks to vet an idea with Spec Kit.
 argument-hint: '<idea text | URL | ticket | codebase pointer> [handoff=no]'
 ---
 

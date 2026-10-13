@@ -1,6 +1,6 @@
 ---
 name: debug-issue
-description: Finds a bug's root cause from an error, stack trace, failing behavior, or failing test, proves it with a failing regression test, and fixes it after the user confirms. Use only when the user explicitly asks to debug or find the root cause of a problem, e.g. "debug this error", "why does this test fail", "find the root cause". Do not use on your own after finishing a task.
+description: Finds a bug's root cause from an error, stack trace, or failing test, proves it with a regression test, and fixes it after confirmation. Use only when the user explicitly asks to debug an issue.
 argument-hint: '[--yes] <error | stack trace | failing test | behavior>'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git blame *)
 ---

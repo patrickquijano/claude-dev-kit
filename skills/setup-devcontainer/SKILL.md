@@ -1,6 +1,6 @@
 ---
 name: setup-devcontainer
-description: Sets up or updates a Dev Container (.devcontainer/devcontainer.json, Codespaces config). Detects stacks, versions, ports, and services, asks which databases and tools to add, writes pinned config, and verifies it. Use only when the user explicitly asks to set up or update a devcontainer or Codespaces config. Do not use on your own after finishing a task.
+description: Sets up or updates a Dev Container or Codespaces config with detected stacks, ports, and services and pinned tools. Use only when the user explicitly asks to set up a devcontainer.
 argument-hint: '[stack, services, or notes]'
 allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(devcontainer read-configuration *) Bash(docker compose -f * config --quiet) WebFetch(domain:hub.docker.com) WebFetch(domain:mcr.microsoft.com) WebFetch(domain:raw.githubusercontent.com) WebFetch(domain:marketplace.visualstudio.com)
 ---
