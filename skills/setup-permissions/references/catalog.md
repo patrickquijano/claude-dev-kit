@@ -70,5 +70,5 @@ Source: <https://code.claude.com/docs/en/permissions> (MCP rules; the docs also 
 
 - `rm`, `git reset --hard`, and `git clean` stay in ask, not deny: git restores tracked content, and a deny blocks legitimate cleanup.
 - Deny only at the program name, never mid-pattern (`Bash(* sudo *)`): a deny matches any part of a compound command and would block commands that merely mention the word.
-- A deny and an allow for the same program cannot coexist: the deny wins everywhere, so skip the new allow and report it `conflicting`; the user may confirm removing the deny (`SKILL.md` step 5), otherwise it stays.
+- A deny and an allow for the same program cannot coexist: the deny wins everywhere, so skip the new allow and report it `conflicting`; the user may confirm removing the deny (`flow.md` `## Merge`), otherwise it stays.
 - An existing rule always stays; only a rule the user confirms is moved. An existing allow that a new ask or deny covers is retained and reported `conflicting`: the stricter list still wins at evaluation.
