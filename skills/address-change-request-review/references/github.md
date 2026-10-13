@@ -1,6 +1,24 @@
 # GitHub feedback commands
 
-Host section of `cdk:address-change-request-review` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/github.md` `## Pre-flight`. Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a pull request; `<n>` is its number.
+Host section of `cdk:address-change-request-review` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a pull request; `<n>` is its number.
+
+## Contents
+
+- Pre-flight · Find · Candidates · Branch · Gather · Re-fetch before a mutation · Mutations · Re-request · Verify after mutations
+
+## Pre-flight
+
+Run in order; any failure → report the exact error line and stop.
+
+1. `inside-tree` prints `true`; Root = `toplevel`; Branch = `branch` (`HEAD` = detached → stop).
+2. `git remote` lists a remote.
+3. `gh auth status` succeeds, else tell the user to run `gh auth login`.
+4. `gh repo view --json nameWithOwner,url,sshUrl` returns one repository; keep it as Repo. Fails → stop.
+5. Self = `gh api user --jq .login`.
+6. Scratch = `mktemp -d`.
+7. `dirty-paths` non-empty → Dirty (see `flow.md`).
+
+Reads are `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status`; every other call stays permission-prompted.
 
 GraphQL and REST calls stay out of `allowed-tools` (a GraphQL call may be a mutation), so each is permission-prompted. Reads and writes use scratch files for any model-written text: `-F body=@<file>` or `--input <file>`.
 

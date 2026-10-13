@@ -1,6 +1,32 @@
 # Review reply guide
 
-Bundled standard for `address-change-request-review` (GitHub and GitLab). Comment quality and labels come from `../review-change-request/references/guidelines.md` (`## Labels (Conventional Comments)`, `## Comment quality`). Replies MUST be specific, objective, respectful, technically justified, focused on outcomes, and consistent with documented standards.
+Standard for `address-change-request-review` (GitHub and GitLab); the planner and replier read it. Replies MUST follow `## Comment quality`.
+
+## Contents
+
+- Labels · Comment quality · Dispositions · Reply templates · Resolve rule · Revision summary template
+
+## Labels
+
+Reviewer labels follow Conventional Comments: `<label> (<decoration>): <subject>`.
+
+| Label      | Use for                                          | Default decoration |
+| ---------- | ------------------------------------------------ | ------------------ |
+| issue      | Specific problem in the change                   | blocking           |
+| todo       | Small necessary change before acceptance         | blocking           |
+| chore      | Process task needed before acceptance (CI, docs) | blocking           |
+| suggestion | Improvement; state why it is better              | non-blocking       |
+| question   | Possible concern that needs an answer            | non-blocking       |
+| nitpick    | Trivial, preference-based                        | non-blocking only  |
+| thought    | Idea for later                                   | non-blocking only  |
+| note       | Information for the reader                       | non-blocking only  |
+| praise     | Something done well                              | none               |
+
+Decorations: `blocking` (must resolve before merge), `non-blocking`, `if-minor` (resolve only if the fix is small).
+
+## Comment quality
+
+Every reply MUST be specific (file and line, one point per reply), objective (the code, not the author), respectful, technically justified (the concrete failure, risk, or cost), focused on the expected outcome, and consistent with documented repo standards.
 
 ## Dispositions
 
@@ -94,11 +120,3 @@ Leave open for the reviewer: `issue`, `question`, Clarify, Decline, Answer, assu
 ```
 
 Omit empty sections except Threads.
-
-## Sources
-
-- <https://docs.gitlab.com/development/code_review/>
-- <https://conventionalcomments.org/>
-- <https://docs.gitlab.com/api/discussions/>
-- <https://docs.gitlab.com/api/notes/>
-- <https://gitlab.com/gitlab-org/gitlab/-/blob/master/app/graphql/mutations/merge_requests/reviewer_rereview.rb>
