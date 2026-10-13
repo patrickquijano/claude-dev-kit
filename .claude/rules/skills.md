@@ -18,7 +18,7 @@ paths:
 - Frontmatter order: `name`, `description`, `argument-hint`, `allowed-tools`, `disable-model-invocation`.
 - Body (Task skills): `Input: $ARGUMENTS` (omit when no input), `## Rules`, `## Workflow` (numbered steps, bold labels `**Pre-flight.**`), `## Output` (fenced `text`, ends `Result: done | nothing-to-do | stopped | cancelled` + `Stopped: <step>: <reason> | none`). Reference and background-only skills use topic sections instead.
 - Side-effect confirmation options name each effect ("Commit + push").
-- Every loop and retry states its cap in Rules. A skill that reports findings (failed or skipped checks, gaps, open items) runs its own capped fix loop where it needs one and lists what is left under `Gaps:` or `Resolution:` before `Result:`. Unattended runs (chained, `--auto`, `--yes`, or invoked by the end-of-task hook) ask nothing and report what is left.
+- Every loop and retry states its cap in Rules. A skill that reports findings (failed or skipped checks, gaps, open items) runs its own capped fix loop where it needs one and lists what is left under `Open:` before `Result:`. Unattended runs (chained, `--auto`, `--yes`, or invoked by the end-of-task hook) ask nothing and report what is left.
 - Use `$ARGUMENTS` / `${CLAUDE_SKILL_DIR}` substitutions, not hard-coded paths.
 - Known issues never live in the repo (no `SKILL.md`, no `## Known issues` section). Project-scoped ones go to Claude auto memory (`feedback` memory + `MEMORY.md` pointer).
 - Verify: `plugin-dev:skill-reviewer` agent; `build-skill` drafts the skill, runs `skills/build-skill/scripts/check-skill.mjs` for the mechanical rules, scores it with `cdk:skill-scorer`, then optionally runs `skill-creator` evals (the user's choice); never run LLM-graded `claude plugin eval`.
