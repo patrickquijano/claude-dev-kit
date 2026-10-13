@@ -2,6 +2,16 @@
 
 Used by `cdk:scan-vulnerabilities` steps 3 and 6–7.
 
+## Contents
+
+- Validation commands
+- Checkpoint
+- Brief for cdk:run-spec-kit
+- Branch
+- Fix rules by category
+- Rollback
+- Attempts
+
 ## Validation commands
 
 Detect them once, in this order, and list them in `manifest.json` `baseline`:

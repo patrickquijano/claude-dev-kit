@@ -1,3 +1,0 @@
-Details step 1 (Pre-flight). Commands: `${CLAUDE_SKILL_DIR}/references/commands.md`.
-
-A merge, rebase, or cherry-pick in progress, or unmerged paths in `status-porcelain`, → stop (`conflicting uncommitted changes`). Parse the arguments; a bad value → use its default, no ask, and note it in `Arguments:`. Create `.vulnerability-reports/<ts>/`. When `check-ignore-reports` fails, append `.vulnerability-reports/` to `.git/info/exclude`; this is local and untracked. Record branch, HEAD, porcelain status, and protected paths in `manifest.json`. Print the data that leaves the machine (`scanners.md` `## Network`). `.specify/` missing → scan and report only, no question (remediation needs Spec Kit; report "run `/cdk:setup-spec-kit` first").

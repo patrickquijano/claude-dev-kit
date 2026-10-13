@@ -2,6 +2,16 @@
 
 Shared by `cdk:scan-vulnerabilities` and `cdk:security-scanner`. Security scanners only; never add or run linters, formatters, or code-style tools.
 
+## Contents
+
+- Image resolution
+- Repository detection
+- Applicability
+- Command templates
+- Network
+- OWASP ZAP
+- Exit codes and status
+
 ## Image resolution
 
 Resolve every image once per run to its latest stable release within the verified major, then lock its digest for the whole run (iterations, rescans, final scan), so before and after counts compare one scanner build. A new run resolves again; nothing carries over from an earlier run.
