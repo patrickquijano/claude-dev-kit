@@ -1,6 +1,6 @@
 ---
 name: debug-issue
-description: Find a bug's root cause from an error, stack trace, failing behavior, or failing test, prove it with a failing regression test, and fix it after the user confirms. Use only when the user explicitly asks to debug or find the root cause of a problem, e.g. "debug this error", "why does this test fail", "find the root cause". Do not use on your own after finishing a task.
+description: Finds a bug's root cause from an error, stack trace, failing behavior, or failing test, proves it with a failing regression test, and fixes it after the user confirms. Use only when the user explicitly asks to debug or find the root cause of a problem, e.g. "debug this error", "why does this test fail", "find the root cause". Do not use on your own after finishing a task.
 argument-hint: '[--yes] <error | stack trace | failing test | behavior>'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git blame *)
 ---
@@ -23,26 +23,30 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Root cause first: no fix and no test edit until the cause is shown with `file:line` evidence. A guess is labeled a hypothesis. Temporary probes (logs, prints) are allowed during step 4, tracked, and reverted before step 6.
 - Test, lint, type check, and build commands come from the project's documented commands (CLAUDE.md `Commands`), not from `commands.md`.
 - The regression test must fail for the reported reason before the fix and pass after; never weaken, skip, or delete an existing test.
-- Caps: reproduce max 3 tries; fix max 3 attempts; one `cdk:topic-researcher` spawn. Cap hit at step 8 or the researcher spawn → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
+- Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
 - Never commit, push, stash, or `reset --hard`; a bisect always ends with `bisect-reset`.
-- Test conventions: `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`; an integration test only when a unit test cannot reproduce the bug.
+- Regression test: match the project's runner, location, and naming; Arrange, Act, Assert blocks; inputs from the stack's faker library when the project has one; a unit test unless only an integration test can reproduce the bug. For a broader test suite, the user can run `cdk:write-unit-tests` afterwards.
 - `--yes` picks the recommended option of step 7 and of the bisect ask and counts as unattended for step 10.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Verify:` failed or skipped checks, `Hypotheses:` left open, `Regression test:` not failing before the fix).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `debug-issue` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
+- Step 10 fix loop: at most 3 rounds; it fixes only what this run changed (failed or skipped checks, a regression test that did not fail first). Unattended runs ask nothing. Whatever is left goes to `Open:` before `Result:`.
 
 ## Workflow
 
 1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Note the dirty paths from Status; neither the test (step 6) nor the fix (step 8) touches a dirty path without asking.
 2. **Evidence.** Pull the error, stack trace, failing test, expected versus actual, and repro steps from the input. No way to reproduce → ask once with AskUserQuestion (`I will add details` | `Cancel`); none given → `Result: cancelled`.
 3. **Reproduce.** Run the failing test or steps, up to 3 tries. Not reproducible → say so and continue with static evidence, marked `unreproduced`.
-4. **Isolate.** Rank hypotheses, test the cheapest first, and record each as confirmed or ruled out. Bisect and research rules: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
+4. **Isolate.** Rank hypotheses, test the cheapest first, and record each as confirmed or ruled out. Bisect and research: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
 5. **Root cause.** Report the cause with `file:line` evidence, why it produces the symptom, and the smallest fix.
 6. **Regression test.** Draft the test, write it, and run it; it must fail for the reported reason. Fails for another reason → fix the test; a failure that cannot be made to match → `Regression test: none` and say why.
 7. **Confirm.** One AskUserQuestion: `Apply fix (Recommended)` | `Diagnose only` | `Cancel`. `Diagnose only` → keep the test, list its path, step 10; `Cancel` → remove the test file this run wrote, `Result: cancelled`.
 8. **Fix.** Apply the minimal change that the root cause calls for, nothing adjacent; up to 3 attempts, each re-run against the regression test.
 9. **Verify.** The new test passes, then the documented lint, type check, test, and build commands for the changed files (CLAUDE.md `Commands`); record each as pass, fail, or skipped with the reason.
-10. **Resolve findings.** Per resolve-findings.md, once, after step 9 or any stop above.
+10. **Fix leftovers.** Failed or skipped checks, open hypotheses, or a test that did not fail first: fix what this run changed, re-run, up to the cap; list the rest in `Open:`.
+
+## Files
+
+- For the hypothesis loop, bisect, and research (step 4), see `${CLAUDE_SKILL_DIR}/references/isolate.md`.
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 
 ## Output
 
@@ -54,7 +58,7 @@ Hypotheses: <n> confirmed, <m> ruled out, <k> open
 Regression test: <path — fails before, passes after | fails before, fix not applied> | none (<reason>)
 Fix: applied (<files>) | not applied (diagnose only) | not applied (<reason>)
 Verify: <command> pass | fail | skipped (<reason>), … | not run
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <id: severity, reason; recommended fix>, … | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
