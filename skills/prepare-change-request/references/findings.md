@@ -1,6 +1,6 @@
 # Findings contract
 
-Contract between `cdk:prepare-change-request`, its `## Direct review` path, and its reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
+Parent-side rules for `cdk:prepare-change-request` and its `## Direct review` path; the reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer`). own the return block in their `## Return`, and this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
 
 ## Block
 

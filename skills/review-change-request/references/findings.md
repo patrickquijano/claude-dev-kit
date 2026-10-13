@@ -1,6 +1,6 @@
 # Findings contract
 
-Used by `cdk:review-change-request`, its direct-review path, and its reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`). Every reviewer returns exactly one block in this shape; the parent parses it. The reviewed tip is the head SHA the parent passes.
+Used by `cdk:review-change-request`, its direct-review path, and its reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`). The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes.
 
 ## Contents
 

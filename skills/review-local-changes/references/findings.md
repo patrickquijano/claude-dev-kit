@@ -1,6 +1,6 @@
 # Findings contract
 
-Used by the four reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-maintainability-reviewer`) and by the direct review. Each returns exactly one block; the parent parses it.
+Used by the four reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-maintainability-reviewer`) and by the direct review. The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly.
 
 ## Contents
 
@@ -8,7 +8,7 @@ Used by the four reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-security-revi
 
 ## Reviewer input
 
-Spawn all four in one message. Each prompt carries only: root, base ref (`HEAD` or `origin/<default>`), merge-base SHA (the base SHA), the snapshot SHA as head, the paths to `diff.patch`, `name-status.txt`, `log.txt`, and the path of this file (`${CLAUDE_SKILL_DIR}/references/findings.md`, absolute). `cdk:cr-test-reviewer` gets no `checks:` line.
+Spawn all four in one message. Each prompt carries only: root, base ref (`HEAD` or `origin/<default>`), merge-base SHA (the base SHA), the snapshot SHA as head, the paths to `diff.patch`, `name-status.txt`, `log.txt`. `cdk:cr-test-reviewer` gets no `checks:` line.
 
 ## Block
 

@@ -53,7 +53,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 14. **Verify.** Host file `## Verify`; mismatch → report the field, `Stopped: 14: <field mismatch>`.
 15. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
-Step 6 spawns, in one message, five parallel Agent calls: `cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer`. Each gets root, `<target ref>`, `<mb>`, HEAD SHA, the three scratch paths, and `${CLAUDE_SKILL_DIR}/references/findings.md`.
+Step 6 spawns, in one message, five parallel Agent calls: `cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer`. Each gets root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths.
 
 ## Files
 
