@@ -1,6 +1,6 @@
 # Branch conventions
 
-A repo commitlint config wins over these rules. The `cdk:change-analyzer` agent reads this file.
+A repo commitlint config wins over these rules.
 
 ## Branch name
 

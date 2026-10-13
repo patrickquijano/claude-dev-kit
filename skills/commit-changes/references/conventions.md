@@ -1,6 +1,6 @@
 # Git conventions
 
-A repo commitlint config wins over these rules. The `cdk:change-analyzer` agent also reads this file.
+A repo commitlint config wins over these rules.
 
 ## Commit subject
 

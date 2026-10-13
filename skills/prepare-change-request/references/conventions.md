@@ -1,6 +1,6 @@
 # Conventions
 
-Read by `cdk:change-analyzer` (`## Commit subject`) and by the skill (`## Protected branch`). A repo commitlint config wins over these rules.
+Read by the skill. A repo commitlint config wins over these rules.
 
 ## Commit subject
 

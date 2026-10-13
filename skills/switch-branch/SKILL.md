@@ -20,7 +20,7 @@ Input: $ARGUMENTS
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`.
-- Analysis runs in `cdk:change-analyzer` (`mode=branch-name`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Pass only root, `mode`, `base`, the input, answers to earlier `Questions`, and the `branch-name.md` path.
+- Analysis runs in `cdk:change-analyzer` (`mode=branch-name`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Pass only root, `mode`, `base`, the input, and answers to earlier `Questions`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.
 - Switch and push without asking; the request to switch is consent to a normal push. `git push` stays out of `allowed-tools`, so the permission prompt is a second guard.
 - Caps: analyzer respawn after `Questions` 1; name suffix search 10, then stop.
@@ -32,7 +32,7 @@ Input: $ARGUMENTS
 1. **Pre-flight.** `inside-work-tree` fails → stop. `status` shows a rebase, merge, or cherry-pick in progress → stop and tell the user to finish or abort it. Origin = Context → Origin; `<none>` → skip the remote check and the push.
 2. **Unstage.** `staged-files` non-empty → `unstage`; failure (no HEAD) → stop.
 3. **Collect.** Current = Context → Branch; `HEAD` → `detached@` plus `short-head`. Base = `origin-head` when `verify-ref` resolves it, else the first that `verify-full-ref` resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master`. Current equals the base's branch name → base = `origin/<name>` when that ref resolves, else no base. Count `unique-commits` (no base or failure → 0). `changes` empty, no commits, no input → `Result: nothing-to-do`.
-4. **Analyze.** Spawn `cdk:change-analyzer` with root, `mode=branch-name`, `base` (`none` without one), the input as hints, and the `branch-name.md` path. Take `Branch` and the `Changes` count; `Questions` → AskUserQuestion, then respawn once.
+4. **Analyze.** Spawn `cdk:change-analyzer` with root, `mode=branch-name`, `base` (`none` without one), and the input as hints. Take `Branch` and the `Changes` count; `Questions` → AskUserQuestion, then respawn once.
 5. **Name.** `local-branch-exists` exit 0 or `remote-branch-exists` non-empty → append `-2`, `-3`, … (cap in Rules); an `ls-remote` error counts as not on remote.
 6. **Switch and push.** Show `Branch: <current> → <name>` and a one-line reason. Run `switch`; failure → report the exact error line, stop. Then `push` (skip without origin); failure → report the exact error line, stop.
 7. **Report.** Print the Output.
