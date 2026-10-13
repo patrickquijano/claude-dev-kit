@@ -1,10 +1,12 @@
 // End-of-task logic for the UserPromptSubmit dispatcher (user-prompt-submit.mjs): tell Claude what to do once the whole
-// task is done (refresh the Graphify graph, update docs, then group, commit, and push this task's changes). Context only, no state.
+// task is done (run the unit tests, refresh the Graphify graph, update docs, then group, commit, and push this task's
+// changes). Context only, no state.
 import { existsSync, realpathSync } from 'node:fs';
 import { git, shipReleaseMarker, unsafeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist } from './graphify.mjs';
 import { contextOutput, projectDir } from './hook-io.mjs';
 import { NOPLAN_RE, PLAN_RE, isSkippedPrompt } from './prompt.mjs';
+import { unitTestCommand } from './unit-tests.mjs';
 
 // Side effects as a swappable bundle so tests never touch git, graphify, or the fs.
 export const realDeps = {
@@ -12,6 +14,7 @@ export const realDeps = {
   unsafeState,
   graphifyConfigured,
   graphifyFilesExist,
+  unitTestCommand,
   existsSync,
   realpathSync,
   env: process.env,
@@ -19,6 +22,8 @@ export const realDeps = {
 };
 
 const STATUS = 'Run `git status --porcelain`.';
+const unitTests = (cmd) =>
+  `${STATUS} If this task changed code files (not only docs or config), run the unit tests with \`${cmd}\` (or the unit-test command CLAUDE.md documents, if different); on failure find the root cause, fix it, and re-run until they pass. Run integration and e2e suites only when asked or when the change touches their boundary.`;
 const GRAPHIFY_UPDATE = `${STATUS} If this task changed code files (not only docs or config), run \`graphify update .\` so the knowledge graph matches the code.`;
 const GRAPHIFY_BUILD = `${STATUS} If this task changed code files (not only docs or config), invoke the \`graphify\` skill with the argument \`.\` via the Skill tool to build the knowledge graph.`;
 const DOCS = `${STATUS} If this task changed behavior, commands, paths, or components that README.md or related docs (CLAUDE.md, .claude/rules, skill references) describe, update them so they match; otherwise skip this step.`;
@@ -41,6 +46,8 @@ export function decide(input, deps = realDeps) {
   if (isQuestion(prompt)) return [];
   const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
   const parts = [];
+  const testCmd = deps.unitTestCommand(cwd);
+  if (testCmd) parts.push(unitTests(testCmd));
   if (deps.graphifyConfigured(cwd)) parts.push(deps.graphifyFilesExist(cwd) ? GRAPHIFY_UPDATE : GRAPHIFY_BUILD);
   const inside = deps.git(cwd, ['rev-parse', '--is-inside-work-tree']);
   if (inside.status !== 0) return parts;

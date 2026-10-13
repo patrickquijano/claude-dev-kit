@@ -8,7 +8,8 @@ function make({
   inside = true,
   marker = false,
   unsafe = false,
-  badCwd = false
+  badCwd = false,
+  unitTests = null
 } = {}) {
   return {
     env: { CLAUDE_PROJECT_DIR: '/repo' },
@@ -19,6 +20,7 @@ function make({
     },
     graphifyConfigured: () => configured,
     graphifyFilesExist: () => present,
+    unitTestCommand: () => unitTests,
     git: (cwd, args) => {
       if (args[0] === 'rev-parse' && args[1] === '--is-inside-work-tree') {
         return { status: inside ? 0 : 128, stdout: Buffer.from('true\n') };
@@ -278,6 +280,68 @@ test('decide omits the docs step outside a git repo', () => {
 test('decide omits the docs step for a question prompt', () => {
   // Arrange
   const deps = make();
+  // Act
+  const result = decide({ prompt: 'How does it work?' }, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide puts the unit-test step first, before Graphify', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true, unitTests: 'npm run test:unit' });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 4);
+  assert.match(result[0], /run the unit tests/);
+  assert.match(result[1], /graphify update/);
+});
+
+test('decide names the detected command in the unit-test step', () => {
+  // Arrange
+  const deps = make({ unitTests: 'go test ./...' });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /`go test \.\/\.\.\.`/);
+  assert.match(result[0], /re-run until they pass/);
+});
+
+test('decide omits the unit-test step when no command is detected', () => {
+  // Arrange
+  const deps = make({ unitTests: null });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(
+    result.some((p) => /unit tests/.test(p)),
+    false
+  );
+});
+
+test('decide keeps the unit-test step outside a git repo', () => {
+  // Arrange
+  const deps = make({ inside: false, unitTests: 'cargo test' });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 1);
+  assert.match(result[0], /`cargo test`/);
+});
+
+test('decide keeps the unit-test step under the ship-release marker', () => {
+  // Arrange
+  const deps = make({ marker: true, unitTests: 'pytest' });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 1);
+  assert.match(result[0], /`pytest`/);
+});
+
+test('decide skips the unit-test step for a question prompt', () => {
+  // Arrange
+  const deps = make({ unitTests: 'pytest' });
   // Act
   const result = decide({ prompt: 'How does it work?' }, deps);
   // Assert
