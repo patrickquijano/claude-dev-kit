@@ -10,23 +10,23 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Check every item in `${CLAUDE_SKILL_DIR}/checks.md`; each missed item is a known failure mode for agents.
-- Draft in the shape of `${CLAUDE_SKILL_DIR}/structure.md`.
+- Check every item in `${CLAUDE_SKILL_DIR}/references/checks.md`; each missed item is a known failure mode for agents.
+- Draft in the shape of `${CLAUDE_SKILL_DIR}/references/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
 - Never invent paths, commands, versions, or APIs; unverified → omit and report, since a wrong fact in a prompt misleads the agent.
 - Input holds several tasks → draft the first and list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Loops: clarify (step 3) max 2 batches.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `write-prompt`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `write-prompt` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
 1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → review it; request is review-only → review-only mode. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
 2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; `Result: done`; go to step 6, then print the review-only Output and stop.
-3. **Clarify.** Remaining gaps (target state, success criteria, scope, review triggers, prior failures) → AskUserQuestion, ≤4 per batch, 2–4 options each, recommended first with "(Recommended)" and reason. Repeat until every check passes or is n/a; max 2 batches, then draft and list open gaps. Existing prompt → also fix each failed check.
+3. **Clarify.** Remaining gaps → AskUserQuestion in batches (max 2), then draft and list open gaps. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 4. **Draft** per structure.md.
 5. **Check.** Walk checks.md against the draft; fix each failure.
 6. **Resolve findings.** Per resolve-findings.md. Itemize each `Open gaps:` entry (draft) or `Failed checks:` entry (review-only); the step never re-enters the clarify loop and asks only for a choice step 3 did not already offer.

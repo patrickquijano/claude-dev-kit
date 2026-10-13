@@ -30,4 +30,4 @@ Rescan: <F-id: gone | still present>, … | n/a
 New: <F-id severity rule file:line | package@version>, for findings first seen in the changed paths or packages, … | none
 ```
 
-Never include a secret value, matched line, or code snippet in the Return. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Never include a secret value, matched line, or code snippet in the Return. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

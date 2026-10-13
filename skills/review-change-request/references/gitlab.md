@@ -1,0 +1,61 @@
+# GitLab review conventions
+
+Host section of `cdk:review-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` (`## Pre-flight`, `## API rules`). Host-neutral rules: `review.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+
+## Review pre-flight
+
+None beyond the shared pre-flight; keep Self (`id`, `username`), Root, Scratch. Skip its detached-HEAD stop (a remote MR needs no branch).
+
+## Select
+
+- Number argument (strip a leading `!`) → re-fetch; `state` not `opened` → report, stop.
+- Else current = `git rev-parse --abbrev-ref HEAD`; `glab mr list --source-branch <current> -F json`: one match → use it; several (forks) → ask from the matches.
+- Else `glab mr list -F json` (open); sort by `updated_at` desc; table label `!<iid> <title>`, description `<source> → <target>, @<author>`.
+- A typed number must be an open MR from that list or confirmed `opened` by a re-fetch.
+
+## Gather
+
+- Re-fetch: keep `title`, `description`, `author`, `reviewers`, `source_branch`, `target_branch`, `web_url`, `diff_refs` (`base_sha`, `start_sha`, `head_sha`), `head_pipeline`, `detailed_merge_status`, `draft`. `diff_refs` empty → re-fetch up to 3 times, still empty → stop. Head = `diff_refs.head_sha`, base = `diff_refs.base_sha`.
+- Reviewer states: `glab api -X GET projects/:id/merge_requests/<iid>/reviewers`. Approvals: `glab api -X GET projects/:id/merge_requests/<iid>/approvals` (`approvals_left`, `approved_by`).
+- Threads: `glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions` → digest (path:line + first line per note). Own threads = discussions whose first note has `author.id` = Self id, `resolvable: true`, `resolved: false`. Baseline = max note `id` here (`## Verify` counts notes above it).
+- Local objects: `git cat-file -e <head_sha>^{commit}` fails → `git fetch origin refs/merge-requests/<iid>/head`. Base likewise from `origin`. Fetch only; never check out or merge.
+- Merge base: `git merge-base <base_sha> <head_sha>`; none → stop. Then `git diff <mb>..<head_sha>` → `<scratch>/diff.patch`, `git diff --name-status <mb>..<head_sha>` → `name-status.txt`, `git log <mb>..<head_sha>` → `log.txt`. Empty diff → nothing-to-do.
+
+## Criteria
+
+- A4: `head_pipeline.status` = `success` and `detailed_merge_status` not `ci_must_pass`, `ci_still_running`, `status_checks_must_pass`, `checking`, or `unchecked` → pass. `head_pipeline` null and no such status → pass, note "no pipeline found (may not be created yet)". Pending, running, or checking → fail "checks not finished; re-run the review after they finish".
+- A7: `approvals_left` = 0, or = 1 and Self not in `approved_by` → pass. Else fail, listing pending approvals.
+- Merge blockers (add to the neutral ones): `detailed_merge_status` not in {`mergeable`, `not_approved`}.
+
+## Positions
+
+Draft-note body: `{"note":…,"position":{"position_type":"text","base_sha":<base_sha>,"start_sha":<start_sha>,"head_sha":<head_sha>,"old_path":…,"new_path":…,<lines>}}`. `<lines>`: `new` → `new_line` only; `old` → `old_line` only; `both` → both. Renames keep distinct `old_path` / `new_path`. Suggestions: `suggestion:-N+M` fenced block on added or context lines (`-N+M` extends N lines above and M below, max 100 each); never on removed lines.
+
+## Publish
+
+1. Re-fetch; `diff_refs.head_sha` changed → "new commits pushed", stop.
+2. Add Self as reviewer when absent, without asking: `glab api projects/:id/merge_requests/<iid> -X PUT -f reviewer_ids[]=<ids>` with the existing reviewer ids plus Self; never remove one. A failure is reported and does not block.
+3. `glab api -X GET projects/:id/merge_requests/<iid>/draft_notes` non-empty (your old drafts; bulk publish sends them all) → AskUserQuestion: Delete old drafts (Recommended) | Publish them too | Cancel (`--yes` → delete them). Cancel → stop, nothing posted, `Result: cancelled`.
+4. Approving (per `## Approve`) → approve first: `glab api projects/:id/merge_requests/<iid>/approve -X POST -f sha=<head_sha>`. `409` → "new commits pushed", stop, nothing posted. Other error (for example `401`, self-approval disabled) → report the exact error line; the verdict stays `reviewed` with note "Approval failed: <error>"; continue.
+5. Per inline finding write `## Positions` body to scratch; `glab api projects/:id/merge_requests/<iid>/draft_notes -X POST -H 'Content-Type: application/json' --input <file>`; keep the returned `id`.
+6. Per General non-praise finding: `{"note":…}` (no `position`; publishes as a resolvable thread), POST as above. The summary lists each only by subject plus "see its thread".
+7. Per kept own thread: `{"note":"<reply text>","in_reply_to_discussion_id":<id>,"resolve_discussion":true}`, POST as above.
+8. `{"note":<summary>,"reviewer_state":<requested_changes | reviewed>}` to `…/draft_notes/bulk_publish -X POST -H 'Content-Type: application/json' --input <file>`.
+9. Any create or publish fails → report the exact error line; delete created drafts (`…/draft_notes/<id> -X DELETE`); approved in step 4 → `…/unapprove -X POST`; the reviewer added in step 2 is reported, not reverted. Never publish a partial review.
+
+## Verify
+
+`glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions`: notes by Self with `system: false` and `id` above the baseline = inline count + General thread count + kept thread count + old drafts published + 1. Each kept thread: first note `resolved: true`; else `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT -F resolved=true`, re-check; still unresolved → mismatch `thread <id>`. `glab api -X GET projects/:id/merge_requests/<iid>/reviewers`: Self `state` matches. Approved → `…/approvals`: Self in `approved_by`.
+
+## Approve
+
+Approval is `…/approve` with the head `sha` (`## Publish` step 4), set only when A1–A7 pass and the user picks it (or `--yes`). Self already in `approved_by` → skipped, noted. A failed self-approval does not block the merge when `approvals_left` is 0.
+
+## Merge
+
+- Offered only when the `review.md` `## Verdict` merge items hold, `detailed_merge_status` is `mergeable` or `not_approved`, and approvals will be satisfied (`approvals_left` 0 after Self's approval). Options: the MR's own squash and delete-source settings, overridden by `--squash` / `--delete-branch` (an enforced squash wins, noted). Merge applies only with an approval, or when Self already approved; other combinations → `Merged: no (approval not given)`.
+- Run (after verify): re-fetch; `diff_refs.head_sha` changed → "new commits pushed", stop. `detailed_merge_status` `checking` or `approvals_syncing` → re-fetch up to 3 times. Require `state` `opened`, `detailed_merge_status` `mergeable`, and `…/approvals` `approvals_left` 0; else report the field, stop. `glab api projects/:id/merge_requests/<iid>/merge -X PUT -f sha=<head_sha> [-F squash=<bool>] [-F should_remove_source_branch=<bool>]` (the `sha` guards against new commits). Response `state` `merged` → done; other state without error → re-fetch, report `state`, `Merged: no (pending)`. `409` → "new commits pushed"; `405`/`406`/`422` → the exact error line and current `detailed_merge_status`; `401` → no merge permission. On any error the review and approval stay posted; stop.
+
+## API rules
+
+Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` `## API rules`. Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.

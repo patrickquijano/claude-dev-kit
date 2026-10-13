@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume|clear|compact",
+        "matcher": "startup|resume|clear|compact|fork",
         "hooks": [
           {
             "type": "command",
@@ -13,14 +13,60 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Checking git safety and release",
+            "if": "Bash(git *)"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Checking git safety and release",
+            "if": "Bash(gh *)"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Checking git safety and release",
+            "if": "Bash(glab *)"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Checking git safety and release",
+            "if": "Bash(claude *)"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_gitlab_gitlab__save_merge_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
+            "timeout": 120,
+            "statusMessage": "Checking git safety and release"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/plan-mode.mjs\"",
-            "timeout": 10,
-            "statusMessage": "Checking plan mode"
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-submit.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Preparing prompt context"
           }
         ]
       }
@@ -31,7 +77,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/format-lint.mjs\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-tool-use.mjs\"",
             "timeout": 300,
             "statusMessage": "Formatting and linting"
           }
@@ -44,8 +90,8 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop.mjs\"",
-            "timeout": 1000,
-            "statusMessage": "Running Stop checks"
+            "timeout": 600,
+            "statusMessage": "Formatting and linting repo"
           }
         ]
       }

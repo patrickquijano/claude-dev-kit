@@ -1,0 +1,66 @@
+// I/O helpers shared by every hook entry script: run-as-script guard, stdin, project dir, and output objects.
+import { realpathSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+
+// Cap for text a hook sends back to Claude.
+export const MAX = 8000;
+
+// True when `err.code` is one of `codes`: the guard for a catch that skips an expected condition (rethrow the rest).
+export const expected = (err, ...codes) => codes.includes(err?.code);
+
+const oneLine = (err) =>
+  String(err?.message ?? err)
+    .split('\n')[0]
+    .slice(0, 300);
+
+// Runs `fn` only when the module is the process entry script (not when imported by tests). This is the one error
+// boundary of an entry script: an error `fn` throws prints `cdk <label>: <message>` to stderr and sets exit code
+// `failCode` (1 is non-blocking; 2 makes a gate fail closed). A number `fn` returns becomes the exit code.
+export async function runIfMain(metaUrl, fn, { label = 'hook', failCode = 1 } = {}, argv = process.argv, io = {}) {
+  if (!argv[1] || metaUrl !== pathToFileURL(argv[1]).href) return;
+  const { stderr = (text) => process.stderr.write(text), setExit = (code) => (process.exitCode = code) } = io;
+  try {
+    const code = await fn();
+    if (typeof code === 'number') setExit(code);
+  } catch (err) {
+    stderr(`cdk ${label}: ${oneLine(err)}\n`);
+    setExit(failCode);
+  }
+}
+
+// Reads stdin asynchronously; sync reads of a piped fd 0 can throw EAGAIN on Windows.
+export async function readStdin(stream = process.stdin) {
+  let data = '';
+  for await (const chunk of stream) data += chunk;
+  return data;
+}
+
+// Parsed stdin object; throws when it is empty, invalid, or not an object (the harness always sends an object).
+export async function readJsonStdin(stream = process.stdin) {
+  const parsed = JSON.parse(await readStdin(stream));
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+    throw new TypeError('hook input is not a JSON object');
+  return parsed;
+}
+
+// Real project directory. Default order: CLAUDE_PROJECT_DIR, event cwd, process cwd; `prefer: 'cwd'` puts the event cwd first.
+// Throws when the directory does not exist.
+export function projectDir(input, deps = {}, { prefer } = {}) {
+  const d = { env: process.env, cwd: () => process.cwd(), realpath: realpathSync, ...deps };
+  const fromInput = typeof input?.cwd === 'string' && input.cwd ? input.cwd : '';
+  const first = prefer === 'cwd' ? [fromInput, d.env.CLAUDE_PROJECT_DIR] : [d.env.CLAUDE_PROJECT_DIR, fromInput];
+  return d.realpath(first.find(Boolean) || d.cwd());
+}
+
+// Hook output that adds context for Claude; extra top-level fields (systemMessage) go in `extra`.
+export const contextOutput = (event, text, extra = {}) => ({
+  ...extra,
+  hookSpecificOutput: { hookEventName: event, additionalContext: text }
+});
+
+// Hook output that blocks with a reason capped at MAX.
+export const blockOutput = (systemMessage, reason) => ({
+  systemMessage,
+  decision: 'block',
+  reason: reason.slice(0, MAX)
+});

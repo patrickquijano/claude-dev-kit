@@ -10,16 +10,16 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/speckit-chain.md` with prefix `speckit-assess-` and groups core and `assess`.
+- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/references/speckit-chain.md` with prefix `speckit-assess-` and groups core and `assess`.
 - Pass `slug=<slug>` to every step after intake. All five commands share the slug and write only to `.specify/assessments/<slug>/`.
 - Pre-approved exceptions to relaying questions: accept the slug intake suggests (step 3); during step 7 re-runs only, answer yes to overwriting artifacts in the current slug; on the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - `handoff=no` in the input (any position) → strip it from the idea; a go verdict then stops at step 6 without invoking run-spec-kit. Default: hand off.
 - Clarify loop (step 7): max 2 re-runs, then stop.
-- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../build-skill/orchestration.md`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/fallbacks.md`.
+- Chaining `cdk:run-spec-kit`: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/orchestration.md`.
+- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: ask-only; sources: `Next: blocking questions open` (list the questions), `Verdict: unknown`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `assess-spec-kit-idea`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Next: blocking questions open` (list the questions), `Verdict: unknown`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `assess-spec-kit-idea` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -31,8 +31,8 @@ Input: $ARGUMENTS
    - `go` → step 6.
    - `needs-clarification` → step 7.
    - `kill` → show the decisive reason from `## Verdict & Rationale`, report the output below with `Result: done`, `Resolution: none`, end.
-6. **Hand off.** Read the section whose heading starts with `## If go`, up to the next `##` heading. Section missing → `Next: none`, `Result: stopped`; run step 8 on the items the assessment left (open questions or risks in `decision.md`) without re-entering any loop, then print the Output with `Stopped: Hand off: no If go section` and end; none left → `Resolution: none`. `handoff=no` → `Next: handoff ready`, `Result: done`, `Resolution: none`, report, end. Else report the output below first, since run-spec-kit output would bury it, then invoke the `cdk:run-spec-kit` skill via the Skill tool with that section body verbatim as its argument; run-spec-kit owns the rest, including its post-converge review of open items.
-7. **Clarify.** 2 re-runs done → list the blocking questions, `Result: stopped`, `Stopped: Clarify: 2 re-runs, blocking questions open`, then step 8, stop; repeated blocks point to missing evidence only the user can gather. Else show the `**Blocking questions**` and `**Revisit stage**` from `decision.md`. Collect answers with AskUserQuestion, one question per blocking question, each with a Stop option (free text via Other). Answers → run `speckit-assess-<revisit stage> slug=<slug> <answers>` (intake also gets the idea from step 2), run every later stage through decide with `slug=<slug>`, then read the verdict again as in step 5. Any Stop → `Result: stopped`; run step 8 on the blocking questions still open without re-asking them or re-entering step 7, then print the Output with `Stopped: Clarify: user stopped` and end.
+6. **Hand off.** Read the `## If go` section of `decision.md`; unless `handoff=no`, report the Output first, then invoke `cdk:run-spec-kit` with it. Section missing or `handoff=no` → stop. Detail: `${CLAUDE_SKILL_DIR}/references/handoff.md`.
+7. **Clarify.** Max 2 re-runs. Show the blocking questions, collect answers with AskUserQuestion (Stop option), re-run the revisit stage and every later stage through decide, then read the verdict as in step 5. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
 8. **Resolve findings.** Per resolve-findings.md, once when the run ends with blocking questions open (list each question with its recommended answer path and who acts) or `Verdict: unknown`, including the step 5, 6, and 7 stops above, then print the Output with `Stopped:`; it never re-runs step 7, so the user is not asked again. A `go` or `kill` verdict with a handoff has no items; a step 2 cancel prints `Resolution: not run (cancelled)`.
 
 ## Output

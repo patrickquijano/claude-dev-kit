@@ -34,4 +34,4 @@ Open items: <count> | none
    b) <approach> — <files> (code: yes | no)
 ```
 
-Missing input (feature dir or file not found) → return `Question: <what is missing>` instead; the skill asks the user. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Missing input (feature dir or file not found) → return `Question: <what is missing>` instead; the skill asks the user. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

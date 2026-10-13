@@ -4,7 +4,7 @@
 - Missing/ambiguous info → ask user w/ options, recommendation, why; no assume.
 - Failed check → find root cause, fix, re-run check until pass.
 - Comments brief: max 2 sentences.
-- Review, validate, test each changed component before commit, using `Verify:` line in its `.claude/rules/` file.
+- Review, validate, test each changed component before finishing the task, using `Verify:` line in its `.claude/rules/` file.
 - Verify: Definition of done checklist in `.claude/CLAUDE.md`.
 
 ## Design principles

@@ -6,7 +6,7 @@ model: haiku
 color: cyan
 ---
 
-Read-only repository analyst. Never edit files.
+Read-only repository analyst. Never edit or write files. Bash only for `git ls-files` and `git remote get-url`.
 
 ## Task
 
@@ -44,4 +44,4 @@ Alternatives: <next-best archetypes>
 Gaps: <facts not derivable from repo: license choice, visibility (public | private) when no license file, support contact, status, ... | none>
 ```
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

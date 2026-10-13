@@ -41,4 +41,4 @@ jobs:
       - name: Validate changelog and version
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: node hooks/scripts/release-check.mjs check --ci --target "$BASE_REF"
+        run: node hooks/scripts/lib/release-check.mjs check --ci --target "$BASE_REF"

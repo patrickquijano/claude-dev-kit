@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `/cdk:ship-release` is now a skill that ships through a GitHub pull request or a GitLab merge request, chosen by the `origin` host: it switches off a protected branch, makes atomic signed commits, updates the version, changelog, and README, opens the PR or MR, reviews it, addresses open items, merges a clean one, and syncs the target branch.
+- `/cdk:prepare-change-request`, `/cdk:review-change-request`, and `/cdk:address-change-request-review` work on GitHub pull requests and GitLab merge requests alike, chosen by the `origin` host. They take `--yes` to skip only their confirmation asks, `--target`, `--draft`, `--dry-run`, `--squash`, `--delete-branch`, and `--self-review` where they apply, plus an optional PR or MR number.
+- Inline review comments on both hosts use Conventional Comments labels such as `issue (blocking)`, `suggestion`, `question`, and `nit`, and the review skips findings already discussed.
+- `cdk:review-change-request` replies to and resolves your own threads that the new code addresses, on GitHub as well as GitLab.
+- `cdk:address-change-request-review` keeps a state file, protects uncommitted changes, asks before pushing and before posting replies, and re-requests review on GitLab as well as GitHub.
+- The end-of-task hook now tells Claude to update the README and related docs when the task changed what they describe, before the commit step.
+- `/cdk:debug-issue` finds a bug's root cause from an error, stack trace, or failing test, proves it with a failing regression test, and fixes it after you confirm.
+- `/cdk:review-local-changes` reviews your unpushed commits and uncommitted changes before they are committed, with parallel read-only reviewers, then fixes the safe findings and asks about the rest.
+- `/cdk:setup-testing` sets up unit, integration, and end-to-end test tooling per package: it detects the stack, recommends a tester for each kind, installs and configures the missing ones in the stack's native folder layout, adds run scripts, and notes the commands in the project context. `/cdk:setup-project` and the `write-*-tests` skills chain it.
+- The plugin `PreToolUse` hook now guards git: it blocks force pushes, `--no-verify`, and `HUSKY=0`, and asks before `git reset --hard` and similar destructive commands, before the release check runs.
+
+### Changed
+
+- The end-of-task commit and Graphify update now run from the `UserPromptSubmit` hook instead of `Stop` hooks, and commit only the files that task changed. The same hook asks before entering plan mode on every prompt, with Claude weighing from its context whether to recommend entering or continuing, and leaves plan mode only for `#noplan`.
+- Hooks fail fast: expected conditions (no git repo, missing tool or state file, unwritable temp dir) skip silently, and any other error ends the hook with one `cdk <hook>: <message>` line on stderr instead of being swallowed. The release and validate gates exit 2 on such an error; every other hook and the Husky and `run-tests` copies exit 1.
+- Hook scripts are named after their event (`post-tool-use.mjs`, `stop.mjs`, `pre-tool-use.mjs`, `session-start.mjs`, `user-prompt-submit.mjs`) and their logic and shared helpers moved to `hooks/scripts/lib/`; update any command that vendors or calls the old script paths.
+- Hook runs on Windows reject arguments with `cmd.exe` metacharacters, and `npx` formatters run only when installed or configured.
+- **Breaking:** `cdk:prepare-change-request` no longer switches the source branch for you; it stops and suggests `/cdk:switch-branch`. Review and address skills ask before posting on GitLab, as they already did on GitHub.
+- **Breaking:** `/cdk:ship-release` commits atomically before opening the PR or MR and reviews it there, up to 3 rounds, instead of reviewing locally and making one commit. It asks once whether to squash and delete the source branch.
+- Skills follow the Agent Skills layout (`references/`, `assets/`, `scripts/`) and keep their shell commands in a per-skill `references/commands.md`; workflows are shorter and move conditional steps into topic files, so runs read less and load detail only when needed.
+- Known issues no longer need a commit: skill fixes are saved to `${CLAUDE_PLUGIN_DATA}/known-issues/<skill>.md`, shared across projects, and project fixes go to Claude auto memory. `cdk:write-claude-md` no longer generates a `## Known issues` section and moves existing entries to auto memory.
+
+### Removed
+
+- **Breaking:** `prepare-pull-request`, `prepare-merge-request`, `review-pull-request`, `review-merge-request`, `address-pull-request-review`, and `address-merge-request-review` are replaced by the three `*-change-request*` skills above, with no aliases. `cdk:mr-reviewer` and `cdk:review-thread-triager` are removed, and the `pr-*` reviewer and `pr-feedback-*` agents are renamed to `cr-*` and `cr-feedback-*`.
+- **Breaking:** the PR reviewer agents no longer review an uncommitted working tree, and the plugin no longer ships a `commands/` directory.
+- **Breaking:** `/cdk:setup-test-hook` and the `cdk:test-suite-analyzer` agent are removed in favor of `/cdk:setup-testing`; the project `Stop` test hook it installed is no longer set up.
+
 ## [2.1.0] - 2026-10-11
 
 ### Added

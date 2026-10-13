@@ -1,6 +1,6 @@
 ---
 name: run-spec-kit
-description: Run the full GitHub Spec Kit cycle from one feature brief. Split the brief into guiding principles, what and why, and implementation detail, then chain the speckit skills (constitution, specify, clarify, plan, checklist, tasks, analyze, implement, converge) without a gate before implementation, then address unchecked checklist items, open findings, and other open items over up to 5 rounds. Use only when the user explicitly asks to build or implement a feature with Spec Kit or to run the whole spec-driven development cycle, or when assess-spec-kit-idea hands off a go verdict. Do not use on your own after finishing a task.
+description: Run the full GitHub Spec Kit cycle from one feature brief: chain the speckit skills from constitution through implement and converge, then resolve open items over up to 5 rounds. Use only when the user explicitly asks to build a feature with Spec Kit, or when assess-spec-kit-idea hands off a go verdict. Do not use on your own after finishing a task.
 argument-hint: '<feature brief>'
 ---
 
@@ -10,13 +10,13 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/speckit-chain.md` with prefix `speckit-` and group core.
+- Follow `${CLAUDE_SKILL_DIR}/../setup-spec-kit/references/speckit-chain.md` with prefix `speckit-` and group core.
 - Pre-approved exceptions to relaying questions: accept the analyze remediation offer (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
 - Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items` agent per round, re-spawned at most once per round after it returns `Question:`.
 - The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/resolve-findings.md` (scope: edit; sources: `Open:` items, `Addressed:` skipped, `Analyze:` open, `Implement: not converged`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/known-issues.md` with slug `run-spec-kit`.
+- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Open:` items, `Addressed:` skipped, `Analyze:` open, `Implement: not converged`).
+- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `run-spec-kit` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
 
 ## Workflow
 
@@ -33,7 +33,7 @@ Input: $ARGUMENTS
 7. **Checklist.** Run `speckit-checklist <domain>`: the one or two words naming the area the what-and-why part mostly concerns (e.g. `ux`, `api`, `security`, `performance`).
 8. **Tasks.** Run `speckit-tasks`.
 9. **Analyze.** Run `speckit-analyze`. Findings with remediations → accept its remediation offer; analyze is read-only, so this skill applies the edits to `spec.md`, `plan.md`, and `tasks.md`, then run `speckit-analyze` once more to confirm. Findings left after the second run → list them, CRITICAL first, and carry them into step 10; implementation proceeds without a gate.
-10. **Implement, converge, address.** Run up to 5 rounds; keep a skip list and a fixed-awaiting-check list for the session. Each round: run `speckit-implement`, then `speckit-converge`, then address open items per `${CLAUDE_SKILL_DIR}/addressing.md`, which spawns `cdk:speckit-open-items` and decides whether to continue, finish, or stop. Stopped after 5 rounds → list the open items and unchecked tasks; repeated misses point to a spec or plan problem.
+10. **Implement, converge, address.** Run up to 5 rounds; keep a skip list and a fixed-awaiting-check list for the session. Each round: run `speckit-implement`, then `speckit-converge`, then address open items per `${CLAUDE_SKILL_DIR}/references/addressing.md`, which spawns `cdk:speckit-open-items` and decides whether to continue, finish, or stop. Stopped after 5 rounds → list the open items and unchecked tasks; repeated misses point to a spec or plan problem.
 11. **Resolve findings.** Per resolve-findings.md, once after step 10, including after a stop in it; the step itemizes the `Analyze:` and `Addressed:` counts and the agent's per-item approaches (its Recommended fix; `addressing.md` is not re-run, and ask nothing for items it already offered: report them `open`). Edit only spec and feature files this run wrote, limited to wording or clarity fixes validated by one extra `speckit-analyze` outside the step 9 cap (otherwise the item stays `open`); skipped CRITICAL items and checklist items the user skipped stay `accepted`; code, task, or meaning-changing edits stay `needs-decision`.
 
 ## Output

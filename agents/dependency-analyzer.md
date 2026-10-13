@@ -32,4 +32,4 @@ Outdated:
 Skipped: <package or project: reason, e.g. package manager not installed | none>
 ```
 
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to auto memory.
+Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
