@@ -1,6 +1,6 @@
 ---
 name: write-integration-tests
-description: Write integration tests for the repo stack, kept apart from unit tests. Pick a throwaway container, stub, or fake per boundary (database, HTTP, queues, storage, external APIs). Use only when the user explicitly asks to write integration tests, e.g. "add integration tests for the orders API". Do not use on your own after finishing a task.
+description: Writes integration tests for the repo stack, kept apart from unit tests. Picks a throwaway container, stub, or fake per boundary (database, HTTP, queues, storage, external APIs), writes the tests, and runs them until they pass. Use only when the user explicitly asks to write integration tests, e.g. "add integration tests for the orders API". Do not use on your own after finishing a task.
 argument-hint: '[paths | feature description]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(docker info *)
 ---
@@ -13,34 +13,40 @@ Input: $ARGUMENTS
 
 - Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Follow every rule in `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md` Shared rules, Faker libraries, and Integration; each says why.
-- User interaction (AskUserQuestion) and writes only here; `cdk:test-gap-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
-- Writes: test files and test-only config (compose file for test services, fixtures); tester installs and suite config (Jest `projects`, pytest markers, failsafe plugin, `integrationTest` task) belong to `cdk:setup-testing`; never production code (conventions.md Shared rules).
+- Follow `${CLAUDE_SKILL_DIR}/references/conventions.md` (shared rules, faker libraries, integration rules); each states why.
+- Only this skill asks and writes; `cdk:test-gap-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are handled here.
+- Writes: test files and test-only config (compose file for test services, fixtures). Tester installs and suite config belong to `cdk:setup-testing`. Never edit production code.
 - Never point tests at production or shared environments; only throwaway services, stubs, or fakes.
-- Caps: step 3 re-spawns an analyzer at most once, still open `Questions:` → `Stopped: 3: analyzer questions unresolved`; step 9 run-fix rounds at most 3, then `Stopped: 9: tests still failing after 3 rounds`.
-- Stop answer → print the Output with `Result: cancelled`, `Stopped: <step>: <reason>`, and end. The step 3 cap precedes any test, so print the Output with `Resolution: not run (stopped)`, `Result: stopped`, `Stopped: 3: analyzer questions unresolved`, and end. Any later cap hit or failure → run step 10 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Result: stopped`, `Stopped: <step>: <reason>`, and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: edit; sources: `Suspected bugs:`, `Baseline failures:` (including a skipped baseline), tests still failing after the round cap).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `write-integration-tests` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Caps: step 3 re-spawns an analyzer at most once (`Stopped: 3: analyzer questions unresolved`); step 4 re-spawns once more after setup (`Stopped: 4: tester still missing`); step 9 run-fix rounds at most 3 (`Stopped: 9: tests still failing after 3 rounds`); step 10 one pass.
+- Cancel answer → `Result: cancelled`. A stop or cap hit after tests exist → step 10 once on what is left, then `Result: stopped` with `Stopped: <step>: <reason>`.
+- AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended runs (chained, `--yes`, auto) ask nothing: take the Recommended pick and list leftovers in `Open:`.
+- Never delete or weaken a test to make it pass; a suspected production bug stays a failing test and is listed.
 
 ## Workflow
 
-1. **Pre-flight.** Project dir = Context → Repo root, else cwd. `git-dir` shows `rebase-merge`, `rebase-apply`, or `MERGE_HEAD` (rebase or merge in progress) → stop (`Stopped: 1: git operation in progress`). Probe `docker-info` once for container-based boundaries. From the input extract scope (paths, symbols, or a feature description; absent → `all`, the whole code base). Scope matches no file → AskUserQuestion with the closest fits.
-2. **Packages.** List files with `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); find manifests from `${CLAUDE_SKILL_DIR}/../setup-testing/references/stacks.md` Signals. Monorepo → one package each; else the project dir. Limit to packages the scope touches. JS packages: package manager per `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` Detect; ambiguous → ask here.
-3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package, all in one message, each with: package path, kind `integration`, scope, package manager (`n/a` for non-JS), and the paths of stacks.md and `${CLAUDE_SKILL_DIR}/../write-unit-tests/references/conventions.md`. Use its `Runner:`, `Faker:`, and `Conventions:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers (cap in Rules). `Known issue:` lines → known-issues rule.
-4. **Decide.** Per `Missing:` line and per decision with several fitting answers: runner and suite split (conventions.md Integration: separate from unit), and per dependency behind a boundary: container | HTTP stub (library from `Mocks:` when present) | fake (conventions.md Integration gives the recommendation and why): take the Recommended pick and report it; a `Missing:` runner, framework, or faker line → chain `cdk:setup-testing integration <package>` per `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md` (it asks, installs, and configures), then re-spawn that package's analyzer once more (own allowance, separate from the step 3 cap; still `Missing:` → `Stopped: setup-testing: tester still missing`); the chain `stopped` or `cancelled` → stop, relaying its `Stopped:` reason as `Stopped: <step>: setup-testing: <reason>`. Container picked and `docker-info` fails → use a fake for it and report it.
-5. **Practices.** WebFetch the runner's official docs, plus Testcontainers when a container was picked, per conventions.md Best practices rule; note runner-specific rules to apply.
-6. **Baseline.** Existing integration suite → read its config and env first; it targets a non-local host → skip the baseline run (may hit a shared environment) and report `Baseline failures: skipped (non-local host)`. Not skipped → run it. Failures → note them for the Output and continue without them (not this skill's to fix). Every boundary already covered (analyzer Targets `existing:`) → `Result: nothing-to-do`; with baseline failures or a skipped baseline, first run step 10 on them without re-entering the loop (else `Resolution: not run (nothing-to-do)`).
-7. **Plan.** Table per package: boundary `file:line`, dependency strategy, scenarios (success and failure paths), data setup and cleanup. Print it and continue to step 8 without asking.
-8. **Write.** Per boundary, in the project's conventions (style sample) and conventions.md Integration: AAA blocks, seeded faker data with unique keys, real wiring of the project's own components, the chosen strategy per dependency, cleanup per test.
-9. **Run.** Run the integration suite. Failure in a new test → test or setup bug: fix it; code looks wrong → conventions.md production-bug rule (keep failing, report). Re-run until every new test passes, except tests kept failing under the production-bug rule (cap in Rules).
-10. **Resolve findings.** Per resolve-findings.md. Fix only tests this run wrote. A suspected bug in production code stays `needs-decision`; never delete or weaken a test.
-11. **Report** the output below.
+1. **Pre-flight.** Root = Context, else cwd. Stop on a rebase or merge in progress (`git-dir`: `rebase-merge`, `rebase-apply`, `MERGE_HEAD`; `Stopped: 1: git operation in progress`). Run `docker-info` once. Scope = paths, symbols, or a description from the input; absent → `all`; no match → ask with the closest fits.
+2. **Packages.** `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); manifests per `${CLAUDE_SKILL_DIR}/references/stacks.md`. Monorepo → one package each, only those the scope touches. JS package manager per stacks.md; several lockfiles → ask.
+3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message (inputs in `flow.md` `## Analyze`); ask its `Questions:`, re-spawn once with answers.
+4. **Decide.** Take the Recommended pick per open choice and report it; `Missing:` tooling → chain `cdk:setup-testing integration <package>` (`flow.md` `## Decide`).
+5. **Practices.** WebFetch the runner's official docs (plus Testcontainers when a container is picked); note runner-specific rules. WebFetch unavailable → bundled rules only.
+6. **Baseline.** Run the existing integration suite unless it targets a non-local host (`flow.md` `## Baseline`). Every boundary already covered → `Result: nothing-to-do`.
+7. **Plan.** Print a table per package: boundary `file:line`, dependency strategy, scenarios (success and failure), data setup and cleanup. Continue without asking.
+8. **Write.** Per boundary, in the project's style: AAA blocks, seeded faker data with unique keys, real wiring of the project's own components, the chosen dependency strategy, cleanup per test.
+9. **Run.** Run the integration suite; fix test or setup bugs and re-run (cap in Rules). Code that looks wrong → keep the test failing and list it (`flow.md` `## Run`).
+10. **Open items.** One pass over baseline failures, suspected bugs, and tests still failing (`flow.md` `## Open items`).
+11. **Report.** Print the Output.
+
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For analyze inputs, decide, baseline, run, and open-item handling, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For shared test rules, faker libraries, and integration rules, see `${CLAUDE_SKILL_DIR}/references/conventions.md`.
+- For stack signals, runners, Recommended testers, package manager, and targeted runs, see `${CLAUDE_SKILL_DIR}/references/stacks.md`.
 
 ## Output
 
@@ -57,7 +63,7 @@ Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none | skipped (non-local host)
 Suspected bugs: <file:line — kept failing>, … | none
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <item: reason; recommended fix>, … | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
