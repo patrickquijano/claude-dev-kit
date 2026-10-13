@@ -30,7 +30,7 @@ Not covered (list as `uncovered`): `.sass` (indented syntax; Prettier and Stylel
 
 ## Versions
 
-Never pin or remember versions in this skill. Before any install or config write, `cdk:format-lint-analyzer` (`mode=versions`) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
+Never pin or remember versions in this skill. Before any install or config write, the analyzer (`mode=versions`) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
 
 Retained constraints (each applied only when the check fails; report under `Constraints`):
 

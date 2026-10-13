@@ -16,7 +16,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Analysis in a subagent: spawn `cdk:format-lint-analyzer` with `mode=detect` (step 2), `mode=versions` (step 6), `mode=check` (step 10). It cannot ask or install; relay its `Gaps` and an `unknown` manager with AskUserQuestion.
-- Agent input: root, mode, answers to earlier `Gaps`, and the paths `${CLAUDE_SKILL_DIR}/references/tools.md`, `package-manager.md`, `ignores.md`. `versions` adds the packages to install, the package dir, and the `tools.md` `## Versions` constraints; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
+- Agent input: root, mode, and answers to earlier `Gaps`. `versions` adds the packages to install and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Idempotent: installed tool → skip install; configured tool → keep its config; ignore entry present → skip. Never overwrite a user file; edits append only missing keys or entries.
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
