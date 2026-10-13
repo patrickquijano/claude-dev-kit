@@ -43,6 +43,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 8. **Resolve findings.** Per resolve-findings.md. Itemize each `Blocked:` item and each non-ok `Checks:` entry; never alter a released section (a needed fix there stays `needs-decision`) and never re-enter the review loop.
 9. **Report.** Print the Output.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For choosing the base (step 2), see `${CLAUDE_SKILL_DIR}/references/base.md`.
+- For the Keep a Changelog format, exclusions, and the review checklist, see `${CLAUDE_SKILL_DIR}/references/format.md`.
+- For release mode drafting (step 5), see `${CLAUDE_SKILL_DIR}/references/release.md`.
+- For the review loop (step 7), see `${CLAUDE_SKILL_DIR}/references/review.md`.
+
 ## Output
 
 ```text

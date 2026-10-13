@@ -2,6 +2,10 @@
 
 Source: Keep a Changelog 1.1.0 (<https://keepachangelog.com/en/1.1.0/>). An existing file's valid style (link format, tag prefix, header wording) wins over these defaults.
 
+## Contents
+
+- Template · Types · Entries · Exclusions · Workflows · Bad practices · Review checklist
+
 ## Template
 
 ```markdown
