@@ -1,6 +1,6 @@
 # GitHub conventions
 
-Host section of `cdk:prepare-change-request`, `cdk:review-change-request`, and `cdk:address-change-request-review` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. `cdk:ship-release` follows its own pre-flight. A change request here is a pull request.
+Host section for `cdk:prepare-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. A change request here is a pull request.
 
 ## Pre-flight
 
@@ -38,7 +38,7 @@ A selected ref must belong to a remote whose URL matches Repo's `url` or `sshUrl
 First hit wins; search names case-insensitively.
 
 1. `--template <v>`: first resolve a tracked repo path with `git ls-files` (`.github/PULL_REQUEST_TEMPLATE/<v>` or `<v>.md`, case-insensitive); else an existing file path outside the repo tree. Not found → stop (never fall back silently).
-2. Inferred kind (the SKILL.md template step) among `.github/PULL_REQUEST_TEMPLATE/*.md`, matched case-insensitively by name.
+2. Inferred kind (`flow.md` `## Template`) among `.github/PULL_REQUEST_TEMPLATE/*.md`, matched case-insensitively by name.
 3. Repository default: `.github/pull_request_template.md`, `.github/PULL_REQUEST_TEMPLATE.md`, `pull_request_template.md`, `PULL_REQUEST_TEMPLATE.md`, `docs/pull_request_template.md`.
 4. Bundled `${CLAUDE_SKILL_DIR}/assets/templates/<Kind>.md` (`Default` when no kind matches).
 
@@ -47,7 +47,7 @@ Read a tracked repo template with `git show HEAD:<path>` (path resolved via `git
 ## Managed section
 
 - Markers: `<!-- prepare-change-request:start -->` and `<!-- prepare-change-request:end -->`, each on its own line. A body written by the earlier `prepare-pull-request` skill carries `<!-- prepare-pull-request:start -->` / `:end -->` instead; treat that pair as the block, and write the new markers in its place.
-- The orchestrator writes review results only between them: summary, per-role status and counts, commands with exit codes, medium and low findings, limitations.
+- This skill writes review results only between them: summary, per-role status and counts, commands with exit codes, medium and low findings, limitations.
 - Update: replace the text between the markers; no markers → append the block after one blank line. Everything outside the markers stays byte-identical (read the body from the `gh pr list` JSON, not from memory).
 - Exactly one start and one end marker, in order; anything else (duplicate, missing end) → stop, ask the user to repair the body.
 
@@ -69,5 +69,5 @@ A title containing `'` is escaped as `'\''` inside single quotes.
 ## API rules
 
 - Reads: `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status` only.
-- Writes happen only in the orchestrator's write step: `git push`, `gh pr create`, `gh pr edit`, `gh pr ready`. None is pre-approved, so each gets a permission prompt.
+- Writes happen only in the write step: `git push`, `gh pr create`, `gh pr edit`, `gh pr ready`. None is pre-approved, so each gets a permission prompt.
 - Text goes through scratch files: `-F <scratch>/body.md` for the body. Never inline body text in shell args.

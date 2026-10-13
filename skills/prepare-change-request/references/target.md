@@ -1,3 +1,0 @@
-Details step 4 (Target). Host file sections: `${CLAUDE_SKILL_DIR}/references/github.md`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`.
-
-`--target <b>` → the list must hold exactly one ref whose branch part is `<b>` (several remotes → stop, name them); none → stop. Else Target = the default, no ask. No default found → print the whole list, AskUserQuestion with the four most recent branches plus Other (typed value must be in the list, else re-ask within the cap). GitHub: the selected ref's remote must match Repo (`github.md` `## Remote branches`). Target = its branch part; the target ref is `<remote>/<branch>`.
