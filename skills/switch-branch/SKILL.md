@@ -40,6 +40,10 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 7. **Switch.** `switch`; fail → report exact error line, stop (nothing pushed).
 8. **Push.** No origin → skip. `push` without asking; fail → report exact error line, stop.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+
 ## Output
 
 ```text
