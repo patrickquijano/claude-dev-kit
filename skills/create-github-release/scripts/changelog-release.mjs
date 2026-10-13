@@ -2,8 +2,27 @@
 // Writes only the `--notes-out` file. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { git } from './git-state.mjs';
-import { runIfMain } from './hook-io.mjs';
+import { spawnSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+
+const git = (cwd, args) => spawnSync('git', args, { cwd, maxBuffer: 1 << 28, timeout: 15_000, windowsHide: true });
+
+// Runs `fn` only when this module is the entry script; an error it throws prints one stderr line and sets exit code 1.
+async function runIfMain(metaUrl, fn, label) {
+  if (!process.argv[1] || metaUrl !== pathToFileURL(realpathSync(process.argv[1])).href) return;
+  try {
+    const code = await fn();
+    if (typeof code === 'number') process.exitCode = code;
+  } catch (err) {
+    process.stderr.write(
+      `${label}: ${String(err?.message ?? err)
+        .split('\n')[0]
+        .slice(0, 300)}\n`
+    );
+    process.exitCode = 1;
+  }
+}
 
 // Official SemVer 2.0.0 regex (semver.org).
 /* eslint-disable security/detect-unsafe-regex -- the official pattern, applied to a version string only */
@@ -258,4 +277,4 @@ export function main(argv, deps = {}) {
   return res.ok ? 0 : 1;
 }
 
-await runIfMain(import.meta.url, () => main(process.argv.slice(2)), { label: 'changelog-release' });
+await runIfMain(import.meta.url, () => main(process.argv.slice(2)), 'changelog-release');

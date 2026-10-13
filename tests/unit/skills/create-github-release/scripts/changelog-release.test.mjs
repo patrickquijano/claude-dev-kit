@@ -8,7 +8,7 @@ import {
   main,
   parseChangelog,
   plan
-} from '../../../../../hooks/scripts/lib/changelog-release.mjs';
+} from '../../../../../skills/create-github-release/scripts/changelog-release.mjs';
 
 const REPO = 'https://github.com/o/r';
 const CL = `# Changelog
