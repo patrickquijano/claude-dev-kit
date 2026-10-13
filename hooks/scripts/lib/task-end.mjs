@@ -1,7 +1,8 @@
 // End-of-task logic for the UserPromptSubmit dispatcher (user-prompt-submit.mjs): tell Claude what to do once the whole
-// task is done (run the unit tests, refresh the Graphify graph, update docs, then group, commit, and push this task's
+// task is done (run the unit tests, refresh the Graphify graph, add changelog entries, update docs, then group, commit, and push this task's
 // changes). Context only, no state.
 import { existsSync, realpathSync } from 'node:fs';
+import { join } from 'node:path';
 import { git, shipReleaseMarker, unsafeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist } from './graphify.mjs';
 import { contextOutput, projectDir } from './hook-io.mjs';
@@ -26,6 +27,7 @@ const unitTests = (cmd) =>
   `${STATUS} If this task changed code files (not only docs or config), run the unit tests with \`${cmd}\` (or the unit-test command CLAUDE.md documents, if different); on failure find the root cause, fix it, and re-run until they pass. Run integration and e2e suites only when asked or when the change touches their boundary.`;
 const GRAPHIFY_UPDATE = `${STATUS} If this task changed code files (not only docs or config), run \`graphify update .\` so the knowledge graph matches the code.`;
 const GRAPHIFY_BUILD = `${STATUS} If this task changed code files (not only docs or config), invoke the \`graphify\` skill with the argument \`.\` via the Skill tool to build the knowledge graph.`;
+const CHANGELOG = `${STATUS} If this task changed user-facing behavior (skills, agents, hooks, commands, or anything CHANGELOG.md covers), invoke the \`cdk:write-changelog\` skill via the Skill tool to add entries under Unreleased; never cut a release or bump the version. Otherwise skip this step.`;
 const DOCS = `${STATUS} If this task changed behavior, commands, paths, or components that README.md or related docs (CLAUDE.md, .claude/rules, skill references) describe, update them so they match; otherwise skip this step.`;
 const COMMIT = `${STATUS} If this task created, edited, or deleted files, invoke the \`cdk:commit-changes\` skill via the Skill tool with the argument \`paths: <the files this task created, edited, or deleted>\` to group them atomically and logically, commit, and push; files that were already dirty before this task stay out. If this task changed no files, skip this step.`;
 
@@ -53,7 +55,10 @@ export function decide(input, deps = realDeps) {
   if (inside.status !== 0) return parts;
   // /cdk:ship-release owns its commits while its marker exists.
   if (shipReleaseMarker(cwd, deps.git, deps.existsSync)) return parts;
-  if (!deps.unsafeState(cwd)) parts.push(DOCS, COMMIT);
+  if (!deps.unsafeState(cwd)) {
+    if (deps.existsSync(join(cwd, 'CHANGELOG.md'))) parts.push(CHANGELOG);
+    parts.push(DOCS, COMMIT);
+  }
   return parts;
 }
 

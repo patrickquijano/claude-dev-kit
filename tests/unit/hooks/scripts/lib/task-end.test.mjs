@@ -9,7 +9,8 @@ function make({
   marker = false,
   unsafe = false,
   badCwd = false,
-  unitTests = null
+  unitTests = null,
+  changelog = false
 } = {}) {
   return {
     env: { CLAUDE_PROJECT_DIR: '/repo' },
@@ -27,7 +28,7 @@ function make({
       }
       return { status: 0, stdout: Buffer.from('.git/cdk-ship-release\n') };
     },
-    existsSync: () => marker,
+    existsSync: (p) => (String(p).endsWith('CHANGELOG.md') ? changelog : marker),
     unsafeState: () => unsafe
   };
 }
@@ -239,6 +240,59 @@ test('decide puts the docs step between Graphify and the commit step', () => {
   assert.match(result[0], /graphify update/);
   assert.match(result[1], /README\.md or related docs/);
   assert.match(result[2], /cdk:commit-changes/);
+});
+
+test('decide puts the changelog step between Graphify and the docs step', () => {
+  // Arrange
+  const deps = make({ configured: true, present: true, changelog: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(result.length, 4);
+  assert.match(result[0], /graphify update/);
+  assert.match(result[1], /cdk:write-changelog/);
+  assert.match(result[2], /README\.md or related docs/);
+  assert.match(result[3], /cdk:commit-changes/);
+});
+
+test('decide forbids a release or version bump in the changelog step', () => {
+  // Arrange
+  const deps = make({ changelog: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /never cut a release or bump the version/);
+  assert.match(result[0], /otherwise skip this step/i);
+});
+
+test('decide omits the changelog step when CHANGELOG.md is missing', () => {
+  // Arrange
+  const deps = make({ changelog: false });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.equal(
+    result.some((p) => /write-changelog/.test(p)),
+    false
+  );
+});
+
+test('decide omits the changelog step while the ship-release marker exists', () => {
+  // Arrange
+  const deps = make({ marker: true, changelog: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
+});
+
+test('decide omits the changelog step in an unsafe git state', () => {
+  // Arrange
+  const deps = make({ unsafe: true, changelog: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.deepEqual(result, []);
 });
 
 test('decide tells Claude to skip the docs step when nothing documented changed', () => {
