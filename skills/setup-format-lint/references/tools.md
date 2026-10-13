@@ -1,6 +1,10 @@
 # Tools
 
-Catalog for `setup-format-lint`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML, Markdown); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits. For JS/TS, JSON, CSS/SCSS, HTML, Markdown, YAML, Dockerfile, PHP, C#, and XML, the cdk plugin's format-lint hooks (`hooks/scripts/lib/tools.mjs`) run the installed tools they know, so Claude's edits get formatted and linted automatically.
+## Contents
+
+- Candidates by file type · Versions · Install · Config files and defaults · Overlaps
+
+Catalog for `setup-format-lint`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML, Markdown); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits.
 
 ## Candidates by file type
 
@@ -62,7 +66,7 @@ Installed = npm package in `dependencies`/`devDependencies`, Composer package in
 
 ## Config files and defaults
 
-Format: tool — config file — recommended defaults — check command. `<x>` = the exec form for installed binaries from `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md` (`npx --no-install`, `pnpm exec`, `yarn`, `bunx --no-install`). Preference `.jsonc` > `.json` > `.yaml`. A tool that supports none of these uses its native format, as listed. Configured = any config file the tool reads already exists, including a `package.json` key. `none` = tool defaults are the recommendation; write no config and ask nothing.
+Format: tool — config file — recommended defaults — check command. `<x>` = the exec form for installed binaries from `package-manager.md` (`npx --no-install`, `pnpm exec`, `yarn`, `bunx --no-install`). Preference `.jsonc` > `.json` > `.yaml`. A tool that supports none of these uses its native format, as listed. Configured = any config file the tool reads already exists, including a `package.json` key. `none` = tool defaults are the recommendation; write no config and ask nothing.
 
 - Prettier — `.prettierrc.json` (Prettier reads no `.jsonc`) — `{ "printWidth": 120, "singleQuote": true, "trailingComma": "none" }`, plus `"plugins"` with `@prettier/plugin-xml` when Prettier formats XML and `@prettier/plugin-php` when it formats PHP — `<x> prettier --check .`.
 - ESLint — `eslint.config.mjs` (flat config is JavaScript only) — `defineConfig` with `@eslint/js` recommended on `**/*.{js,mjs,cjs}` and `globals` for the runtime (`globals.node`, `globals.browser`). TS files → add `tseslint.configs.recommended` from `typescript-eslint`. JSX files → `languageOptions.parserOptions.ecmaFeatures.jsx: true` on `**/*.jsx`. JSON linted → `import json from '@eslint/json'`, then `{ files: ['**/*.json'], ignores: ['package-lock.json'], plugins: { json }, language: 'json/json', extends: ['json/recommended'] }` and the same on `**/*.jsonc` with `language: 'json/jsonc'`. These sets have no stylistic rules, so ESLint does not conflict with Prettier — `<x> eslint .`.
@@ -70,8 +74,8 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 - markdownlint-cli2 — `.markdownlint-cli2.jsonc` — `"config": { "default": true, "MD013": false, "MD024": false, "MD025": false, "MD031": false, "MD032": false, "MD033": false, "MD041": false }`, each rule commented with its name (line-length, no-duplicate-heading, single-h1, blanks-around-fences, blanks-around-lists, no-inline-html, first-line-h1) — `<x> markdownlint-cli2 "**/*.md"`.
 - yamllint — `.yamllint.yaml` (YAML only) — `extends: default`, `rules: { line-length: { max: 120 } }` — `yamllint --strict .` (warnings fail, as in the format-lint Stop hook).
 - yamlfmt — `.yamlfmt.yaml` (YAML only) — `formatter: { include_document_start: true, pad_line_comments: 2, retain_line_breaks: true, max_line_length: 120 }`. These match yamllint `default` (document-start, 2 spaces before comments), so the two tools agree — `yamlfmt -lint .`.
-- hadolint — `.hadolint.yaml` (YAML only) — `ignored:` system package pins `DL3008` (apt-get), `DL3018` (apk), `DL3033` (yum), `DL3037` (zypper), `DL3041` (dnf); package-manager pins `DL3013` (pip), `DL3016` (npm), `DL3028` (gem), `DL3062` (go). hadolint has no Composer pin rule. Base image rules `DL3006` (untagged) and `DL3007` (`:latest`) stay on — `hadolint <Dockerfiles from step 2>`.
-- ShellCheck — `.shellcheckrc` — none — `shellcheck <shell files from step 2>`.
+- hadolint — `.hadolint.yaml` (YAML only) — `ignored:` system package pins `DL3008` (apt-get), `DL3018` (apk), `DL3033` (yum), `DL3037` (zypper), `DL3041` (dnf); package-manager pins `DL3013` (pip), `DL3016` (npm), `DL3028` (gem), `DL3062` (go). hadolint has no Composer pin rule. Base image rules `DL3006` (untagged) and `DL3007` (`:latest`) stay on — `hadolint <Dockerfiles from the detect step>`.
+- ShellCheck — `.shellcheckrc` — none — `shellcheck <shell files from the detect step>`.
 - shfmt — `.editorconfig` — none — `shfmt -d <shell files>`.
 - Ruff — `ruff.toml`, or `[tool.ruff]` in `pyproject.toml` — none — `ruff check .`.
 - Black — `[tool.black]` in `pyproject.toml` — none — `black --check .`.
@@ -95,9 +99,3 @@ Apply whatever each tool's config status is; append only missing entries.
 - Prettier used and another formatter chosen for XML or PHP → add `*.xml` or `*.php` to `.prettierignore`, and leave out its plugin, so one formatter owns each type.
 - Pint and PHP_CodeSniffer both chosen → warn: phpcs `PSR12` sniffs flag Pint `laravel` preset output; recommend PHPStan, or a phpcs ruleset matching the preset.
 - CSharpier and `dotnet format` both used → run only `dotnet format style` and `analyzers`, never bare `dotnet format` or `whitespace`, so CSharpier owns layout.
-
-## Ignore paths
-
-Syntax: the "Linters and formatters" list in `${CLAUDE_SKILL_DIR}/../setup-husky/references/ignores.md` (skip-when conditions included). Tools not listed there: Ruff `extend-exclude`, Black `extend-exclude` (regex), Flake8 `extend-exclude`, PHP-CS-Fixer `Finder->exclude()`, PHPStan `excludePaths.analyseAndScan`, PHP_CodeSniffer `<exclude-pattern>`, CSharpier `.csharpierignore`. HTMLHint has no ignore file: add `--ignore "<pattern>,…"` to its check command (it skips `**/node_modules/**` by default). `dotnet format` takes `--exclude <paths>` on its check commands. hadolint, ShellCheck, shfmt, gofmt, `go vet`, xmllint take explicit paths, so nothing to configure.
-
-Candidate paths (offer only those that exist): build output, coverage, and vendored deps = the generated and dependency patterns of the detected stacks in `${CLAUDE_SKILL_DIR}/../setup-git/references/ignores.md` (for example `dist/`, `build/`, `.next/`, `coverage/`, `vendor/`, `.venv/`, `target/`), so both skills share one list. Tool-specific extras: `out/`, lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lock`, `composer.lock`), generated hooks (`.husky/_/`). Every npm tool above skips `node_modules/` by default.
