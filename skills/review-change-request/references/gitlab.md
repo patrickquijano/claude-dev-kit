@@ -1,10 +1,19 @@
 # GitLab review conventions
 
-Host section of `cdk:review-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` (`## Pre-flight`, `## API rules`). Host-neutral rules: `review.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+Host section of `cdk:review-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Host-neutral rules: `flow.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
 
-## Review pre-flight
+## Contents
 
-None beyond the shared pre-flight; keep Self (`id`, `username`), Root, Scratch. Skip its detached-HEAD stop (a remote MR needs no branch).
+- Pre-flight · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
+
+## Pre-flight
+
+Run in order; any failure → report the exact error line and stop. A detached `HEAD` is fine (a remote MR needs no branch).
+
+1. `inside-tree` = `true`; Root = `root`; Branch = `branch`.
+2. `glab auth status` fails → stop, tell the user `glab auth login`.
+3. `glab api projects/:id` fails (origin is not a GitLab project) → stop. Keep it as Project (`id`, `path_with_namespace`, `default_branch`).
+4. Self = `glab api user` (`id`, `username`). Scratch = `scratch`.
 
 ## Select
 
@@ -53,9 +62,11 @@ Approval is `…/approve` with the head `sha` (`## Publish` step 4), set only wh
 
 ## Merge
 
-- Offered only when the `review.md` `## Verdict` merge items hold, `detailed_merge_status` is `mergeable` or `not_approved`, and approvals will be satisfied (`approvals_left` 0 after Self's approval). Options: the MR's own squash and delete-source settings, overridden by `--squash` / `--delete-branch` (an enforced squash wins, noted). Merge applies only with an approval, or when Self already approved; other combinations → `Merged: no (approval not given)`.
+- Offered only when the `flow.md` `## Verdict` merge items hold, `detailed_merge_status` is `mergeable` or `not_approved`, and approvals will be satisfied (`approvals_left` 0 after Self's approval). Options: the MR's own squash and delete-source settings, overridden by `--squash` / `--delete-branch` (an enforced squash wins, noted). Merge applies only with an approval, or when Self already approved; other combinations → `Merged: no (approval not given)`.
 - Run (after verify): re-fetch; `diff_refs.head_sha` changed → "new commits pushed", stop. `detailed_merge_status` `checking` or `approvals_syncing` → re-fetch up to 3 times. Require `state` `opened`, `detailed_merge_status` `mergeable`, and `…/approvals` `approvals_left` 0; else report the field, stop. `glab api projects/:id/merge_requests/<iid>/merge -X PUT -f sha=<head_sha> [-F squash=<bool>] [-f squash_commit_message="<MR title> (!<iid>)"] [-F should_remove_source_branch=<bool>]` (the `sha` guards against new commits). Pass `squash_commit_message` only when squash is true, so the squash commit is the MR title with no body. Response `state` `merged` → done; other state without error → re-fetch, report `state`, `Merged: no (pending)`. `409` → "new commits pushed"; `405`/`406`/`422` → the exact error line and current `detailed_merge_status`; `401` → no merge permission. On any error the review and approval stay posted; stop.
 
 ## API rules
 
-Per `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` `## API rules`. Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.
+- Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` (add `--paginate` for lists); none is pre-approved. A command starting `glab api -X GET` never carries a second `-X`/`--method` (the last one wins and would turn a read into a write).
+- Writes (POST, PUT, DELETE) start `glab api <endpoint> -X <METHOD>`, never the `-X GET` prefix. JSON bodies go to a scratch file and `--input <file>`; never inline user or model text in shell args; `-f`/`-F` only for API-sourced values (SHAs, ids) or fixed literals.
+- Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.

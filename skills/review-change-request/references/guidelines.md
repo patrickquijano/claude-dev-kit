@@ -2,6 +2,10 @@
 
 Bundled standard for `review-change-request` (GitHub pull requests and GitLab merge requests; "CR" below). Sources at bottom.
 
+## Contents
+
+- Checklist · Labels · Comment quality · Inline comment template · Overall comment template · Approval criteria · Review state · Sources
+
 ## Checklist
 
 Check each item against the diff, the CR title/description, and the repo's documented standards.
