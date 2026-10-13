@@ -1,17 +1,15 @@
 # Package Manager
 
-Shared JavaScript package rules for `setup-husky`, `setup-format-lint`, `setup-testing`, and the `write-*-tests` skills (and their `test-gap-analyzer` agent). `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
+Package rules for this skill. `.husky/commit-msg.mjs` repeats the detection order at run time; keep them in sync.
 
 ## Package dir
 
-For skills that install repo tooling into one package (Husky, formatters, linters):
+Hooks install into one package:
 
 - Git root `package.json` has `workspaces`, or git root has `pnpm-workspace.yaml` → git root (monorepo: repo tooling belongs at the root).
 - Else nearest `package.json` from cwd up to the git root, no question (that package owns the tooling).
 - None → git root.
 - `<pkg>` = package dir relative to the git root (`.` at the root).
-
-Test suites are per package instead: each package with its own `package.json` is a suite `cwd` (`setup-testing` step 1).
 
 ## Detect
 
@@ -19,7 +17,7 @@ Order, first match wins:
 
 1. `packageManager` field in the package's `package.json` → name before `@` (`pnpm@9.1.0+sha…` → pnpm).
 2. Lockfile in the package dir, then the git root: `pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm.
-3. No lockfile → npm (ships with Node), no question. Several lockfiles in the same dir → AskUserQuestion: npm (Recommended) | pnpm | yarn | bun. A subagent cannot ask: it reports `unknown` for conflicting lockfiles and the calling skill asks.
+3. No lockfile → npm (ships with Node), no question. Several lockfiles in the same dir → AskUserQuestion: npm (Recommended) | pnpm | yarn | bun.
 
 `command -v <pm>` fails → stop ("install <pm>").
 
