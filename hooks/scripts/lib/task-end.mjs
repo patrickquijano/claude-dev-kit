@@ -1,6 +1,6 @@
 // End-of-task logic for the UserPromptSubmit dispatcher (user-prompt-submit.mjs): tell Claude what to do once the whole
 // task is done (run the unit tests, refresh the Graphify graph, add changelog entries, update docs, then group, commit, and push this task's
-// changes). Every step is injected on every prompt; one is left out only when it cannot run (no test command, no graphify
+// changes; the changelog and commit steps ask the user first). Every step is injected on every prompt; one is left out only when it cannot run (no test command, no graphify
 // binary, no git, unsafe git state, ship-release marker for the commit). Context only, no state.
 import { existsSync, realpathSync } from 'node:fs';
 import { git, shipReleaseMarker, unsafeState } from './git-state.mjs';
@@ -28,9 +28,11 @@ const unitTests = (cmd) =>
 const GRAPHIFY_UPDATE = `${STATUS} If this task changed code files (not only docs or config), run \`graphify update .\` so the knowledge graph matches the code.`;
 const GRAPHIFY_BUILD = `${STATUS} If this task changed code files (not only docs or config), invoke the \`graphify\` skill with the argument \`.\` via the Skill tool to build the knowledge graph.`;
 const GRAPHIFY_SETUP = `${STATUS} If this task changed code files (not only docs or config) and \`graphify-out/\` is missing, suggest \`/cdk:setup-graphify\` to the user; do not build the graph yourself.`;
-const CHANGELOG = `${STATUS} If this task changed user-facing behavior (skills, agents, hooks, commands, or anything CHANGELOG.md covers), invoke the \`cdk:write-changelog\` skill via the Skill tool to add entries under Unreleased; never cut a release or bump the version. Otherwise skip this step.`;
+const ask = (topic, run, lean) =>
+  `first ask the user with AskUserQuestion whether to ${topic}: options "${run}" and "Skip"; put the one you recommend first and end its label with "(Recommended)", and give each option a one-line reason grounded in this task's changes. ${lean} On "${run}",`;
+const CHANGELOG = `${STATUS} If this task changed user-facing behavior (skills, agents, hooks, commands, or anything CHANGELOG.md covers), ${ask('update the changelog', 'Update changelog', 'Lean Skip when the change is internal only or Unreleased already covers it.')} invoke the \`cdk:write-changelog\` skill via the Skill tool to add entries under Unreleased; never cut a release or bump the version. On "Skip", or when nothing user-facing changed, skip this step.`;
 const DOCS = `${STATUS} If this task changed behavior, commands, paths, or components that README.md or related docs (CLAUDE.md, .claude/rules, skill references) describe, update them so they match; otherwise skip this step.`;
-const COMMIT = `${STATUS} If this task created, edited, or deleted files, invoke the \`cdk:commit-changes\` skill via the Skill tool with the argument \`paths: <the files this task created, edited, or deleted>\` to group them atomically and logically, commit, and push; files that were already dirty before this task stay out. If this task changed no files, skip this step.`;
+const COMMIT = `${STATUS} If this task created, edited, or deleted files, ${ask('commit and push them', 'Commit and push', 'Lean Skip when the work is unfinished, a check still fails, or the user said not to commit.')} invoke the \`cdk:commit-changes\` skill via the Skill tool with the argument \`paths: <the files this task created, edited, or deleted>\` to group them atomically and logically, commit, and push; files that were already dirty before this task stay out. On "Skip", or if this task changed no files, skip this step.`;
 
 // Ordered end-of-task steps for a prompt; empty when none apply.
 export function decide(input, deps = realDeps) {

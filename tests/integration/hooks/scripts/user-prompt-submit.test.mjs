@@ -135,7 +135,7 @@ test('cli: a task-notification prompt asks nothing', () => {
   );
   // Assert
   assert.equal(r.status, 0);
-  assert.doesNotMatch(r.stdout, /AskUserQuestion/);
+  assert.doesNotMatch(r.stdout, /whether to enter plan mode/);
 });
 
 test('cli: a question in plan mode prints the end-of-task steps only', () => {
@@ -147,7 +147,7 @@ test('cli: a question in plan mode prints the end-of-task steps only', () => {
   assert.equal(r.status, 0);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
   assert.match(ctx, /cdk:commit-changes/);
-  assert.doesNotMatch(ctx, /ExitPlanMode|AskUserQuestion/);
+  assert.doesNotMatch(ctx, /ExitPlanMode|whether to enter plan mode/);
 });
 
 test('cli: #noplan in plan mode prints the exit instruction', () => {
@@ -169,5 +169,5 @@ test('cli: a large change asks about plan mode before the commit step', () => {
   const out = JSON.parse(r.stdout);
   const ctx = out.hookSpecificOutput.additionalContext;
   assert.match(out.systemMessage, /^Plan mode: asking/);
-  assert.ok(ctx.indexOf('AskUserQuestion') < ctx.indexOf('cdk:commit-changes'));
+  assert.ok(ctx.indexOf('whether to enter plan mode') < ctx.indexOf('cdk:commit-changes'));
 });

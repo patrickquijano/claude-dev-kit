@@ -260,7 +260,49 @@ test('decide forbids a release or version bump in the changelog step', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.match(result[0], /never cut a release or bump the version/);
-  assert.match(result[0], /otherwise skip this step/i);
+  assert.match(result[0], /nothing user-facing changed, skip this step/i);
+});
+
+test('decide makes the changelog step ask first with Update changelog and Skip', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[0], /AskUserQuestion/);
+  assert.match(result[0], /"Update changelog" and "Skip"/);
+  assert.match(result[0], /\(Recommended\)/);
+});
+
+test('decide makes the commit step ask first with Commit and push and Skip', () => {
+  // Arrange
+  const deps = make();
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.match(result[2], /AskUserQuestion/);
+  assert.match(result[2], /"Commit and push" and "Skip"/);
+  assert.match(result[2], /\(Recommended\)/);
+});
+
+test('decide does not ask in the docs, unit-test, or Graphify steps', () => {
+  // Arrange
+  const deps = make({ installed: true, configured: true, present: true, unitTests: 'npm run test:unit' });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.doesNotMatch(result[0], /AskUserQuestion/);
+  assert.doesNotMatch(result[1], /AskUserQuestion/);
+  assert.doesNotMatch(result[3], /AskUserQuestion/);
+});
+
+test('decide has no ask at all in an unsafe git state', () => {
+  // Arrange
+  const deps = make({ unsafe: true });
+  // Act
+  const result = decide(prompt, deps);
+  // Assert
+  assert.doesNotMatch(result.join('\n'), /AskUserQuestion/);
 });
 
 test('decide keeps the changelog step when CHANGELOG.md is missing', () => {
