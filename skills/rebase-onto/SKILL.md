@@ -41,6 +41,13 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 8. **Push.** Always ask first; `push-lease` only when `upstream` = `origin/<current>`. Detail: `${CLAUDE_SKILL_DIR}/references/push.md`.
 9. **Resolve findings.** Per resolve-findings.md. Never edit code or redo the rebase here (history rewrites already had explicit asks); per item give impact, the recommended follow-up, and the command for the user to run.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For pre-flight, remote branches, and target selection (steps 1–3), see `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+- For the conflict loop (step 6), see `${CLAUDE_SKILL_DIR}/references/conflicts.md`.
+- For the push and lease rules (step 8), see `${CLAUDE_SKILL_DIR}/references/push.md`.
+
 ## Output
 
 ```text
