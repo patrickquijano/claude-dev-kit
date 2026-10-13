@@ -2,6 +2,10 @@
 
 Skeletons for the orchestrator and callee files. `<…>` is filled from the request, repo facts, and the resolver table; no value here is a real version. Rules and reasons: `practices.md`. Delete `#` comments from output.
 
+## Contents
+
+- Files · Orchestrator · Gate · Callee
+
 ## Files
 
 - `.github/workflows/<file>.yml`: orchestrator, one per trigger set; the file comes from the `practices.md` `## Naming` table (`ci.yml`, `release.yml`, `deploy.yml`, `scheduled.yml`, `manual.yml`).
