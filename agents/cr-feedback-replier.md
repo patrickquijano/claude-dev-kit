@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-replier
-description: Draft a concise, plain-English reply for each CR feedback item with its commit, validation result, and idempotency marker. Read-only. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively to draft a short reply per addressed PR or MR review item with its commit, validation result, and idempotency marker. Read-only.
 tools: Read
 model: sonnet
 color: green

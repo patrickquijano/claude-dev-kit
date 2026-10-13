@@ -1,6 +1,6 @@
 ---
 name: dependency-analyzer
-description: Analyze one project's dependencies for an upgrade - outdated packages, breaking changes, and the code each upgrade affects. Read-only. Spawned by the cdk:upgrade-dependencies skill; do not use directly.
+description: Use proactively before a dependency upgrade to find one project's outdated packages, their breaking changes, and the code each affects. Read-only.
 tools: Read, Glob, Grep, Bash, WebFetch
 model: sonnet
 color: cyan

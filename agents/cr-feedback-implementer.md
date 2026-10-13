@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-implementer
-description: Apply one planned group of change request review fixes, editing only the planned files. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively to apply one planned group of PR or MR review fixes, editing only the files the plan names.
 tools: Read, Edit, Write, Grep, Glob
 model: sonnet
 color: green

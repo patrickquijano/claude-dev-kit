@@ -1,6 +1,6 @@
 ---
 name: workflow-analyzer
-description: Collect repository facts for GitHub Actions workflows (existing workflows, reusables, Dependabot config, actions, commands per stack, services, environments, secret and variable names, naming, pinning policy, required checks). Read-only. Spawned by the cdk:write-github-workflows skill; do not use directly.
+description: Use proactively before writing GitHub Actions workflows to collect existing workflows, actions, stack commands, services, secrets, and pinning policy. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: cyan

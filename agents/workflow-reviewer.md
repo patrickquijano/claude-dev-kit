@@ -1,6 +1,6 @@
 ---
 name: workflow-reviewer
-description: Review generated GitHub Actions workflows against a practices file and return line-positioned findings. Read-only. Spawned by the cdk:write-github-workflows skill; do not use directly.
+description: Use proactively after writing GitHub Actions workflows to review them against a practices file and return line-positioned findings. Read-only.
 tools: Read, Grep, Bash
 model: sonnet
 color: purple

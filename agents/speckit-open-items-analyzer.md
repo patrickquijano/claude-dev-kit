@@ -1,6 +1,6 @@
 ---
 name: speckit-open-items-analyzer
-description: Find and classify open items in a Spec Kit feature after a converge round (findings, unchecked checklist items, clarification markers, open tasks) and propose grounded fix approaches for each. Read-only. Spawned by the cdk:run-spec-kit skill; do not use directly.
+description: Use proactively after a Spec Kit converge round to classify open findings, checklist items, markers, and tasks, with grounded fixes. Read-only.
 tools: Read, Grep, Glob
 model: sonnet
 color: orange

@@ -1,6 +1,6 @@
 ---
 name: cr-correctness-reviewer
-description: Review a branch diff (a committed head or a working-tree snapshot) for correctness bugs, regressions, and unintended changes; return structured findings. Read-only. Spawned by the cdk:prepare-change-request, cdk:review-change-request, cdk:review-local-changes skills; do not use directly.
+description: Use proactively to review a branch diff or working-tree snapshot for correctness bugs, regressions, and unintended changes. Read-only.
 tools: Read, Grep, Glob, Bash
 model: opus
 color: purple

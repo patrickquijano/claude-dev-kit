@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-collector
-description: Rank open pull or merge requests by unresolved review feedback, or normalize raw review data into feedback items. Read-only. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively to rank open PRs or MRs by unresolved review feedback, or to normalize raw review data into feedback items. Read-only.
 tools: Read
 model: haiku
 color: green

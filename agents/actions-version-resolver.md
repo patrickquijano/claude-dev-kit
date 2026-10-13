@@ -1,6 +1,6 @@
 ---
 name: actions-version-resolver
-description: Resolve the latest stable action, reusable-workflow, Ubuntu runner, and container or service image versions from authoritative sources, with commit SHAs or digests when pinning requires them. Read-only. Spawned by the cdk:write-github-workflows skill; do not use directly.
+description: Use proactively to resolve the latest stable GitHub Actions, runner, and container image versions, with SHAs or digests for pinning. Read-only.
 tools: Read, Bash, WebFetch
 model: sonnet
 color: cyan

@@ -1,6 +1,6 @@
 ---
 name: claude-md-scorer
-description: Score a project's CLAUDE.md and .claude/rules against the write-project-instructions 100-point rubric, verifying commands, paths, and globs against the repository. Read-only. Spawned by the cdk:write-project-instructions skill; do not use directly.
+description: Use proactively after editing CLAUDE.md or .claude/rules to score them against a 100-point rubric, verifying commands, paths, and globs. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: yellow

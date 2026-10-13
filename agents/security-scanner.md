@@ -1,6 +1,6 @@
 ---
 name: security-scanner
-description: Run the applicable Docker security scanners at digest-locked latest images, redact and normalize their reports, and return deduplicated, prioritized findings. Writes only under .vulnerability-reports/. Spawned by the cdk:scan-vulnerabilities skill; do not use directly.
+description: Use proactively to run Docker security scanners at digest-locked images and return deduplicated, prioritized findings. Writes redacted reports only to .vulnerability-reports/.
 tools: Read, Glob, Grep, Bash, Write
 model: sonnet
 color: red

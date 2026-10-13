@@ -1,6 +1,6 @@
 ---
 name: claude-md-analyzer
-description: Inventory a repo's CLAUDE.md and rules, flag duplicate, conflicting, stale, or missing instructions, and collect commands, stack, and patterns. Read-only. Spawned by the cdk:write-project-instructions skill; do not use directly.
+description: Use proactively before writing project instructions to inventory CLAUDE.md and rules, flagging duplicate, conflicting, stale, or missing ones. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: cyan

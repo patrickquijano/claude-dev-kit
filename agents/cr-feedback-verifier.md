@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-verifier
-description: Independently check every CR feedback item against the final diff and validation results, and flag regressions and unmapped changes. Read-only. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively to check each PR or MR feedback item against the final diff and validation results, flagging regressions and unmapped changes. Read-only.
 tools: Read, Grep, Glob, Bash
 model: opus
 color: purple

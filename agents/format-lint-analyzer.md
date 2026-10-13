@@ -1,6 +1,6 @@
 ---
 name: format-lint-analyzer
-description: Analyze a repo's formatter and linter setup: detect file types and roles, resolve latest stable tool versions, or run format and lint checks. Read-only. Spawned by the cdk:setup-format-lint skill; do not use directly.
+description: "Use proactively to analyze a repo's formatter and linter setup: file types and roles, latest stable tool versions, or check results. Read-only."
 tools: Read, Glob, Grep, Bash, WebFetch
 model: haiku
 color: cyan

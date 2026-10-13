@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-planner
-description: Classify CR feedback items, group them, and plan the smallest complete change per group. Read-only. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively to classify PR or MR review feedback, group it, and plan the smallest complete change per group. Read-only.
 tools: Read, Bash
 model: opus
 color: green

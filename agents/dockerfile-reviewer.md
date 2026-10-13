@@ -1,6 +1,6 @@
 ---
 name: dockerfile-reviewer
-description: Review a Dockerfile and .dockerignore against the write-dockerfile practices, run docker build --check and hadolint, and return line-positioned findings. Read-only. Spawned by the cdk:write-dockerfile skill; do not use directly.
+description: Use proactively after writing a Dockerfile to review it against best practices, run docker build --check and hadolint, and return line findings. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: purple

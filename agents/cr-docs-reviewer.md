@@ -1,6 +1,6 @@
 ---
 name: cr-docs-reviewer
-description: Review a committed branch diff for documentation, configuration, migration, and changelog requirements the change creates; return structured findings. Read-only. Spawned by the cdk:prepare-change-request skill; do not use directly.
+description: Use proactively to review a branch diff for the docs, config, migration, and changelog updates the change requires. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: purple

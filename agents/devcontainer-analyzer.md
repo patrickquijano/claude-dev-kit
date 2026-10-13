@@ -1,6 +1,6 @@
 ---
 name: devcontainer-analyzer
-description: Collect repository facts for a devcontainer - stacks, versions, services, ports, existing Docker files. Read-only. Spawned by the cdk:setup-devcontainer skill; do not use directly.
+description: Use proactively before writing a devcontainer to collect the repo's stacks, versions, services, ports, and Docker files. Read-only.
 tools: Read, Glob, Grep, Bash
 model: haiku
 color: cyan

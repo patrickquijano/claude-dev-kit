@@ -1,6 +1,6 @@
 ---
 name: test-gap-analyzer
-description: Analyze one package's test tooling, conventions, and untested targets for unit, integration, or end-to-end tests, or the tooling setup state of all three. Read-only. Spawned by the cdk:write-unit-tests, cdk:write-integration-tests, cdk:write-e2e-tests, and cdk:setup-testing skills; do not use directly.
+description: Use proactively to analyze one package's test tooling, conventions, and untested targets for unit, integration, or e2e tests. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: blue
