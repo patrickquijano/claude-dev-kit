@@ -1,6 +1,6 @@
 # Devcontainer practices
 
-Verified 2026-10-06 against containers.dev, code.visualstudio.com, github.com/devcontainers, docs.docker.com, docs.github.com, and code.claude.com. Apply every item that fits the repo; skip one only with a reason in the Output.
+Checked against containers.dev, code.visualstudio.com, github.com/devcontainers, docs.docker.com, docs.github.com, and code.claude.com. Apply every item that fits the repo; skip one only with a reason in the Output.
 
 ## Location and format
 
@@ -92,7 +92,9 @@ Arguments for `cdk:write-dockerfile`, space-separated `key=value`, values with s
 
 ## Checks
 
-- `node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' <devcontainer.json>`.
-- `devcontainer read-configuration --workspace-folder <root> --config <devcontainer.json>` when `@devcontainers/cli` is installed (`npm install -g @devcontainers/cli`). <https://github.com/devcontainers/cli>
-- Compose → `docker compose -f <dev compose files…> config --quiet` when docker is installed.
-- `devcontainer up --workspace-folder <root>` pulls images and runs lifecycle commands → only when the user asks.
+Run by name from `commands.md`.
+
+- `json-check` on each devcontainer.json.
+- `read-configuration` when `@devcontainers/cli` is installed (`npm install -g @devcontainers/cli`). <https://github.com/devcontainers/cli>
+- Compose → `compose-config` on the dev compose files when docker is installed.
+- `devcontainer-up` pulls images and runs lifecycle commands → only when the user asks.
