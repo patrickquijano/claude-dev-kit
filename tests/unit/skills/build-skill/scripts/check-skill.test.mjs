@@ -283,7 +283,52 @@ describe('checkLinks', () => {
 });
 
 describe('checkStandalone', () => {
-  const run = (files) => checkStandalone(Object.keys(files).sort(), '/d', makeDeps(files));
+  const run = (files, allow) => checkStandalone(Object.keys(files).sort(), '/d', makeDeps(files), allow);
+
+  test('passes a link into an allowed directory', () => {
+    // Arrange
+    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../shared/references/x.md`' };
+    // Act
+    const found = run(files, ['skills/shared/']);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('passes an exact allowed file and a ${CLAUDE_PLUGIN_ROOT}/skills/ path under allow', () => {
+    // Arrange
+    const files = {
+      'references/a.md': '[c](../../commit-changes/references/conventions.md)',
+      'SKILL.md': '`${CLAUDE_PLUGIN_ROOT}/skills/shared/references/y.md`'
+    };
+    // Act
+    const found = run(files, ['skills/commit-changes/references/conventions.md', 'skills/shared/']);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('errors on a link outside every allowed path', () => {
+    // Arrange
+    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../other/x.md`' };
+    // Act
+    const found = run(files, ['skills/shared/']);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.id),
+      ['link-outside']
+    );
+  });
+
+  test('errors on a sibling file next to an allowed file', () => {
+    // Arrange
+    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../commit-changes/references/other.md`' };
+    // Act
+    const found = run(files, ['skills/commit-changes/references/conventions.md']);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.id),
+      ['link-outside']
+    );
+  });
 
   test('passes an in-skill ../ link from references/', () => {
     // Arrange
@@ -444,7 +489,7 @@ describe('parseArgs', () => {
     // Act
     const args = parseArgs(argv);
     // Assert
-    assert.deepEqual(args, { dir: 'skills/x', kind: 'task' });
+    assert.deepEqual(args, { dir: 'skills/x', kind: 'task', allow: [] });
   });
 
   test('parses a directory alone', () => {
@@ -453,7 +498,7 @@ describe('parseArgs', () => {
     // Act
     const args = parseArgs(argv);
     // Assert
-    assert.deepEqual(args, { dir: 'skills/x', kind: undefined });
+    assert.deepEqual(args, { dir: 'skills/x', kind: undefined, allow: [] });
   });
 
   test('rejects no directory and an unknown kind', () => {
@@ -462,6 +507,34 @@ describe('parseArgs', () => {
     const bad = ['x', '--kind', 'weird'];
     // Act
     const results = [parseArgs(none), parseArgs(bad)];
+    // Assert
+    assert.deepEqual(results, [{ usage: true }, { usage: true }]);
+  });
+
+  test('collects each repeated --allow path', () => {
+    // Arrange
+    const argv = ['skills/x', '--allow', 'skills/shared/', '--allow', 'skills/a/references/b.md'];
+    // Act
+    const args = parseArgs(argv);
+    // Assert
+    assert.deepEqual(args.allow, ['skills/shared/', 'skills/a/references/b.md']);
+  });
+
+  test('parses --allow before the directory', () => {
+    // Arrange
+    const argv = ['--allow', 'skills/shared/', 'skills/x'];
+    // Act
+    const args = parseArgs(argv);
+    // Assert
+    assert.deepEqual(args, { dir: 'skills/x', kind: undefined, allow: ['skills/shared/'] });
+  });
+
+  test('rejects --allow without a path', () => {
+    // Arrange
+    const missing = ['skills/x', '--allow'];
+    const flagNext = ['skills/x', '--allow', '--kind', 'task'];
+    // Act
+    const results = [parseArgs(missing), parseArgs(flagNext)];
     // Assert
     assert.deepEqual(results, [{ usage: true }, { usage: true }]);
   });

@@ -24,7 +24,7 @@ const defaults = {
   error: (line) => console.error(line)
 };
 
-const USAGE = 'usage: check-skill.mjs <skill-dir> [--kind task|reference|background-only]';
+const USAGE = 'usage: check-skill.mjs <skill-dir> [--kind task|reference|background-only] [--allow <plugin-path>]...';
 const KINDS = ['task', 'reference', 'background-only'];
 // Copied from the Fields table in references/frontmatter.md.
 const KNOWN_FIELDS = new Set([
@@ -262,12 +262,21 @@ export function checkLinks(skillMd, files) {
 
 const SCRIPT = /\.(mjs|js|cjs)$/;
 
-// L3: nothing in the skill may reference a path outside its own directory (another skill, the plugin root, ../..).
-export function checkStandalone(files, dir, deps = defaults) {
+// True when a plugin-relative path equals an allowed path or sits under an allowed directory (entry ending in "/").
+function isAllowed(pluginPath, allow) {
+  return allow.some((a) => pluginPath === a || (a.endsWith('/') && pluginPath.startsWith(a)));
+}
+
+// L3: nothing in the skill may reference a path outside its own directory (another skill, the plugin root, ../..), except paths in `allow`.
+export function checkStandalone(files, dir, deps = defaults, allow = []) {
   const found = [];
+  const skillName = basename(resolve(dir));
   const outside = (file, line, what) =>
     found.push(error('link-outside', 'L3', file, line, `${what} leaves the skill directory`));
-  const leaves = (file, target) => posix.join(posix.dirname(file), target).startsWith('..');
+  const leaves = (file, target) => {
+    const joined = posix.join(posix.dirname(file), target);
+    return joined.startsWith('..') && !isAllowed(posix.join('skills', skillName, joined), allow);
+  };
   for (const file of files) {
     const isMd = file.endsWith('.md');
     const isScript = file.startsWith('scripts/') && SCRIPT.test(file);
@@ -285,9 +294,12 @@ export function checkStandalone(files, dir, deps = defaults) {
           return;
         }
         for (const m of line.matchAll(/\$\{CLAUDE_SKILL_DIR\}\/([^\s`)'"\]]+)/g)) {
-          if (posix.normalize(m[1]).startsWith('..')) outside(file, at, `link "${m[1]}"`);
+          if (leaves('SKILL.md', m[1])) outside(file, at, `link "${m[1]}"`);
         }
-        if (/\$\{CLAUDE_PLUGIN_ROOT\}\/skills\//.test(line)) outside(file, at, 'a ${CLAUDE_PLUGIN_ROOT}/skills/ path');
+        for (const m of line.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/(skills\/[^\s`)'"\]]*)/g)) {
+          if (!isAllowed(posix.normalize(m[1].replace(/[.,;:*]+$/, '')), allow))
+            outside(file, at, 'a ${CLAUDE_PLUGIN_ROOT}/skills/ path');
+        }
         if (!nested) return;
         const targets = [...line.matchAll(/\]\(([^)\s#]+)/g)].map((m) => m[1]).filter((t) => !/^([a-z]+:|\/)/i.test(t));
         targets.push(...[...line.matchAll(/`(\.\.\/[^`\s]*)`/g)].map((m) => m[1]));
@@ -314,7 +326,7 @@ export function checkReferences(files, dir, deps = defaults) {
 }
 
 // Runs every check on one skill directory.
-export function checkSkill(dir, { kind } = {}, deps = defaults) {
+export function checkSkill(dir, { kind, allow = [] } = {}, deps = defaults) {
   const files = deps.list(dir);
   const found = [...checkLayout(files)];
   if (files.includes('SKILL.md')) {
@@ -330,25 +342,31 @@ export function checkSkill(dir, { kind } = {}, deps = defaults) {
     found.push(...checkLinks(content, files));
     found.push(...checkReferences(files, dir, deps));
   }
-  found.push(...checkStandalone(files, dir, deps));
+  found.push(...checkStandalone(files, dir, deps, allow));
   const strip = (f) => ({ id: f.id, rubric: f.rubric, file: f.file, line: f.line, message: f.message });
   const errors = found.filter((f) => f.level === 'error').map(strip);
   const warnings = found.filter((f) => f.level === 'warning').map(strip);
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// Parses argv into { dir, kind } or { usage: true } on bad input.
+// Parses argv into { dir, kind, allow } or { usage: true } on bad input.
 export function parseArgs(argv) {
   const rest = [];
+  const allow = [];
   let kind;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--kind') {
       kind = argv[i + 1];
       i += 1;
       if (!KINDS.includes(kind)) return { usage: true };
+    } else if (argv[i] === '--allow') {
+      const path = argv[i + 1];
+      i += 1;
+      if (!path || path.startsWith('--')) return { usage: true };
+      allow.push(posix.normalize(path));
     } else rest.push(argv[i]);
   }
-  return rest.length === 1 ? { dir: rest[0], kind } : { usage: true };
+  return rest.length === 1 ? { dir: rest[0], kind, allow } : { usage: true };
 }
 
 // Returns the exit code: 0 ok, 1 errors, 2 bad usage.
@@ -360,7 +378,7 @@ export function main(argv, deps = defaults) {
   }
   let result;
   try {
-    result = checkSkill(args.dir, { kind: args.kind }, deps);
+    result = checkSkill(args.dir, { kind: args.kind, allow: args.allow }, deps);
   } catch (err) {
     if (err?.code !== 'ENOENT') throw err;
     deps.error(`check-skill: ${args.dir} not found`);

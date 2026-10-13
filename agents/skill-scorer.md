@@ -16,7 +16,7 @@ Strict skill auditor. Never edit files. Score only from evidence in the files.
    - B1: count `SKILL.md` lines from a full Read.
    - F3: Grep `^description: .{1025,}` and `^when_to_use:` to bound the lengths; 1,536 combined needs the lines read.
    - L2: Glob the directory; a file outside `SKILL.md`, `references/`, `assets/`, `scripts/`, or never linked from `SKILL.md` is a deduction.
-   - L3: Glob each linked path (`${CLAUDE_SKILL_DIR}` = the skill directory).
+   - L3: Glob each linked path (`${CLAUDE_SKILL_DIR}` = the skill directory); a link into another skill is fine only when it matches an allowlisted path from the prompt.
    - B6: Grep for `` !` `` and `${`; check fallbacks and that none sit in `references/`.
 4. Total = the sum of the Pts column; write the addition out term by term.
 

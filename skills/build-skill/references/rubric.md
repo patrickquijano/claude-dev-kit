@@ -36,11 +36,11 @@
 
 ## Layout (8)
 
-| ID  | Pts | Criterion                                                                                      | Rule                   |
-| --- | --- | ---------------------------------------------------------------------------------------------- | ---------------------- |
-| L1  | 3   | Directory sits at the chosen scope's path                                                      | decide.md Scope        |
-| L2  | 2   | S: Only `SKILL.md`, `references/`, `assets/`, `scripts/`; every bundled file is linked         | B Lazy loading, Don'ts |
-| L3  | 3   | S: Every link resolves to an existing file inside the skill directory (no other skill's files) | B Lazy loading         |
+| ID  | Pts | Criterion                                                                                                                           | Rule                   |
+| --- | --- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| L1  | 3   | Directory sits at the chosen scope's path                                                                                           | decide.md Scope        |
+| L2  | 2   | S: Only `SKILL.md`, `references/`, `assets/`, `scripts/`; every bundled file is linked                                              | B Lazy loading, Don'ts |
+| L3  | 3   | S: Every link resolves to an existing file inside the skill directory (no other skill's files, except paths the caller allowlisted) | B Lazy loading         |
 
 ## Quality (12)
 

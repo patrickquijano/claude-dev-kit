@@ -80,6 +80,16 @@ describe('check-skill CLI', () => {
     );
   });
 
+  test('exits 0 when --allow covers the linked path', () => {
+    // Arrange
+    const dir = join(root, 'link-other');
+    // Act
+    const result = run(dir, '--kind', 'task', '--allow', 'skills/other/x.md');
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(JSON.parse(result.stdout).ok, true);
+  });
+
   test('exits 2 on bad usage', () => {
     // Arrange
     const args = ['--kind', 'nope'];

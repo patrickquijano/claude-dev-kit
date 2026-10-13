@@ -4,7 +4,7 @@ Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then fixes.
 
 ## Run the check
 
-- Run `check-skill` from `commands.md` with `<skill-dir>` and `--kind` (`task`, `reference`, or `background-only`). It prints `{ok, errors, warnings}`; exit 0 ok, 1 errors, 2 bad usage (fix the call, do not retry blindly).
+- Run `check-skill` from `commands.md` with `<skill-dir>` and `--kind` (`task`, `reference`, or `background-only`). It prints `{ok, errors, warnings}`; exit 0 ok, 1 errors, 2 bad usage (fix the call, do not retry blindly). When the target is the cdk plugin itself, pass one `--allow` per path in `.claude/rules/skills.md` "Shared files" and give the scorer the same list; any other target gets none.
 - Each finding has `id`, `rubric`, `file`, `line`, `message`. A warning (such as `name-actor`) is not an error but the scorer judges it.
 
 ## Spawn the scorer
