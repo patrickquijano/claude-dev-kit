@@ -39,6 +39,10 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 6. **Report.** Print the Output.
 7. **Resolve findings.** Per resolve-findings.md. Itemize each `Blocked:` item and each non-ok `Checks:` entry; then print the Output if step 6 did not run.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+
 ## Output
 
 ```text
