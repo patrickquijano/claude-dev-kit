@@ -43,6 +43,15 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 7. **Resolve findings.** Per resolve-findings.md. Runs once after any stop from step 2 onward (conflict, sync failure, `tag-mismatch`, rejected push, `release-create-failed`); `release-exists` is `nothing-to-do` and skips it; pre-flight stops and a cancel at step 5 skip it (`Resolution: not run`). Itemize `Blocked:`, failed `Checks:`, and `Stopped:` with the recommended fix and who acts.
 8. **Report.** Print the Output.
 
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For pre-flight (step 1), see `${CLAUDE_SKILL_DIR}/references/preflight.md`.
+- For sync failure paths (step 2), see `${CLAUDE_SKILL_DIR}/references/sync.md`.
+- For the state check (step 4), see `${CLAUDE_SKILL_DIR}/references/state.md`.
+- For notes rendering and sources, see `${CLAUDE_SKILL_DIR}/references/release-notes.md`.
+- For tag and release creation (step 6), see `${CLAUDE_SKILL_DIR}/references/create.md`.
+
 ## Output
 
 ```text
