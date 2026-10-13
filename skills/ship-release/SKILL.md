@@ -1,8 +1,8 @@
 ---
 name: ship-release
-description: Ship current changes end to end through a GitHub pull request or GitLab merge request: atomic signed commits, version, changelog, README, PR or MR, review rounds, merge when clean, and target sync. Use only when the user explicitly asks to ship a change, e.g. "ship this". Not for tagging a release (use create-github-release). Do not use on your own after finishing a task.
+description: Ships current changes end to end through a GitHub pull request or GitLab merge request: atomic signed commits, version, changelog, README, PR or MR, review rounds, merge when clean, and target sync. Use only when the user explicitly asks to ship a change, e.g. "ship this". Not for tagging a release (use create-github-release). Do not use on your own after finishing a task.
 argument-hint: '[--target <branch>]'
-allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash(gh --version) Bash(glab --version) Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git rev-list *) Bash(git merge-base *) Bash(git cherry *) Bash(gh run list *) Bash(gh run view *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(node ${CLAUDE_SKILL_DIR}/../../hooks/scripts/lib/release-check.mjs *) Bash(gh auth status) Bash(glab auth status) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr checks *) Bash(glab mr list *) Bash(glab mr view *) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
+allowed-tools: Bash(git --version) Bash(node --version) Bash(npx --version) Bash(gh --version) Bash(glab --version) Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git config --get *) Bash(git fetch --prune origin) Bash(git rev-list *) Bash(git merge-base *) Bash(gh run list *) Bash(gh run view *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(gh auth status) Bash(glab auth status) Bash(gh pr list *) Bash(gh pr view *) Bash(gh pr checks *) Bash(glab mr list *) Bash(glab mr view *) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---
 
 # Ship Release
@@ -18,40 +18,44 @@ Input: $ARGUMENTS
 - Node version: !`node --version 2>/dev/null || echo '<none>'`
 - npx version: !`npx --version 2>/dev/null || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Orchestration per `${CLAUDE_SKILL_DIR}/../shared/references/orchestration.md`; this skill runs in the main thread, chains skills via the Skill tool, and repeats none of their git, `gh`, or `glab` work.
+- Orchestrator in the main thread: chain skills through the Skill tool (never the Agent tool, never `context: fork`), read each `Result:`, and repeat none of their git, `gh`, or `glab` work. `stopped` or `cancelled` from a chained skill is a blocker for that step; `nothing-to-do` is not.
 - Host from Context → Origin: `github.com` → GitHub PR flow (`gh`); any other host → GitLab MR flow (`glab`).
-- Invoking this skill is the consent for atomic signed commits, normal pushes, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing, never `--admin`). Squash and source-branch deletion are asked once (step 6).
+- Invoking this skill is the consent for atomic signed commits, normal pushes, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing). Squash and source-branch deletion are asked once (step 6). The version bump is still confirmed by `cdk:bump-version`.
 - Never force-push, `--admin`, `--no-verify`, `git reset --hard`, or delete `main`. Never bypass a hook, check, or required review.
+- Release logic lives only in `cdk:bump-version`; never read or run its script, never edit a version file.
 - Every step is idempotent and resumes from the observed state (branch, commits, PR or MR, version, merge state), so a re-run continues instead of repeating.
-- Caps: 3 review-address-re-review rounds, 2 check waits of 30 minutes each, 2 blocker attempts per blocker; a cap hit stops that step and follows `## Blockers` (`${CLAUDE_SKILL_DIR}/references/blockers.md`).
-- Own PR or MR: GitHub rejects a self `APPROVE` or `REQUEST_CHANGES`, so the review is posted as `COMMENT` and a clean verdict (no `(blocking)` comment) with passing required checks counts as approval; any `(blocking)` comment counts as changes requested. GitLab approves for real when the project allows author approval, else the same rule.
-- Review comments use Conventional Comments: `issue (blocking)` (critical, high), `suggestion (non-blocking)` (medium, low), `question`, `nitpick`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md` (squash and delete default to the recommended options).
-- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only; sources: `Blockers:` entries, `Release: not shipped`, `Steps: … incomplete`, `Main: not synced`, `Merged: no (<reasons>)`, open `Resolution:` lines of the chained skills).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `ship-release` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Caps: 3 review-address-re-review rounds, 2 check waits of 30 minutes each, 2 attempts per blocker; a cap hit stops that step and follows `## Blockers` in `flow.md`.
+- Review comments use Conventional Comments: `issue (blocking)` (critical, high), `suggestion (non-blocking)` (medium, low), `question`, `nitpick`. An own PR is reviewed as `COMMENT`; a clean verdict with passing checks counts as approval.
+- AskUserQuestion unavailable → ask the pending question as plain text with its options and end the turn; squash and delete default to the recommended options. Unattended runs ask only the bump confirmation, and report what is left.
+- The hold marker is written at pre-flight and deleted on every path out after that, including a stop; if interrupted, delete it (`marker-path`, `remove-marker`).
 
 ## Workflow
 
-1. **Pre-flight.** Context → Git, Node, and npx version (`<none>` → blocker), plus `gh-version` or `glab-version`; Context → Repo root; auth (`gh-auth` or `glab-auth`); signing, target, `fetch`. Any failure → blocker; a pre-flight stop prints `Resolution: not run (stopped)` and ends the run. Otherwise write the hold marker last (Write tool, absolute path from `marker-path`); the plugin's end-of-task hook skips this tree until step 10 deletes it. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
-2. **Resume detection.** Current = Context → Branch; its PR or MR = the open one (`gh-pr-list`, or `glab-mr-list`), else the latest. Merged or nothing to ship → step 9; open PR or MR with a clean tree → step 5; else continue at step 3. Detail: `${CLAUDE_SKILL_DIR}/references/resume.md`.
-3. **Branch.** On the target or a protected branch (per `conventions.md` `## Protected branch`) with changes (dirty tree, or `unshipped-count` > 0) → invoke `cdk:switch-branch`; step 9 then reconciles local `<target>`.
-4. **Commit.** Dirty tree → invoke `cdk:commit-changes` (atomic, signed, pushed). A clean tree with unpushed commits needs no step here; step 7 pushes them.
-5. **Release files.** `.claude/release-policy.json` present → invoke `cdk:bump-version target <target>` (it always asks the user to confirm the bump, and chains `cdk:write-changelog`); else invoke `cdk:write-changelog base <target>` (creates `CHANGELOG.md` when missing). The shipped change alters documented behavior, setup, config, usage, or examples (compare `target-diff` with the README sections) → invoke `cdk:write-readme`. Dirty tree → invoke `cdk:commit-changes`. Each skill is idempotent, so this step also runs after every fix round (step 8).
-6. **Merge options.** One AskUserQuestion with two questions: Squash (`Squash into one commit` Recommended | `Keep commits`) and Delete source branch (`Delete branch` Recommended | `Keep branch`). Asked once per run, before the first review; the answers go to every later step.
-7. **PR or MR.** Invoke `cdk:prepare-change-request --target <target> --yes --gate report --squash <yes|no> --delete-branch <yes|no>`; it detects the host. GitLab applies squash and delete at creation (the MR carries them); GitHub takes them at step 8.1 (the review merges). It fills the repository template (or its bundled one), sets the title, and assigns self; an existing PR or MR is updated. Keep the number or iid and its `Findings file:` (and head SHA). `stopped` → blocker `PR/MR create`.
-8. **Review loop** (up to 3 rounds). Always run the review: it also merges a PR or MR that is already clean. Per round: invoke `cdk:review-change-request` (round 1 adds `--reuse-findings <Findings file>`); merged → step 9; pending checks → `checks-watch`; blockers or open items → `cdk:address-change-request-review`, then step 5. Detail: `${CLAUDE_SKILL_DIR}/references/review-loop.md`.
-9. **Sync target.** `switch-target`, `fetch`, `ff-target`. A dirty tree is a blocker; never reset. A non-fast-forward is allowed only for pre-release commits already in the merge: `${CLAUDE_SKILL_DIR}/references/sync.md`.
-10. **Resolve findings.** Per resolve-findings.md; record a fix per known-issues.md only when the issue recurs. Then delete the marker (`remove-marker`); this runs on every path out of the run after step 1 wrote it, including a stop and a skipped step 9.
+1. **Pre-flight.** Tools, auth, signing, target, `fetch`; then write the hold marker last (`flow.md` `## Pre-flight`). Failure → blocker.
+2. **Resume.** Find the branch's PR or MR and jump to the matching step (`flow.md` `## Resume detection`).
+3. **Branch.** On the target or a protected branch with changes → invoke `cdk:switch-branch` (`flow.md` `## Branch`).
+4. **Commit.** Dirty tree → invoke `cdk:commit-changes`. A clean tree with unpushed commits needs nothing; step 7 pushes them.
+5. **Release files.** Policy `.claude/release-policy.json` present → invoke `cdk:bump-version target <target>`; else `cdk:write-changelog base <target>`. Behavior, setup, or config changed (`target-diff`) → `cdk:write-readme`. Dirty → `cdk:commit-changes`; with a policy then `cdk:bump-version check target <target>`.
+6. **Merge options.** One AskUserQuestion, two questions: Squash (`Squash into one commit` Recommended | `Keep commits`) and Delete source branch (`Delete branch` Recommended | `Keep branch`). Asked once per run.
+7. **PR or MR.** Invoke `cdk:prepare-change-request --target <target> --yes --gate report --squash <yes|no> --delete-branch <yes|no>`; keep the number or iid, `Findings file:`, and head SHA. `stopped` → blocker `PR/MR create`.
+8. **Review loop.** Up to 3 rounds of `cdk:review-change-request`, then `cdk:address-change-request-review` and step 5 (`flow.md` `## Review loop`). Merged → step 9.
+9. **Sync target.** `switch-target`, `fetch`, `ff-target`; dirty tree is a blocker (`flow.md` `## Sync target`).
+10. **Clean up.** Delete the marker (`remove-marker`) on every path out; list leftovers in `Open:` (`flow.md` `## Open items`).
 11. **Output.** Print `## Output`.
 
 ## Blockers
 
-Applies to every step; blockers are reported, never asked. A blocked step does not end the run: run every step that does not depend on it and is still safe. Investigate, resolve safely (at most 2 attempts), record when unresolved, continue per the table, honest result: `${CLAUDE_SKILL_DIR}/references/blockers.md`.
+Blockers are reported, never asked; a blocked step does not end the run. Investigate, resolve safely (at most 2 attempts), record, continue, and give an honest result per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Blockers`.
+
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For pre-flight, resume, branch, review loop, sync, blockers, and open items (steps 1-3, 8-10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 
 ## Output
 
@@ -66,11 +70,11 @@ Review: approved | clean comment | changes requested (<n> blocker) | skipped (<r
 Merged: yes (<squash | commits>; <merge commit sha>; branch <deleted | kept>) | no (<every blocker or open finding>)
 Main: <target> synced to <sha> | not synced (<reason>)
 Release: shipped | not shipped (<unmet critical requirements>)
-Steps: <step>: done | skipped (<depends on>) | incomplete (<reason>), …
-Blockers: <step: blocker; root cause; research; attempts; impact; follow-up> per entry | none
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Steps: <step>: done | skipped (<depends on>) | incomplete (<reason>), ...
+Blockers: <step: blocker; root cause; attempts; impact; follow-up> per entry | none
+Open: <item: impact; recommended fix, ...> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` only when `Release: shipped`, or on nothing-to-do. If a run is interrupted before step 10, delete the marker (`marker-path`, then `remove-marker`).
+`done` only when `Release: shipped`, or on nothing-to-do.
