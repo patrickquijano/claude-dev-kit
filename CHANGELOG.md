@@ -22,11 +22,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Every plugin skill is rebuilt as standalone: no skill links another skill's files, and the never-invoked `shared` skill is gone. Skills that chain others do so through the Skill tool, and each skill carries its own trimmed copy of the rules it needs. Skills now list leftovers under `Open:` before `Result:` (replacing `Resolution:`), and the subagent template moved to `build-agent`.
 - The release scripts moved into the skills that own them: `release-check.mjs` into `bump-version` and `changelog-release.mjs` into `create-github-release`; the PreToolUse hook and the release-check CI job import them from there. `cdk:prepare-change-request` and `cdk:ship-release` reach the release check by chaining `cdk:bump-version`.
 - `/cdk:write-claude-md` is renamed `/cdk:write-project-instructions`, because the skill name check reserves the word "claude".
+- `cdk:speckit-open-items` is renamed `cdk:speckit-open-items-analyzer`, so every analyzer is named as an actor.
 - The eval `resolve-findings-reports-open` is now `setup-editorconfig-reports-open` and checks the `Open:` line.
 - The end-of-task hook now injects its steps on every prompt, including questions and `/` and `!` prompts, and leaves a step out only when it cannot run: the changelog step needs git and a safe state (not `CHANGELOG.md`), the Graphify step needs the `graphify` binary (with a `/cdk:setup-graphify` hint when no graph exists), the docs step always runs, and a `/cdk:ship-release` run removes only the commit step.
+- Every plugin subagent is rebuilt as standalone: its body carries its own rules and a fixed `## Return`, and skills pass only runtime data. The five code-review reviewers each return the full findings block (`cdk:cr-correctness-reviewer` also the `Threads:` block), `cdk:change-analyzer` carries the commit and branch conventions, and `cdk:format-lint-analyzer` carries its tool catalog; the spawning skills' spawn lines and `findings.md` files are realigned. Some agents still read reference files the calling skill passes by path at run time.
 
 ### Removed
 
+- The `Known issue` line in every subagent return block and in the agent rules.
 - `cdk:skill-auditor` agent and the old `build-agent` reference files; the check and scoring they did now live in each builder's script and scorer.
 
 ### Fixed
