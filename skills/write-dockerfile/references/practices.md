@@ -2,6 +2,10 @@
 
 Verified 2026-09-28 against docs.docker.com, except the `Packages` pins, apt list cleanup, and hadolint rule ids (DL3009, DL3042, DL3019, DL3059; DL3005 only flags `dist-upgrade`), verified 2026-10-10 against docs.docker.com and github.com/hadolint/hadolint; `Structure` base and tool-stage rules and `Packages` update, upgrade, and cleanup are cdk policy, not Docker guidance; `## Devcontainer target` verified 2026-10-06 against containers.dev and github.com/devcontainers. Items marked **Required** always apply. Apply every other item that fits the app; skip one only with a reason in the Output.
 
+## Contents
+
+- Structure · Packages · Cache · RUN · Secrets and config · Runtime · Devcontainer target · Checks
+
 ## Structure
 
 - First line `# syntax=docker/dockerfile:1`: BuildKit pulls the latest stable 1.x frontend, so heredocs, `--mount`, `COPY --link`, and build checks work without upgrading Docker. <https://docs.docker.com/reference/dockerfile/#syntax>
@@ -90,7 +94,7 @@ Verified 2026-09-28 against docs.docker.com, except the `Packages` pins, apt lis
 
 ## Devcontainer target
 
-Input `target=devcontainer` (from `cdk:setup-devcontainer`) builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
+Input `target=devcontainer` (from a chained caller such as `cdk:setup-devcontainer`) builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
 
 - Replaces `Structure/multi-stage`: single stage `FROM … AS dev` on the given `mcr.microsoft.com/devcontainers/<image>` base. Multi-stage only pays off when a runtime stage receives build artifacts. <https://containers.dev/guide/dockerfile>
 - `Structure/pinned` still applies: the caller passes an exact full tag, so no run-time tag resolution applies; the digest comes from `docker buildx imagetools inspect` (the Docker Hub fallback does not cover `mcr.microsoft.com`). No docker → never ask; stop with `Stopped: 4: digest lookup needs docker`, since a dev container needs Docker anyway.
