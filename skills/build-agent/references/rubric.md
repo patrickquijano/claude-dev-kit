@@ -4,15 +4,15 @@
 
 ## Frontmatter (35)
 
-| ID  | Pts | Criterion                                                                                                  |
-| --- | --- | ---------------------------------------------------------------------------------------------------------- |
-| A1  | 5   | S: valid YAML, `---` on line 1, only known fields                                                          |
-| A2  | 3   | S: `name` valid (no `:`, no leading `-`, ≤256)                                                             |
-| A3  | 7   | `description` says when to delegate, is distinct from other agents, and is short                           |
-| A4  | 8   | `tools` is an explicit minimal allowlist; read-only excludes Edit and Write; `Agent` only if it must spawn |
-| A5  | 4   | `model` is deliberate (omitted, `haiku` for cheap work, or justified)                                      |
-| A6  | 5   | Optional fields only on a signal; none at their default value                                              |
-| A7  | 3   | S: enum values valid, no scope-ignored field, no always-removed tool                                       |
+| ID  | Pts | Criterion                                                                                                                               |
+| --- | --- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | 5   | S: valid YAML, `---` on line 1, only known fields                                                                                       |
+| A2  | 3   | S: `name` valid (no `:`, no leading `-`, ≤256)                                                                                          |
+| A3  | 7   | `description` says when to delegate, is distinct from other agents, and is short                                                        |
+| A4  | 8   | `tools` is an explicit minimal allowlist; read-only excludes Edit and Write; `Agent` only if it must spawn                              |
+| A5  | 4   | `model` is the interview answer, backed by the job per `decide.md` `## Model` (omitted only on `inherit`)                               |
+| A6  | 5   | Optional fields only on a signal; none at their default value; `color` from the interview (or omitted on No color) is never a deduction |
+| A7  | 3   | S: enum values valid, no scope-ignored field, no always-removed tool                                                                    |
 
 ## Body (40)
 

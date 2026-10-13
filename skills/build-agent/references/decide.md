@@ -4,7 +4,7 @@ Recommend one option per question with a one-line reason; the user can override.
 
 ## Contents
 
-- Fit · One job · Scope · Fields
+- Fit · One job · Scope · Fields · Model · Color
 
 ## Fit
 
@@ -59,7 +59,7 @@ Set a field only on a signal; omit every field at its default.
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `tools`                                                  | Always: an explicit minimal allowlist                                              | Read-only `Read, Grep, Glob`; tests `Bash, Read, Grep`; edits `Read, Edit, Write, Grep, Glob` |
 | `disallowedTools`                                        | Inheriting all tools but one must go (a specifier removes the whole tool)          | Omit                                                                                          |
-| `model`                                                  | Cheap lookup → `haiku`; hard reasoning → `opus`; otherwise follow the main model   | Omit or `haiku`                                                                               |
+| `model`                                                  | Always asked; omitted only on `inherit` (the default: the main conversation model) | See `## Model`                                                                                |
 | `effort`                                                 | The task needs more or less reasoning than the session                             | Omit                                                                                          |
 | `maxTurns`                                               | Runs can loop or wander; it is the stop condition                                  | Set for loops                                                                                 |
 | `isolation`                                              | The agent writes files in parallel with others: `worktree`                         | Omit otherwise                                                                                |
@@ -67,7 +67,49 @@ Set a field only on a signal; omit every field at its default.
 | `memory`                                                 | It should learn across sessions (adds file tools); `project` is shared through git | Omit                                                                                          |
 | `skills`                                                 | A skill's full content is needed on every run (preloaded)                          | Omit                                                                                          |
 | `omitClaudeMd`                                           | The delegation prompt carries everything and CLAUDE.md is noise                    | Omit                                                                                          |
-| `color`                                                  | The user wants a display color                                                     | Omit                                                                                          |
+| `color`                                                  | Always asked; omitted only on No color                                             | See `## Color`                                                                                |
 | `permissionMode`, `mcpServers`, `hooks`, `initialPrompt` | Personal or Project agent that needs it                                            | Omit                                                                                          |
 
 `autoCompactWindow` is a known field; never recommend it.
+
+## Model
+
+`model` and `color` are asked in every create and update, in one AskUserQuestion batch. Ground each recommendation:
+
+1. Take the job, tools, and return shape from Clarify. Glob the target scope's agents directory, Grep `^model:` and `^color:` in the siblings, and sort each sibling into a role by its `description`.
+2. Siblings of the same role agree → recommend that value and cite it ("matches 6 sibling analyzers").
+3. No siblings, or they disagree → use the table below.
+4. The job fits two rows → recommend the row for its hardest step (model) or the domain color over the generic one (color), and say in the reason that it was a close call.
+5. Every reason cites a job, tool, or sibling fact; never recommend from the name alone.
+6. Update mode → recommend the current value when the evidence supports it; otherwise recommend the better value with the reason.
+
+| Model     | Pick for                                                                                                                                                                   | Trade-off                                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `haiku`   | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                           |
+| `sonnet`  | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                         |
+| `opus`    | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                                    |
+| `fable`   | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest; about 2.5× `opus` pricing ($10 / $50 against $4 / $20 per MTok); recommend only when the input says `opus` is not enough |
+| `inherit` | Follow the session model (also what omitting `model` does)                                                                                                                 | Cost and quality vary with the session; recommend only when the input asks for it                                                 |
+
+Question layout (each question allows at most 4 options):
+
+- Model: `haiku`, `sonnet`, `opus`, `fable`; the recommended one first, marked "(Recommended)" with its reason; each description states the cost or capability trade-off for this job. "Other" covers `inherit` or a full model ID. The input asks for `inherit` → it goes first as the recommendation and the alias the evidence supports least moves to "Other".
+
+## Color
+
+`color` only changes how the agent is displayed in the task list and transcript; consistent role colors let the user tell at a glance what kind of agent is running. Ground the recommendation with the steps in `## Model`.
+
+| Color    | Role                                    |
+| -------- | --------------------------------------- |
+| `green`  | Git, change requests, and planned edits |
+| `cyan`   | Repo-fact analyzers                     |
+| `yellow` | Scorers                                 |
+| `purple` | Reviewers and auditors                  |
+| `red`    | Security                                |
+| `orange` | Spec and planning workflows             |
+| `blue`   | Tests and checks                        |
+| `pink`   | Research                                |
+
+A domain color wins over the generic one: security red and test blue both beat reviewer purple.
+
+Question layout: the recommended color with its reason, one alternate backed by evidence, **No color** (omit the field), and **Stop** (the Stop for the batch). "Other" covers any of the 8 colors.

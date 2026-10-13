@@ -1,6 +1,6 @@
 ---
 name: build-agent
-description: Create or update a Claude Code custom subagent (a markdown file under agents/) in a Personal, Project, or Plugin scope. Interviews for task, tools, model, return shape, and only the optional fields the task needs, writes it under the bundled frontmatter and body rules, checks it with a script, scores it against a 100-point rubric (pass 95), and checks the spawning skill's contract read-only. Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a subagent or custom agent, e.g. "create a subagent that reviews Python security". Do not use on your own after finishing a task.
+description: Create or update a Claude Code custom subagent (a markdown file under agents/) in a Personal, Project, or Plugin scope. Interviews for task, tools, model, color, return shape, and only the optional fields the task needs, writes it under the bundled frontmatter and body rules, checks it with a script, scores it against a 100-point rubric (pass 95), and checks the spawning skill's contract read-only. Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a subagent or custom agent, e.g. "create a subagent that reviews Python security". Do not use on your own after finishing a task.
 argument-hint: '[agent name or path] [what it should do]'
 allowed-tools: Read Glob Grep Agent AskUserQuestion Write Edit Bash(claude plugin validate *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
 ---
@@ -27,7 +27,7 @@ Input: $ARGUMENTS
 1. **Extract.** An existing agent named (path or `name`) → update: find it under `~/.claude/agents/`, `<repo>/.claude/agents/`, or a plugin `agents/` (recursive), then read it; else create. Pull job, triggers, inputs, tools, writes, return shape, and spawning skill. Nothing to change → `Result: nothing-to-do`.
 2. **Fit.** Apply `${CLAUDE_SKILL_DIR}/references/decide.md` `## Fit` and `## One job`. Not a subagent → ask Stop (Recommended) | Build anyway; several jobs → ask Split | Pick one | Stop, recommended per `decide.md` `## One job`.
 3. **Scope.** AskUserQuestion: Personal | Project | Plugin, recommended from `decide.md` `## Scope`.
-4. **Clarify.** Fill name (an actor noun per `decide.md` `## One job`), description triggers, tools, model, return, writes, and the optional fields `decide.md` `## Fields` signals. Stop → `Result: cancelled`.
+4. **Clarify.** Fill name (an actor noun per `decide.md` `## One job`), description triggers, tools, return, writes, and the optional fields `decide.md` `## Fields` signals. Always ask model and color, in create and update, in one batch per `decide.md` `## Model` and `## Color`, recommended from the job, tools, and sibling agents; a question the input already answers is skipped. Stop → `Result: cancelled`.
 5. **Draft.** Write the file per `${CLAUDE_SKILL_DIR}/references/frontmatter.md`, `${CLAUDE_SKILL_DIR}/references/body.md`, and `${CLAUDE_SKILL_DIR}/assets/template.md`.
 6. **Check and score.** Run `check-agent`, spawn `cdk:agent-scorer` with its JSON, then fix per `${CLAUDE_SKILL_DIR}/references/score.md`; plugin scope also runs `validate-plugin`.
 7. **Output.** Print the block below, nothing else.

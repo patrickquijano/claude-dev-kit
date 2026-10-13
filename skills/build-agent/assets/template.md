@@ -9,7 +9,8 @@ Path: `<scope root>/<name>.md`
 name: <kebab-case, no ":">
 description: <When to delegate, one or two short sentences.> # spawned by a skill → end: Spawned by the <skill> skill; do not use directly.
 tools: <minimal comma list> # read-only: Read, Grep, Glob
-model: <haiku|sonnet|opus|inherit> # omit to follow the main model
+model: <haiku|sonnet|opus|fable|<full model id>> # omit on inherit
+color: <red|blue|green|yellow|purple|orange|pink|cyan> # omit on No color
 ---
 
 <Role, one line. Read-only agents say so.>
