@@ -7,6 +7,7 @@ import {
   checkLinks,
   checkReferences,
   checkSkill,
+  checkStandalone,
   FrontmatterError,
   main,
   parseArgs,
@@ -250,16 +251,13 @@ describe('checkLinks', () => {
     assert.deepEqual(found, []);
   });
 
-  test('warns, without reading, on a link that leaves the skill directory', () => {
+  test('skips, without reporting, a link that leaves the skill directory', () => {
     // Arrange
     const md = '`${CLAUDE_SKILL_DIR}/../x/y.md`';
     // Act
     const found = checkLinks(md, ['SKILL.md']);
     // Assert
-    assert.deepEqual(
-      found.map((f) => [f.id, f.level]),
-      [['link-outside', 'warning']]
-    );
+    assert.deepEqual(found, []);
   });
 
   test('errors on a broken link', () => {
@@ -281,6 +279,77 @@ describe('checkLinks', () => {
       found.map((f) => [f.id, f.file]),
       [['orphan', 'assets/lonely.md']]
     );
+  });
+});
+
+describe('checkStandalone', () => {
+  const run = (files) => checkStandalone(Object.keys(files).sort(), '/d', makeDeps(files));
+
+  test('passes an in-skill ../ link from references/', () => {
+    // Arrange
+    const files = {
+      'SKILL.md': 'x',
+      'references/a.md': 'See [t](../assets/x.md) and `../assets/x.md`.',
+      'assets/x.md': ''
+    };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('passes a plain ${CLAUDE_SKILL_DIR} path and an in-skill script import', () => {
+    // Arrange
+    const files = {
+      'SKILL.md': '`${CLAUDE_SKILL_DIR}/references/x.md`',
+      'scripts/a.mjs': "import { b } from './b.mjs';\nimport fs from 'node:fs';"
+    };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('errors on a ${CLAUDE_SKILL_DIR}/../ path in SKILL.md', () => {
+    // Arrange
+    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../shared/x.md`' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.level, f.file, f.line]),
+      [['link-outside', 'error', 'SKILL.md', 1]]
+    );
+  });
+
+  test('errors on a ../../ link in a reference', () => {
+    // Arrange
+    const files = { 'references/a.md': 'ok\n[x](../../other/x.md)' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.line]),
+      [['link-outside', 2]]
+    );
+  });
+
+  test('errors on a ${CLAUDE_PLUGIN_ROOT}/skills/ path', () => {
+    // Arrange
+    const files = { 'SKILL.md': '`${CLAUDE_PLUGIN_ROOT}/skills/x/SKILL.md`' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(ids(found), ['link-outside']);
+  });
+
+  test('errors on a script import that leaves the skill root', () => {
+    // Arrange
+    const files = { 'scripts/a.mjs': "import { x } from '../../../hooks/x.mjs';" };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(ids(found), ['link-outside']);
   });
 });
 

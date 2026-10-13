@@ -26,6 +26,12 @@ describe('check-skill CLI', () => {
       '---\nname: code-reviewer\ndescription: x\ncolour: red\n---\n\n- A: !`git status`\n'
     );
     writeFileSync(join(bad, 'orphan.md'), 'x\n');
+    const linker = join(root, 'link-other');
+    mkdirSync(linker);
+    writeFileSync(
+      join(linker, 'SKILL.md'),
+      '---\nname: link-other\ndescription: Links out. Use when asked.\n---\n\n## Files\n\n- See `${CLAUDE_SKILL_DIR}/../other/x.md`.\n\n## Output\n\n```text\nResult: done\n```\n'
+    );
   });
   after(() => rmSync(root, { recursive: true, force: true }));
 
@@ -57,6 +63,20 @@ describe('check-skill CLI', () => {
     assert.deepEqual(
       report.warnings.map((w) => w.id),
       ['name-actor']
+    );
+  });
+
+  test('exits 1 with link-outside for a link into another skill', () => {
+    // Arrange
+    const dir = join(root, 'link-other');
+    // Act
+    const result = run(dir, '--kind', 'task');
+    const report = JSON.parse(result.stdout);
+    // Assert
+    assert.equal(result.status, 1);
+    assert.deepEqual(
+      report.errors.map((e) => e.id),
+      ['link-outside']
     );
   });
 

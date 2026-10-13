@@ -2,6 +2,8 @@
 
 Replace every `<…>`; drop comments. Frontmatter fields: `references/frontmatter.md`.
 
+Link only files inside this skill (`${CLAUDE_SKILL_DIR}/…`); copy, never link, another skill's files.
+
 ## Task
 
 ````markdown

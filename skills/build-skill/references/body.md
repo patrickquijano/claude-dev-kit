@@ -75,3 +75,4 @@ An invoked skill stays in context but is not re-read later. After compaction onl
 - No guidance meant to hold every time without a hook; a skill is a request.
 - No `context: fork` on a body without a concrete task.
 - No bundled files that the body never links.
+- Self-contained: link only files inside the skill directory; never another skill's files. Copy what is needed.

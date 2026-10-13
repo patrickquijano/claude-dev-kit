@@ -1,5 +1,5 @@
-// Mechanical checks for one skill directory (frontmatter, size, layout, links, injection, Output); prints JSON.
-// Self-contained on purpose: plugin installs have no node_modules and build-skill links no shared files.
+// Mechanical checks for one skill directory (frontmatter, size, layout, links, standalone, injection, Output); prints JSON.
+// Self-contained on purpose: plugin installs have no node_modules, and no skill may link another skill's files.
 import { readdirSync, readFileSync } from 'node:fs';
 import { basename, join, posix, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -244,12 +244,7 @@ export function checkLinks(skillMd, files) {
     for (const m of line.matchAll(/\$\{CLAUDE_SKILL_DIR\}\/([^\s`)'"\]]+)/g)) {
       const target = m[1].replace(/[.,;:*]+$/, '');
       const clean = posix.normalize(target);
-      if (clean.startsWith('..')) {
-        found.push(
-          warning('link-outside', 'L3', 'SKILL.md', i + 1, `link "${target}" leaves the skill directory; not checked`)
-        );
-        continue;
-      }
+      if (clean.startsWith('..')) continue; // reported by checkStandalone
       const dir = clean.endsWith('/') ? clean : `${clean}/`;
       const hits = files.filter((f) => f === clean || f.startsWith(dir));
       if (hits.length === 0)
@@ -261,6 +256,43 @@ export function checkLinks(skillMd, files) {
     if (file !== 'SKILL.md' && !linked.has(file)) {
       found.push(error('orphan', 'L2', file, 1, `"${file}" is never linked from SKILL.md`));
     }
+  }
+  return found;
+}
+
+const SCRIPT = /\.(mjs|js|cjs)$/;
+
+// L3: nothing in the skill may reference a path outside its own directory (another skill, the plugin root, ../..).
+export function checkStandalone(files, dir, deps = defaults) {
+  const found = [];
+  const outside = (file, line, what) =>
+    found.push(error('link-outside', 'L3', file, line, `${what} leaves the skill directory`));
+  const leaves = (file, target) => posix.join(posix.dirname(file), target).startsWith('..');
+  for (const file of files) {
+    const isMd = file.endsWith('.md');
+    const isScript = file.startsWith('scripts/') && SCRIPT.test(file);
+    if (!isMd && !isScript) continue;
+    const nested = file.startsWith('references/') || file.startsWith('assets/');
+    deps
+      .read(join(dir, file))
+      .split('\n')
+      .forEach((line, i) => {
+        const at = i + 1;
+        if (isScript) {
+          for (const m of line.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)['"](\.[^'"]*)['"]/g)) {
+            if (leaves(file, m[1])) outside(file, at, `import "${m[1]}"`);
+          }
+          return;
+        }
+        for (const m of line.matchAll(/\$\{CLAUDE_SKILL_DIR\}\/([^\s`)'"\]]+)/g)) {
+          if (posix.normalize(m[1]).startsWith('..')) outside(file, at, `link "${m[1]}"`);
+        }
+        if (/\$\{CLAUDE_PLUGIN_ROOT\}\/skills\//.test(line)) outside(file, at, 'a ${CLAUDE_PLUGIN_ROOT}/skills/ path');
+        if (!nested) return;
+        const targets = [...line.matchAll(/\]\(([^)\s#]+)/g)].map((m) => m[1]).filter((t) => !/^([a-z]+:|\/)/i.test(t));
+        targets.push(...[...line.matchAll(/`(\.\.\/[^`\s]*)`/g)].map((m) => m[1]));
+        for (const t of targets) if (leaves(file, t)) outside(file, at, `link "${t}"`);
+      });
   }
   return found;
 }
@@ -298,6 +330,7 @@ export function checkSkill(dir, { kind } = {}, deps = defaults) {
     found.push(...checkLinks(content, files));
     found.push(...checkReferences(files, dir, deps));
   }
+  found.push(...checkStandalone(files, dir, deps));
   const strip = (f) => ({ id: f.id, rubric: f.rubric, file: f.file, line: f.line, message: f.message });
   const errors = found.filter((f) => f.level === 'error').map(strip);
   const warnings = found.filter((f) => f.level === 'warning').map(strip);
