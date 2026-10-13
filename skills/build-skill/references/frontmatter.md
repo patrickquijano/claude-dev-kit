@@ -1,45 +1,64 @@
 # Frontmatter
 
-Sources: <https://code.claude.com/docs/en/skills>, agentskills.io spec. All fields optional; Claude Code ignores unknown keys. Set only fields the skill needs; omit defaults.
+Sources: <https://code.claude.com/docs/en/skills> (wins on conflict), <https://agentskills.io/specification>, <https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices>. Claude Code ignores unknown or misspelled fields silently, so names must match exactly.
+
+## Contents
+
+- Format · Fields · Invocation matrix · Description · Don'ts
+
+## Format
+
+- Opening `---` on line 1, valid YAML, closing `---`. Malformed YAML loads the body with empty metadata: `/name` works, Claude cannot match the description.
+- Booleans: `true` / `false`.
+- Order used here: `name`, `description`, `when_to_use`, `argument-hint`, `arguments`, `allowed-tools`, invocation flags, then `context`, `agent`, `model`, `effort`, `paths`, `hooks`.
 
 ## Fields
 
-| Field                      | Type / default             | Set when                                          | Omit when                               |
-| -------------------------- | -------------------------- | ------------------------------------------------- | --------------------------------------- |
-| `name`                     | kebab-case; = dir name     | always (plugin skills show as `<plugin>:<name>`)  | never                                   |
-| `description`              | string                     | always: what + when, key use case first           | never                                   |
-| `when_to_use`              | string                     | trigger detail that would bloat `description`     | `description` already fits              |
-| `argument-hint`            | string                     | the skill takes input                             | no input                                |
-| `arguments`                | string or list             | named `$name` substitutions are clearer than `$N` | `$ARGUMENTS` suffices                   |
-| `allowed-tools`            | space/comma string or list | a step needs a pre-approved tool (minimal list)   | no tool needs approval                  |
-| `disallowed-tools`         | space/comma string or list | a tool must be removed while the skill runs       | otherwise                               |
-| `disable-model-invocation` | boolean; `false`           | only an unchained Task skill with side effects    | Reference, chained, read-only           |
-| `user-invocable`           | boolean; `true`            | `false` for Background-only knowledge             | otherwise                               |
-| `model`                    | string; `inherit` keeps    | the turn needs a specific model                   | session model is fine                   |
-| `effort`                   | `low`…`max`                | the skill needs a fixed reasoning effort          | otherwise                               |
-| `context`                  | `fork`                     | self-contained task that should run isolated      | needs user interaction or chains skills |
-| `agent`                    | string; `general-purpose`  | with `context: fork`, a specific subagent type    | no fork                                 |
-| `background`               | boolean; `true`            | with `context: fork`, `false` to wait for result  | no fork                                 |
-| `paths`                    | glob string or list        | Reference skill tied to file globs                | otherwise                               |
-| `hooks`                    | hook config                | skill-scoped hooks for the session after invoke   | otherwise                               |
-| `shell`                    | `bash` or `powershell`     | `` !`cmd` `` blocks need PowerShell               | bash                                    |
+All optional in Claude Code; set `name` and `description` always (the spec and platform docs require them).
 
-Spec and portability fields: `license`, `compatibility` (max 500 chars), `metadata` (free map) are accepted but not acted on. Outside Claude Code (claude.ai uploads, Skills API) only `name`, `description`, `license`, `compatibility`, `metadata`, `allowed-tools` are allowed; other keys are a hard error there.
+| Field                                                     | Type, default                                                                                                                                                                           | Set when                                                                             | Omit when                                                    |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `name`                                                    | kebab string; default directory name. Spec: ≤64 chars, `a-z0-9-`, no leading, trailing, or consecutive hyphens, equals the directory. Platform: no `anthropic` or `claude`, no XML tags | Always                                                                               | Never                                                        |
+| `description`                                             | string; default first body line. Spec and platform: ≤1,024 chars, no XML tags                                                                                                           | Always                                                                               | Never                                                        |
+| `when_to_use`                                             | string; appended to `description` in the listing                                                                                                                                        | Trigger phrases would crowd the description                                          | Description already holds them                               |
+| `argument-hint`                                           | string, e.g. `[issue-number]`                                                                                                                                                           | Skill takes arguments, for autocomplete                                              | No arguments                                                 |
+| `arguments`                                               | space string or list; names for `$name`                                                                                                                                                 | Body reads named positional args                                                     | `$ARGUMENTS` suffices                                        |
+| `allowed-tools`                                           | space or comma string, or list                                                                                                                                                          | Pre-approve known-safe tools for the invoking turn; it does not restrict other tools | No tool prompt to avoid                                      |
+| `disallowed-tools`                                        | same shapes                                                                                                                                                                             | Remove tools while active                                                            | Never needed                                                 |
+| `disable-model-invocation`                                | bool, false                                                                                                                                                                             | Side-effect or timing-sensitive Task                                                 | Claude should find it                                        |
+| `user-invocable`                                          | bool, true                                                                                                                                                                              | Background-only                                                                      | User should run it                                           |
+| `context`                                                 | `fork`                                                                                                                                                                                  | Task needing isolation, body self-contained                                          | Reference, Background-only, anything relying on conversation |
+| `agent`                                                   | `Explore`, `Plan`, `general-purpose`, or a custom agent name; default general-purpose                                                                                                   | With `context: fork`                                                                 | No fork                                                      |
+| `background`                                              | bool, true; only with `context: fork`                                                                                                                                                   | Fork should block the turn (`false`)                                                 | Default fits                                                 |
+| `model`                                                   | `/model` value or `inherit`; this turn only                                                                                                                                             | Skill needs a different model                                                        | Session model fits                                           |
+| `effort`                                                  | `low` `medium` `high` `xhigh` `max`                                                                                                                                                     | Skill needs a fixed effort                                                           | Session effort fits                                          |
+| `paths`                                                   | globs, comma string or list                                                                                                                                                             | Reference that applies to certain files only                                         | Applies everywhere                                           |
+| `hooks`                                                   | hook config, kept for the session                                                                                                                                                       | A rule must hold every time                                                          | Judgment guidance                                            |
+| `shell`                                                   | `bash` (default) or `powershell`                                                                                                                                                        | `!` blocks need PowerShell                                                           | Default fits                                                 |
+| `license`, `compatibility` (≤500 chars), `metadata` (map) | Spec fields; Claude Code does not act on them                                                                                                                                           | Distribution or your own tooling needs them                                          | Otherwise                                                    |
 
 ## Invocation matrix
 
-| Setting                          | User `/name` | Claude auto-loads | Other skills and hooks via Skill tool                |
-| -------------------------------- | ------------ | ----------------- | ---------------------------------------------------- |
-| default                          | yes          | yes               | yes                                                  |
-| `disable-model-invocation: true` | yes          | no                | no (also blocks subagent preload and scheduled runs) |
-| `user-invocable: false`          | no           | yes               | yes                                                  |
+| Flags                            | User `/name` | Claude auto-invokes | Description in context |
+| -------------------------------- | ------------ | ------------------- | ---------------------- |
+| none                             | yes          | yes                 | yes                    |
+| `disable-model-invocation: true` | yes          | no                  | no                     |
+| `user-invocable: false`          | no           | yes                 | yes                    |
+| both                             | no           | no                  | no                     |
 
-- `allowed-tools` grants approval only for the invoking turn and clears on the next message; it never restricts tools, and deny rules still win.
-- `context: fork` runs SKILL.md as the subagent prompt without conversation history: only for explicit, self-contained tasks, never guideline-only skills.
+`user-invocable: false` only hides the skill from the `/` menu. `disable-model-invocation: true` also blocks preloading into subagents.
 
 ## Description
 
-- Third person, what + when, key use case first; concrete trigger phrases.
-- `description` + `when_to_use` max 1,536 characters in the listing; all descriptions share a listing budget (~1% of context), so keep each short. `/skill-doctor` shows per-skill cost.
-- No XML tags. Side-effect skills: no pushy wording; use `Use only when the user explicitly asks to <action>, e.g. "<phrase>". Do not use on your own after finishing a task.`
-- Malformed YAML yields empty metadata and the skill silently misbehaves: validate the frontmatter.
+- Budget: `description` + `when_to_use` is cut at 1,536 chars per listing entry; keep `description` ≤1,024 to stay portable. All descriptions share ~1% of the context window; the least-invoked lose their text first. A model-disabled skill costs nothing in the listing.
+- Write third person: what it does, then when to use it, key use case first ("Formats SQL files. Use when the user asks to format or lint SQL.").
+- Include the words users say; keep it distinctive among 100+ skills. Vague text ("Helps with documents") fails.
+- Side-effect Task without the flag: end with "Use only when the user explicitly asks to <action>."
+- Not triggering → add natural keywords, ask "What skills are available?", run `/name`. Over-triggering → narrow it or set `disable-model-invocation: true`.
+
+## Don'ts
+
+- No misspelled or invented fields; no `---` below line 1.
+- No XML tags or reserved words (`anthropic`, `claude`) in `name` or `description`.
+- Do not treat `allowed-tools` as a restriction; use `disallowed-tools` to remove tools.
+- Do not reuse frontmatter field names as `metadata` keys.

@@ -1,32 +1,41 @@
 # Decide
 
-Ask only what the input cannot settle; every option's reason comes from facts found in the input or target root, never a default guess. Format: AskUserQuestion, 2–4 options, recommended first with "(Recommended)", reason in its description.
+Recommend one option per question with a one-line reason; the user can override.
 
 ## Scope
 
-- Derive without asking when the input gives a path or names an existing skill.
-- Plugin vs Project both match (repo-specific skill inside a plugin root) → ask.
-- **Plugin** (plugin root): the target root has `.claude-plugin/plugin.json`, or the skill is meant for distribution.
-- **Project** (`.claude/skills`): the skill names this repo's paths, commands, or conventions; shared with the team via git.
-- **Personal** (`~/.claude/skills`): the user's own cross-repo workflow with no repo specifics.
+| Signal                                                                             | Recommend                                     | Path                                                               |
+| ---------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| Repo-specific conventions or workflow; teammates should get it through git         | Project                                       | `<repo>/.claude/skills/<name>/SKILL.md`                            |
+| Your own cross-project habit, not for the team                                     | Personal                                      | `~/.claude/skills/<name>/SKILL.md`                                 |
+| `.claude-plugin/plugin.json` at the target root, or a skill meant for distribution | Plugin                                        | `<plugin root>/skills/<name>/SKILL.md`, invoked `/<plugin>:<name>` |
+| No signal                                                                          | Project when cwd is a git repo, else Personal |                                                                    |
+
+- Same name at several levels: enterprise over personal over project. Plugin skills are namespaced, so they never collide with local ones.
+- Nested `.claude/skills/` in a subdirectory load only when Claude first reads or edits a file there.
+- Skill directory changes under Personal and Project reload live; a top-level skills directory that did not exist at session start needs `/reload-skills`.
 
 ## Kind
 
-- **Task**: an action with steps, arguments, or side effects (deploy, commit, generate, post).
-- **Reference**: conventions or domain knowledge applied while doing other work. Suggest `paths` when tied to file globs.
-- **Background-only**: knowledge with no meaning as a `/command`; set `user-invocable: false`.
+| Signal                                                                                               | Recommend                      | Why                                        |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------ |
+| Steps with side effects or a fixed sequence the user triggers (deploy, commit, generate files)       | Task                           | Step-by-step action instructions           |
+| Conventions, style, or domain knowledge Claude applies while doing other work                        | Reference                      | Adds knowledge inline                      |
+| Context Claude should know but that has no `/command` meaning (legacy system notes, domain glossary) | Background-only                | Claude loads it; the user never invokes it |
+| Rule that must hold every time with no judgment                                                      | None: a hook, not a skill      | Skills are requests, not guarantees        |
+| Always-on project rule                                                                               | None: CLAUDE.md or a rule file | Skills load on demand                      |
+| Needs context isolation or a heavy read-only sweep                                                   | None: a subagent               | A skill adds to the main context           |
 
-## Invocation (Task with side effects only)
+Add a skill when the same playbook is pasted a third time. A convention Claude gets wrong twice belongs in CLAUDE.md.
 
-1. Grep the target root for Skill-tool chains of the name, and for hook scripts invoking it.
-2. Unchained → recommend `disable-model-invocation: true` (nothing needs Claude to call it).
-3. Chained, or invoked by a hook through the Skill tool → description gating only; say why (the flag blocks the chain).
-4. Read-only Task → leave model invocation on.
-5. Reference: never disable model invocation; auto-loading is the point.
-6. Background-only with `disable-model-invocation: true` → refuse: nothing could invoke it.
+## Invocation
 
-## Shape (Task only)
+| Kind and signal                                           | Set                                                                                                                                                                                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Task with side effects (writes, pushes, deploys, deletes) | `disable-model-invocation: true` (recommended): only the user triggers it; its description also leaves context. Skip it when another skill must invoke this one through the Skill tool, which the flag blocks. |
+| Task, read-only or reversible                             | Omit both flags                                                                                                                                                                                                |
+| Reference                                                 | Omit both flags; add `paths` globs when it applies only to certain files                                                                                                                                       |
+| Background-only                                           | `user-invocable: false`; add `disable-model-invocation: true` only if Claude must not load it either                                                                                                           |
+| Task needing isolation and a self-contained body          | `context: fork` (+ `agent`); never for Reference or Background-only (a fork with no task returns nothing)                                                                                                      |
 
-- **Single skill**: linear task, user interaction, small context.
-- **Orchestrator + subagents**: parallel steps, large reads or outputs to isolate, distinct tool scopes.
-- **Subagent only** → stop, `/cdk:build-agent`.
+Ask only for what the table cannot derive from the extracted facts.
