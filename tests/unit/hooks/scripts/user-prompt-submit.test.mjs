@@ -1,65 +1,55 @@
 import assert from 'node:assert/strict';
+import { Readable } from 'node:stream';
 import { test } from 'node:test';
-import { merge } from '../../../../hooks/scripts/user-prompt-submit.mjs';
+import { main } from '../../../../hooks/scripts/user-prompt-submit.mjs';
 
-const wrap = (additionalContext, extra = {}) => ({
-  ...extra,
-  hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext }
+const run = async (event, extra = {}) => {
+  const seen = [];
+  const written = [];
+  await main({
+    stream: Readable.from([JSON.stringify(event)]),
+    write: (t) => written.push(t),
+    snapshot: (e) => seen.push(e),
+    ...extra
+  });
+  return { seen, written };
+};
+
+test('main calls snapshot with the parsed event', async () => {
+  // Arrange
+  const event = { prompt: '', session_id: 's' };
+  // Act
+  const { seen } = await run(event);
+  // Assert
+  assert.deepEqual(seen, [event]);
 });
 
-test('merge puts the plan-mode context before the end-of-task context', () => {
+test('main prints only plan-mode context for a task prompt', async () => {
   // Arrange
-  const plan = wrap('PLAN', { systemMessage: 'Plan mode: asking (x)' });
-  const task = wrap('TASK');
+  const event = { prompt: 'Fix X', permission_mode: 'default', session_id: 's' };
   // Act
-  const result = merge(plan, task);
+  const { written } = await run(event);
   // Assert
-  assert.equal(result.hookSpecificOutput.additionalContext, 'PLAN\n\nTASK');
-  assert.equal(result.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
+  const ctx = JSON.parse(written[0]).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /whether to enter plan mode/);
+  assert.doesNotMatch(ctx, /end-of-task|cdk:commit-changes|write-changelog/);
 });
 
-test('merge passes the plan-mode systemMessage through', () => {
+test('main prints nothing for a machine prompt', async () => {
   // Arrange
-  const plan = wrap('PLAN', { systemMessage: 'Plan mode: exiting (question)' });
+  const event = { prompt: '<task-notification>x', permission_mode: 'default', session_id: 's' };
   // Act
-  const result = merge(plan, wrap('TASK'));
+  const { written } = await run(event);
   // Assert
-  assert.equal(result.systemMessage, 'Plan mode: exiting (question)');
+  assert.deepEqual(written, []);
 });
 
-test('merge keeps only the plan-mode output when there are no task steps', () => {
+test('main rejects and skips snapshot for invalid JSON', async () => {
   // Arrange
-  const plan = wrap('PLAN', { systemMessage: 'm' });
+  const seen = [];
   // Act
-  const result = merge(plan, null);
+  const act = main({ stream: Readable.from(['nope']), write: () => {}, snapshot: (e) => seen.push(e) });
   // Assert
-  assert.equal(result.hookSpecificOutput.additionalContext, 'PLAN');
-});
-
-test('merge keeps only the task output and adds no systemMessage', () => {
-  // Arrange
-  const task = wrap('TASK');
-  // Act
-  const result = merge(null, task);
-  // Assert
-  assert.equal(result.hookSpecificOutput.additionalContext, 'TASK');
-  assert.equal('systemMessage' in result, false);
-});
-
-test('merge returns null when neither hook has output', () => {
-  // Arrange
-  const none = null;
-  // Act
-  const result = merge(none, none);
-  // Assert
-  assert.equal(result, null);
-});
-
-test('merge returns null for undefined outputs', () => {
-  // Arrange
-  const none = undefined;
-  // Act
-  const result = merge(none, none);
-  // Assert
-  assert.equal(result, null);
+  await assert.rejects(act, SyntaxError);
+  assert.deepEqual(seen, []);
 });

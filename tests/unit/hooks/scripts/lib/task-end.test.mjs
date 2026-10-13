@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decide, output } from '../../../../../hooks/scripts/lib/task-end.mjs';
+import { decide, gate, snapshot } from '../../../../../hooks/scripts/lib/task-end.mjs';
 
 function make({
   installed = false,
@@ -34,7 +34,7 @@ function make({
     unsafeState: () => unsafe
   };
 }
-const prompt = { prompt: 'Fix the bug' };
+const prompt = {};
 
 test('decide asks for changelog, docs, and commit steps in a git repo', () => {
   // Arrange
@@ -43,8 +43,8 @@ test('decide asks for changelog, docs, and commit steps in a git repo', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.equal(result.length, 3);
-  assert.match(result[0], /cdk:write-changelog/);
-  assert.match(result[1], /README\.md or related docs/);
+  assert.match(result[0], /README\.md or related docs/);
+  assert.match(result[1], /cdk:write-changelog/);
   assert.match(result[2], /cdk:commit-changes/);
 });
 
@@ -136,42 +136,6 @@ test('decide makes every step conditional on git status', () => {
   for (const step of result) assert.match(step, /git status --porcelain/);
 });
 
-test('decide adds the steps for a question prompt', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const result = decide({ prompt: 'What does stop.mjs do?' }, deps);
-  // Assert
-  assert.equal(result.length, 3);
-});
-
-test('decide adds the steps for a slash-command prompt', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const result = decide({ prompt: '/cdk:ship-release' }, deps);
-  // Assert
-  assert.equal(result.length, 3);
-});
-
-test('decide adds the steps for a bang prompt', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const result = decide({ prompt: '  !ls' }, deps);
-  // Assert
-  assert.equal(result.length, 3);
-});
-
-test('decide returns nothing for a missing or blank prompt', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const results = [decide({}, deps), decide({ prompt: '   ' }, deps), decide(null, deps)];
-  // Assert
-  assert.deepEqual(results, [[], [], []]);
-});
-
 test('decide omits only the commit step while the ship-release marker exists', () => {
   // Arrange
   const deps = make({ marker: true });
@@ -179,8 +143,8 @@ test('decide omits only the commit step while the ship-release marker exists', (
   const result = decide(prompt, deps);
   // Assert
   assert.equal(result.length, 2);
-  assert.match(result[0], /cdk:write-changelog/);
-  assert.match(result[1], /README\.md or related docs/);
+  assert.match(result[0], /README\.md or related docs/);
+  assert.match(result[1], /cdk:write-changelog/);
 });
 
 test('decide keeps only the docs step in an unsafe git state', () => {
@@ -213,43 +177,15 @@ test('decide lets a project dir error bubble', () => {
   assert.throws(act, /ENOENT/);
 });
 
-test('output numbers the steps under the end-of-task heading', () => {
-  // Arrange
-  const parts = ['one', 'two'];
-  // Act
-  const result = output(parts);
-  // Assert
-  assert.equal(result.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
-  assert.match(result.hookSpecificOutput.additionalContext, /^After the whole task is complete.*:\n1\. one\n2\. two$/);
-});
-
-test('output has no systemMessage so normal prompts stay quiet', () => {
-  // Arrange
-  const parts = ['one'];
-  // Act
-  const result = output(parts);
-  // Assert
-  assert.equal('systemMessage' in result, false);
-});
-
-test('output is null when there are no steps', () => {
-  // Arrange
-  const parts = [];
-  // Act
-  const result = output(parts);
-  // Assert
-  assert.equal(result, null);
-});
-
-test('decide puts the changelog step between Graphify and the docs step', () => {
+test('decide puts the docs step between Graphify and the changelog step', () => {
   // Arrange
   const deps = make({ installed: true, configured: true, present: true });
   // Act
   const result = decide(prompt, deps);
   // Assert
   assert.match(result[0], /graphify update/);
-  assert.match(result[1], /cdk:write-changelog/);
-  assert.match(result[2], /README\.md or related docs/);
+  assert.match(result[1], /README\.md or related docs/);
+  assert.match(result[2], /cdk:write-changelog/);
   assert.match(result[3], /cdk:commit-changes/);
 });
 
@@ -259,8 +195,8 @@ test('decide forbids a release or version bump in the changelog step', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[0], /never cut a release or bump the version/);
-  assert.match(result[0], /nothing user-facing changed, skip this step/i);
+  assert.match(result[1], /never cut a release or bump the version/);
+  assert.match(result[1], /nothing user-facing changed, skip this step/i);
 });
 
 test('decide makes the changelog step ask first with Update changelog and Skip', () => {
@@ -269,9 +205,9 @@ test('decide makes the changelog step ask first with Update changelog and Skip',
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[0], /AskUserQuestion/);
-  assert.match(result[0], /"Update changelog" and "Skip"/);
-  assert.match(result[0], /\(Recommended\)/);
+  assert.match(result[1], /AskUserQuestion/);
+  assert.match(result[1], /"Update changelog" and "Skip"/);
+  assert.match(result[1], /\(Recommended\)/);
 });
 
 test('decide makes the commit step ask first with Commit and push and Skip', () => {
@@ -293,7 +229,7 @@ test('decide does not ask in the docs, unit-test, or Graphify steps', () => {
   // Assert
   assert.doesNotMatch(result[0], /AskUserQuestion/);
   assert.doesNotMatch(result[1], /AskUserQuestion/);
-  assert.doesNotMatch(result[3], /AskUserQuestion/);
+  assert.doesNotMatch(result[2], /AskUserQuestion/);
 });
 
 test('decide has no ask at all in an unsafe git state', () => {
@@ -323,7 +259,7 @@ test('decide keeps the changelog step while the ship-release marker exists', () 
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[0], /cdk:write-changelog/);
+  assert.match(result[1], /cdk:write-changelog/);
 });
 
 test('decide omits the changelog step in an unsafe git state', () => {
@@ -356,7 +292,7 @@ test('decide tells Claude to skip the docs step when nothing documented changed'
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[1], /otherwise skip this step/);
+  assert.match(result[0], /otherwise skip this step/);
 });
 
 test('decide puts the unit-test step first, before Graphify', () => {
@@ -410,4 +346,146 @@ test('decide keeps the unit-test step under the ship-release marker', () => {
   // Assert
   assert.equal(result.length, 3);
   assert.match(result[0], /`pytest`/);
+});
+
+const stateDeps = ({ state = {}, now = 'b' } = {}) => {
+  const writes = [];
+  return {
+    ...make(),
+    fingerprint: () => now,
+    statePath: () => '/state.json',
+    readState: () => state,
+    writeState: (f, v) => writes.push(v),
+    writes
+  };
+};
+const session = { session_id: 's1', prompt: 'Fix X' };
+
+test('snapshot writes the baseline and fired false for a prompt', () => {
+  // Arrange
+  const deps = stateDeps({ now: 'abc' });
+  // Act
+  snapshot(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, [{ baseline: 'abc', fired: false }]);
+});
+
+test('snapshot records an empty-tree fingerprint as the baseline', () => {
+  // Arrange
+  const deps = stateDeps({ now: '' });
+  // Act
+  snapshot(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, [{ baseline: '', fired: false }]);
+});
+
+test('snapshot skips a blank prompt', () => {
+  // Arrange
+  const deps = stateDeps();
+  // Act
+  snapshot({ ...session, prompt: '  ' }, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
+});
+
+test('snapshot skips a task-notification prompt', () => {
+  // Arrange
+  const deps = stateDeps();
+  // Act
+  snapshot({ ...session, prompt: '<task-notification>done' }, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
+});
+
+test('snapshot skips when the fingerprint is null', () => {
+  // Arrange
+  const deps = stateDeps({ now: null });
+  // Act
+  snapshot(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
+});
+
+test('snapshot skips when there is no session id', () => {
+  // Arrange
+  const deps = stateDeps();
+  // Act
+  snapshot({ prompt: 'Fix X' }, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
+});
+
+test('gate blocks once with the numbered steps in order when files changed', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'b' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result.decision, 'block');
+  assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:write-changelog.*\n3\. .*cdk:commit-changes/s);
+  assert.deepEqual(deps.writes, [{ baseline: 'a', fired: true }]);
+});
+
+test('gate lets Claude stop when the task is unfinished and waiting on the user', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false } });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.match(result.reason, /If the task is finished, do these end-of-task steps now/);
+  assert.match(result.reason, /not finished and you are waiting on the user, say so and stop/);
+});
+
+test('gate blocks even when the transcript already holds the asks', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'b' });
+  // Act
+  const result = gate({ ...session, transcript_path: '/t.jsonl' }, deps);
+  // Assert
+  assert.equal(result.decision, 'block');
+});
+
+test('gate returns null when the fingerprint is unchanged', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'a' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+});
+
+test('gate returns null when it already fired', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: true } });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+});
+
+test('gate returns null when there is no state', () => {
+  // Arrange
+  const deps = stateDeps({ state: {} });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+});
+
+test('gate returns null when the fingerprint is null', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: null });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+});
+
+test('gate returns null when there is no session id', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: false } });
+  // Act
+  const result = gate({}, deps);
+  // Assert
+  assert.equal(result, null);
 });

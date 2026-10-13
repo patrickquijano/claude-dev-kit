@@ -2,11 +2,9 @@
 // mode, with the recommendation weighed against the context Claude sees, or to leave plan mode on #noplan.
 // Hooks cannot change the mode themselves.
 import { contextOutput } from './hook-io.mjs';
-import { NOPLAN_RE, PLAN_RE, isSkippedPrompt } from './prompt.mjs';
+import { NOPLAN_RE, PLAN_RE, isMachinePrompt, isSkippedPrompt } from './prompt.mjs';
 
 const MODES = ['default', 'plan', 'acceptEdits', 'auto', 'dontAsk', 'bypassPermissions'];
-// Turns the harness starts itself (background-agent reports, cross-agent messages); never ask on these.
-const MACHINE_PREFIXES = ['<task-notification>', '<agent-message'];
 
 // First matching rule wins; every other prompt asks, and Claude weighs the recommendation from context.
 export function classify(prompt) {
@@ -21,7 +19,7 @@ export function decide(event) {
   const mode = event?.permission_mode;
   if (typeof prompt !== 'string' || !prompt.trim()) return { action: 'none' };
   const text = prompt.trimStart();
-  if (isSkippedPrompt(text) || MACHINE_PREFIXES.some((p) => text.startsWith(p)) || !MODES.includes(mode)) {
+  if (isSkippedPrompt(text) || isMachinePrompt(text) || !MODES.includes(mode)) {
     return { action: 'none' };
   }
   const { result, rule } = classify(prompt);
