@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The end-of-task hook now tells Claude to run the project's unit tests first, using the detected command (`test:unit` or `test` script, pytest, go, cargo, or phpunit), and to fix and re-run until they pass.
+- The end-of-task hook now tells Claude to add Unreleased entries with `cdk:write-changelog` when the task changed user-facing behavior and `CHANGELOG.md` exists, before the docs and commit steps; it never cuts a release or bumps the version.
+
+### Fixed
+
+- `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
+
+## [3.0.0] - 2026-10-13
+
+### Added
+
 - `/cdk:ship-release` is now a skill that ships through a GitHub pull request or a GitLab merge request, chosen by the `origin` host: it switches off a protected branch, makes atomic signed commits, updates the version, changelog, and README, opens the PR or MR, reviews it, addresses open items, merges a clean one, and syncs the target branch.
 - `/cdk:prepare-change-request`, `/cdk:review-change-request`, and `/cdk:address-change-request-review` work on GitHub pull requests and GitLab merge requests alike, chosen by the `origin` host. They take `--yes` to skip only their confirmation asks, `--target`, `--draft`, `--dry-run`, `--squash`, `--delete-branch`, and `--self-review` where they apply, plus an optional PR or MR number.
 - Inline review comments on both hosts use Conventional Comments labels such as `issue (blocking)`, `suggestion`, `question`, and `nit`, and the review skips findings already discussed.
