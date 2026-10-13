@@ -74,23 +74,24 @@ test('cli: the ship-release marker removes the commit part', () => {
   assert.doesNotMatch(r.stdout, /cdk:commit-changes/);
 });
 
-test('cli: a non-git directory prints no commit step', () => {
+test('cli: a non-git directory prints the docs step but no commit step', () => {
   // Arrange
   const d = dir('te-none-');
   // Act
   const r = run(d, prompt);
   // Assert
   assert.equal(r.status, 0);
+  assert.match(r.stdout, /README\.md or related docs/);
   assert.doesNotMatch(r.stdout, /cdk:commit-changes/);
 });
 
-test('cli: a slash-command prompt prints nothing', () => {
+test('cli: a slash-command prompt prints the end-of-task steps', () => {
   // Arrange
   const d = repo();
   // Act
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/cdk:ship-release' }));
   // Assert
-  assert.equal(r.stdout, '');
+  assert.match(r.stdout, /cdk:commit-changes/);
 });
 
 test('cli: invalid JSON prints one stderr line, nothing on stdout, and exits 1', () => {
@@ -137,14 +138,16 @@ test('cli: a task-notification prompt asks nothing', () => {
   assert.doesNotMatch(r.stdout, /AskUserQuestion/);
 });
 
-test('cli: a question in plan mode prints nothing', () => {
+test('cli: a question in plan mode prints the end-of-task steps only', () => {
   // Arrange
   const d = repo();
   // Act
   const r = run(d, JSON.stringify({ permission_mode: 'plan', prompt: 'What does X do?' }));
   // Assert
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, '');
+  const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /cdk:commit-changes/);
+  assert.doesNotMatch(ctx, /ExitPlanMode|AskUserQuestion/);
 });
 
 test('cli: #noplan in plan mode prints the exit instruction', () => {
