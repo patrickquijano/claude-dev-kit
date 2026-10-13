@@ -1,15 +1,46 @@
 # Stacks
 
-Detection signals, runners, recommended testers, and targeted runs per stack. Shared by `setup-testing`, the `write-*-tests` skills, and `test-gap-analyzer`.
+Detection signals, runners, recommended testers, faker libraries, and targeted runs per stack, for `setup-testing` and `cdk:test-gap-analyzer`.
 
-- `<x>` = package exec prefix, the package-manager.md "binary must be installed" form: npm `npx --no-install`, pnpm `pnpm exec`, yarn `yarn`, bun `bunx --no-install`. `--no-install` stops an npx/bunx download when the runner is missing.
+## Contents
+
+- Package manager · Faker libraries · JavaScript / TypeScript · Python · Go · Rust · PHP · Ruby · JVM · Deno · .NET · Targeted runs
+
+- `<x>` = package exec prefix, the "binary must be installed" form in Package manager below. `--no-install` stops an npx/bunx download when the runner is missing.
 - Kind: unit, integration, e2e, other (type check, component, contract, static checks the project already uses).
 - Configured = runner in dependencies (or on `PATH` for system tools) and its config file or manifest key present. Installed but unconfigured = dependency present, no config.
 - Recommended = the tester `setup-testing` proposes for a kind when none exists; an existing tester of that kind always wins. Per-stack folder layout: `layout.md` beside this file.
 
+## Package manager
+
+Detect per package, first match wins: the `packageManager` field in `package.json` (name before `@`); else a lockfile in the package dir, then the git root (`pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm); else npm. Several lockfiles in one dir → ask (npm Recommended); an analyzer reports `unknown` and the skill asks. Manager binary missing (`command -v`) → stop.
+
+| Manager | Exec, binary must be installed (`<x>`) | Add dev dependency |
+| ------- | -------------------------------------- | ------------------ |
+| npm     | `npx --no-install`                     | `npm install -D`   |
+| pnpm    | `pnpm exec`                            | `pnpm add -D`      |
+| yarn    | `yarn`                                 | `yarn add -D`      |
+| bun     | `bunx --no-install`                    | `bun add -d`       |
+
+No `package.json` for a JS tester → create `{ "name": "<dir name, lowercased, unsafe characters to -, never starting with . _ or ->", "private": true }`; never run `<pm> init`.
+
+## Faker libraries
+
+| Stack                 | Library                                      |
+| --------------------- | -------------------------------------------- |
+| JavaScript/TypeScript | `@faker-js/faker`                            |
+| Deno                  | `npm:@faker-js/faker`                        |
+| Python                | `Faker` (pytest `faker` fixture with plugin) |
+| Go                    | `github.com/brianvoe/gofakeit/v7`            |
+| Rust                  | `fake`                                       |
+| PHP                   | `fakerphp/faker`                             |
+| Ruby                  | `faker` gem                                  |
+| JVM                   | `net.datafaker:datafaker`                    |
+| .NET                  | `Bogus`                                      |
+
 ## JavaScript / TypeScript
 
-Signals: `package.json`. Package manager: detected per `setup-husky/references/package-manager.md` (`packageManager` field, else lockfile); the skill passes it to the analyzer.
+Signals: `package.json`. Package manager: detected per Package manager above; the skill passes it to the analyzer.
 
 | Runner     | Kind              | Signal                                             | Command               |
 | ---------- | ----------------- | -------------------------------------------------- | --------------------- |
