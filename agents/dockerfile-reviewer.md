@@ -37,5 +37,3 @@ Tool output: <one line per tool: counts and first error | none>
 ```
 
 No findings → `Findings: none`.
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

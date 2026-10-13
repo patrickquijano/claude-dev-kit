@@ -33,5 +33,3 @@ Installed: <program: path | missing>, …
 Questions: <question — options>, … | none
 Gaps: <fact not derivable — why>, … | none
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

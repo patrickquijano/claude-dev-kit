@@ -36,5 +36,3 @@ Hunks:
   risk: <semantic risk | none>
 Recommendation: ours | theirs | combined — <one sentence justification>
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

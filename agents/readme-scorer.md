@@ -29,5 +29,3 @@ Score: <n>/100 (pass | below 95)
 Deductions (largest first):
 - <ID> −<n>: <what is wrong> → <concrete fix>
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

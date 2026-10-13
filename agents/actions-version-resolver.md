@@ -27,5 +27,3 @@ Resolved:
 Runner: <label> (<basis: both source URLs, inferred>) | not needed
 Unresolved: <item — reason — suggested question>, … | none
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

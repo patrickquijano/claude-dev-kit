@@ -45,4 +45,4 @@ Missing: <tool> — recommend <option> (<reason>); alternatives <a>, <b> | none
 Questions: <question for the skill to ask the user> | none
 ```
 
-`setup` → return only Package, Stack, Testers, Faker, Missing, Questions. No target found → `Targets: none` with the reason. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
+`setup` → return only Package, Stack, Testers, Faker, Missing, Questions. No target found → `Targets: none` with the reason.

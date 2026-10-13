@@ -33,5 +33,3 @@ Rounds: <1 | 2> (<n> sources fetched)
 ```
 
 Input too ambiguous → return only `Question: <clarifying question> — options: <2–4>`.
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

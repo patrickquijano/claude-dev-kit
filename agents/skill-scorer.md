@@ -30,5 +30,4 @@ Score: <n>/100 (pass | below 95)
 Deductions (largest first):
 - <ID> −<n>: <what is wrong> → <concrete fix>
 Gaps: <deductions left | none>
-Known issue: <symptom> → <fix> (only when one was hit)
 ```

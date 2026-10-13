@@ -28,5 +28,3 @@ Deviations: <from the plan, with reason | none>
 Blocked: <item id: reason | none>
 Question: <only when input is missing; omit otherwise>
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

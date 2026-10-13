@@ -43,5 +43,3 @@ Archetype: <archetype> — <reason>
 Alternatives: <next-best archetypes>
 Gaps: <facts not derivable from repo: license choice, visibility (public | private) when no license file, support contact, status, ... | none>
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
