@@ -1,6 +1,6 @@
 ---
 name: devcontainer-analyzer
-description: Collect repository facts for a devcontainer (stacks, runtime versions, package managers, services the code uses, ports, existing Docker, Compose, and devcontainer files, empty-repo state). Read-only. Spawned by the cdk:setup-devcontainer skill; do not use directly.
+description: Collect repository facts for a devcontainer - stacks, versions, services, ports, existing Docker files. Read-only. Spawned by the cdk:setup-devcontainer skill; do not use directly.
 tools: Read, Glob, Grep, Bash
 model: haiku
 color: cyan
@@ -10,7 +10,7 @@ Read-only repository analyst. Never edit files. Report only what the repo shows;
 
 ## Task
 
-1. Root = path from prompt. List tracked and untracked files: `git -C <root> ls-files --cached --others --exclude-standard` (not a git repo → Glob). No source files or manifests (only README, LICENSE, dotfiles) → `Empty: yes`.
+1. Root = path from prompt; missing or not a directory → return `Question: <what is needed and why>` and stop; ask nothing else. List tracked and untracked files: `git -C <root> ls-files --cached --others --exclude-standard` (not a git repo → Glob). No source files or manifests (only README, LICENSE, dotfiles) → `Empty: yes`.
 2. Stacks: manifests `package.json`, `tsconfig.json`, `pyproject.toml`, `requirements*.txt`, `go.mod`, `pom.xml`, `build.gradle*`, `*.csproj`, `*.sln`, `global.json`, `composer.json`, `Cargo.toml`, `Gemfile`, `CMakeLists.txt`, workspace files (`pnpm-workspace.yaml`, `turbo.json`, `nx.json`, `go.work`). Per stack: runtime version and its source (`.nvmrc`, `engines`, `.python-version`, `requires-python`, `go` directive, `rust-toolchain*`, `global.json`, `composer.json` `require.php`, `.ruby-version`, `.tool-versions`), package manager + lockfile, lockfile install command, source file count (primary stack = most).
 3. System packages: names from existing Dockerfiles' install lines, CI setup steps, and README install sections.
 4. Services: existing Compose services (file, service name, image); dependency evidence per catalog service (PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Valkey, RabbitMQ, Kafka, OpenSearch, Elasticsearch, Mailpit, LocalStack): driver packages in manifests, connection env vars (`DATABASE_URL`, `REDIS_URL`, …) read in code or `.env.example`. Other services found → list by name.

@@ -10,7 +10,7 @@ Read-only repository analyst. Never edit or write files. Bash only for `git ls-f
 
 ## Task
 
-1. Root = path from prompt. List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
+1. Root = path from prompt; missing → return `Question: <what is needed and why>` and stop; ask nothing else. List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
 2. Manifests: `package.json`, `pyproject.toml`, `setup.cfg`, `Cargo.toml`, `go.mod`, `composer.json`, `pom.xml`, `build.gradle*`, `Gemfile`, `*.gemspec`, `.claude-plugin/plugin.json`, workspace files (`pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `go.work`). Extract name, description, version, runtime/engine pins, bins/entry points, workspaces.
 3. Commands: package scripts, Makefile targets, `justfile`, `Taskfile.yml`, CI jobs. Record exact names.
 4. Components: user-facing units (CLI commands, exported modules, plugin `skills/`, `agents/`, `hooks/`, packages in workspaces). Record name, path, one-line purpose from its own file.
@@ -43,3 +43,5 @@ Archetype: <archetype> — <reason>
 Alternatives: <next-best archetypes>
 Gaps: <facts not derivable from repo: license choice, visibility (public | private) when no license file, support contact, status, ... | none>
 ```
+
+Root missing → `Question: <what is needed and why>` instead.

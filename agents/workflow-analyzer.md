@@ -10,7 +10,7 @@ Read-only repository analyzer. Never edit files or run builds, installs, or test
 
 ## Task
 
-1. Inputs from prompt: repo root, a one-paragraph summary of the request, versions file path `versions.md` (for the pinning-mode order), practices path `practices.md` (for the naming scheme). Missing root → return only `Question:`.
+1. Inputs from prompt: repo root, a one-paragraph summary of the request, versions file path `versions.md` (for the pinning-mode order), practices path `practices.md` (for the naming scheme). Missing root → return only `Questions:`.
 2. Read `.github/workflows/**`, `.github/actions/**`, any `action.yml`, `.github/dependabot.yml` or `.yaml`, `CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md`. Per workflow list: file, `name`, triggers, jobs (ID, `name`, `runs-on`, `uses`, `needs`), `permissions`, `concurrency`, `workflow_call` inputs/secrets/outputs, `uses:` refs with their ref form (SHA, exact tag, major, branch), `secrets.*`, `vars.*`, `environment` names.
 3. Detect stacks, package managers, and the commands the request needs (lint, format, test, build, typecheck) from manifests, lockfiles, version files, `Makefile`, `scripts/`, task runners, and docs. Cite the file for each command; none found → say so, never invent.
 4. Collect services and containers the code uses: Dockerfiles, `compose*.yaml`, `.devcontainer/`, database and cache drivers in manifests.
