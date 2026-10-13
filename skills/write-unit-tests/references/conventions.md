@@ -1,16 +1,20 @@
-# Test conventions
+# Unit test conventions
 
-Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and their `test-gap-analyzer` agent. Runner detection per stack lives in the sibling skill file `setup-testing/references/stacks.md`; JavaScript package managers in `setup-husky/references/package-manager.md`. `<x>`, `<py>`, `<mvn>`, `<gradle>` below follow stacks.md.
+Rules for the tests this skill writes and for `cdk:test-gap-analyzer`. Runner detection lives in `stacks.md` beside this file.
+
+## Contents
+
+- Shared rules · Faker libraries · Coverage · Unit · ES modules · ES module safety · Official docs
 
 ## Shared rules
 
-- AAA: every test has three blocks in order, Arrange, Act, Assert, split by a blank line or `// Arrange` / `// Act` / `// Assert` comments (the project's comment syntax). One Act per test, so a failure points at one behavior.
-- Faker: generate every input with the stack's faker library (table below), never hand-typed literals, so tests do not pass by coincidence of one value. Seed faker once per test file or run (fixed seed, or a logged random seed) so a failure reproduces. Expected values derive from the generated inputs. Literals stay only where the value is the behavior under test: boundaries (`0`, empty string, `null`, max length), enum members, error codes, HTTP status codes.
-- Never edit production code. A test that fails because the code looks wrong → report the evidence (input, expected, actual, `file:line`) and keep the failing test, listing the suspected bug in the Output. Tests must never bend to a bug; a test kept failing leaves the pass loops.
+- AAA: every test has three blocks in order, Arrange, Act, Assert, split by a blank line or `// Arrange` / `// Act` / `// Assert` comments. One Act per test, so a failure points at one behavior.
+- Faker: generate every input with the stack's faker library, never hand-typed literals, so tests do not pass by coincidence of one value. Seed once per file or run (fixed seed, or a logged random seed) so a failure reproduces. Expected values derive from the generated inputs. Literals stay only where the value is the behavior under test: boundaries (`0`, empty string, `null`, max length), enum members, error codes.
+- Never edit production code. A test that fails because the code looks wrong → report the evidence (input, expected, actual, `file:line`) and keep the failing test, listing the suspected bug in the Output. Tests never bend to a bug; a test kept failing leaves the fix loops.
 - Match the project: existing test location, file naming, runner, assertion style, helpers, and fixtures win over the defaults here. No tests yet → the runner's documented default layout.
-- Missing tooling (runner, coverage provider, faker library, e2e framework, browsers, containers) → chain `cdk:setup-testing <kind> <package>` (orchestration.md): it asks per tool (stack-standard option Recommended, alternatives, Stop), installs only the picked tool as a dev dependency, and configures it. Never install unasked.
-- Decisions with more than one fitting answer (runner, mock library, layout, data strategy) → take the Recommended pick, no question, and report each pick with its reason in the Output. Derivable from the repo → use it.
-- Best practices: apply the kind's section below, then WebFetch the detected runner's official docs (Official docs list, else the runner's own site from its manifest `homepage`) for runner-specific rules. WebFetch unavailable or failing → bundled sections only; say so in the Output.
+- Missing tooling (runner, coverage provider, faker library) → chain `cdk:setup-testing unit <package>`; it asks per tool, installs only the picked one as a dev dependency, and configures it. Never install unasked.
+- Decisions with several fitting answers (runner, mock library, layout) → take the Recommended pick, no question, and report each pick with its reason. Derivable from the repo → use it.
+- Best practices: apply this file, then WebFetch the detected runner's official docs (Official docs list, else the runner's manifest `homepage`). WebFetch unavailable or failing → bundled rules only; say so in the Output.
 - Independent and order-free: no test depends on another test's state or run order; each cleans up what it creates.
 - Names state behavior and condition (`returns empty list when user has no orders`), not the method name alone.
 - No fixed sleeps; wait on a condition or use fake timers.
@@ -59,56 +63,33 @@ Shared by `write-unit-tests`, `write-integration-tests`, `write-e2e-tests`, and 
 
 - Unit under test: one public function or method. Collaborators that do I/O (network, database, filesystem, clock, randomness, env, processes) → test double at the boundary; pure collaborators run real.
 - Per public function or method in scope: at least 2 positive cases (valid inputs, expected result) and at least 2 negative cases (invalid input, thrown error, rejected promise, edge or boundary).
-- No integration in unit tests: no real database, network, filesystem, container, or running server. Such a test belongs to `write-integration-tests`.
+- No integration in unit tests: no real database, network, filesystem, container, or running server. Such a test belongs to `cdk:write-integration-tests`.
 - Assert behavior through the public API, not private state or call order, unless the call is the behavior (a sent email).
 - Mock only what the unit owns the contract with; prefer fakes and stubs over strict mocks.
 - Fast: each test well under a second; slow → a hidden integration.
 
-### ES modules
+## ES modules
 
 - JS/TS ES modules (`.mjs`, `.js`, `.ts` with `import`/`export`): unit tests go in `tests/unit/` at the mirrored source path (`src/a/b.mjs` → `tests/unit/src/a/b.test.mjs`). This overrides "Match the project" for location only; runner, assertion style, and helpers still match the project.
-- Make the module testable first: export the logic as named functions, pass side effects (runner, `fs`, env, clock, stdin/stdout) as a `deps` parameter that defaults to the real one, keep the CLI body behind a main guard. This changes production code, which test skills never edit: report such a module as `Needs refactor:` and leave it untested.
-- Existing unit tests outside that path: move with `git mv`, update runner config and globs so they still run (Node's `**` glob skips dot directories; add explicit globs), then bring them up to the Unit rules (AAA, 2 positive + 2 negative per function, no integration). Report each move and change.
-- Cases that need real I/O (git, fs, spawned process) found in unit files: move them to `tests/integration/` at the mirrored path and hand them to `write-integration-tests`.
+- Testable modules export logic as named functions, take side effects (runner, `fs`, env, clock, stdin/stdout) as a `deps` parameter defaulting to the real one, and keep the CLI body behind a main guard. Changing a module to fit is a production edit: report it as `Needs refactor:` and leave it untested.
+- Existing unit tests outside that path: move with `git-mv`, update runner config and globs so they still run (Node's `**` glob skips dot directories; add explicit globs), then bring them up to the Unit rules. Report each move and change.
+- Cases that need real I/O (git, fs, spawned process) found in unit files: move them to `tests/integration/` at the mirrored path for `cdk:write-integration-tests`.
 
-### ES module safety
+## ES module safety
 
-Code the test skills write or touch follows this checklist (target projects lack the cdk rule file):
+Code this skill writes or touches follows this checklist:
 
 - `node:` import specifiers. `execFileSync` or `spawnSync` with an argument array and a `timeout`; never `shell: true`, `eval`, `new Function`, or input interpolated into a command.
 - `JSON.parse` of external input inside `try`, then validate shape and types.
 - Resolve paths and check they stay inside the project root before reading or writing.
 - Never log secrets or env values; no network calls unless the module's purpose.
 
-## Integration
-
-- Scope: two or more real components together, across a boundary the project owns: database repositories, HTTP handlers through the framework, message consumers, file storage, module wiring.
-- Dependency per boundary, Recommended pick taken without asking and reported: owned infrastructure (database, cache, queue) → real throwaway service (Testcontainers or `docker compose`) (Recommended; matches production behavior); third-party API → HTTP stub (MSW, WireMock, respx, nock) (Recommended; no live calls, no cost, no flake); in-memory fake → when Docker is unavailable.
-- Isolated data: faker-generated unique keys per test; reset by transaction rollback, truncate, or fresh container, so parallel and repeated runs never collide.
-- Separate suite from unit: own directory, config, marker, or build tag (stacks.md splits), so unit runs stay fast.
-- Assert observable outcomes at the boundary (stored row, HTTP response, published message), not internals.
-- Never hit production or shared environments.
-- JS/TS ES modules: integration tests go in `tests/integration/` at the mirrored source path, apart from `tests/unit/`; each uses temp dirs it removes afterwards, and never touches the network.
-
-## End to end
-
-- Scope: user journeys through the running app from the outside: browser for web UIs, HTTP for APIs, process for CLIs. Pick critical journeys first (sign-up, sign-in, checkout, core CRUD), not every edge; edges belong to unit tests.
-- Framework when none exists, Recommended pick taken without asking and reported: web UI → Playwright (Recommended; auto-waiting, parallel, multi-browser, `webServer` starts the app); HTTP API → the existing runner with the stack's HTTP client against the started app (Recommended; no new framework), or Playwright `request`; CLI → the existing runner spawning the built binary as a subprocess (Recommended; tests the real entry point). Existing Cypress, Capybara, or Laravel Dusk setups stay.
-- App start: the framework starts it (`webServer`, `start-server-and-test`, compose) from the repo's own start command, or an already running URL the user confirms is local or safe; never assume a URL or port, ask when not derivable.
-- Locators: user-facing first (role, label, text), then `data-testid`; never CSS chains or XPath tied to layout.
-- Data: create through the app's API or seed step with faker values per test; never depend on pre-existing records.
-- Independent tests: fresh context or session per test; reuse sign-in via stored auth state, not test order.
-- Web-first assertions that retry (`expect(locator).toBeVisible()`), no sleeps.
-- Keep traces, screenshots, or videos on failure only.
-
 ## Official docs
 
 - Vitest: <https://vitest.dev/guide/>; coverage <https://vitest.dev/guide/coverage>
 - Jest: <https://jestjs.io/docs/getting-started>
-- Playwright: <https://playwright.dev/docs/best-practices>
 - pytest: <https://docs.pytest.org/en/stable/explanation/goodpractices.html>
 - Go: <https://pkg.go.dev/testing>
 - Rust: <https://doc.rust-lang.org/book/ch11-00-testing.html>
 - .NET: <https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices>
-- Testcontainers: <https://testcontainers.com/>
 - Faker JS: <https://fakerjs.dev/>
