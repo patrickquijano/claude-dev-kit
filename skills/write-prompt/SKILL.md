@@ -1,6 +1,6 @@
 ---
 name: write-prompt
-description: Draft a brief, effective Claude Code prompt from a rough task, or review an existing one, grounded in the repo and checked against common prompt anti-patterns. Prints the prompt in chat; writes no project files. Use when the user asks to write, draft, rewrite, tighten, or review a prompt for Claude Code, or to turn a rough task into a prompt.
+description: Drafts a brief, effective Claude Code prompt from a rough task, or reviews an existing one, grounded in the repo and checked against common prompt anti-patterns. Prints the prompt in chat; writes no project files. Use when the user asks to write, draft, rewrite, tighten, or review a prompt for Claude Code, or to turn a rough task into a prompt.
 argument-hint: '<rough task | existing prompt>'
 ---
 
@@ -16,21 +16,23 @@ Input: $ARGUMENTS
 - Never invent paths, commands, versions, or APIs; unverified → omit and report, since a wrong fact in a prompt misleads the agent.
 - Input holds several tasks → draft the first and list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
-- Claude Code target only.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../shared/references/fallbacks.md`.
-- Loops: clarify (step 3) max 2 batches.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../shared/references/resolve-findings.md` (scope: ask-only, it prints only and writes no files; sources: `Open gaps:`, `Failed checks:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../shared/references/known-issues.md` with slug `write-prompt` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Claude Code target only. Nothing is written to disk, so no approval is asked.
+- AskUserQuestion unavailable (or unattended run): ask nothing, pick the recommended option, draft, and list the gap in `Open gaps:`.
+- Loops: clarify (step 3) max 2 batches; the check-and-fix pass (step 5) max 3 rounds. Anything still failing → `Open gaps:` (draft) or `Failed checks:` (review-only), never silently dropped.
 
 ## Workflow
 
-1. **Analyze.** Input empty → AskUserQuestion for the task. Input is an existing prompt → review it; request is review-only → review-only mode. Extract goal, audience, starting state, target state, files, stack, constraints, prior failures.
-2. **Ground.** Read repo facts that fill extracted gaps: stack and versions from manifests, test/lint commands, relevant paths. Confirm named paths, commands, and versions exist, in the input prompt too. Review-only → walk checks.md against the input prompt, with each unverified fact as a failed check; `Result: done`; go to step 6, then print the review-only Output and stop.
-3. **Clarify.** Remaining gaps → AskUserQuestion in batches (max 2), then draft and list open gaps. Detail: `${CLAUDE_SKILL_DIR}/references/clarify.md`.
-4. **Draft** per structure.md.
-5. **Check.** Walk checks.md against the draft; fix each failure.
-6. **Resolve findings.** Per resolve-findings.md. Itemize each `Open gaps:` entry (draft) or `Failed checks:` entry (review-only); the step never re-enters the clarify loop and asks only for a choice step 3 did not already offer.
-7. **Report.** Print the Output, `Result: done`; no approval asked, since nothing is written.
+1. **Analyze.** Input empty → AskUserQuestion for the task. Existing prompt → review it; review-only request → review-only mode. Extract goal, audience, start and target state, files, stack, constraints, prior failures.
+2. **Ground.** Read repo facts that fill the gaps (manifests, test and lint commands, paths); confirm every named path, command, and version exists, in the input prompt too.
+3. **Clarify.** Gaps remain → AskUserQuestion, ≤4 questions per batch, 2–4 options each, recommended first with "(Recommended)" and the reason. Max 2 batches, then continue. Review-only mode skips this step.
+4. **Draft** per structure.md. Review-only mode: walk checks.md against the input prompt instead, each unverified fact a failed check, then go to step 6.
+5. **Check.** Walk checks.md against the draft; fix each failure and re-walk, up to 3 rounds.
+6. **Report.** Print the Output; for a draft, `Open gaps:` lists what no step could fill.
+
+## Files
+
+- For the anti-pattern checks each prompt must pass, see `${CLAUDE_SKILL_DIR}/references/checks.md` (steps 2, 4, 5).
+- For the prompt template to draft into, see `${CLAUDE_SKILL_DIR}/references/structure.md` (step 4).
 
 ## Output
 
@@ -41,7 +43,6 @@ Input: $ARGUMENTS
 Checks n/a: <list or none>
 Open gaps: <list or none>
 Follow-ups: <split-off tasks or none>
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ````
@@ -50,7 +51,7 @@ Review-only:
 
 ```text
 Failed checks: <check — fix>, … | none
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <unverified facts or unresolved items, or none>
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
