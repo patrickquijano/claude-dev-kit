@@ -12,7 +12,7 @@
 | --- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | F1  | 4   | S: `name` valid: equals directory, kebab-case, ≤64, no edge or double hyphens, no reserved words                                                          | F Fields            |
 | F2  | 6   | `description` third person, states what and when, key use case first                                                                                      | F Description       |
-| F3  | 4   | S: `description` + `when_to_use` ≤1,536 chars (≤1,024 for `description`)                                                                                  | F Description       |
+| F3  | 4   | S: `description` ≤200 chars, no named skill or subagent; `description` + `when_to_use` ≤1,536                                                             | F Description       |
 | F4  | 4   | Description holds natural trigger words and is distinctive, not vague                                                                                     | F Description       |
 | F5  | 6   | Invocation flags match the chosen kind per the invocation matrix                                                                                          | F Invocation matrix |
 | F6  | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                       | F Format            |

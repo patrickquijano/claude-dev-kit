@@ -9,7 +9,7 @@ Link only files inside this skill (`${CLAUDE_SKILL_DIR}/…`); copy, never link,
 ````markdown
 ---
 name: <kebab-name>
-description: <What it does, third person>. Use when <trigger words>. # side effects → add: Use only when the user explicitly asks to <action>.
+description: <What it does, third person>. Use when <trigger words>. # ≤200 chars, no skill names; side effects → end: Use only when the user explicitly asks to <action>[, or when chained].
 argument-hint: '<[arg]>' # omit when no arguments
 disable-model-invocation: true # side effects only
 ---
@@ -46,7 +46,7 @@ Stopped: <step>: <reason> | none
 ```markdown
 ---
 name: <kebab-name>
-description: <Conventions it holds, third person>. Use when <work it applies to>.
+description: <Conventions it holds, third person>. Use when <work it applies to>. # ≤200 chars, no skill names
 paths: <globs> # optional: only when it applies to certain files
 ---
 
@@ -72,7 +72,7 @@ paths: <globs> # optional: only when it applies to certain files
 ```markdown
 ---
 name: <kebab-name>
-description: <What this context covers>. Use when <situations Claude should load it>.
+description: <What this context covers>. Use when <situations Claude should load it>. # ≤200 chars, no skill names
 user-invocable: false
 # disable-model-invocation: true # only to block Claude from loading it too
 ---

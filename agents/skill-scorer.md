@@ -1,6 +1,6 @@
 ---
 name: skill-scorer
-description: Score one skill directory against a 100-point rubric, verifying frontmatter, line counts, and links against the files. Read-only. Spawned by the build-skill skill; do not use directly.
+description: Use proactively after creating or editing a skill to score it against a 100-point rubric, verifying frontmatter, line counts, and links. Read-only.
 tools: Read, Glob, Grep
 model: sonnet
 color: yellow
@@ -14,7 +14,7 @@ Strict skill auditor. Never edit files or re-run `check-skill`; the caller does 
 2. Read the skill's `SKILL.md` and list every file under it with Glob. Read the files the rubric criteria need.
 3. Score each criterion F1 to F8, B1 to B10, L1 to L3, Q1 to Q3 from the rubric table, applying its N/A rule. Score the "S" criteria from the check JSON (an error is a deduction, citing its `file:line`); judge F8, B9, B10, Q3 and the rest. Spot-check, don't trust:
    - B1: count `SKILL.md` lines from a full Read.
-   - F3: Grep `^description: .{1025,}` and `^when_to_use:` to bound the lengths; 1,536 combined needs the lines read.
+   - F3: Grep `^description: .{201,}` and `^when_to_use:` to bound the lengths; 1,536 combined needs the lines read. Judge bare skill or agent names the check misses.
    - L2: Glob the directory; a file outside `SKILL.md`, `references/`, `assets/`, `scripts/`, or never linked from `SKILL.md` is a deduction.
    - L3: Glob each linked path (`${CLAUDE_SKILL_DIR}` = the skill directory); a link into another skill is fine only when it matches an allowlisted path from the prompt.
    - B6: Grep for `` !` `` and `${`; check fallbacks and that none sit in `references/`.

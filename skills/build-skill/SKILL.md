@@ -1,6 +1,6 @@
 ---
 name: build-skill
-description: Create or update a Claude Code skill (Reference, Task, or Background-only) in a Personal, Project, or Plugin scope. Asks scope and kind with a reasoned recommendation, writes it under the bundled frontmatter and body rules, scores it against a 100-point rubric (pass 95), and optionally runs skill-creator evals. Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a skill or slash command. Do not use on your own after finishing a task.
+description: Creates or updates a skill or slash command in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, or update a skill.
 argument-hint: '[skill name or path] [what it should do]'
 allowed-tools: Read Glob Grep Skill Agent AskUserQuestion Write Edit Bash(claude plugin validate *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-skill.mjs *)
 ---

@@ -145,9 +145,13 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
   if (!description) {
     found.push(error('description-missing', 'F3', 'SKILL.md', 1, 'description is missing'));
   } else {
-    if (description.length > 1024)
+    if (description.length > 200)
       found.push(
-        error('description-length', 'F3', 'SKILL.md', line, `description is ${description.length} chars, max 1,024`)
+        error('description-length', 'F3', 'SKILL.md', line, `description is ${description.length} chars, max 200`)
+      );
+    if (REFERENCE.test(description))
+      found.push(
+        error('description-reference', 'F3', 'SKILL.md', line, 'description names a skill, subagent, or spawner')
       );
     if (/<[a-zA-Z/][^>]*>/.test(description))
       found.push(error('description-xml', 'F3', 'SKILL.md', line, 'description contains an XML tag'));
@@ -159,6 +163,9 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
     );
   return found;
 }
+
+// A plugin-qualified skill or agent name, or a spawned-by phrase; bare names stay a rubric judgment.
+const REFERENCE = /\b[a-z0-9-]+:[a-z0-9]+-[a-z0-9-]+\b|\bspawned by\b/i;
 
 // Removes double-backtick code spans, where a skill may quote the injection syntax in prose.
 const stripSpans = (line) => line.replace(/``.+?``/g, '');

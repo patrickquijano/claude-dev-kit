@@ -113,13 +113,46 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found).sort(), ['name-dir', 'name-format', 'name-reserved']);
   });
 
-  test('errors on description over 1,024 chars and combined over 1,536', () => {
+  test('errors on description over 200 chars and combined over 1,536', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'a'.repeat(1025), when_to_use: 'b'.repeat(600) };
+    const fields = { name: 'demo', description: 'a'.repeat(201), when_to_use: 'b'.repeat(1400) };
     // Act
     const found = checkFrontmatter(fields, 'demo');
     // Assert
     assert.deepEqual(ids(found), ['description-length', 'listing-length']);
+  });
+
+  test('allows a description of exactly 200 chars', () => {
+    // Arrange
+    const fields = { name: 'demo', description: 'a'.repeat(200) };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), []);
+  });
+
+  test('errors on a plugin-qualified name or a spawned-by phrase in the description', () => {
+    // Arrange
+    const qualified = { name: 'demo', description: 'Runs after cdk:write-changelog.' };
+    const spawned = { name: 'demo', description: 'Spawned by the build skill.' };
+    // Act
+    const a = checkFrontmatter(qualified, 'demo');
+    const b = checkFrontmatter(spawned, 'demo');
+    // Assert
+    assert.deepEqual(ids(a), ['description-reference']);
+    assert.deepEqual(ids(b), ['description-reference']);
+  });
+
+  test('allows plain colons and generic words in the description', () => {
+    // Arrange
+    const colon = { name: 'demo', description: 'Formats files: JSON, YAML. Use when chained.' };
+    const time = { name: 'demo', description: 'Runs at 10:30 and needs a skill.' };
+    // Act
+    const a = checkFrontmatter(colon, 'demo');
+    const b = checkFrontmatter(time, 'demo');
+    // Assert
+    assert.deepEqual(ids(a), []);
+    assert.deepEqual(ids(b), []);
   });
 
   test('errors on an XML tag in the description and a missing name', () => {

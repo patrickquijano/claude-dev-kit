@@ -6,7 +6,7 @@ paths:
 # Subagents
 
 - One subagent per `agents/<name>.md`; `name` unique, kebab-case, no `:`.
-- `description` = when delegate; keep short (all descriptions share context).
+- `description` ≤200 chars: when to delegate, with `Use proactively`; never names a skill or subagent (all descriptions share context).
 - Read-only by default. Exception: `security-scanner` has `Write` and Docker, for redacted reports under `.vulnerability-reports/` only.
 - `cr-*-reviewer` agents (spawned by `prepare-change-request`; all but `cr-docs-reviewer` also by `review-change-request` and `review-local-changes`) return the findings block in their own `## Return` and limit Bash to read-only `git`/`gh`/`glab` commands in their body; only `cr-test-reviewer` also runs the repo's documented checks, never in write or fix modes.
 - `cr-feedback-*` agents (spawned by `address-change-request-review`) return the fixed blocks in their own `## Return`; no `gh` or git writes (the orchestrator does every mutation). `cr-feedback-implementer` has `Edit`/`Write` and no `Bash`, editing only its planned files; `cr-feedback-validator` runs documented checks in check mode only, never fix or write modes.
