@@ -4,7 +4,18 @@ Sources: <https://code.claude.com/docs/en/skills> (wins on conflict), <https://a
 
 ## Contents
 
-- Structure per kind · Lazy loading · Substitutions · Injection · Compaction · Style · Don'ts
+- What stays, what moves out · Navigation · Structure per kind · Lazy loading · Substitutions · Injection · Compaction · Style · Don'ts
+
+## What stays, what moves out
+
+- Stays in `SKILL.md`: the always-on rules, a short procedure (each step at most 2 lines), and a `## Files` navigation section; most important content first.
+- Moves out: situational detail (variants, long tables, loops with their options) to `references/`; templates to `assets/`.
+- Mechanical rules (counts, formats, link checks) → a script in `scripts/`; scripts are run, not loaded.
+- One skill, one job: a workflow that chains unrelated actions is two skills. Name it by the action, verb-first.
+
+## Navigation
+
+One line per bundled file, saying when to read it: "For <topic>, see `<file>`." No bundled file goes unlinked.
 
 ## Structure per kind
 

@@ -39,3 +39,16 @@ Add a skill when the same playbook is pasted a third time. A convention Claude g
 | Task needing isolation and a self-contained body          | `context: fork` (+ `agent`); never for Reference or Background-only (a fork with no task returns nothing)                                                                                                      |
 
 Ask only for what the table cannot derive from the extracted facts.
+
+## One job
+
+A skill does exactly one job. Signals of several: "and" between unrelated actions, separate triggers or outputs, steps with no shared input.
+
+- Recommend **Split** when the jobs are independent: one skill per job, each built in turn through workflow steps 2–7.
+- Recommend **Pick one** when one job dominates: the rest go to `Gaps:`.
+- Update that adds a second job → same question.
+
+## Name
+
+- Verb-first and the action, not the actor: `review-code`, `write-changelog`, not `code-reviewer`, `changelog-writer`.
+- Update of an existing skill with an actor name → ask "Rename (Recommended) | Keep, report in Gaps".

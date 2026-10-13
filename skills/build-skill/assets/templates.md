@@ -26,6 +26,10 @@ Input: $ARGUMENTS
 1. **<Label>.** <Imperative action; the condition that branches out.>
 2. **<Label>.** <Side effect → ask first, naming the effect.>
 
+## Files # only when bundled files exist
+
+- For <topic>, see `${CLAUDE_SKILL_DIR}/references/<file>`.
+
 ## Output
 
 ```text
@@ -55,6 +59,10 @@ paths: <globs> # optional: only when it applies to certain files
 | <Col>   | <Col>   |
 | ------- | ------- |
 | <value> | <value> |
+
+## Files # only when bundled files exist
+
+- For <topic>, see `${CLAUDE_SKILL_DIR}/references/<file>`.
 ```
 
 ## Background-only
