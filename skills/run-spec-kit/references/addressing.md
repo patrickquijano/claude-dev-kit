@@ -3,7 +3,7 @@
 Used by step 10 of `SKILL.md`, once per round after `speckit-converge`. Converged means converge reports converged and appends no tasks.
 
 1. **Check fixes.** For each item on the fixed-awaiting-check list: this round's converge reports no gap for it → check off the checklist item, or drop the finding, and remove it from the list. Else leave it open.
-2. **Find.** Spawn `cdk:speckit-open-items` with: feature dir, round `<n> of 5`, skip list, step 9 findings not yet fixed, converge's report (status and appended tasks), and paths to `spec.md`, `plan.md`, `tasks.md`, and `checklists/*.md`. It returns `Question:` → AskUserQuestion for the answer, re-spawn once with it; `Question:` again → `Result: stopped`, `Stopped: Implement, converge, address: <question>`, stop.
+2. **Find.** Spawn `cdk:speckit-open-items-analyzer` with: feature dir, round `<n> of 5`, skip list, step 9 findings not yet fixed, converge's report (status and appended tasks), and paths to `spec.md`, `plan.md`, `tasks.md`, and `checklists/*.md`. It returns `Question:` → AskUserQuestion for the answer, re-spawn once with it; `Question:` again → `Result: stopped`, `Stopped: Implement, converge, address: <question>`, stop.
 3. **Decide** from the agent's `Converged:` and `Open items:`.
    - No open items, converged → done.
    - No open items, not converged → next round with no questions; in round 5 → `Stopped: Implement, converge, address: not converged after 5 rounds`, stop.

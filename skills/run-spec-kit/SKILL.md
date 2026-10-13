@@ -13,7 +13,7 @@ Input: $ARGUMENTS
 - Invoke each speckit skill with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
 - Relay every question a speckit skill asks to the user with AskUserQuestion; never invent answers. Pre-approved exceptions: accept the analyze remediation offer (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
-- Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items` agent per round, re-spawned at most once per round after it returns `Question:`.
+- Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items-analyzer` agent per round, re-spawned at most once per round after it returns `Question:`.
 - The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
 - AskUserQuestion unavailable: ask as plain text with options, end the turn, and take the next message as the answer. Chained or unattended: ask nothing; take the Recommended option.
 - Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).

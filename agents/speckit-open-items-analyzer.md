@@ -1,5 +1,5 @@
 ---
-name: speckit-open-items
+name: speckit-open-items-analyzer
 description: Find and classify open items in a Spec Kit feature after a converge round (findings, unchecked checklist items, clarification markers, open tasks) and propose grounded fix approaches for each. Read-only. Spawned by the cdk:run-spec-kit skill; do not use directly.
 tools: Read, Grep, Glob
 model: sonnet
@@ -34,4 +34,4 @@ Open items: <count> | none
    b) <approach> — <files> (code: yes | no)
 ```
 
-Missing input (feature dir or file not found) → return `Question: <what is missing>` instead; the skill asks the user. Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
+Missing input (feature dir or file not found) → return `Question: <what is missing>` instead; the skill asks the user.
