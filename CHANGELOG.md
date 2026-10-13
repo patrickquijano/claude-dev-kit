@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - The end-of-task hook now tells Claude to run the project's unit tests first, using the detected command (`test:unit` or `test` script, pytest, go, cargo, or phpunit), and to fix and re-run until they pass.
 - The end-of-task hook now tells Claude to add Unreleased entries with `cdk:write-changelog` when the task changed user-facing behavior and `CHANGELOG.md` exists, before the docs and commit steps; it never cuts a release or bumps the version.
+- `/cdk:build-skill` now builds reference and background-only skills as well as task skills, in personal, project, or plugin scope, recommending each choice from your input, and can hand a finished draft to `skill-creator` for evals when you opt in. It recommends `disable-model-invocation: true` only for task skills with side effects that nothing chains.
 
 ### Changed
 
