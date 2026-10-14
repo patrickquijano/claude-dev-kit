@@ -50,7 +50,7 @@ test('cli: gate blocks the first stop after files changed with the steps in orde
   // Assert
   const out = JSON.parse(first.stdout);
   assert.equal(out.decision, 'block');
-  assert.match(out.reason, /README\.md or related docs.*cdk:write-changelog.*cdk:commit-changes/s);
+  assert.match(out.reason, /README\.md or related docs.*cdk:update-changelog.*cdk:commit-changes/s);
   assert.equal(second.stdout, '');
 });
 

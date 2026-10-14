@@ -44,7 +44,7 @@ test('decide asks for changelog, docs, and commit steps in a git repo', () => {
   // Assert
   assert.equal(result.length, 3);
   assert.match(result[0], /README\.md or related docs/);
-  assert.match(result[1], /cdk:write-changelog/);
+  assert.match(result[1], /cdk:update-changelog/);
   assert.match(result[2], /cdk:commit-changes/);
 });
 
@@ -144,7 +144,7 @@ test('decide omits only the commit step while the ship-release marker exists', (
   // Assert
   assert.equal(result.length, 2);
   assert.match(result[0], /README\.md or related docs/);
-  assert.match(result[1], /cdk:write-changelog/);
+  assert.match(result[1], /cdk:update-changelog/);
 });
 
 test('decide keeps only the docs step in an unsafe git state', () => {
@@ -185,7 +185,7 @@ test('decide puts the docs step between Graphify and the changelog step', () => 
   // Assert
   assert.match(result[0], /graphify update/);
   assert.match(result[1], /README\.md or related docs/);
-  assert.match(result[2], /cdk:write-changelog/);
+  assert.match(result[2], /cdk:update-changelog/);
   assert.match(result[3], /cdk:commit-changes/);
 });
 
@@ -248,7 +248,7 @@ test('decide keeps the changelog step when CHANGELOG.md is missing', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.equal(
-    result.some((p) => /write-changelog/.test(p)),
+    result.some((p) => /update-changelog/.test(p)),
     true
   );
 });
@@ -259,7 +259,7 @@ test('decide keeps the changelog step while the ship-release marker exists', () 
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[1], /cdk:write-changelog/);
+  assert.match(result[1], /cdk:update-changelog/);
 });
 
 test('decide omits the changelog step in an unsafe git state', () => {
@@ -269,7 +269,7 @@ test('decide omits the changelog step in an unsafe git state', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.equal(
-    result.some((p) => /write-changelog/.test(p)),
+    result.some((p) => /update-changelog/.test(p)),
     false
   );
 });
@@ -281,7 +281,7 @@ test('decide omits the changelog step outside a git repo', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.equal(
-    result.some((p) => /write-changelog/.test(p)),
+    result.some((p) => /update-changelog/.test(p)),
     false
   );
 });
@@ -422,7 +422,7 @@ test('gate blocks once with the numbered steps in order when files changed', () 
   const result = gate(session, deps);
   // Assert
   assert.equal(result.decision, 'block');
-  assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:write-changelog.*\n3\. .*cdk:commit-changes/s);
+  assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:update-changelog.*\n3\. .*cdk:commit-changes/s);
   assert.deepEqual(deps.writes, [{ baseline: 'a', fired: true }]);
 });
 

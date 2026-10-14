@@ -50,7 +50,7 @@ test('cli: a task prompt prints plan-mode context and no end-of-task steps', () 
   assert.equal(r.status, 0);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
   assert.match(ctx, /whether to enter plan mode/);
-  assert.doesNotMatch(ctx, /cdk:commit-changes|cdk:write-changelog|README\.md or related docs/);
+  assert.doesNotMatch(ctx, /cdk:commit-changes|cdk:update-changelog|README\.md or related docs/);
 });
 
 test('cli: a non-git directory prints no end-of-task steps', () => {
