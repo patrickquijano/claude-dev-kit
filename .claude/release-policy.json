@@ -1,9 +1,13 @@
 {
-  "$comment": "Opt-in release policy read by skills/bump-version/scripts/release-check.mjs (PR/MR skills, PreToolUse hook, CI). Paths outside userFacing (README, CLAUDE.md, .claude, .github, .husky, .vscode, evals, package files) never require a changelog entry or version bump. Add an exempt entry, with a reason, for anything inside userFacing that does not ship to users.",
+  "$comment": "Opt-in release policy read by skills/bump-version/scripts/release-check.mjs (PR/MR skills, PreToolUse hook, CI). Paths outside userFacing (README, CLAUDE.md, .claude, .github, .husky, .vscode, evals, package files) never require a changelog entry or version bump. Add an exempt entry, with a reason, for anything inside userFacing that does not ship to users. versionReset ({version, reason}) lets the check accept one deliberate downgrade below the target version; it does nothing once merged.",
   "changelog": "CHANGELOG.md",
   "defaultBranch": "main",
   "remote": "origin",
   "versionFiles": [{ "path": ".claude-plugin/plugin.json", "key": "version" }],
   "userFacing": ["skills/**", "commands/**", "agents/**", "hooks/**", ".claude-plugin/**"],
-  "exempt": []
+  "exempt": [],
+  "versionReset": {
+    "version": "0.1.0",
+    "reason": "Restart pre-1.0: the plugin still changes often; 1.x–3.x were never tagged."
+  }
 }

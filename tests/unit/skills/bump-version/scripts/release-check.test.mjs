@@ -24,17 +24,17 @@ const POLICY = {
   exempt: [{ glob: 'skills/docs/**', reason: 'docs only' }]
 };
 const pj = (v) => `{\n  "name": "x",\n  "version": "${v}"\n}\n`;
-const BASE_CL = '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-01-01\n\n- first\n';
+const BASE_CL = '# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2026-01-01\n\n- first\n';
 const withEntry = (line) => BASE_CL.replace('## [Unreleased]\n', `## [Unreleased]\n\n- ${line}\n`);
 const ok = (stdout = '') => ({ status: 0, stdout: Buffer.from(stdout) });
 const no = () => ({ status: 1, stdout: Buffer.from('') });
 const codes = (r) => r.failures.map((f) => f.code).sort();
 
-// Fake git and fs for a repo whose target tip is 0.1.0 and whose HEAD is the `head` file set.
+// Fake git and fs for a repo whose target tip is 1.0.0 and whose HEAD is the `head` file set.
 function world({
   policy = POLICY,
-  head = { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': BASE_CL },
-  targetFiles = { 'plugin.json': pj('0.1.0') },
+  head = { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': BASE_CL },
+  targetFiles = { 'plugin.json': pj('1.0.0') },
   baseChangelog = BASE_CL,
   changed = ['skills/a/SKILL.md'],
   dirty = '',
@@ -145,16 +145,16 @@ describe('changelogParts', () => {
 
   test('lists release versions', () => {
     // Arrange
-    const text = '## [Unreleased]\n\n## [1.0.0] - 2026-01-01\n\n## [0.9.0] - 2025-01-01\n';
+    const text = '## [Unreleased]\n\n## [3.0.0] - 2026-01-01\n\n## [0.9.0] - 2025-01-01\n';
     // Act
     const { releases } = changelogParts(text);
     // Assert
-    assert.deepEqual(releases, ['1.0.0', '0.9.0']);
+    assert.deepEqual(releases, ['3.0.0', '0.9.0']);
   });
 
   test('stops collecting bullets at the next heading', () => {
     // Arrange
-    const text = '## [Unreleased]\n\n- new\n\n## [1.0.0] - 2026-01-01\n\n- old\n';
+    const text = '## [Unreleased]\n\n- new\n\n## [3.0.0] - 2026-01-01\n\n- old\n';
     // Act
     const { bullets } = changelogParts(text);
     // Assert
@@ -163,7 +163,7 @@ describe('changelogParts', () => {
 
   test('returns no bullets when there is no Unreleased section', () => {
     // Arrange
-    const text = '## [1.0.0] - 2026-01-01\n\n- old\n';
+    const text = '## [3.0.0] - 2026-01-01\n\n- old\n';
     // Act
     const { bullets } = changelogParts(text);
     // Assert
@@ -235,7 +235,7 @@ describe('loadPolicy', () => {
 
 describe('evaluate', () => {
   const released = () => ({
-    head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.') }
+    head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') }
   });
 
   test('skips when there is no policy', () => {
@@ -255,9 +255,9 @@ describe('evaluate', () => {
     const r = evaluate(ROOT, {}, deps);
     // Assert
     assert.deepEqual(r.failures, []);
-    assert.equal(r.required, '0.2.0');
+    assert.equal(r.required, '1.1.0');
     assert.equal(r.level, 'minor');
-    assert.equal(r.base, '0.1.0');
+    assert.equal(r.base, '1.0.0');
   });
 
   test('lists the commits that drive the level', () => {
@@ -313,25 +313,25 @@ describe('evaluate', () => {
     // Act
     const r = evaluate(ROOT, {}, deps);
     // Assert
-    assert.equal(r.required, '1.0.0');
+    assert.equal(r.required, '2.0.0');
     assert.deepEqual(codes(r), ['version-lower']);
   });
 
   test('accepts a deliberate release above the required version with a new section', () => {
     // Arrange
-    const cl = BASE_CL.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
-    const { deps } = world({ head: { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': cl } });
+    const cl = BASE_CL.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
+    const { deps } = world({ head: { 'plugin.json': pj('3.0.0'), 'CHANGELOG.md': cl } });
     // Act
     const r = evaluate(ROOT, {}, deps);
     // Assert
     assert.deepEqual(r.failures, []);
-    assert.equal(r.accepted, '1.0.0');
+    assert.equal(r.accepted, '3.0.0');
   });
 
   test('keeps a higher version over-bumped when its section already exists on the target', () => {
     // Arrange
-    const cl = BASE_CL.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
-    const { deps } = world({ head: { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': cl }, baseChangelog: cl });
+    const cl = BASE_CL.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
+    const { deps } = world({ head: { 'plugin.json': pj('3.0.0'), 'CHANGELOG.md': cl }, baseChangelog: cl });
     // Act
     const r = evaluate(ROOT, {}, deps);
     // Assert
@@ -352,8 +352,8 @@ describe('evaluate', () => {
     const policy = { ...POLICY, versionFiles: [...POLICY.versionFiles, { path: 'other.json', key: 'version' }] };
     const { deps } = world({
       policy,
-      head: { 'plugin.json': pj('0.2.0'), 'other.json': pj('0.1.0'), 'CHANGELOG.md': withEntry('Added a.') },
-      targetFiles: { 'plugin.json': pj('0.1.0'), 'other.json': pj('0.1.0') }
+      head: { 'plugin.json': pj('1.1.0'), 'other.json': pj('1.0.0'), 'CHANGELOG.md': withEntry('Added a.') },
+      targetFiles: { 'plugin.json': pj('1.0.0'), 'other.json': pj('1.0.0') }
     });
     // Act
     const r = evaluate(ROOT, {}, deps);
@@ -364,7 +364,7 @@ describe('evaluate', () => {
   test('fails changelog-duplicate for a repeated Unreleased entry', () => {
     // Arrange
     const { deps } = world({
-      head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.\n- Added  A.') }
+      head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.\n- Added  A.') }
     });
     // Act
     const r = evaluate(ROOT, {}, deps);
@@ -374,7 +374,7 @@ describe('evaluate', () => {
 
   test('fails changelog-missing when the changelog file is absent', () => {
     // Arrange
-    const { deps } = world({ head: { 'plugin.json': pj('0.2.0') }, baseChangelog: null });
+    const { deps } = world({ head: { 'plugin.json': pj('1.1.0') }, baseChangelog: null });
     // Act
     const r = evaluate(ROOT, {}, deps);
     // Assert
@@ -383,8 +383,8 @@ describe('evaluate', () => {
 
   test('accepts a new release section in place of an Unreleased entry', () => {
     // Arrange
-    const cl = '# Changelog\n\n## [Unreleased]\n\n## [0.2.0] - 2026-02-01\n\n- added a\n\n## [0.1.0] - 2026-01-01\n';
-    const { deps } = world({ head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': cl } });
+    const cl = '# Changelog\n\n## [Unreleased]\n\n## [1.1.0] - 2026-02-01\n\n- added a\n\n## [1.0.0] - 2026-01-01\n';
+    const { deps } = world({ head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': cl } });
     // Act
     const r = evaluate(ROOT, {}, deps);
     // Assert
@@ -479,7 +479,7 @@ describe('evaluate', () => {
     // Act
     const r = evaluate(ROOT, { prePush: true, pendingSubject: 'feat: add a' }, deps);
     // Assert
-    assert.equal(r.required, '0.2.0');
+    assert.equal(r.required, '1.1.0');
   });
 
   test('requires only a patch bump without a pending subject', () => {
@@ -488,7 +488,7 @@ describe('evaluate', () => {
     // Act
     const r = evaluate(ROOT, { prePush: true }, deps);
     // Assert
-    assert.equal(r.required, '0.1.1');
+    assert.equal(r.required, '1.0.1');
   });
 
   test('throws when a version file path escapes the repo', () => {
@@ -505,18 +505,18 @@ describe('evaluate', () => {
 describe('bump', () => {
   test('writes the required version into the version file', () => {
     // Arrange
-    const { deps, files } = world({ head: { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': withEntry('Added a.') } });
+    const { deps, files } = world({ head: { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': withEntry('Added a.') } });
     // Act
     const r = bump(ROOT, {}, deps);
     // Assert
-    assert.deepEqual(r.changed, [{ path: 'plugin.json', from: '0.1.0', to: '0.2.0' }]);
-    assert.equal(files['plugin.json'], pj('0.2.0'));
+    assert.deepEqual(r.changed, [{ path: 'plugin.json', from: '1.0.0', to: '1.1.0' }]);
+    assert.equal(files['plugin.json'], pj('1.1.0'));
   });
 
   test('keeps an accepted deliberate release', () => {
     // Arrange
-    const cl = BASE_CL.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
-    const { deps, writes } = world({ head: { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': cl } });
+    const cl = BASE_CL.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
+    const { deps, writes } = world({ head: { 'plugin.json': pj('3.0.0'), 'CHANGELOG.md': cl } });
     // Act
     const r = bump(ROOT, {}, deps);
     // Assert
@@ -526,7 +526,7 @@ describe('bump', () => {
 
   test('changes nothing when the version already matches', () => {
     // Arrange
-    const { deps, writes } = world({ head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.') } });
+    const { deps, writes } = world({ head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } });
     // Act
     const r = bump(ROOT, {}, deps);
     // Assert
@@ -551,6 +551,121 @@ describe('bump', () => {
     const act = () => bump(ROOT, {}, deps);
     // Assert
     assert.throws(act, /key "version" not found in plugin.json/);
+  });
+});
+
+describe('pre-1.0 rule and versionReset', () => {
+  const CL0 = '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-01-01\n\n- first\n';
+  const entry = (cl, line) => cl.replace('## [Unreleased]\n', `## [Unreleased]\n\n- ${line}\n`);
+  const at = (base, head, over = {}) =>
+    world({
+      targetFiles: { 'plugin.json': pj(base) },
+      head: { 'plugin.json': pj(head), 'CHANGELOG.md': entry(CL0, 'Added a.') },
+      baseChangelog: CL0,
+      ...over
+    });
+  const RESET = { version: '0.1.0', reason: 'restart' };
+
+  test('requires a minor bump for a breaking change on 0.1.0', () => {
+    // Arrange
+    const { deps } = at('0.1.0', '0.1.0', { subjects: ['feat!: break a'] });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.2.0');
+  });
+
+  test('requires a patch bump for a feat on 0.1.0', () => {
+    // Arrange
+    const { deps } = at('0.1.0', '0.1.0', { subjects: ['feat: add a'] });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.1');
+  });
+
+  test('requires a patch bump for a fix on 0.1.0', () => {
+    // Arrange
+    const { deps } = at('0.1.0', '0.1.0', { subjects: ['fix: a'] });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.1');
+  });
+
+  test('still requires a major bump for a breaking change on 1.2.3', () => {
+    // Arrange
+    const { deps } = at('1.2.3', '1.2.3', { subjects: ['feat!: break a'] });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '2.0.0');
+  });
+
+  test('requires the reset version when the base is higher, and passes at it', () => {
+    // Arrange
+    const cl = entry(CL0, 'Added a.').replace('## [0.1.0] - 2026-01-01', '## [0.1.0] - 2026-02-01');
+    const { deps } = world({
+      policy: { ...POLICY, versionReset: RESET },
+      targetFiles: { 'plugin.json': pj('3.0.0') },
+      head: { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': cl },
+      baseChangelog: '# Changelog\n\n## [Unreleased]\n\n## [3.0.0] - 2026-01-01\n\n- old\n'
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.0');
+    assert.deepEqual(r.failures, []);
+    assert.ok(r.notes.includes('reset 3.0.0 -> 0.1.0: restart'));
+  });
+
+  test('bump writes the reset version through the normal path', () => {
+    // Arrange
+    const { deps, files } = world({
+      policy: { ...POLICY, versionReset: RESET },
+      targetFiles: { 'plugin.json': pj('3.0.0') },
+      head: { 'plugin.json': pj('3.0.0'), 'CHANGELOG.md': entry(CL0, 'Added a.') }
+    });
+    // Act
+    const r = bump(ROOT, {}, deps);
+    // Assert
+    assert.deepEqual(r.changed, [{ path: 'plugin.json', from: '3.0.0', to: '0.1.0' }]);
+    assert.equal(files['plugin.json'], pj('0.1.0'));
+  });
+
+  test('fails version-lower for a downgrade without a reset', () => {
+    // Arrange
+    const { deps } = world({
+      targetFiles: { 'plugin.json': pj('3.0.0') },
+      head: { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': entry(CL0, 'Added a.') }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.ok(codes(r).includes('version-lower'));
+  });
+
+  test('ignores a reset at or above the base', () => {
+    // Arrange
+    const { deps } = at('0.1.0', '0.1.1', {
+      policy: { ...POLICY, versionReset: { version: '0.1.0', reason: 'same' } }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.1');
+    assert.ok(!r.notes.some((n) => n.startsWith('reset ')));
+  });
+
+  test('ignores a malformed reset', () => {
+    // Arrange
+    const { deps } = at('1.0.0', '1.1.0', {
+      policy: { ...POLICY, versionReset: { version: 'zero', reason: 'bad' } }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '1.1.0');
   });
 });
 
@@ -740,7 +855,7 @@ describe('runHook', () => {
   test('allows and caches the pass when the checks succeed', async () => {
     // Arrange
     const { deps, state } = hookDeps(create, {
-      world: { head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.') } }
+      world: { head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } }
     });
     // Act
     const code = await runHook(deps);
@@ -752,7 +867,7 @@ describe('runHook', () => {
   test('allows a cached pass without evaluating again', async () => {
     // Arrange
     const first = hookDeps(create, {
-      world: { head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.') } }
+      world: { head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } }
     });
     await runHook(first.deps);
     const second = hookDeps(create, {
@@ -827,7 +942,7 @@ describe('main', () => {
     };
     return { run: () => main(argv, deps), logs, errors, files: w.files };
   };
-  const good = { world: { head: { 'plugin.json': pj('0.2.0'), 'CHANGELOG.md': withEntry('Added a.') } } };
+  const good = { world: { head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } } };
 
   test('check exits 0 and prints the level for a passing change', async () => {
     // Arrange
@@ -836,7 +951,7 @@ describe('main', () => {
     const code = await c.run();
     // Assert
     assert.equal(code, 0);
-    assert.equal(c.logs[0], 'ok: minor -> 0.2.0');
+    assert.equal(c.logs[0], 'ok: minor -> 1.1.0');
   });
 
   test('check --json prints the result object', async () => {
@@ -846,7 +961,7 @@ describe('main', () => {
     const code = await c.run();
     // Assert
     assert.equal(code, 0);
-    assert.equal(JSON.parse(c.logs[0]).required, '0.2.0');
+    assert.equal(JSON.parse(c.logs[0]).required, '1.1.0');
   });
 
   test('check exits 1 and prints the failures for a failing change', async () => {
@@ -861,13 +976,13 @@ describe('main', () => {
 
   test('bump writes the version and exits 0', async () => {
     // Arrange
-    const c = cli(['bump'], { world: { head: { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': withEntry('Added a.') } } });
+    const c = cli(['bump'], { world: { head: { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': withEntry('Added a.') } } });
     // Act
     const code = await c.run();
     // Assert
     assert.equal(code, 0);
-    assert.equal(c.logs[0], 'level minor: plugin.json 0.1.0 -> 0.2.0');
-    assert.equal(c.files['plugin.json'], pj('0.2.0'));
+    assert.equal(c.logs[0], 'level minor: plugin.json 1.0.0 -> 1.1.0');
+    assert.equal(c.files['plugin.json'], pj('1.1.0'));
   });
 
   test('bump exits 1 on a failure it cannot fix', async () => {

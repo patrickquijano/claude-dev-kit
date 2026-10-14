@@ -17,7 +17,7 @@ const POLICY = {
   userFacing: ['skills/**'],
   exempt: [{ glob: 'skills/docs/**', reason: 'docs only' }]
 };
-const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n## [0.1.0] - 2026-01-01\n\n- first\n';
+const CHANGELOG = '# Changelog\n\n## [Unreleased]\n\n## [1.0.0] - 2026-01-01\n\n- first\n';
 
 const dirs = [];
 const sh = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
@@ -37,19 +37,19 @@ const withChangelog = (line) => CHANGELOG.replace('## [Unreleased]\n', `## [Unre
 const released = (extra = {}) => ({
   'skills/a/SKILL.md': 'a\n',
   'CHANGELOG.md': withChangelog('Added a.'),
-  'plugin.json': pj('0.2.0'),
+  'plugin.json': pj('1.1.0'),
   ...extra
 });
 const advanceMain = (work) => {
   sh(work, 'checkout', '-q', 'main');
-  commit(work, { 'plugin.json': pj('0.2.0') }, 'chore(release): bump version to 0.2.0');
+  commit(work, { 'plugin.json': pj('1.1.0') }, 'chore(release): bump version to 1.1.0');
   sh(work, 'push', '-q', 'origin', 'main');
   sh(work, 'checkout', '-q', 'feat/x');
   sh(work, '-c', 'commit.gpgsign=false', 'rebase', '-q', 'main');
-  write(work, 'plugin.json', pj('0.2.0'));
+  write(work, 'plugin.json', pj('1.1.0'));
 };
 
-// Repo with bare origin, `main` at 0.1.0, and a feature branch checked out.
+// Repo with bare origin, `main` at 1.0.0, and a feature branch checked out.
 function repo({ policy = POLICY } = {}) {
   const dir = mkdtempSync(path.join(tmpdir(), 'rc-'));
   dirs.push(dir);
@@ -60,7 +60,7 @@ function repo({ policy = POLICY } = {}) {
   sh(work, 'config', 'user.email', 't@t');
   sh(work, 'config', 'user.name', 't');
   sh(work, 'checkout', '-q', '-b', 'main');
-  const files = { 'plugin.json': pj('0.1.0'), 'CHANGELOG.md': CHANGELOG, 'README.md': 'x\n' };
+  const files = { 'plugin.json': pj('1.0.0'), 'CHANGELOG.md': CHANGELOG, 'README.md': 'x\n' };
   if (policy) files['.claude/release-policy.json'] = JSON.stringify(policy);
   commit(work, files, 'chore: init');
   sh(work, 'push', '-q', '-u', 'origin', 'main');
@@ -138,7 +138,7 @@ describe('release-check evaluate', () => {
     const res = evaluate(work);
     // Assert
     assert.deepEqual(res.failures, []);
-    assert.equal(res.required, '0.2.0');
+    assert.equal(res.required, '1.1.0');
   });
 
   test('passes again on a repeat run', () => {
@@ -151,7 +151,7 @@ describe('release-check evaluate', () => {
     const res = evaluate(work);
     // Assert
     assert.deepEqual(res.failures, []);
-    assert.equal(res.required, '0.2.0');
+    assert.equal(res.required, '1.1.0');
   });
 
   test('fails a fix with a minor bump as over-bumped', () => {
@@ -168,23 +168,23 @@ describe('release-check evaluate', () => {
   test('accepts a deliberate release above the required version with a new section', () => {
     // Arrange
     const { work } = repo();
-    const cl = CHANGELOG.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
-    commit(work, released({ 'CHANGELOG.md': cl, 'plugin.json': pj('1.0.0') }), 'feat: a');
+    const cl = CHANGELOG.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
+    commit(work, released({ 'CHANGELOG.md': cl, 'plugin.json': pj('3.0.0') }), 'feat: a');
     push(work);
     // Act
     const res = evaluate(work);
     // Assert
     assert.deepEqual(codes(res), []);
-    assert.equal(res.accepted, '1.0.0');
+    assert.equal(res.accepted, '3.0.0');
   });
 
   test('keeps a higher version over-bumped when its section already exists on main', () => {
     // Arrange
     const { work } = repo();
-    const cl = CHANGELOG.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
+    const cl = CHANGELOG.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
     commit(work, { 'CHANGELOG.md': cl }, 'chore: pre-release section');
     sh(work, 'push', '-q', 'origin', 'feat/x:main');
-    commit(work, { 'skills/a/SKILL.md': 'a\n', 'plugin.json': pj('1.0.0') }, 'feat: a');
+    commit(work, { 'skills/a/SKILL.md': 'a\n', 'plugin.json': pj('3.0.0') }, 'feat: a');
     push(work);
     // Act
     const res = evaluate(work);
@@ -200,7 +200,7 @@ describe('release-check evaluate', () => {
     // Act
     const res = evaluate(work);
     // Assert
-    assert.equal(res.required, '1.0.0');
+    assert.equal(res.required, '2.0.0');
     assert.deepEqual(codes(res), ['version-lower']);
   });
 
@@ -208,7 +208,7 @@ describe('release-check evaluate', () => {
     // Arrange
     const policy = { ...POLICY, versionFiles: [...POLICY.versionFiles, { path: 'other.json', key: 'version' }] };
     const { work } = repo({ policy });
-    commit(work, { 'other.json': pj('0.1.0') }, 'chore: other');
+    commit(work, { 'other.json': pj('1.0.0') }, 'chore: other');
     sh(work, 'push', '-q', 'origin', 'main');
     commit(work, released({ 'CHANGELOG.md': withChangelog('Added a.\n- Added  A.') }), 'feat: a');
     push(work);
@@ -222,7 +222,7 @@ describe('release-check evaluate', () => {
     // Arrange
     const policy = { ...POLICY, versionFiles: [...POLICY.versionFiles, { path: 'other.json', key: 'version' }] };
     const { work } = repo({ policy });
-    commit(work, { 'other.json': pj('0.1.0') }, 'chore: other');
+    commit(work, { 'other.json': pj('1.0.0') }, 'chore: other');
     sh(work, 'push', '-q', 'origin', 'main');
     commit(work, released({ 'other.json': '{"version":"bad"}' }), 'feat: a');
     push(work);
@@ -236,7 +236,7 @@ describe('release-check evaluate', () => {
     // Arrange
     const { work } = repo();
     const cl =
-      '# Changelog\n\n## [Unreleased]\n\n## [0.2.0] - 2026-02-01\n\n- added a\n\n## [0.1.0] - 2026-01-01\n\n- first\n';
+      '# Changelog\n\n## [Unreleased]\n\n## [1.1.0] - 2026-02-01\n\n- added a\n\n## [1.0.0] - 2026-01-01\n\n- first\n';
     commit(work, released({ 'CHANGELOG.md': cl }), 'feat: a');
     push(work);
     // Act
@@ -248,7 +248,7 @@ describe('release-check evaluate', () => {
   test('fails a missing changelog file', () => {
     // Arrange
     const { work } = repo();
-    commit(work, { 'skills/a/SKILL.md': 'a\n', 'plugin.json': pj('0.2.0') }, 'feat: a');
+    commit(work, { 'skills/a/SKILL.md': 'a\n', 'plugin.json': pj('1.1.0') }, 'feat: a');
     sh(work, 'rm', '-q', 'CHANGELOG.md');
     sh(work, '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'chore: drop changelog');
     push(work);
@@ -362,7 +362,7 @@ describe('release-check evaluate', () => {
     // Act
     const res = evaluate(work, { prePush: true });
     // Assert
-    assert.equal(res.required, '0.1.1');
+    assert.equal(res.required, '1.0.1');
   });
 
   test('counts a pending feat subject for an uncommitted change', () => {
@@ -372,7 +372,7 @@ describe('release-check evaluate', () => {
     // Act
     const res = evaluate(work, { prePush: true, pendingSubject: 'feat: add a' });
     // Assert
-    assert.equal(res.required, '0.2.0');
+    assert.equal(res.required, '1.1.0');
   });
 
   test('requires a bump again after the target advanced', () => {
@@ -392,8 +392,8 @@ describe('release-check bump', () => {
   test('keeps a deliberate release', () => {
     // Arrange
     const { work } = repo();
-    const cl = CHANGELOG.replace('## [0.1.0]', '## [1.0.0] - 2026-02-01\n\n- release\n\n## [0.1.0]');
-    commit(work, released({ 'CHANGELOG.md': cl, 'plugin.json': pj('1.0.0') }), 'feat: a');
+    const cl = CHANGELOG.replace('## [1.0.0]', '## [3.0.0] - 2026-02-01\n\n- release\n\n## [1.0.0]');
+    commit(work, released({ 'CHANGELOG.md': cl, 'plugin.json': pj('3.0.0') }), 'feat: a');
     push(work);
     // Act
     const res = bump(work);
@@ -410,8 +410,8 @@ describe('release-check bump', () => {
     // Act
     const res = bump(work);
     // Assert
-    assert.deepEqual(res.changed, [{ path: 'plugin.json', from: '0.2.0', to: '0.3.0' }]);
-    assert.equal(readFileSync(path.join(work, 'plugin.json'), 'utf8'), pj('0.3.0'));
+    assert.deepEqual(res.changed, [{ path: 'plugin.json', from: '1.1.0', to: '1.2.0' }]);
+    assert.equal(readFileSync(path.join(work, 'plugin.json'), 'utf8'), pj('1.2.0'));
   });
 
   test('is idempotent on a second run', () => {
@@ -434,8 +434,8 @@ describe('release-check bump', () => {
     // Act
     const res = bump(work, { pendingSubject: 'feat: add a' });
     // Assert
-    assert.ok(res.changed.some((c) => c.to === '0.2.0'));
-    assert.equal(JSON.parse(readFileSync(path.join(work, 'plugin.json'), 'utf8')).version, '0.2.0');
+    assert.ok(res.changed.some((c) => c.to === '1.1.0'));
+    assert.equal(JSON.parse(readFileSync(path.join(work, 'plugin.json'), 'utf8')).version, '1.1.0');
   });
 });
 
@@ -470,7 +470,7 @@ describe('release-check hook', () => {
     // Arrange
     const { work } = repo();
     commit(work, { 'skills/a/SKILL.md': 'a\n' }, 'feat: a');
-    commit(work, { 'CHANGELOG.md': withChangelog('Added a.'), 'plugin.json': pj('0.2.0') }, 'chore: release files');
+    commit(work, { 'CHANGELOG.md': withChangelog('Added a.'), 'plugin.json': pj('1.1.0') }, 'chore: release files');
     push(work);
     // Act
     const res = runHook(event(work, 'gh pr create -B main'));
@@ -497,7 +497,7 @@ describe('release-check CLI', () => {
     const { dir, work } = repo();
     write(work, 'skills/a/SKILL.md', 'a\n');
     write(work, 'CHANGELOG.md', withChangelog('Added a.'));
-    write(work, 'plugin.json', pj('0.2.0'));
+    write(work, 'plugin.json', pj('1.1.0'));
     const subject = path.join(dir, 'msg');
     writeFileSync(subject, 'feat: add a\n');
     // Act

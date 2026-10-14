@@ -15,8 +15,8 @@ Inputs: target branch, `unattended` (`--yes`), `dry-run`, and the caller's step 
    - Any `version-*` code → one AskUserQuestion: `Bump <base> → <required> (<level>), update changelog, commit, push (Recommended)` (reason: the check blocks CR creation and CI) | `Stop`. `Stop` → stop.
    - Only `changelog-*` codes: not `unattended` → ask `Update changelog, commit, push (Recommended)` | `Stop`; `unattended` → no ask, the caller's consent covers it.
 5. **Remediate** via the Skill tool, in order:
-   - any `version-*` → `cdk:bump-version target <target> confirmed` (step 4 was its confirmation); it chains `cdk:write-changelog` when a changelog exists.
-   - then any remaining `changelog-*` (changelog missing, or no `version-*` code) → `cdk:write-changelog base <target>`.
+   - any `version-*` → `cdk:bump-version target <target> confirmed` (step 4 was its confirmation); it chains `cdk:update-changelog` when a changelog exists.
+   - then any remaining `changelog-*` (changelog missing, or no `version-*` code) → `cdk:update-changelog base <target>`.
    - then `cdk:commit-changes` with no input: atomic commits and a normal push.
    - Read each `Result:`; `stopped` or `cancelled` → stop with `release gate <codes>: <skill> stopped`.
 6. **Revalidate.** Rerun step 1. Ok → `Release: fixed (<codes>)`; tell the caller to recompute its range. Still failing → one more round (2 rounds total), then stop with the remaining codes and fixes.

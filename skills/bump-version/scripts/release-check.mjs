@@ -125,8 +125,11 @@ const parseVer = (v) => {
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
 };
 const cmpVer = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
-const bumpVer = ([a, b, c], level) =>
-  level === 'major' ? [a + 1, 0, 0] : level === 'minor' ? [a, b + 1, 0] : [a, b, c + 1];
+// SemVer §4: while major is 0, a breaking change bumps minor and everything else bumps patch.
+const bumpVer = ([a, b, c], level) => {
+  if (a === 0) return level === 'major' ? [0, b + 1, 0] : [0, b, c + 1];
+  return level === 'major' ? [a + 1, 0, 0] : level === 'minor' ? [a, b + 1, 0] : [a, b, c + 1];
+};
 const fmt = (v) => v.join('.');
 
 export function loadPolicy(cwd, deps = {}) {
@@ -147,6 +150,7 @@ export function loadPolicy(cwd, deps = {}) {
       versionFiles: [],
       userFacing: [],
       exempt: [],
+      versionReset: null,
       ...p
     }
   };
@@ -284,7 +288,11 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
   });
   const baseRaw = policy.versionFiles.map((v) => readKey(show(d, cwd, ref, v.path) ?? '', v.key));
   const baseV = baseRaw.map(parseVer).find(Boolean) ?? null;
-  const required = baseV ? bumpVer(baseV, level) : null;
+  // A policy `versionReset` below the base replaces the computed level until it merges and becomes the base.
+  const reset = parseVer(policy.versionReset?.version);
+  const resetting = baseV && reset && cmpVer(reset, baseV) < 0;
+  if (resetting) notes.push(`reset ${fmt(baseV)} -> ${fmt(reset)}: ${policy.versionReset.reason ?? 'no reason given'}`);
+  const required = resetting ? reset : baseV ? bumpVer(baseV, level) : null;
   const headVs = heads.map((h) => parseVer(h.head));
   const fixBump = 'run /cdk:bump-version, then /cdk:commit-changes';
 
@@ -334,7 +342,7 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
   // Changelog: new bullet under Unreleased (or a new release section), no duplicates.
   if (headCl === null) {
     failures.push(
-      fail('changelog-missing', `${clFile} does not exist`, 'run /cdk:write-changelog, then /cdk:commit-changes')
+      fail('changelog-missing', `${clFile} does not exist`, 'run /cdk:update-changelog, then /cdk:commit-changes')
     );
   } else {
     const dup = h.bullets.find((x, i) => h.bullets.indexOf(x) !== i);
@@ -348,7 +356,7 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
         fail(
           'changelog-unchanged',
           `no new entry under Unreleased in ${clFile}`,
-          'run /cdk:write-changelog, then /cdk:commit-changes'
+          'run /cdk:update-changelog, then /cdk:commit-changes'
         )
       );
     }
