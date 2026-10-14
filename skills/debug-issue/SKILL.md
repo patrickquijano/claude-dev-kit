@@ -25,7 +25,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - The regression test must fail for the reported reason before the fix and pass after; never weaken, skip, or delete an existing test.
 - Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
 - Never commit, push, stash, or `reset --hard`; a bisect always ends with `bisect-reset`.
-- Regression test: match the project's runner, location, and naming; Arrange, Act, Assert blocks; inputs from the stack's faker library when the project has one; a unit test unless only an integration test can reproduce the bug. For a broader test suite, the user can run `cdk:write-unit-tests` afterwards.
+- Regression test: match the project's runner, location, and naming; Arrange, Act, Assert blocks; inputs from the stack's faker library when the project has one; a unit test unless only an integration test can reproduce the bug. For a broader test suite, the user can run `cdk:add-unit-tests` afterwards.
 - `--yes` picks the recommended option of step 7 and of the bisect ask and counts as unattended for step 10.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Step 10 fix loop: at most 3 rounds; it fixes only what this run changed (failed or skipped checks, a regression test that did not fail first). Unattended runs ask nothing. Whatever is left goes to `Open:` before `Result:`.

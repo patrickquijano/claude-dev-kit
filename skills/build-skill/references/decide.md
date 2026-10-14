@@ -50,5 +50,5 @@ A skill does exactly one job. Signals of several: "and" between unrelated action
 
 ## Name
 
-- Verb-first and the action, not the actor: `review-code`, `write-changelog`, not `code-reviewer`, `changelog-writer`.
+- Verb-first and the action, not the actor: `review-code`, `update-changelog`, not `code-reviewer`, `changelog-writer`.
 - Update of an existing skill with an actor name → ask "Rename (Recommended) | Keep, report in Gaps".

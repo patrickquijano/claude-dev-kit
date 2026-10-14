@@ -18,11 +18,11 @@ Input: $ARGUMENTS
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:write-dockerfile`; `cdk:devcontainer-analyzer` only reads.
+- Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:build-dockerfile`; `cdk:devcontainer-analyzer` only reads.
 - Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. A skipped item gets a reason in the Output.
 - No invented facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. A failed lookup is asked in step 3 call 3, never guessed.
-- Pinning per practices.md: the image approach at the `<image major>-…` tag, features at `:<major>` with the committed `devcontainer-lock.json`, service images at an exact release tag; a Dockerfile base at the exact full tag plus digest, as `cdk:write-dockerfile` requires.
-- Dockerfile needed (system packages, firewall, or a custom build step) → chain `cdk:write-dockerfile` through the Skill tool in this thread, for any approach; never write or fix the Dockerfile here. A `stopped` or `cancelled` chained Result stops this run (step 8).
+- Pinning per practices.md: the image approach at the `<image major>-…` tag, features at `:<major>` with the committed `devcontainer-lock.json`, service images at an exact release tag; a Dockerfile base at the exact full tag plus digest, as `cdk:build-dockerfile` requires.
+- Dockerfile needed (system packages, firewall, or a custom build step) → chain `cdk:build-dockerfile` through the Skill tool in this thread, for any approach; never write or fix the Dockerfile here. A `stopped` or `cancelled` chained Result stops this run (step 8).
 - Credentials never land in git: `.devcontainer/.env` is gitignored and dockerignored, `.env.example` holds placeholders.
 - Writes are local and reviewable, so no approval is asked; every write to an existing file prints its diff. Never commit or push.
 - Caps: clarify (step 3) 3 AskUserQuestion calls; verify-fix (step 9) 3 attempts; open-item fix pass (step 10) 1.
@@ -39,7 +39,7 @@ Input: $ARGUMENTS
 5. **Draft.** devcontainer.json, Compose files, the `.gitattributes` LF rule, the firewall script, and the Dockerfile handoff arguments (`flow.md` `## Draft`).
 6. **Plan.** Print each file's content (a diff for existing files), the handoff arguments, and the change list. Update mode with nothing to add or fix → `Result: nothing-to-do`, then step 10.
 7. **Write** the step 5 files. Existing `.gitignore` and `.gitattributes` get only the missing lines. Writing first lets the Dockerfile's `COPY` sources exist when it is reviewed.
-8. **Dockerfile.** When needed, chain `cdk:write-dockerfile` with the step 5 arguments and confirm its path matches the config (`flow.md` `## Dockerfile`).
+8. **Dockerfile.** When needed, chain `cdk:build-dockerfile` with the step 5 arguments and confirm its path matches the config (`flow.md` `## Dockerfile`).
 9. **Verify.** Run the practices.md `## Checks` the host supports (analyzer `CLIs`). Fix each failure in a file this skill wrote, print the diff, re-run (cap in Rules). `devcontainer-up` only when the user asks.
 10. **Open items.** One fix pass over leftovers in files this skill wrote; the rest go in `Open:` (`flow.md` `## Open items`).
 11. **Report.** Print the Output.
@@ -64,7 +64,7 @@ Docker access: none | docker-outside-of-docker | docker-in-docker
 Files: <path (written | updated | kept)>, …
 Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
-Checks: JSON <pass | fail>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, write-dockerfile <its Checks | n/a>
+Checks: JSON <pass | fail>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, build-dockerfile <its Checks | n/a>
 Next: <item>, … | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled

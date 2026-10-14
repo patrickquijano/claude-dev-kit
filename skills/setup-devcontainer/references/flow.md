@@ -27,19 +27,19 @@ Per practices.md:
 - devcontainer.json: `name` (repo dir name), `image`, `build`, or `dockerComposeFile` + `service` + `workspaceFolder`, `features`, `forwardPorts`, `mounts`, `containerEnv`, `remoteEnv`, `postCreateCommand`, `secrets`, `customizations.vscode.extensions`, plus `capAdd`, `postStartCommand`, and `waitFor` for the firewall.
 - Compose: `.devcontainer/compose.yaml` (extending the repo's compose file when one exists), `.devcontainer/.env.example`, `.devcontainer/.env`, `.gitignore` entry.
 - `.gitattributes` LF rule when missing; firewall → `.devcontainer/init-firewall.sh` from the reference.
-- Dockerfile needed → the `cdk:write-dockerfile` arguments per practices.md `## Dockerfile handoff`.
+- Dockerfile needed → the `cdk:build-dockerfile` arguments per practices.md `## Dockerfile handoff`.
 - Update mode → keep the existing config's intent (approach, features, customizations, commands), add only what step 3 chose, fix what breaks a practice (`appPort`, Compose `ports`, `latest` tags, mounted host secrets); list each change with its reason.
 
 ## Dockerfile (step 8)
 
-Invoke `cdk:write-dockerfile` through the Skill tool with the step 5 arguments, in this main thread (never via the Agent tool; it asks the user itself). Invoking this skill is the user's explicit request for it.
+Invoke `cdk:build-dockerfile` through the Skill tool with the step 5 arguments, in this main thread (never via the Agent tool; it asks the user itself). Invoking this skill is the user's explicit request for it.
 
 - Read its Output `Result:`. `done` or `nothing-to-do` → keep its `App:`, `Stages:` (the base digest), `Files:`, and `Checks:` lines, and confirm `<App dir>/Dockerfile` matches `build.dockerfile` (or the Compose `app` `build`); fix the reference when it differs.
-- `stopped` or `cancelled` → go to step 10 with what is left, then print `Stopped: 8: write-dockerfile <its Stopped>`.
+- `stopped` or `cancelled` → go to step 10 with what is left, then print `Stopped: 8: build-dockerfile <its Stopped>`.
 
 ## Open items (step 10)
 
-Sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`, the chained write-dockerfile `Open:` lines.
+Sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`, the chained build-dockerfile `Open:` lines.
 
-- Fix once, in files this skill wrote only, each fix printing its diff; never re-enter the step 9 loop. A Dockerfile check failure is reported with the recommended `cdk:write-dockerfile` input, never fixed here.
+- Fix once, in files this skill wrote only, each fix printing its diff; never re-enter the step 9 loop. A Dockerfile check failure is reported with the recommended `cdk:build-dockerfile` input, never fixed here.
 - Whatever is left goes in `Open:` as `<item: impact; recommended fix>`; accepted skips stay in `Skipped practices:`.

@@ -145,7 +145,7 @@ describe('checkFrontmatter', () => {
 
   test('flags a plugin-qualified name or a spawned-by phrase in the description', () => {
     // Arrange
-    const qualified = { name: 'demo', description: 'Use proactively after cdk:write-readme.' };
+    const qualified = { name: 'demo', description: 'Use proactively after cdk:build-readme.' };
     const spawned = { name: 'demo', description: 'Use proactively. Spawned by a skill.' };
     // Act
     const a = checkFrontmatter(qualified, 'demo');

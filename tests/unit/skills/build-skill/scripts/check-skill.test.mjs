@@ -133,7 +133,7 @@ describe('checkFrontmatter', () => {
 
   test('errors on a plugin-qualified name or a spawned-by phrase in the description', () => {
     // Arrange
-    const qualified = { name: 'demo', description: 'Runs after cdk:write-changelog.' };
+    const qualified = { name: 'demo', description: 'Runs after cdk:update-changelog.' };
     const spawned = { name: 'demo', description: 'Spawned by the build skill.' };
     // Act
     const a = checkFrontmatter(qualified, 'demo');

@@ -19,7 +19,7 @@ Checked against containers.dev, code.visualstudio.com, github.com/devcontainers,
 
 - Base image `mcr.microsoft.com/devcontainers/<image>`. Stack → image: Node with `tsconfig.json` → `typescript-node`, other Node → `javascript-node`, Python → `python`, Go → `go`, Java → `java`, .NET → `dotnet`, PHP → `php`, Rust → `rust`, Ruby → `ruby`, C/C++ → `cpp`, none or other → `base`. <https://github.com/devcontainers/images>
 - Tag `<image major>-<runtime version>-<debian codename>` (a numeric stable tag only, never `dev-*`, `latest`, or a prerelease): the image major tag keeps getting security patches, which only land on the latest non-breaking versions, and the codename pins the OS. Pick from `https://mcr.microsoft.com/v2/devcontainers/<image>/tags/list`: highest image major, the runtime version the repo pins, the newest Debian codename listed for it (Debian variants work on arm64). Never guess a tag. <https://github.com/devcontainers/images/tree/main/src/python>
-- Dockerfile base → the highest full semver tag of that line instead (`<X.Y.Z>-<runtime version>-<codename>`, stable only), since `cdk:write-dockerfile` pins an exact tag plus digest; say the digest needs scheduled refresh (Renovate or Dependabot).
+- Dockerfile base → the highest full semver tag of that line instead (`<X.Y.Z>-<runtime version>-<codename>`, stable only), since `cdk:build-dockerfile` pins an exact tag plus digest; say the digest needs scheduled refresh (Renovate or Dependabot).
 - Images set their non-root user (`vscode` in base images, `node` in `javascript-node` and `typescript-node`) through image metadata, so omit `remoteUser`; read the user from the image README at `https://raw.githubusercontent.com/devcontainers/images/main/src/<image>/README.md` when a path needs its home.
 - Monorepo with several stacks → one root config: base image of the primary stack (most source files), other runtimes as features.
 
@@ -81,7 +81,7 @@ Source: <https://code.claude.com/docs/en/devcontainer>.
 
 ## Dockerfile handoff
 
-Arguments for `cdk:write-dockerfile`, space-separated `key=value`, values with spaces in double quotes:
+Arguments for `cdk:build-dockerfile`, space-separated `key=value`, values with spaces in double quotes:
 
 - `target=devcontainer dir=.devcontainer context=.devcontainer`.
 - `base=mcr.microsoft.com/devcontainers/<image>:<X.Y.Z>-<runtime version>-<codename>` (stable only, per `## Images`).

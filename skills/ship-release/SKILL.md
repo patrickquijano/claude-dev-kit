@@ -40,7 +40,7 @@ Input: $ARGUMENTS
 2. **Resume.** Find the branch's PR or MR and jump to the matching step (`flow.md` `## Resume detection`).
 3. **Branch.** On the target or a protected branch with changes → invoke `cdk:switch-branch` (`flow.md` `## Branch`).
 4. **Commit.** Dirty tree → invoke `cdk:commit-changes`. A clean tree with unpushed commits needs nothing; step 7 pushes them.
-5. **Release files.** Policy `.claude/release-policy.json` present → invoke `cdk:bump-version target <target>`; else `cdk:write-changelog base <target>`. Behavior, setup, or config changed (`target-diff`) → `cdk:write-readme`. Dirty → `cdk:commit-changes`; with a policy then `cdk:bump-version check target <target>`.
+5. **Release files.** Policy `.claude/release-policy.json` present → invoke `cdk:bump-version target <target>`; else `cdk:update-changelog base <target>`. Behavior, setup, or config changed (`target-diff`) → `cdk:build-readme`. Dirty → `cdk:commit-changes`; with a policy then `cdk:bump-version check target <target>`.
 6. **Merge options.** One AskUserQuestion, two questions: Squash (`Squash into one commit` Recommended | `Keep commits`) and Delete source branch (`Delete branch` Recommended | `Keep branch`). Asked once per run.
 7. **PR or MR.** Invoke `cdk:prepare-change-request --target <target> --yes --gate report --squash <yes|no> --delete-branch <yes|no>`; keep the number or iid, `Findings file:`, and head SHA. `stopped` → blocker `PR/MR create`.
 8. **Review loop.** Up to 3 rounds of `cdk:review-change-request`, then `cdk:address-change-request-review` and step 5 (`flow.md` `## Review loop`). Merged → step 9.

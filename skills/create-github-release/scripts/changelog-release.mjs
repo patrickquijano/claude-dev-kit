@@ -150,7 +150,7 @@ export function plan({ changelog, tags = [], prefix, repoUrl } = {}) {
         fail(
           only ? 'unreleased-only' : 'no-release',
           only ? 'the changelog has only an Unreleased section' : 'no `## [x.y.z]` release section found',
-          'cut a release first with cdk:write-changelog (release)'
+          'cut a release first with cdk:update-changelog (release)'
         )
       ]
     };
@@ -256,7 +256,7 @@ export function main(argv, deps = {}) {
     d.log(
       JSON.stringify({
         ok: false,
-        errors: [fail('no-changelog', `${file} does not exist`, 'create it with cdk:write-changelog')]
+        errors: [fail('no-changelog', `${file} does not exist`, 'create it with cdk:update-changelog')]
       })
     );
     return 1;
