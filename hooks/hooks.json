@@ -7,8 +7,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.mjs\"",
-            "timeout": 20,
-            "statusMessage": "Loading session context"
+            "timeout": 20
           }
         ]
       }
@@ -21,28 +20,24 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
             "timeout": 120,
-            "statusMessage": "Checking git safety and release",
             "if": "Bash(git *)"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
             "timeout": 120,
-            "statusMessage": "Checking git safety and release",
             "if": "Bash(gh *)"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
             "timeout": 120,
-            "statusMessage": "Checking git safety and release",
             "if": "Bash(glab *)"
           },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
             "timeout": 120,
-            "statusMessage": "Checking git safety and release",
             "if": "Bash(claude *)"
           }
         ]
@@ -53,8 +48,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/pre-tool-use.mjs\"",
-            "timeout": 120,
-            "statusMessage": "Checking git safety and release"
+            "timeout": 120
           }
         ]
       }
@@ -65,8 +59,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-submit.mjs\"",
-            "timeout": 15,
-            "statusMessage": "Preparing prompt context"
+            "timeout": 15
           }
         ]
       }
@@ -78,8 +71,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/post-tool-use.mjs\"",
-            "timeout": 300,
-            "statusMessage": "Formatting and linting"
+            "timeout": 300
           }
         ]
       }
@@ -90,8 +82,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop.mjs\"",
-            "timeout": 600,
-            "statusMessage": "Formatting and linting repo"
+            "timeout": 600
           }
         ]
       }
