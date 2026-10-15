@@ -30,50 +30,62 @@ test('cli: empty stdin exits 1 rather than blocking the turn', () => {
   assert.equal(r.stdout, '');
 });
 
-const PROMPT_SCRIPT = fileURLToPath(new URL('../../../../hooks/scripts/user-prompt-submit.mjs', import.meta.url));
 const dir = mkdtempSync(path.join(tmpdir(), 'cdk-stop-'));
 after(() => rmSync(dir, { recursive: true, force: true }));
 const sh = (args) => spawnSync('git', args, { cwd: dir, encoding: 'utf8' });
 const env = { ...process.env, CLAUDE_PROJECT_DIR: dir };
 const hook = (script, event) =>
   spawnSync('node', [script], { input: JSON.stringify(event), encoding: 'utf8', env, timeout: 30_000 });
-test('cli: gate blocks the first stop after files changed with the steps in order, then allows the second', () => {
+test('cli: gate blocks the first stop on a dirty tree with the steps in order, then allows the second', () => {
   // Arrange
   sh(['init', '-q']);
   sh(['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'init']);
-  hook(PROMPT_SCRIPT, { session_id: 's1', prompt: 'Fix X', permission_mode: 'default' });
+  const clean = hook(SCRIPT, { session_id: 's0' });
   writeFileSync(path.join(dir, 'a.txt'), 'changed');
-  const stop = { session_id: 's1', transcript_path: path.join(dir, 'none.jsonl') };
+  const stop = { session_id: 's1' };
   // Act
   const first = hook(SCRIPT, stop);
   const second = hook(SCRIPT, stop);
   // Assert
+  assert.equal(clean.stdout, '');
   const out = JSON.parse(first.stdout);
   assert.equal(out.decision, 'block');
   assert.match(out.reason, /README\.md or related docs.*cdk:update-changelog.*cdk:commit-changes/s);
   assert.equal(second.stdout, '');
 });
 
-test('cli: gate blocks regardless of the transcript, then allows', () => {
+test('cli: gate blocks a new session with no prompt-hook run, as after plan approval with cleared context', () => {
   // Arrange
-  hook(PROMPT_SCRIPT, { session_id: 's2', prompt: 'Fix Y', permission_mode: 'default' });
-  writeFileSync(path.join(dir, 'b.txt'), 'changed');
-  const file = path.join(dir, 't.jsonl');
-  writeFileSync(file, JSON.stringify({ type: 'user', message: { content: 'Fix Y' } }));
-  const stop = { session_id: 's2', transcript_path: file };
+  const stop = { session_id: 'plan-approved' };
   // Act
-  const first = hook(SCRIPT, stop);
-  const second = hook(SCRIPT, stop);
+  const r = hook(SCRIPT, stop);
   // Assert
-  assert.equal(JSON.parse(first.stdout).decision, 'block');
-  assert.equal(second.stdout, '');
+  assert.equal(JSON.parse(r.stdout).decision, 'block');
 });
 
-test('cli: gate stays silent when the turn changed no files', () => {
+test('cli: gate blocks again after a new edit following a fire', () => {
   // Arrange
-  hook(PROMPT_SCRIPT, { session_id: 's3', prompt: 'What is X?', permission_mode: 'default' });
+  const stop = { session_id: 's2' };
+  const first = hook(SCRIPT, stop);
+  const same = hook(SCRIPT, stop);
+  writeFileSync(path.join(dir, 'b.txt'), 'changed');
   // Act
-  const r = hook(SCRIPT, { session_id: 's3' });
+  const again = hook(SCRIPT, stop);
   // Assert
-  assert.equal(r.stdout, '');
+  assert.equal(JSON.parse(first.stdout).decision, 'block');
+  assert.equal(same.stdout, '');
+  assert.equal(JSON.parse(again.stdout).decision, 'block');
+});
+
+test('cli: gate records the tree on the stop_hook_active continuation and stays silent', () => {
+  // Arrange
+  const first = hook(SCRIPT, { session_id: 's3' });
+  writeFileSync(path.join(dir, 'c.txt'), 'edited while running the steps');
+  // Act
+  const cont = hook(SCRIPT, { session_id: 's3', stop_hook_active: true });
+  const after = hook(SCRIPT, { session_id: 's3' });
+  // Assert
+  assert.equal(JSON.parse(first.stdout).decision, 'block');
+  assert.equal(cont.stdout, '');
+  assert.equal(after.stdout, '');
 });

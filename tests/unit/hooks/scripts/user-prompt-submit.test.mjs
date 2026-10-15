@@ -4,25 +4,14 @@ import { test } from 'node:test';
 import { main } from '../../../../hooks/scripts/user-prompt-submit.mjs';
 
 const run = async (event, extra = {}) => {
-  const seen = [];
   const written = [];
   await main({
     stream: Readable.from([JSON.stringify(event)]),
     write: (t) => written.push(t),
-    snapshot: (e) => seen.push(e),
     ...extra
   });
-  return { seen, written };
+  return { written };
 };
-
-test('main calls snapshot with the parsed event', async () => {
-  // Arrange
-  const event = { prompt: '', session_id: 's' };
-  // Act
-  const { seen } = await run(event);
-  // Assert
-  assert.deepEqual(seen, [event]);
-});
 
 test('main prints only plan-mode context for a task prompt', async () => {
   // Arrange
@@ -44,12 +33,12 @@ test('main prints nothing for a machine prompt', async () => {
   assert.deepEqual(written, []);
 });
 
-test('main rejects and skips snapshot for invalid JSON', async () => {
+test('main rejects and prints nothing for invalid JSON', async () => {
   // Arrange
-  const seen = [];
+  const written = [];
   // Act
-  const act = main({ stream: Readable.from(['nope']), write: () => {}, snapshot: (e) => seen.push(e) });
+  const act = main({ stream: Readable.from(['nope']), write: (t) => written.push(t) });
   // Assert
   await assert.rejects(act, SyntaxError);
-  assert.deepEqual(seen, []);
+  assert.deepEqual(written, []);
 });

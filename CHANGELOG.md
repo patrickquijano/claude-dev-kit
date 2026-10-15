@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** the end-of-task gate now fires whenever uncommitted changes exist, once per distinct working-tree state, instead of only when files changed since the prompt. The commit step commits all uncommitted changes (no `paths:` scope), and `UserPromptSubmit` no longer records a baseline.
+
+### Fixed
+
+- The end-of-task steps never fired on the first turn after approving a plan with cleared context, because that turn fires no `UserPromptSubmit` to record a baseline.
+
 ## [0.1.0] - 2026-10-15
 
 The plugin restarts pre-1.0 because it still changes often. Versions 1.0.0–3.0.0 were never tagged or released and are withdrawn. While the major version is 0, a breaking change bumps minor and everything else bumps patch.

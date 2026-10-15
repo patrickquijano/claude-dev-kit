@@ -1,14 +1,11 @@
-// End-of-task logic: the UserPromptSubmit dispatcher records a per-session git baseline (snapshot), and the Stop hook (gate)
-// blocks once per prompt when files changed since then, telling Claude what to do once the task is done: run the unit tests,
-// refresh the Graphify graph, update docs, add changelog entries, then group, commit, and push this task's changes (the
-// changelog and commit steps ask the user first). A step is left out only when it cannot run (no test command, no graphify
-// binary, no git, unsafe git state, ship-release marker for the commit).
+// End-of-task logic: the Stop hook (gate) blocks once per distinct uncommitted working-tree state, telling Claude what to do
+// once the task is done: run the unit tests, refresh the Graphify graph, update docs, add changelog entries, then group,
+// commit, and push the changes (the changelog and commit steps ask the user first). A step is left out only when it cannot run.
 import { existsSync, realpathSync } from 'node:fs';
 import { fingerprint } from './format-lint-repo.mjs';
 import { git, readState, shipReleaseMarker, statePath, unsafeState, writeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist, which } from './graphify.mjs';
 import { blockOutput, projectDir } from './hook-io.mjs';
-import { isMachinePrompt } from './prompt.mjs';
 import { unitTestCommand } from './unit-tests.mjs';
 
 // Side effects as a swappable bundle so tests never touch git, graphify, or the fs.
@@ -39,7 +36,7 @@ const ask = (topic, run, lean) =>
   `first ask the user with AskUserQuestion whether to ${topic}: options "${run}" and "Skip"; put the one you recommend first and end its label with "(Recommended)", and give each option a one-line reason grounded in this task's changes. ${lean} On "${run}",`;
 const CHANGELOG = `${STATUS} If this task changed user-facing behavior (skills, agents, hooks, commands, or anything CHANGELOG.md covers), ${ask('update the changelog', 'Update changelog', 'Lean Skip when the change is internal only or Unreleased already covers it.')} invoke the \`cdk:update-changelog\` skill via the Skill tool to add entries under Unreleased; never cut a release or bump the version. On "Skip", or when nothing user-facing changed, skip this step.`;
 const DOCS = `${STATUS} If this task changed behavior, commands, paths, or components that README.md or related docs (CLAUDE.md, .claude/rules, skill references) describe, update them so they match; otherwise skip this step.`;
-const COMMIT = `${STATUS} If this task created, edited, or deleted files, ${ask('commit and push them', 'Commit and push', 'Lean Skip when the work is unfinished, a check still fails, or the user said not to commit.')} invoke the \`cdk:commit-changes\` skill via the Skill tool with the argument \`paths: <the files this task created, edited, or deleted>\` to group them atomically and logically, commit, and push; files that were already dirty before this task stay out. On "Skip", or if this task changed no files, skip this step.`;
+const COMMIT = `${STATUS} If the status lists changes, ${ask('commit and push them', 'Commit and push', 'Lean Skip when the work is unfinished, a check still fails, or the user said not to commit.')} invoke the \`cdk:commit-changes\` skill via the Skill tool with no \`paths:\` argument to group all uncommitted changes atomically and logically, commit, and push. On "Skip", or if the working tree is clean, skip this step.`;
 
 // Ordered end-of-task steps; empty when none apply.
 export function decide(input, deps = realDeps) {
@@ -65,30 +62,25 @@ const numbered = (parts) => parts.map((p, i) => `${i + 1}. ${p}`).join('\n');
 const stateFile = (input, cwd, deps) => deps.statePath('task-end', cwd, input.session_id);
 const validSession = (input) => typeof input?.session_id === 'string' && input.session_id !== '';
 
-// Records the git baseline at prompt time so the Stop gate can tell whether this turn changed files.
-export function snapshot(input, deps = realDeps) {
-  const prompt = input?.prompt;
-  if (typeof prompt !== 'string' || !prompt.trim() || isMachinePrompt(prompt) || !validSession(input)) return;
-  const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
-  const baseline = deps.fingerprint(cwd, []);
-  if (baseline === null) return;
-  deps.writeState(stateFile(input, cwd, deps), { baseline, fired: false });
-}
-
-// Stop-hook result: blocks once per prompt when files changed since the baseline; else null.
+// Stop-hook result: blocks once per distinct uncommitted working-tree state; else null.
 export function gate(input, deps = realDeps) {
   if (!validSession(input)) return null;
   const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
   const file = stateFile(input, cwd, deps);
   const state = deps.readState(file);
-  if (typeof state.baseline !== 'string' || state.fired) return null;
   const now = deps.fingerprint(cwd, []);
-  if (now === null || now === state.baseline) return null;
+  if (!now) return null;
+  // The continuation that ran the steps may have edited docs or the changelog; record that tree instead of re-asking.
+  if (state.awaiting && input.stop_hook_active === true) {
+    deps.writeState(file, { firedAt: now, awaiting: false });
+    return null;
+  }
+  if (now === state.firedAt) return null;
   const parts = decide(input, deps);
   if (!parts.length) return null;
-  deps.writeState(file, { ...state, fired: true });
+  deps.writeState(file, { firedAt: now, awaiting: true });
   return blockOutput(
     'End-of-task steps pending',
-    `This turn changed files. If the task is finished, do these end-of-task steps now, in order, then stop. If it is not finished and you are waiting on the user, say so and stop:\n${numbered(parts)}`
+    `The working tree has uncommitted changes. If the task is finished, do these end-of-task steps now, in order, then stop. If it is not finished and you are waiting on the user, say so and stop:\n${numbered(parts)}`
   );
 }

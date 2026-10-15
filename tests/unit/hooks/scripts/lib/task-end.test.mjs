@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decide, gate, snapshot } from '../../../../../hooks/scripts/lib/task-end.mjs';
+import { decide, gate } from '../../../../../hooks/scripts/lib/task-end.mjs';
 
 function make({
   installed = false,
@@ -48,31 +48,33 @@ test('decide asks for changelog, docs, and commit steps in a git repo', () => {
   assert.match(result[2], /cdk:commit-changes/);
 });
 
-test('decide scopes the commit step to the paths this task changed', () => {
+test('decide tells the commit step to commit all uncommitted changes with no paths argument', () => {
   // Arrange
   const deps = make();
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[2], /paths: <the files this task created, edited, or deleted>/);
+  assert.match(result[2], /no `paths:` argument/);
+  assert.match(result[2], /all uncommitted changes/);
 });
 
-test('decide tells Claude to skip the commit step when this task changed no files', () => {
+test('decide tells Claude to skip the commit step when the working tree is clean', () => {
   // Arrange
   const deps = make();
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[2], /changed no files, skip this step/);
+  assert.match(result[2], /working tree is clean, skip this step/);
 });
 
-test('decide does not tell Claude to commit every dirty file', () => {
+test('decide does not scope the commit step to this task or leave dirty files out', () => {
   // Arrange
   const deps = make();
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.doesNotMatch(result[2], /If this task changed files,/);
+  assert.doesNotMatch(result[2], /paths: </);
+  assert.doesNotMatch(result[2], /already dirty/);
 });
 
 test('decide runs graphify update first when the graph exists', () => {
@@ -359,113 +361,69 @@ const stateDeps = ({ state = {}, now = 'b' } = {}) => {
     writes
   };
 };
-const session = { session_id: 's1', prompt: 'Fix X' };
+const session = { session_id: 's1' };
 
-test('snapshot writes the baseline and fired false for a prompt', () => {
+test('gate blocks a dirty tree with no state, with the steps in order', () => {
   // Arrange
-  const deps = stateDeps({ now: 'abc' });
-  // Act
-  snapshot(session, deps);
-  // Assert
-  assert.deepEqual(deps.writes, [{ baseline: 'abc', fired: false }]);
-});
-
-test('snapshot records an empty-tree fingerprint as the baseline', () => {
-  // Arrange
-  const deps = stateDeps({ now: '' });
-  // Act
-  snapshot(session, deps);
-  // Assert
-  assert.deepEqual(deps.writes, [{ baseline: '', fired: false }]);
-});
-
-test('snapshot skips a blank prompt', () => {
-  // Arrange
-  const deps = stateDeps();
-  // Act
-  snapshot({ ...session, prompt: '  ' }, deps);
-  // Assert
-  assert.deepEqual(deps.writes, []);
-});
-
-test('snapshot skips a task-notification prompt', () => {
-  // Arrange
-  const deps = stateDeps();
-  // Act
-  snapshot({ ...session, prompt: '<task-notification>done' }, deps);
-  // Assert
-  assert.deepEqual(deps.writes, []);
-});
-
-test('snapshot skips when the fingerprint is null', () => {
-  // Arrange
-  const deps = stateDeps({ now: null });
-  // Act
-  snapshot(session, deps);
-  // Assert
-  assert.deepEqual(deps.writes, []);
-});
-
-test('snapshot skips when there is no session id', () => {
-  // Arrange
-  const deps = stateDeps();
-  // Act
-  snapshot({ prompt: 'Fix X' }, deps);
-  // Assert
-  assert.deepEqual(deps.writes, []);
-});
-
-test('gate blocks once with the numbered steps in order when files changed', () => {
-  // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'b' });
+  const deps = stateDeps({ state: {}, now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
   assert.equal(result.decision, 'block');
   assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:update-changelog.*\n3\. .*cdk:commit-changes/s);
-  assert.deepEqual(deps.writes, [{ baseline: 'a', fired: true }]);
+  assert.deepEqual(deps.writes, [{ firedAt: 'b', awaiting: true }]);
 });
 
-test('gate lets Claude stop when the task is unfinished and waiting on the user', () => {
+test('gate blocks when the fingerprint differs from the last fired tree', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false } });
+  const deps = stateDeps({ state: { firedAt: 'a', awaiting: false }, now: 'b' });
   // Act
   const result = gate(session, deps);
-  // Assert
-  assert.match(result.reason, /If the task is finished, do these end-of-task steps now/);
-  assert.match(result.reason, /not finished and you are waiting on the user, say so and stop/);
-});
-
-test('gate blocks even when the transcript already holds the asks', () => {
-  // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'b' });
-  // Act
-  const result = gate({ ...session, transcript_path: '/t.jsonl' }, deps);
   // Assert
   assert.equal(result.decision, 'block');
 });
 
-test('gate returns null when the fingerprint is unchanged', () => {
+test('gate lets Claude stop when the task is unfinished and waiting on the user', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: 'a' });
+  const deps = stateDeps();
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.match(result.reason, /The working tree has uncommitted changes/);
+  assert.match(result.reason, /not finished and you are waiting on the user, say so and stop/);
+});
+
+test('gate blocks a stop_hook_active continuation that was not awaiting the steps', () => {
+  // Arrange
+  const deps = stateDeps({ state: { firedAt: 'a', awaiting: false }, now: 'b' });
+  // Act
+  const result = gate({ ...session, stop_hook_active: true }, deps);
+  // Assert
+  assert.equal(result.decision, 'block');
+});
+
+test('gate records the tree and returns null for the continuation that ran the steps', () => {
+  // Arrange
+  const deps = stateDeps({ state: { firedAt: 'a', awaiting: true }, now: 'c' });
+  // Act
+  const result = gate({ ...session, stop_hook_active: true }, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(deps.writes, [{ firedAt: 'c', awaiting: false }]);
+});
+
+test('gate returns null for a clean tree', () => {
+  // Arrange
+  const deps = stateDeps({ now: '' });
   // Act
   const result = gate(session, deps);
   // Assert
   assert.equal(result, null);
 });
 
-test('gate returns null when it already fired', () => {
+test('gate returns null when the fingerprint equals the last fired tree', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: true } });
-  // Act
-  const result = gate(session, deps);
-  // Assert
-  assert.equal(result, null);
-});
-
-test('gate returns null when there is no state', () => {
-  // Arrange
-  const deps = stateDeps({ state: {} });
+  const deps = stateDeps({ state: { firedAt: 'b', awaiting: false }, now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
@@ -474,7 +432,7 @@ test('gate returns null when there is no state', () => {
 
 test('gate returns null when the fingerprint is null', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false }, now: null });
+  const deps = stateDeps({ now: null });
   // Act
   const result = gate(session, deps);
   // Assert
@@ -483,9 +441,18 @@ test('gate returns null when the fingerprint is null', () => {
 
 test('gate returns null when there is no session id', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: false } });
+  const deps = stateDeps();
   // Act
   const result = gate({}, deps);
   // Assert
   assert.equal(result, null);
+});
+
+test('gate ignores an old-format state file and fires once', () => {
+  // Arrange
+  const deps = stateDeps({ state: { baseline: 'a', fired: true }, now: 'b' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result.decision, 'block');
 });
