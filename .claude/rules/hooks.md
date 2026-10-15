@@ -24,6 +24,7 @@ paths:
 - Completion gates: prefer `Stop` over `TaskCompleted`; `TaskCompleted` fires only on task-list task complete.
 - Exit codes: `0` success, `2` block (stderr to Claude), other = non-blocking error.
 - Stdout MUST be single JSON object (exit 0).
+- Plugin hooks set no `statusMessage` (it shows on every run, even a no-op); format/lint `systemMessage` lines appear only when a step changed files or failed, and plan-mode prints none.
 - User output: JSON `systemMessage`. Claude feedback: `decision: "block"` + `reason`, or `hookSpecificOutput.additionalContext`.
 - `suppressOutput` no effect. `async` hooks can't show `systemMessage` to user.
 - Idempotent: same input → same result, no extra side effects.
