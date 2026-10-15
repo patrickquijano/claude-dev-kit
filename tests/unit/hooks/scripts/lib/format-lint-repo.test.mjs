@@ -339,10 +339,19 @@ test('runStep: wraps npx steps and caps the per-command timeout', () => {
   assert.deepEqual(calls[0], ['npx', ['--no-install', 'prettier', '-w', 'a.md'], '/p', 300_000]);
 });
 
-test('formatLintRepo: reports each step for stale groups', () => {
+// Git whose diff text changes after every tool run, as if each step rewrote files.
+const changingGit = (over) => {
+  let n = 0;
+  const git = fakeGit(over);
+  return { git: (cwd, args) => (args[0] === 'diff' ? out(`d${n}`) : git(cwd, args)), run: () => (n++, ok) };
+};
+
+test('formatLintRepo: reports each step that changed the group files', () => {
   // Arrange
+  const { git, run } = changingGit({ untracked: ['a.yml'], all: ['a.yml'] });
   const deps = baseDeps({
-    git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
+    git,
+    run,
     readFile: () => Buffer.from('{}'),
     available: (step) => ['yamlfmt', 'yamllint'].includes(step.cmd)
   });
@@ -350,6 +359,21 @@ test('formatLintRepo: reports each step for stale groups', () => {
   const result = formatLintRepo({}, deps);
   // Assert
   assert.deepEqual(result, { systemMessage: '✅ Format yamlfmt: 1 .yaml files | ✅ Lint yamllint: 1 .yaml files' });
+});
+
+test('formatLintRepo: stays silent but records state when passing steps change nothing', () => {
+  // Arrange
+  const writes = [];
+  const deps = baseDeps({
+    git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
+    available: (step) => step.cmd === 'yamllint',
+    writeFile: (f, d) => writes.push(JSON.parse(d))
+  });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.match(writes[0].yaml, /^[0-9a-f]{64}$/);
 });
 
 test('formatLintRepo: blocks with the failure output', () => {
@@ -420,7 +444,7 @@ test('formatLintRepo: skips an unwritable state file', () => {
   // Act
   const result = formatLintRepo({}, deps);
   // Assert
-  assert.deepEqual(result, { systemMessage: '✅ Lint yamllint: 1 .yaml files' });
+  assert.equal(result, null);
 });
 
 test('formatLintRepo: rethrows an unexpected state write error', () => {
