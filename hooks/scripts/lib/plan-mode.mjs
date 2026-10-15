@@ -39,7 +39,5 @@ export function output({ action, rule }) {
   const text = enter
     ? (rule === 'override #plan' ? FORCED : WEIGH) + AFTER
     : `Before any other tool call, call ExitPlanMode (load it with ToolSearch if deferred); after approval, do the prompt.`;
-  return contextOutput('UserPromptSubmit', text, {
-    systemMessage: `Plan mode: ${enter ? 'asking' : 'exiting'} (${rule})`
-  });
+  return contextOutput('UserPromptSubmit', text);
 }

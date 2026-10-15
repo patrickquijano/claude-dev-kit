@@ -101,7 +101,8 @@ test('cli: a question in default mode asks about plan mode', () => {
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: 'What does X do?' }));
   // Assert
   const out = JSON.parse(r.stdout);
-  assert.match(out.systemMessage, /^Plan mode: asking \(context\)/);
+  assert.equal(out.systemMessage, undefined);
+  assert.match(out.hookSpecificOutput.additionalContext, /whether to enter plan mode/);
 });
 
 test('cli: a task-notification prompt asks nothing', () => {
@@ -144,6 +145,6 @@ test('cli: a large change asks about plan mode', () => {
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: BIG }));
   // Assert
   const out = JSON.parse(r.stdout);
-  assert.match(out.systemMessage, /^Plan mode: asking/);
+  assert.equal(out.systemMessage, undefined);
   assert.match(out.hookSpecificOutput.additionalContext, /whether to enter plan mode/);
 });
