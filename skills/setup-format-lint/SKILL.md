@@ -1,6 +1,6 @@
 ---
 name: setup-format-lint
-description: Set up formatters and linters for the repository file types. Pick one formatter and one or more linters per type, install missing tools, write missing configs, and add ignore paths. Use only when the user explicitly asks to set up formatters, linters, Prettier, or ESLint, or when cdk:setup-project chains it. Do not use on your own after finishing a task.
+description: Sets up a formatter and linters per repo file type at verified versions, with configs and ignore paths. Use only when the user explicitly asks to set up formatters or linters, or when chained.
 allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 ---
 
@@ -10,41 +10,45 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 
 - Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Analysis in subagent: step 2 spawns `cdk:format-lint-analyzer` (`mode=detect`) for file types, filled roles, candidates, package facts, and ignore candidates; step 6 spawns it with `mode=versions` (registry lookups only); step 10 spawns it with `mode=check`. It cannot ask or install; relay its `Gaps` and an `unknown` manager with AskUserQuestion. Pass only root, mode, answers to earlier `Gaps`, the `tools.md`, `package-manager.md`, and ignores paths, for `versions` the tools to install, the package dir, and the `tools.md` `## Versions` constraints, and for `check` the tools, package dir, manager, overrides, and the Dockerfile, shell, and XML file lists.
-- No pinned versions: never write or remember a version number in this skill; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason, never installed from memory. Sources and constraints: `${CLAUDE_SKILL_DIR}/references/tools.md` `## Versions`.
-- Idempotent: installed tool → skip install; configured tool → keep its config; ignore entry present → skip. Re-runs change nothing.
-- Catalog, install channels, config files, defaults, check commands, overlaps, and ignore keys: `${CLAUDE_SKILL_DIR}/references/tools.md`.
-- Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none of them uses its native format from the catalog.
-- Never overwrite a user file; edits append only missing keys or entries. Configs are written only when missing.
-- AskUserQuestion: at most 4 questions per call, 2–4 options each; recommended option first with its reason.
-- Caps: analyzer respawn after `Gaps` 1; step 11 may spawn one extra `mode=check` for the tools it touched, shared across items. Each question is asked once per linter role (step 4), tool (step 7), or run (step 5); never re-ask the same question. More questions than fit one call → further calls until all are asked, at most 4 calls per step.
-- Package dir, package manager, exec prefix, and `package.json` creation: `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`.
-- Native tools change the machine, not only the repo: never install one unasked.
-- Pre-flight stops (step 1) and Stop answers (cancels) → print the Output with `Resolution: not run (stopped | cancelled)`, `Stopped: <step>: <reason>`, and end. Any later failure or cap → run step 11 (**Resolve findings.**) on what is left, without re-entering the loop, then print the Output with `Stopped: <step>: <reason>`.
-- Chained by `cdk:setup-project` via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Check:`/`Problems:` lines, `Skipped tools:`, `Constraints:` that caused a skipped tool, `uncovered` file types, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-format-lint` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Analysis in a subagent: spawn `cdk:format-lint-analyzer` with `mode=detect` (step 2), `mode=versions` (step 6), `mode=check` (step 10). It cannot ask or install; relay its `Gaps` and an `unknown` manager with AskUserQuestion.
+- Agent input: root, mode, and answers to earlier `Gaps`. `versions` adds the packages to install and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
+- No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
+- Idempotent: installed tool → skip install; configured tool → keep its config; ignore entry present → skip. Never overwrite a user file; edits append only missing keys or entries.
+- Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
+- Native tools change the machine: never install one unasked.
+- AskUserQuestion: at most 4 questions per call, 2-4 options each, recommended first with its reason. Unavailable (or Write unavailable) → ask the pending question as plain text and end the turn.
+- Caps: analyzer respawn after `Gaps` 1; each question asked once (more than fit one call → further calls, at most 4 per step); step 11 fix loop 1 pass and one extra `mode=check`.
+- Unattended (chained, no AskUserQuestion): ask nothing; choose recommended options, skip native installs, and report the rest in `Open:`.
+- Pre-flight stop or cancel → print the Output with `Stopped:` and end. A later failure or cap → run step 11 once on what is left, then print the Output.
+- Chained by `cdk:setup-project` through the Skill tool; never set `disable-model-invocation`.
 
 ## Workflow
 
 1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
-2. **Detect.** Spawn `cdk:format-lint-analyzer` with root, `mode=detect`, `${CLAUDE_SKILL_DIR}/references/tools.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/references/ignores.md`, and `${CLAUDE_SKILL_DIR}/../setup-git/references/ignores.md`. Take `File types`, `Uncovered`, `Lists` (Dockerfile, shell, and XML files for step 9), `Filled roles`, `Unfilled roles`, `Package`, and `Ignore candidates`; keep them for steps 3–9. `Gaps` non-empty → AskUserQuestion for each fact only the user can give, then respawn once.
-3. **Existing.** The analyzer applied the catalog rules for a filled role (configured candidate; `none`-config tools installed; Prettier needs its plugin and no ignore for YAML, XML, PHP; toolchain tools only when sole candidate). Filled roles keep their tool.
-4. **Choose tools.** Per `Unfilled roles` entry: one candidate → use it. More than one → formatter: use the catalog's first candidate, no question (two formatters on one type rewrite each other), and report it. Linter → AskUserQuestion `multiSelect: true` with the candidates, recommended first, since linters stack (for example PHPStan and PHP_CodeSniffer). Options follow the catalog order; a fallback option says it is the fallback. Group types that share one tool into one question.
-5. **Package manager.** Only when an npm tool must be installed or checked. Use `Package` from step 2 (dir, `package.json` present, manager). Manager `unknown` (several lockfiles) → AskUserQuestion: npm (Recommended) | pnpm | yarn | bun. Missing `package.json` → create it per package-manager.md. Install, configs, and checks for npm tools use the package dir.
-6. **Versions.** Only for tools to install or whose config depends on a version (ESLint, Prettier plugins, Stylelint). Spawn `cdk:format-lint-analyzer` with root, `mode=versions`, those packages and formulae by channel, the package dir, `${CLAUDE_SKILL_DIR}/references/tools.md`, and `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`. Take `Runtimes`, `Versions`, `Unverified`, and `Constraints`; keep them for steps 7–8 and the output. A tool or companion in `Unverified` → skip that tool with the reason (never reuse a remembered version); a tool whose required companion is unverified is skipped too. None to install → skip the step. Respawn on `Gaps` at most once.
-7. **Install.** Only tools not yet installed. npm packages → one command with the package-manager.md add command, each as `<pkg>@<version>`. Composer packages → check the catalog prerequisites, then one `composer-require` command. .NET tools (`--version <version>`) → check their prerequisites from the catalog. Missing prerequisite → skip the tool with the reason. Native tools → pick the first catalog channel whose command exists, with the `tools.md` `## Versions` install form (`uv`/`pipx` `==<version>`, `go install …@<version>`, brew installs the verified formula), then AskUserQuestion per tool: Run `<that command>` (Recommended) | Skip this tool | Stop. No channel → skip with the install page. Fail → quote the error line, stop.
-8. **Configure.** Each chosen or kept tool without a config, whose catalog defaults are not `none` → write the catalog's config file with its recommended defaults, no question (they keep tools aligned, for example Prettier, yamllint, CSharpier, and PHP_CodeSniffer at 120 columns). A config whose format depends on the resolved version follows that version (ESLint needs `eslint/config`, else skipped per `tools.md` `## Versions`). Existing config → keep. `none` tools → write nothing.
-9. **Overlaps + ignore paths.** Apply the catalog overlaps. Then take the analyzer's `Ignore candidates` (paths that exist and that the tool does not already ignore), keeping only the chosen and kept tools. None → skip. Else, no question: reuse `.gitignore` where the tool supports it (one list to maintain); other tools get the found path groups (build output, coverage, vendored deps, lockfiles, generated hooks; generated, not hand-written), appending only missing entries in the tool's syntax. `setup-husky/references/ignores.md` says never to create a config; here an ignore file may be created for a tool chosen in step 4.
-10. **Check.** Spawn `cdk:format-lint-analyzer` with root, `mode=check`, `${CLAUDE_SKILL_DIR}/references/tools.md`, `${CLAUDE_SKILL_DIR}/../setup-husky/references/package-manager.md`, the installed tools (including kept tools), the package dir and manager from step 5 (else step 2 `Package`), any step 9 check-command overrides (HTMLHint `--ignore`, `dotnet format --exclude`), and the step 2 `Lists`. It runs each tool's catalog check command once (no writes) and returns `Checks` and `Problems`. Report counts and the first `Problems` lines; never auto-fix here, the user decides.
-11. **Resolve findings.** Per resolve-findings.md; revalidate with one `mode=check` for the touched tools (not a re-entry of step 10). Fix a config this run wrote only when it is itself invalid or contradictory; never edit configs or ignore entries to clear a `Problems:` item. Lint or format fixes to user code and tool installs stay `needs-decision` (step 10: the user decides, never auto-fixed).
-12. **Report** the output below.
+2. **Detect.** Spawn the analyzer (`mode=detect`); keep `File types`, `Uncovered`, `Lists`, `Filled roles`, `Unfilled roles`, `Package`, `Ignore candidates`. `Gaps` → ask, respawn once.
+3. **Existing.** Filled roles keep their tool; the analyzer already applied the catalog rules for what counts as filled.
+4. **Choose tools.** Per unfilled role: one candidate → use it; several formatters → the first, no question; linters → `multiSelect` question (`references/flow.md` `## Choose tools`).
+5. **Package manager.** Only when an npm tool is installed or checked; ask on `unknown`, create a missing `package.json` (`package-manager.md`).
+6. **Versions.** Only for tools to install or version-dependent configs; spawn the analyzer (`mode=versions`); `Unverified` → skip that tool.
+7. **Install.** Missing tools only, each at its resolved version; native tools after a per-tool question (`references/flow.md` `## Install`).
+8. **Configure.** Write each missing config with the catalog defaults, no question; existing config → keep (`tools.md` `## Config files and defaults`).
+9. **Overlaps and ignores.** Apply the catalog overlaps, then add the analyzer's ignore candidates in each tool's syntax (`ignores.md`).
+10. **Check.** Spawn the analyzer (`mode=check`) for the installed and kept tools; report counts and first `Problems` lines; never auto-fix user code.
+11. **Resolve.** One pass, capped: fix a config this run wrote only when itself invalid; re-run `mode=check` once; list leftovers in `Open:`.
+12. **Report.** Print the Output.
+
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the tool catalog, versions, install channels, configs, and overlaps (steps 3-9), see `${CLAUDE_SKILL_DIR}/references/tools.md`.
+- For tool choice, installs, and the resolve pass (steps 4, 7, 11), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For package dir, manager detection, and exec forms (steps 5, 7, 10), see `${CLAUDE_SKILL_DIR}/references/package-manager.md`.
+- For ignore syntax and candidate paths (step 9), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 
 ## Output
 
@@ -60,7 +64,7 @@ Configs: <file> (<written | kept>), …
 Ignores: <file: added paths>, … | up to date
 Check: <tool: N problems>, … | not run
 Problems: <tool: first lines>, … | none
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

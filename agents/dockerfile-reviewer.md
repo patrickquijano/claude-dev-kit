@@ -1,6 +1,6 @@
 ---
 name: dockerfile-reviewer
-description: Review a Dockerfile and .dockerignore against the write-dockerfile practices, run docker build --check and hadolint, and return line-positioned findings. Read-only. Spawned by the cdk:write-dockerfile skill; do not use directly.
+description: Use proactively after writing a Dockerfile to review it against best practices, run docker build --check and hadolint, and return line findings. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 color: purple
@@ -10,7 +10,7 @@ Strict Dockerfile reviewer. Never edit files. Report only what the files and too
 
 ## Task
 
-1. Inputs from prompt: Dockerfile path(s), `.dockerignore` path (or none), practices path, build context dir, target (default | devcontainer; missing → default).
+1. Inputs from prompt: Dockerfile path(s), `.dockerignore` path (or none), practices path, build context dir, target (default | devcontainer; missing → default). Any other input missing → return `Question: <what is needed and why>` and stop; ask nothing else.
 2. Read the practices file fully; its sections and **Required** items are the standard. Target devcontainer → its `## Devcontainer target` items replace the items they name. Practice id = `<section>/<short name>`, e.g. `Structure/multi-stage`, `Structure/distro`, `Structure/tool-stage`, `Packages/unversioned`, `Packages/upgrade`, `Packages/cleanup`.
 3. Read each Dockerfile, the `.dockerignore`, and the context paths each `COPY` and bind mount names. Check every practice item:
    - **Required** items always; others when they fit the file's stack.
@@ -36,6 +36,4 @@ Checks: docker build --check <pass | fail | not installed | error (<first line>)
 Tool output: <one line per tool: counts and first error | none>
 ```
 
-No findings → `Findings: none`.
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.
+No findings → `Findings: none`. Input missing → `Question: <what is needed and why>` instead.

@@ -153,13 +153,14 @@ export function formatLintRepo(input, deps = {}) {
     // Outside git or before the first commit there is nothing to compare, so the hook does nothing.
     if (fp === null) return null;
     if (fp === last[exts[0]] || (last[exts[0]] === undefined && fp === '')) continue;
-    stale.push({ exts, steps, specs });
+    stale.push({ exts, steps, specs, fp });
   }
   if (!stale.length) return null;
 
   const lines = [];
   const failures = [];
-  for (const { exts, steps, specs } of stale) {
+  for (const group of stale) {
+    const { exts, steps, specs } = group;
     const files = groupFiles(cwd, exts, specs.files, d);
     for (const entry of steps) {
       const step = files.length ? resolveStep(entry, cwd, d) : null;
@@ -167,13 +168,18 @@ export function formatLintRepo(input, deps = {}) {
       const targets = step.skip ? files.filter((f) => !step.skip(d.readFile(path.join(cwd, f)).toString())) : files;
       if (!targets.length) continue;
       const ok = runStep(step, targets, cwd, failures, deadline, d);
-      lines.push(`${ok ? '✅' : '❌'} ${entry.kind} ${step.cmd}: ${targets.length} .${exts[0]} files`);
+      const after = fingerprint(cwd, specs.all, d);
+      // Report only a failure or a step that changed the group's files.
+      if (!ok || after !== group.fp) {
+        lines.push(`${ok ? '✅' : '❌'} ${entry.kind} ${step.cmd}: ${targets.length} .${exts[0]} files`);
+      }
+      group.fp = after;
       // A failed formatter leaves stale content for this group's linter; other groups still run.
       if (!ok && entry.kind === 'Format') break;
     }
   }
   // Recorded after the run, so the hook's own fixes do not trigger a rerun; failures re-run once Claude edits.
-  for (const { exts, specs } of stale) last[exts[0]] = fingerprint(cwd, specs.all, d) ?? '';
+  for (const { exts, fp } of stale) last[exts[0]] = fp ?? '';
   try {
     d.writeFile(state, JSON.stringify(last));
   } catch (e) {

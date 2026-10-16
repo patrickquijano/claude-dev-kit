@@ -1,13 +1,13 @@
 # Package managers
 
-Verified 2026-09-28 against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs and use them from step 2 of `SKILL.md` on; save the missing row to the known-issues store per its Known issues rule (never edit this file from a run).
+Checked against each tool's `--help` or official docs. A row marked _verify_ was not confirmed; check the tool's docs before relying on it. Manager missing here → find its official docs and use them from the Projects step of `SKILL.md` on; never edit this file from a run.
 
 ## Detect, list, upgrade
 
 Format: manager — detect files — list outdated (read-only) — upgrade one package (updates manifest + lockfile) — notes.
 
 - npm — `package.json` + `package-lock.json` — `npm outdated --json` (Current/Wanted/Latest) — `npm install <pkg>@<version>` — a major bump needs the explicit version or `@latest`. <https://docs.npmjs.com/cli/commands/npm-outdated>
-- pnpm — `package.json` + `pnpm-lock.yaml` — `pnpm outdated --format json` — `pnpm add <pkg>@<version>` — `pnpm update --latest <pkg>` rewrites the range. Exact pin (no `^`/`~`) → `pnpm add -E <pkg>@<version>` (`-D` for devDependencies), else the range widens to `^`. Overrides live in `pnpm-workspace.yaml` `overrides:`; to drop one, check `pnpm why <pkg>`, remove the entry, then `pnpm install` to relock. Run scripts with `pnpm run <script>`; pnpm 12 rejects `pnpm -s <script>`. <https://pnpm.io/cli/outdated>
+- pnpm — `package.json` + `pnpm-lock.yaml` — `pnpm outdated --format json` — `pnpm add <pkg>@<version>` — `pnpm update --latest <pkg>` rewrites the range. Exact pin (no `^`/`~`) → `pnpm add -E <pkg>@<version>` (`-D` for devDependencies), else the range widens to `^`. Overrides live in `pnpm-workspace.yaml` `overrides:`; to drop one, check `pnpm why <pkg>`, remove the entry, then `pnpm install` to relock. Run scripts with `pnpm run <script>`, never `pnpm -s <script>`. <https://pnpm.io/cli/outdated>
 - Yarn 1 — `yarn.lock`, no `.yarnrc.yml` — `yarn outdated --json` (JSON lines; `--json` is a global flag in `yarn --help`) — `yarn upgrade <pkg>@<version>` — the `package.json` reference changes to match the given version. <https://classic.yarnpkg.com/en/docs/cli/upgrade>
 - Yarn 2+ — `yarn.lock` + `.yarnrc.yml` — no outdated command; use the registry lookup below — `yarn up <pkg>@<version>` — <https://yarnpkg.com/cli/up>
 - Bun — `bun.lock` (older `bun.lockb`) — `bun outdated` (no JSON) — `bun add <pkg>@<version>` — <https://bun.com/docs/cli/outdated>

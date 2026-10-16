@@ -1,6 +1,6 @@
 # Release notes
 
-Used by `cdk:create-github-release`; `hooks/scripts/lib/changelog-release.mjs` renders them. Sources: [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), [`gh release create`](https://cli.github.com/manual/gh_release_create), [GitHub release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes).
+Used by `cdk:create-github-release`; `scripts/changelog-release.mjs` renders them. Sources: [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/), [`gh release create`](https://cli.github.com/manual/gh_release_create), [GitHub release notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes).
 
 ## Template
 

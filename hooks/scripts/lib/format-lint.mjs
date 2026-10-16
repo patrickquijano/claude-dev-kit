@@ -51,10 +51,12 @@ export function formatLint(input, deps = {}) {
     const step = resolveStep(entry, projectDir, d);
     if (!step || step.skip?.(d.readFile(abs))) continue;
     const [cmd, argv] = stepCommand(step, [target]);
+    const before = d.readFile(abs);
     const r = d.run(cmd, argv, projectDir);
     const ok = !r.error && r.status === 0;
     if (ok && step.stdout) writeStdout(abs, r.stdout, d);
-    lines.push(`${ok ? '✅' : '❌'} ${entry.kind}: ${target}`);
+    // Report only a failure or a step that changed the file.
+    if (!ok || d.readFile(abs) !== before) lines.push(`${ok ? '✅' : '❌'} ${entry.kind}: ${target}`);
     if (!ok) failures.push(failureText(cmd, argv, r, step));
     // A failed formatter leaves stale content, so its linter would report on the wrong text.
     if (!ok && entry.kind === 'Format') break;

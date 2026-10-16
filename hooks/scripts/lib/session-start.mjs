@@ -47,7 +47,7 @@ export function sessionStart(input = {}, deps = realDeps) {
     const root = deps.env.CLAUDE_PLUGIN_ROOT || deps.defaultRoot();
     const rules = deps.readFileSync(path.join(root, 'skills', 'setup-graphify', 'assets', 'graphify-rules.md'), 'utf8');
     context.push(
-      `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nA cdk end-of-task instruction names the graphify step to run once the task is done; do not run it on your own.`
+      `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nThe cdk Stop hook names the graphify step to run once the task is done; do not run it on your own.`
     );
   }
   // A fresh session cannot own a ship-release run; resume and compact may still be inside one.

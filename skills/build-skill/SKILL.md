@@ -1,62 +1,64 @@
 ---
 name: build-skill
-description: Create or update Claude Code skills and orchestrator skills with their subagents (SKILL.md, agents/*.md). Use only when the user explicitly asks to make, build, scaffold, fix, improve, or update a skill, slash command, or orchestrator/workflow skill. A standalone subagent goes to /cdk:build-agent. Do not use on your own after finishing a task.
-argument-hint: '[description of skill/orchestrator, or path to existing one]'
+description: Creates or updates a skill or slash command in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, or update a skill.
+argument-hint: '[skill name or path] [what it should do]'
+allowed-tools: Read Glob Grep Skill Agent AskUserQuestion Write Edit Bash(claude plugin validate *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-skill.mjs *)
 ---
 
-# Build Skill
+# Build skill
 
 Input: $ARGUMENTS
 
+This skill decides, writes, and enforces the rules; `skill-creator` is optional, for evals only.
+
 ## Rules
 
+- Self-contained: follow only the files linked below; never link, read, or copy from another skill's files. `skill-creator` is optional, for evals only.
+- Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
+- Loops: clarify at most 3 rounds; check-score-and-fix at most 3 rounds. Never loop past the cap; report what is left in `Gaps:`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- No hallucination. Verify frontmatter fields/behavior vs official docs (<https://code.claude.com/docs/en/skills>, <https://code.claude.com/docs/en/sub-agents>). Unverified → omit and report.
-- No assumption. Gap/ambiguity → AskUserQuestion: 2–4 options, recommended first w/ "(Recommended)", justification in description. Derivable answer → don't ask.
-- Token-efficient: omit default-valued frontmatter; body in concise prose, each rule with its reason beside it, no filler; details → `references/` (docs), `assets/` (copied content), `scripts/` (executables); runnable commands → `references/commands.md`, referenced by name; workflow steps happy-path, ≤ ~2 lines, conditional branches → `references/<topic>.md`.
-- Loops: clarify (step 3) max 3 rounds; verify-fix (step 8) max 3 attempts; clarify cap hit or a failure before step 8 → print the Output with `Resolution: not run (stopped)`, `Stopped: <step>: <reason>`, and end; a failure in step 8 after findings exist runs step 9 first; verify cap hit → run step 9 on what is left, then print the Output with `Stopped: 8: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/references/fallbacks.md`.
-- Never run `claude plugin eval` (LLM-graded); structural validation only.
-- Final step: follow `${CLAUDE_SKILL_DIR}/references/resolve-findings.md` (scope: edit; sources: reviewer, validator, and auditor findings left after the verify cap, itemized; `Checks:` fail or skipped).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/references/known-issues.md` with slug `build-skill` and store `${CLAUDE_PLUGIN_DATA}/known-issues`, or the target skill when the issue belongs to it.
-- Platform facts:
-  - Subagents never get AskUserQuestion → all user interaction in main-thread skill.
-  - Orchestrator skill and every skill it chains must NOT set `context: fork` (runs as subagent → loses AskUserQuestion, nests spawns). Chain via the Skill tool in the main thread, never the Agent tool.
-  - Subagent fields, tools, and limits: `${CLAUDE_SKILL_DIR}/../build-agent/references/practices.md`.
-  - `disable-model-invocation: true` blocks Skill-tool invocation, so an orchestrator chaining that skill breaks.
+- `validate-plugin` runs once from the plugin root; a failure goes to `Gaps:` with no retry.
+- Never write outside the chosen scope's skill directory; update edits in place and keeps existing sections.
+- Never invent a frontmatter field; use only those in `${CLAUDE_SKILL_DIR}/references/frontmatter.md`.
+- Name a skill by its action, verb-first (`review-code`), never by the actor (`code-reviewer`).
+- One skill, one job. Several jobs found at Extract → ask Split | Pick one | Stop; never build a multi-job skill.
+- `check-skill` is the source of truth for mechanical rules: never hand-check what it covers, never edit a skill only to silence it.
 
 ## Workflow
 
-1. **Extract.** Mode: input names an existing skill path or name → update, read its files (and the agents it spawns); else create. Update with nothing to change → print the Output, `Result: nothing-to-do`. From input (+ those files) pull: goal, trigger phrases, args, steps, tools, side effects, outputs.
-2. **Decide.** Infer first; AskUserQuestion only for what stays ambiguous, recommend w/ justification:
-   - Type: **skill** (linear task, user interaction, small context) | **orchestrator + subagents** (parallelizable steps, large reads/outputs to isolate, distinct tool scopes) | **subagent only** → print the Output with `Result: stopped`, `Stopped: 2: standalone subagent; run /cdk:build-agent <input>` and end.
-   - Location (root): personal `~/.claude/` | project `.claude/` | plugin root.
-   - Model invocation: never ask about it or offer to disable it; omit `disable-model-invocation`, so Claude and orchestrators can invoke the skill. Side-effect skill (writes files, commits, pushes, posts, deploys) → use the side-effect description pattern in `${CLAUDE_SKILL_DIR}/assets/templates.md`, so it never runs unasked. Set `disable-model-invocation: true` only when the user explicitly asks to disable model invocation; skill chained by an orchestrator via the Skill tool → say it breaks that chain and confirm first.
-3. **Clarify loop.** Fill every item from step 1; per subagent also: task, tools, model, return shape, parallel-safe? Missing/ambiguous → AskUserQuestion (≤4 per batch); each batch's first question also offers Stop. Repeat until complete, max 3 rounds. Stop → end, `Result: cancelled`.
-4. **Draft.** Create → `${CLAUDE_SKILL_DIR}/assets/templates.md`; subagent files also follow `${CLAUDE_SKILL_DIR}/../build-agent/references/practices.md`. Update → edit in place; keep existing sections; change only items settled in steps 1–3.
-5. **Plan.** Print the plan (files + one-line purpose each, incl. step 7 files), then write without asking.
-6. **Write** files.
-7. **Maintain.** Location is a plugin root (`.claude-plugin/plugin.json` exists) → in the same change update its `README.md` skills/agents tables, `CLAUDE.md`, and `.claude/rules/` for the added or changed component, per its CLAUDE.md Maintenance rule.
-8. **Verify.**
-   - Self-check: valid YAML; skill `name` kebab-case = dir name; `description` + `when_to_use` ≤1,536 chars; SKILL.md <500 lines; agent `name` unique, kebab-case, no `:`; `tools` names valid.
-   - Plugin root → `validate-plugin`.
-   - Spawn in one message, in parallel: `plugin-dev:skill-reviewer` per skill written (its SKILL.md path); `plugin-dev:plugin-validator` when an agent was written to a plugin location (plugin root, agent paths); `cdk:skill-auditor` with location root (`~/.claude`, `<repo>/.claude`, or plugin root), repo root (for `.claude/rules/`; none for `~/.claude`), and every written path; read its `Rules:` and `Contracts:` (`Rules: none` or no rule matched → warning).
-   - plugin-dev agents unavailable → skip them, note in Output `Checks`.
-   - Merge all findings, deduplicated by file:line; collect agents' `Known issue:` lines. Any error or warning → fix; recurring or blocking → save per Known issues rule; re-verify (max 3 attempts).
-9. **Resolve findings.** Per resolve-findings.md. Edit only files this run wrote (never `resolve-findings.md`, `known-issues.md`, or `fallbacks.md` unless the request targeted them). Itemize the reviewer, validator, and auditor findings left after the step 8 cap (the Output `n findings` counts are only tallies), plus `Checks:` `fail` or `skipped`; each keeps its file:line and severity.
+1. **Extract.** Existing skill named (path or `name`) → update: read it; else create. Pull goal, triggers, arguments, side effects, outputs; more than one job → ask per `${CLAUDE_SKILL_DIR}/references/decide.md` `## One job`. Nothing to change → `Result: nothing-to-do`.
+2. **Scope.** AskUserQuestion: Personal | Project | Plugin, recommended from `${CLAUDE_SKILL_DIR}/references/decide.md` `## Scope`.
+3. **Kind.** AskUserQuestion: Reference | Task | Background-only, recommended from `decide.md` `## Kind`; then only the flags `decide.md` `## Invocation` cannot derive.
+4. **Clarify.** Fill every missing item (name, triggers, arguments, side effects, outputs) per Rules. Stop → `Result: cancelled`.
+5. **Draft.** Write the files per `${CLAUDE_SKILL_DIR}/references/frontmatter.md`, `${CLAUDE_SKILL_DIR}/references/body.md`, and `${CLAUDE_SKILL_DIR}/assets/templates.md`; update edits in place.
+6. **Check and score.** Run `check-skill`, spawn `cdk:skill-scorer` with its JSON, then fix per `${CLAUDE_SKILL_DIR}/references/score.md`.
+7. **Evals.** Only when `skill-creator` is in the session's skill list: AskUserQuestion Skip (Recommended) | Run skill-creator evals | Stop; follow `${CLAUDE_SKILL_DIR}/references/evals.md`. Not listed → `Evals: n/a`.
+8. **Output.** Print the block below, nothing else.
+
+## Files
+
+- For scope, kind, invocation, the name rule, and the one-job rule, see `${CLAUDE_SKILL_DIR}/references/decide.md`.
+- For the optional skill-creator evals step, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For frontmatter fields and description writing, see `${CLAUDE_SKILL_DIR}/references/frontmatter.md`.
+- For body structure, lazy loading, and navigation, see `${CLAUDE_SKILL_DIR}/references/body.md`.
+- For skeletons per kind, see `${CLAUDE_SKILL_DIR}/assets/templates.md`.
+- For running the check, the fix loop, and `Gaps:`, see `${CLAUDE_SKILL_DIR}/references/score.md`.
+- For the scoring criteria, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the mechanical checks, run `${CLAUDE_SKILL_DIR}/scripts/check-skill.mjs`; it is run, never read.
 
 ## Output
 
 ```text
-Type: skill | orchestrator + subagents | subagent only
+Scope: Personal | Project | Plugin
+Kind: Reference | Task | Background-only
 Mode: create | update
-Location: <root>
-Files:
-- <path> — <purpose>
-Invoke: /[<plugin>:]<name> <args>
-Checks: validate --strict <pass | fail | n/a>, skill-reviewer <pass | n findings | skipped — reason>, plugin-validator <pass | n findings | skipped — reason>, skill-auditor <pass | n findings>, rules <files | none>, contracts <ok | n findings | none>
-Known issues: <saved store file | memory file | printed line>, … | none
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Files: <paths>
+Invoke: /<name> | Claude only | user only
+Score: <n>/100 (pass | below 95)
+Checks: check-skill pass | fail; validate-plugin pass | fail | n/a
+Evals: run | skipped | n/a
+Gaps: <rubric deductions left | none>
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

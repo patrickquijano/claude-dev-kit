@@ -3,6 +3,9 @@
 | Name              | Command                                            | Purpose                                           |
 | ----------------- | -------------------------------------------------- | ------------------------------------------------- |
 | `origin-url`      | `git remote get-url origin`                        | Origin URL, picks the host (preloaded in Context) |
+| `inside-tree`     | `git rev-parse --is-inside-work-tree`              | Must print `true`                                 |
+| `toplevel`        | `git rev-parse --show-toplevel`                    | Root                                              |
+| `branch`          | `git rev-parse --abbrev-ref HEAD`                  | Current branch (`HEAD` = detached)                |
 | `git-path`        | `git rev-parse --git-path <name>`                  | Path of a git state file                          |
 | `dirty-paths`     | `git status --porcelain=v1`                        | Uncommitted paths (Dirty)                         |
 | `fetch-head`      | `git fetch <remote> <head>`                        | Fetch the CR head branch                          |
@@ -18,3 +21,5 @@
 | `commit`          | `git commit -S -F <scratch>/msg`                   | Signed commit                                     |
 | `signatures`      | `git log --format='%h %G?' <headSha>..HEAD`        | Signature flag per commit                         |
 | `push`            | `git push <remote> HEAD:<head>`                    | Push to the CR head branch                        |
+
+Host commands (`gh`, `glab`) live in `github.md` and `gitlab.md`.

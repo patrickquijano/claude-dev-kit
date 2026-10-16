@@ -1,6 +1,6 @@
 ---
 name: rebase-onto
-description: Fetch remote branches, rebase the current branch onto the default branch (or one the user names) with signed commits, and resolve each conflict with the user. Use only when the user explicitly asks to rebase, e.g. "rebase onto main", "rebase my branch", "rebase on latest main", "sync my branch with main via rebase". Do not use on your own after finishing a task.
+description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use only when the user explicitly asks to rebase or sync with main via rebase.
 argument-hint: '[optional target branch]'
 allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git config --get *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref *) Bash(git log *) Bash(git show *) Bash(git diff *) Bash(git merge-base *) Bash(git rev-list *) Bash(git cherry *) Bash(glab mr list *) Bash(git rebase --abort) Bash(git rebase --skip) Bash(git -c core.editor=true rebase --continue) Bash(git checkout --ours *) Bash(git checkout --theirs *) Bash(git add *)
 ---
@@ -13,33 +13,35 @@ Input: $ARGUMENTS
 
 - Branch: !`git rev-parse --verify -q HEAD >/dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Rebase current branch only. Never `--no-verify`, `--no-gpg-sign`, `--exec`, `-i`/`--interactive`, `reset --hard`, `push --force`. Only push form allowed for rewritten history: `push-lease`, only when `upstream` = `origin/<current>`, after step 8 confirmation; this is the one exception to the repo never-force-push rule. Never a bare `git push --force-with-lease` (it can follow an upstream like `origin/main`).
-- Rebased commits re-signed: always exactly `rebase`, no other flags. It stays out of `allowed-tools` (a `git rebase -S *` pattern would also match `-i`/`--exec`), so the permission prompt is a second guard.
-- During rebase, `--ours` = `HEAD` = target plus your commits already replayed, `--theirs` = user's commit being replayed (`REBASE_HEAD`).
-- Push never automatic: always ask first. Push commands stay out of `allowed-tools` on purpose (second guard on history rewrite).
-- Every `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` runs only after the AskUserQuestion option that names its effect; empty-commit `skip` (step 6) runs without asking; `git rm` stays out of `allowed-tools`.
-- Conflict analysis: ≥3 conflicted files → one `cdk:conflict-analyzer` per file, spawned in batches of ≤4 in one message; fewer → analyze inline. Agents only propose; every AskUserQuestion and git write stays here.
-- Caps: Revise loop 5 rounds per file; conflict loop runs once per replayed commit (bounded by the commit count). Cap hit → tell user the rebase is still in progress (`rebase-abort` undoes it), run step 9 once on what is left, then print the Output with `Stopped: <step>: <reason>`. Step 5 signing failure, step 7 verify failure, and step 8 push failure do the same. Steps 1–3 stops print `Resolution: not run (stopped)`; Abort rebase prints `not run (cancelled)`; step 4 prints `not run (nothing-to-do)`.
-- AskUserQuestion unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: ask-only; sources: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `rebase-onto` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Rebase the current branch only. Never `--no-verify`, `--no-gpg-sign`, `--exec`, `-i`, `reset --hard`, or `push --force`. The only push form for rewritten history is `push-lease`, only when `upstream` = `origin/<current>`, after the step 7 confirmation; never a bare `git push --force-with-lease`.
+- Rebased commits are re-signed: always exactly `rebase`, no other flags. `rebase` and every push stay out of `allowed-tools` (a `git rebase -S *` pattern would also match `-i` and `--exec`), so the permission prompt is a second guard.
+- During a rebase `--ours` = `HEAD` (target plus your commits already replayed) and `--theirs` = the commit being replayed (`REBASE_HEAD`).
+- `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` run only after the AskUserQuestion option that names the effect; an empty-commit `skip` runs without asking; `git rm` stays out of `allowed-tools`.
+- Push is never automatic: always ask first.
+- Conflict analysis: ≥3 conflicted files → one `cdk:conflict-analyzer` per file, ≤4 per message; fewer → inline. Agents only propose; every question and git write stays here.
+- Caps: Revise loop 5 rounds per file; the conflict loop runs once per replayed commit. Cap hit or any later failure (signing, verify, push) → say the rebase is still in progress (`rebase-abort` undoes it), list the rest in `Open:`, and stop.
+- Unattended (chained, no AskUserQuestion): ask nothing; stop at the first conflict or push decision and report it in `Open:`.
 
 ## Workflow
 
-1. **Pre-flight.** Context → Branch, `status`, `dirty-tracked`, and signing checks; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
-2. **Remote branches.** `fetch`, then list candidates and the default; stop on failure or no candidates. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
-3. **Target.** No ask: named branch, else the default; report `divergence`. Detail: `${CLAUDE_SKILL_DIR}/references/preflight.md`.
-4. **Check.** Behind = 0 → report "already up to date", `Result: nothing-to-do`, stop. `merge-commits` non-empty → keep merges with `--rebase-merges` (preserves history shape), no ask.
-5. **Rebase.** `upstream` = `origin/<current>` → record `upstream-sha` as the pre-rebase sha (step 8 lease). `rebase`. Success → step 7. Fails on signing → stop per conventions.md `## Signing`; tell user the rebase is still in progress (`rebase-abort` undoes it); step 9, then `Stopped:`.
-6. **Conflict loop.** Per conflicted commit: analyze each file, ask the user, resolve, `continue`; repeat until done. Detail: `${CLAUDE_SKILL_DIR}/references/conflicts.md`.
-7. **Verify.** `status` clean, no rebase in progress. `signatures`: every `%G?` = `G`. Fail → report, step 9, then `Stopped:`.
-8. **Push.** Always ask first; `push-lease` only when `upstream` = `origin/<current>`. Detail: `${CLAUDE_SKILL_DIR}/references/push.md`.
-9. **Resolve findings.** Per resolve-findings.md. Never edit code or redo the rebase here (history rewrites already had explicit asks); per item give impact, the recommended follow-up, and the command for the user to run.
+1. **Pre-flight.** Context → Branch, `status`, `dirty-tracked`, and signing checks; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
+2. **Remote branches.** `fetch`, then list candidates and the default; stop on failure or none (`flow.md` `## Remote branches`).
+3. **Target.** The named branch, else the default; report `divergence` (`flow.md` `## Target`).
+4. **Check.** Behind = 0 → `Result: nothing-to-do`. `merge-commits` non-empty → rebase with `--rebase-merges`, no question.
+5. **Rebase.** `upstream` = `origin/<current>` → record `upstream-sha` (the lease). Run `rebase`; success → step 7.
+6. **Conflict loop.** Per conflicted commit: analyze each file, ask, resolve, `continue` (`flow.md` `## Conflict loop`).
+7. **Verify and push.** `status` clean and no rebase in progress; `signatures` all `G`. Ask, then push (`flow.md` `## Push`).
+8. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
+
+## Files
+
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For pre-flight, signing, target selection, the conflict loop, push, and open items, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 
 ## Output
 
@@ -49,7 +51,7 @@ Commits replayed: <count> [signature: G]
 Conflicts: <file — resolution> or none
 Skipped: <commits or none>
 Pushed: <remote>/<current> (force-with-lease | -u) | no
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <item: impact; command to run, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

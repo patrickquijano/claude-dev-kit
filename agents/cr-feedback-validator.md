@@ -1,6 +1,6 @@
 ---
 name: cr-feedback-validator
-description: Run the repository's documented lint, type check, test, and build commands against changed files in check mode and report each result. Never edits files. Spawned by the cdk:address-change-request-review skill; do not use directly.
+description: Use proactively after review fixes to run the repo's documented lint, type check, test, and build commands in check mode. Never edits files.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 color: blue
@@ -27,5 +27,3 @@ Required failing: <required commands | none>
 Not run: <check kinds with no documented command | none>
 Question: <only when input is missing; omit otherwise>
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

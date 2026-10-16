@@ -1,6 +1,6 @@
 ---
 name: setup-permissions
-description: Configure user-scoped Claude Code allow, ask, and deny permission rules for the commands this repository uses and the MCP tools the session lists, merged safely into the user settings file. Use only when the user explicitly asks to set up Claude Code permissions or reduce permission prompts, e.g. "set up my permissions". Do not use on your own after finishing a task.
+description: Configures user-scoped allow, ask, and deny permission rules for the repo's commands and the session's MCP tools. Use only when the user explicitly asks to set up permissions or reduce prompts.
 argument-hint: '[optional extra commands or notes]'
 allowed-tools: Bash(git rev-parse *) Bash(printenv CLAUDE_CONFIG_DIR) Bash(printenv OS) Bash(uname) Bash(jq empty *) Bash(claude mcp list)
 ---
@@ -13,41 +13,41 @@ Input: $ARGUMENTS
 
 - Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Policy, syntax, baseline lists, and MCP rules: `${CLAUDE_SKILL_DIR}/references/catalog.md`. Follow it; never copy its rules here.
-- Target only the user settings file: `$CLAUDE_CONFIG_DIR/settings.json` when set, else `~/.claude/settings.json` (`%USERPROFILE%\.claude\settings.json` on Windows). Never `settings.local.json` (read only in the home directory) and never project or managed files.
-- Never remove, reorder, or rewrite an existing key or rule. Append only new rules to `permissions.allow`, `permissions.ask`, `permissions.deny`.
-- Never write a wildcard-only or tool-wide rule (`Bash`, `Bash(*)`, `Bash(* x)`, a server-wide `mcp__<server>` or `mcp__<server>__*`). Each MCP tool gets one exact rule. Every Bash command (except the single rules in `catalog.md` Syntax) gets both its exact rule and its wildcard rule (`Bash(npm)` and `Bash(npm *)`), because auto mode may not recognize wildcard-only coverage.
-- Narrowest safe pattern: never allow shells, interpreters, command chaining, arbitrary scripts, runners of arbitrary code, or privilege escalation. A command that cannot be classified safely → ask.
-- Git-recoverable damage (`rm`, `git reset --hard`, `git clean`) → ask, never deny. Deny only host-harming and privileged commands, anchored at the program name, so no deny blocks a legitimate dev command; deny beats allow everywhere.
-- Settings file with comments, invalid JSON, or a non-object `permissions` → stop; never overwrite it.
-- User interaction (AskUserQuestion) only here; `cdk:permission-analyzer` cannot ask, so its `Questions:` are asked here. Batch conflicts into calls of at most 4 questions, 2–4 options each; recommended first with its reason.
-- Caps: step 2 re-spawns the analyzer at most once; step 6 validate-fix at most 3 attempts. Every question is asked once.
+- Policy, syntax, baseline lists, and MCP rules live in `${CLAUDE_SKILL_DIR}/references/catalog.md`; follow it, never copy it here.
+- Target only the user settings file: `$CLAUDE_CONFIG_DIR/settings.json` when set, else `~/.claude/settings.json`. Never `settings.local.json`, project, or managed files.
+- Never remove, reorder, or rewrite an existing key or rule; append new rules to `permissions.allow`, `permissions.ask`, `permissions.deny` only.
+- Never write a wildcard-only or tool-wide rule (`Bash`, `Bash(*)`, `Bash(* x)`, `mcp__<server>`, `mcp__<server>__*`). Each MCP tool gets one exact rule; every Bash command gets its exact and wildcard pair (`Bash(npm)`, `Bash(npm *)`) except the single rules in `catalog.md` Syntax.
+- Narrowest safe pattern: never allow shells, interpreters, chaining, arbitrary scripts, code runners, or privilege escalation; an unclassifiable command goes to ask.
+- Git-recoverable damage (`rm`, `git reset --hard`, `git clean`) goes to ask, never deny. Deny only host-harming and privileged commands, anchored at the program name.
+- Settings file with comments, invalid JSON, or a non-object `permissions` = stop; never overwrite it.
+- Ask only here (`cdk:permission-analyzer` cannot): batches of at most 4 questions, 2-4 options each, recommended first with its reason. AskUserQuestion unavailable = ask in plain chat; unattended = take the recommendation.
+- Caps: re-spawn the analyzer at most once; validate-fix at most 3 attempts; fix loop at most 2 rounds. Every question is asked once.
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
-- A Stop answer (step 7) → `Result: cancelled`, `Resolution: not run (cancelled)`, `Stopped: <step>: <reason>`, end. Any other stop or failure after candidates exist (the step 5 invalid-settings stop; the step 6 validate-cap stop) → run step 9 once on what is left, without re-entering step 6, then print the Output with `Stopped: <step>: <reason>` and end.
-- AskUserQuestion or Write unavailable: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/fallbacks.md`.
-- Final step: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/resolve-findings.md` (scope: edit; sources: `Validation: fail`, `Conflicting:`, `Skipped:`, `Reclassified:`, analyzer `Gaps:`).
-- Known issues: follow `${CLAUDE_SKILL_DIR}/../build-skill/references/known-issues.md` with slug `setup-permissions` and store `${CLAUDE_PLUGIN_DATA}/known-issues`.
+- Stop answer at Confirm = `Result: cancelled`. Any other stop after candidates exist: run the fix loop once (no new Validate round), then print the Output with `Stopped:` set.
+- Write unavailable: print the validated JSON and the target path, `Result: stopped`.
 
 ## Workflow
 
-1. **Pre-flight.** Repo root = Context → Repo root, `<none>` → cwd. Platform = Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` → macOS, `Linux` → Linux). Settings dir = `config-dir` when it prints a path (a failed command means unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Note that managed settings, if any, still outrank it.
-2. **Analyze.** Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS`. Ask its `Questions:`, then re-spawn once with the answers appended to the prompt as extra notes. `Known issue:` lines → known-issues rule.
-3. **MCP inventory.** Never from the analyzer or from memory. Servers = `mcp-list` (a failed command → none known). Tools = every `mcp__<server>__<tool>` name in this session's own tool list, including deferred tools listed by name, copied exactly. A listed server with no listed tool (failed, pending approval, needs authentication) → `Skipped: <server> — unavailable`; never guess its tools. Servers or tools that are not listed are not classified.
-4. **Classify.** Apply `catalog.md` to the analyzer's commands plus the baseline for the platform, and its `## MCP` section to each listed MCP tool. Use `Package managers` to scope the read-only package-manager allows, `Installed` to skip programs that are missing, and `Gaps` as `skipped` notes. Produce candidate rules per list, each with its reason: `Bash`/`PowerShell` commands as exact + wildcard pairs, each MCP tool as one exact rule. `Destructive`, `Interpreter/exec`, and `Privileged` entries, and anything unclassifiable → ask or deny per the catalog. Record `reclassified` = a command that looks allowable but the catalog moved to ask or deny, with the reason.
-5. **Merge.** Read the target (missing → `{}`; see Rules for invalid). Compare candidates with existing `permissions.allow|ask|deny`: duplicates are `retained`, cross-list duplicates and covered rules `conflicting`, unsafe existing allows and blocking denies ask. Append new rules, add `$schema` only when absent. Detail: `${CLAUDE_SKILL_DIR}/references/merge.md`.
-6. **Validate.** Write the merged JSON to the scratchpad and run `validate-json`, then the shape checks. Detail: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+1. **Pre-flight.** Repo root from Context (`<none>` = cwd); platform, settings dir, and target per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
+2. **Analyze.** Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS`; ask its `Questions:`, re-spawn once (`## Analyze`).
+3. **MCP inventory.** Servers via `mcp-list`, tools from this session's own list only (`## MCP inventory`).
+4. **Classify.** Apply `catalog.md` to commands, baseline, and MCP tools into candidate rules (`## Classify`).
+5. **Merge.** Compare with the existing lists, append new rules, ask on unsafe or blocking existing ones (`## Merge`).
+6. **Validate.** Write to the scratchpad, run `validate-json`, check shapes; fail = fix, cap in Rules (`## Validate`).
+7. **Confirm.** Print the target and a table (added, retained, skipped, conflicting, reclassified). AskUserQuestion: Write settings (Recommended) | Stop. Nothing added = `Result: nothing-to-do`, skip to step 9.
+8. **Write.** Write the file, re-read it, repeat the checks (`## Write`).
+9. **Report.** Run the fix loop on leftovers (`## Fix loop`), print the Output, and note that `claude doctor` lists rejected rules and `/permissions` shows the active ones.
 
-   Fail → fix and re-check (cap in Rules); still failing → run step 9 on the failed checks without re-entering this step (nothing was written, so step 9 edits nothing), then print the Output with `Stopped: 6: <reason>` and end.
+## Files
 
-7. **Confirm.** Print the target path and a table: added allow, ask, deny; retained; skipped; conflicting; reclassified. AskUserQuestion: Write settings (Recommended) | Stop. Nothing added → skip this and step 8, `Result: nothing-to-do`, and run step 9 on `Skipped:`, `Conflicting:`, `Reclassified:` items (else `Resolution: not run (nothing-to-do)`).
-8. **Write.** Write the validated JSON to the target, creating the directory if missing. The write touches a protected path, so Claude Code prompts. Re-read the file and repeat the step 6 checks on it; a failure → run step 9 on the failed checks, then print the Output with `Stopped: 8: <reason>` and end.
-9. **Resolve findings.** Per resolve-findings.md. Fix only rules this run added, then re-run the step 6 validation after any edit; never remove, reorder, or rewrite an existing rule. Entries the user already decided in a question are `accepted`.
-10. **Report** the output below (`Settings: unchanged` when nothing was written), plus: `claude doctor` lists any rule Claude Code rejected, and `/permissions` shows the active rules.
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the step details (pre-flight, analyze, MCP, classify, merge, validate, write, fix loop), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For rule syntax, the allow, ask, never-allow, and deny lists, and MCP classification, see `${CLAUDE_SKILL_DIR}/references/catalog.md`.
 
 ## Output
 
@@ -56,15 +56,15 @@ Settings: <path> (<created | updated | unchanged>)
 Platform: <macOS | Linux | Windows>
 MCP: <n servers, n tools classified> | none
 Added: allow <n>, ask <n>, deny <n>
-Allow: <rule>, … | none
-Ask: <rule>, … | none
-Deny: <rule>, … | none
-Retained: <n> (<rule>, …) | none
-Skipped: <rule — reason>, … | none
-Conflicting: <rule — resolution>, … | none
-Reclassified: <command: from → to — reason>, … | none
+Allow: <rule>, ... | none
+Ask: <rule>, ... | none
+Deny: <rule>, ... | none
+Retained: <n> (<rule>, ...) | none
+Skipped: <rule - reason>, ... | none
+Conflicting: <rule - resolution>, ... | none
+Reclassified: <command: from -> to - reason>, ... | none
 Validation: pass | fail: <reason>
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Open: <item: impact; recommended fix>, ... | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

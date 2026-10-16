@@ -1,10 +1,10 @@
 # GitLab conventions
 
-Host section of `cdk:prepare-change-request`, `cdk:review-change-request`, and `cdk:address-change-request-review` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. A change request here is a merge request.
+Host section for `cdk:prepare-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. A change request here is a merge request.
 
 ## Pre-flight
 
-Run in order; the linking skill names which values it keeps.
+Run in order; keep Repo or Project, Root, Branch, Self, Scratch.
 
 1. `git rev-parse --is-inside-work-tree` = `true`; Root = `git rev-parse --show-toplevel`.
 2. Branch = `git rev-parse --abbrev-ref HEAD`; `HEAD` (detached) → stop.
@@ -33,7 +33,7 @@ Every ref is on `origin`, which is the project `glab` targets.
 First hit wins; search names case-insensitively.
 
 1. `--template <v>`: a repo `.gitlab/merge_request_templates/<v>.md` (`git ls-files`), else a template of that name from `glab api projects/:id/templates/merge_requests` (`[{key,name}]`, includes group/instance), else an existing file path outside the repo tree. Not found → stop (never fall back silently).
-2. Inferred kind (the SKILL.md template step) among the repo `.gitlab/merge_request_templates/*.md`, then among the `glab api projects/:id/templates/merge_requests` names.
+2. Inferred kind (`flow.md` `## Template`) among the repo `.gitlab/merge_request_templates/*.md`, then among the `glab api projects/:id/templates/merge_requests` names.
 3. Repository default: the repo or API template named `Default`, else the only one available.
 4. Bundled `${CLAUDE_SKILL_DIR}/assets/templates/<Kind>.md` (`Default` when no kind matches).
 
@@ -42,7 +42,7 @@ Content of an API template: `glab api projects/:id/templates/merge_requests/<key
 ## Managed section
 
 - Markers: `<!-- prepare-change-request:start -->` and `<!-- prepare-change-request:end -->`, each on its own line. An MR description written by the earlier `prepare-merge-request` skill has none; the block is appended.
-- The orchestrator writes review results only between them: summary, per-role status and counts, commands with exit codes, medium and low findings, limitations.
+- This skill writes review results only between them: summary, per-role status and counts, commands with exit codes, medium and low findings, limitations.
 - Update: replace the text between the markers; no markers → append the block after one blank line. Everything outside the markers stays byte-identical (read `description` from the full MR JSON, not from memory).
 - Exactly one start and one end marker, in order; anything else → stop, ask the user to repair the description.
 - Quick actions (`/assign`, `/label`, …) never appear in the body; later steps set those fields explicitly.

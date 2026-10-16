@@ -17,13 +17,41 @@ const base = (over = {}) => ({
 });
 const event = (file) => ({ tool_input: { file_path: file } });
 
-test('formatLint: reports every step as passed for a clean markdown file', () => {
+// Each read returns new content, as if a step rewrote the file.
+const changing = () => {
+  let n = 0;
+  return () => `v${n++}`;
+};
+
+test('formatLint: reports each step that changed the file', () => {
+  // Arrange
+  const deps = base({ readFile: changing() });
+  // Act
+  const result = formatLint(event('/p/docs/a.md'), deps);
+  // Assert
+  assert.deepEqual(result, { systemMessage: '✅ Format: docs/a.md | ✅ Lint: docs/a.md' });
+});
+
+test('formatLint: reports only the step that changed the file', () => {
+  // Arrange
+  let content = 'a';
+  const deps = base({
+    readFile: () => content,
+    run: (cmd, argv) => (argv.includes('prettier') ? ((content = 'b'), ok) : ok)
+  });
+  // Act
+  const result = formatLint(event('/p/docs/a.md'), deps);
+  // Assert
+  assert.deepEqual(result, { systemMessage: '✅ Format: docs/a.md' });
+});
+
+test('formatLint: stays silent when every step passes without changing the file', () => {
   // Arrange
   const deps = base();
   // Act
   const result = formatLint(event('/p/docs/a.md'), deps);
   // Assert
-  assert.deepEqual(result, { systemMessage: '✅ Format: docs/a.md | ✅ Lint: docs/a.md' });
+  assert.equal(result, null);
 });
 
 test('formatLint: runs the formatter through npx with the relative target', () => {

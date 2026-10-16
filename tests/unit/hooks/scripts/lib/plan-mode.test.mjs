@@ -172,7 +172,7 @@ test('output: asks Claude to weigh the context and recommend an option', () => {
   const out = output(decision);
   // Assert
   const ctx = out.hookSpecificOutput.additionalContext;
-  assert.equal(out.systemMessage, 'Plan mode: asking (context)');
+  assert.equal(out.systemMessage, undefined);
   assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
   assert.match(ctx, /AskUserQuestion/);
   assert.match(ctx, /weigh this prompt against everything in your context/);
@@ -189,7 +189,7 @@ test('output: #plan recommends entering without weighing', () => {
   const out = output(decision);
   // Assert
   const ctx = out.hookSpecificOutput.additionalContext;
-  assert.equal(out.systemMessage, 'Plan mode: asking (override #plan)');
+  assert.equal(out.systemMessage, undefined);
   assert.match(ctx, /"Enter plan mode \(Recommended\)" first/);
   assert.doesNotMatch(ctx, /Lean Continue/);
 });
@@ -209,7 +209,7 @@ test('output: asks Claude to call ExitPlanMode on exit', () => {
   // Act
   const out = output(decision);
   // Assert
-  assert.match(out.systemMessage, /^Plan mode: exiting/);
+  assert.equal(out.systemMessage, undefined);
   assert.match(out.hookSpecificOutput.additionalContext, /ExitPlanMode/);
   assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /plan file/);
 });

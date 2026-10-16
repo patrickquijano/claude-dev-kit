@@ -9,4 +9,5 @@
 | `range-name-status` | `git diff --name-status <mb>..HEAD`                  | Changed files                          |
 | `range-log`         | `git log --format='%h %s' <mb>..HEAD`                | Commit subjects                        |
 | `unpushed-count`    | `git rev-list --count @{u}..HEAD`                    | Commits not yet pushed                 |
+| `dirty-check`       | `git status --porcelain=v1 --untracked-files=all`    | Clean-tree check before remediation    |
 | `commitlint`        | `npx --no-install commitlint --edit <scratch>/title` | Lint the CR title                      |

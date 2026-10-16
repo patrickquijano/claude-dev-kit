@@ -1,6 +1,6 @@
 ---
 name: permission-analyzer
-description: Inventory the commands a repository runs (package managers, scripts, linters, formatters, builds, tests, dev servers, codegen, containers, CI, DevOps CLIs, destructive scripts) for Claude Code permission rules. Read-only. Spawned by the cdk:setup-permissions skill; do not use directly.
+description: Use proactively to inventory the commands a repo runs (scripts, builds, tests, linters, containers, CI, destructive scripts) for permission rules. Read-only.
 tools: Read, Glob, Grep, Bash
 model: haiku
 color: cyan
@@ -33,5 +33,3 @@ Installed: <program: path | missing>, …
 Questions: <question — options>, … | none
 Gaps: <fact not derivable — why>, … | none
 ```
-
-Issue hit + fix → add line `Known issue: <symptom> → <fix>`; parent decides whether to save it to the known-issues store.

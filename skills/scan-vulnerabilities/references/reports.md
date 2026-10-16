@@ -2,6 +2,17 @@
 
 Shared by `cdk:scan-vulnerabilities` and `cdk:security-scanner`. `<ts>` = run start, `date -u +%Y%m%dT%H%M%SZ`.
 
+## Contents
+
+- Layout
+- Redaction
+- Normalized finding
+- Severity mapping
+- Priority
+- scans.json and manifest.json
+- remediation-log.md
+- summary.md
+
 ## Layout
 
 ```text

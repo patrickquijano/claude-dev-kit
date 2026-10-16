@@ -1,6 +1,17 @@
 # GitLab feedback commands
 
-Host section of `cdk:address-change-request-review` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Pre-flight and API rules: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/gitlab.md` (`## Pre-flight`, `## API rules`). Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+Host section of `cdk:address-change-request-review` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. Item and state rules: `${CLAUDE_SKILL_DIR}/references/state.md`. A change request is a merge request; `<iid>` is its number. "Re-fetch" means `glab api -X GET projects/:id/merge_requests/<iid>`.
+
+## Pre-flight
+
+Run in order; any failure → report the exact error line and stop.
+
+1. `inside-tree` prints `true`; Root = `toplevel`; Branch = `branch` (`HEAD` = detached → stop).
+2. `glab auth status` fails → stop, tell the user to run `glab auth login`.
+3. `glab api projects/:id` fails (origin is not a GitLab project) → stop. Keep the response as Project (`id`, `path_with_namespace`, `default_branch`).
+4. Self = `glab api user` (`id`, `username`).
+5. Scratch = `mktemp -d`.
+6. `dirty-paths` non-empty → Dirty (see `flow.md`).
 
 MR API reads, other reads (`glab api projects/<source_project_id>`), and every write stay permission-prompted. Model text goes through scratch files and `--input <file>`.
 

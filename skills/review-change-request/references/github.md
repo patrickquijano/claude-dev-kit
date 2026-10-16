@@ -1,14 +1,21 @@
 # GitHub review conventions
 
-Host section of `cdk:review-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Pre-flight: `${CLAUDE_SKILL_DIR}/../prepare-change-request/references/github.md` `## Pre-flight`. Host-neutral rules: `review.md`. A change request is a pull request; `<n>` is its number.
+Host section of `cdk:review-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. Host-neutral rules: `flow.md`. A change request is a pull request; `<n>` is its number.
 
-## Review pre-flight
+## Contents
 
-Skip the shared detached-HEAD stop (a remote PR needs no branch; `HEAD` just means no branch match).
+- Pre-flight · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
 
-- `gh repo view --json viewerPermission`: error → stop; keep the value (`NONE`, `READ`, `TRIAGE`, `WRITE`, `MAINTAIN`, `ADMIN`) for `## Merge`.
-- `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge`; keep them for `## Merge`.
-- A `403`, or a `422` that is not a comment-position error, at publish stops there with its exact error (GitHub's docs do not say which permission each review event needs).
+## Pre-flight
+
+Run in order; any failure → report the exact error line and stop. A detached `HEAD` is fine (a remote PR needs no branch; it only means no branch match).
+
+1. `inside-tree` = `true`; Root = `root`; Branch = `branch`; `remotes` lists one.
+2. `gh auth status` succeeds, else tell the user to run `gh auth login`.
+3. `gh repo view --json nameWithOwner,url,sshUrl` → Repo (fails → stop). Self = `gh api user --jq .login`. Scratch = `scratch`.
+4. `gh repo view --json viewerPermission`: error → stop; keep the value (`NONE`, `READ`, `TRIAGE`, `WRITE`, `MAINTAIN`, `ADMIN`) for `## Merge`.
+5. `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge`; keep them for `## Merge`.
+6. A `403`, or a `422` that is not a comment-position error, at publish stops there with its exact error (GitHub's docs do not say which permission each review event needs).
 
 ## Select
 
@@ -57,10 +64,10 @@ Approval is the `APPROVE` review event, set only when A1–A7 pass, the user pic
 
 ## Merge
 
-- `--yes` never uses the admin case; every other rule below stays. Offered at step 9 only when every item holds: the `review.md` `## Verdict` merge items; `mergeStateStatus` is `CLEAN` or `HAS_HOOKS`, or, on another author's PR, `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (this skill's `APPROVE` may satisfy it; step 12 re-checks). Admin case: the author is Self, `viewerPermission` is `ADMIN`, and `mergeStateStatus` is `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (Self cannot approve its own PR) → offered as an _admin_ merge (`ADMIN` is necessary, not sufficient: protection that includes administrators still refuses it, and the error path reports that); with any other `viewerPermission`, not offered, blocker `required review; --admin needs ADMIN (have <perm>)`. `UNKNOWN` → re-fetch up to 3 times, then not offered.
+- `--yes` never uses the admin case; every other rule below stays. Offered at step 9 only when every item holds: the `flow.md` `## Verdict` merge items; `mergeStateStatus` is `CLEAN` or `HAS_HOOKS`, or, on another author's PR, `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (this skill's `APPROVE` may satisfy it; step 12 re-checks). Admin case: the author is Self, `viewerPermission` is `ADMIN`, and `mergeStateStatus` is `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (Self cannot approve its own PR) → offered as an _admin_ merge (`ADMIN` is necessary, not sufficient: protection that includes administrators still refuses it, and the error path reports that); with any other `viewerPermission`, not offered, blocker `required review; --admin needs ADMIN (have <perm>)`. `UNKNOWN` → re-fetch up to 3 times, then not offered.
 - Step 12 gate: another author's PR → the `APPROVE` review is posted and verified, else `Merged: no (approval not posted)`; then the re-fetch below must show `CLEAN` or `HAS_HOOKS`; an _admin_ merge may instead still show `BLOCKED` with `REVIEW_REQUIRED` (and drops `--admin` when it shows `CLEAN` or `HAS_HOOKS`).
-- Options: from `## Review pre-flight`. Squash yes → `--squash`; no → `--merge`. One of those two allowed → use it, skip the Squash question, note it. Neither allowed → not offered (name `--rebase` as unsupported when `rebaseMergeAllowed`). Delete source branch skipped for fork PRs (`isCrossRepository`), whose branch the base repo cannot delete. Question defaults: Delete recommended = `deleteBranchOnMerge`; the question text warns that gh also deletes the local branch and switches off it when it is checked out. Admin merge label: `Merge PR #<n> now (--admin, bypasses required review)`.
-- Run: re-fetch `gh pr view <n> --json headRefOid,state,mergeStateStatus` and `gh pr checks <n> --json bucket`; head changed → "new commits pushed", stop; not `OPEN`, not `CLEAN`/`HAS_HOOKS` (an _admin_ merge also accepts `BLOCKED` with `REVIEW_REQUIRED`), or any check `fail` (an _admin_ merge also stops on `pending`; every bucket must be `pass` or `skipping`); `UNKNOWN` → re-fetch up to 3 times → report the field, stop. Then `gh pr merge <n> --squash|--merge [--delete-branch] [--admin] --match-head-commit <headRefOid>`. Pass `--admin` only for an _admin_ merge that still needs it; never pass `--auto`; `gh pr merge --help` says it enables auto-merge or the merge queue when required checks have not passed, which the gate avoids. With `--delete-branch`, gh deletes the local branch too and may switch off it; add `local branch deleted` to `Merged:` when the branch was checked out.
+- Options: from `## Pre-flight`. Squash yes → `--squash`; no → `--merge`. One of those two allowed → use it, skip the Squash question, note it. Neither allowed → not offered (name `--rebase` as unsupported when `rebaseMergeAllowed`). Delete source branch skipped for fork PRs (`isCrossRepository`), whose branch the base repo cannot delete. Question defaults: Delete recommended = `deleteBranchOnMerge`; the question text warns that gh also deletes the local branch and switches off it when it is checked out. Admin merge label: `Merge PR #<n> now (--admin, bypasses required review)`.
+- Run: re-fetch `gh pr view <n> --json headRefOid,state,mergeStateStatus` and `gh pr checks <n> --json bucket`; head changed → "new commits pushed", stop; not `OPEN`, not `CLEAN`/`HAS_HOOKS` (an _admin_ merge also accepts `BLOCKED` with `REVIEW_REQUIRED`), or any check `fail` (an _admin_ merge also stops on `pending`; every bucket must be `pass` or `skipping`); `UNKNOWN` → re-fetch up to 3 times → report the field, stop. Then `gh pr merge <n> --squash|--merge [--delete-branch] [--admin] --match-head-commit <headRefOid>`; for a squash add `--subject "<PR title> (#<n>)" --body ""`, so the commit keeps a header of at most 72 characters and an empty body (GitHub's default lists every commit subject, which breaks commitlint). Pass `--admin` only for an _admin_ merge that still needs it; never pass `--auto`; `gh pr merge --help` says it enables auto-merge or the merge queue when required checks have not passed, which the gate avoids. With `--delete-branch`, gh deletes the local branch too and may switch off it; add `local branch deleted` to `Merged:` when the branch was checked out.
 - Error → report the exact error line; any posted review stays; stop. Verify: `gh pr view <n> --json state,mergeCommit` shows `MERGED` with a `mergeCommit`; else report the field.
 
 ## API rules

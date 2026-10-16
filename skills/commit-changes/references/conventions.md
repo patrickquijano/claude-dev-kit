@@ -1,13 +1,12 @@
 # Git conventions
 
-Shared by `cdk:commit-changes`, `cdk:switch-branch`, `cdk:prepare-change-request`, `cdk:rebase-onto`, `cdk:address-change-request-review`, and `cdk:ship-release`. A repo commitlint config wins over these rules.
+A repo commitlint config wins over these rules.
 
 ## Commit subject
 
 - Format: `<type>(<optional scope>): <subject>`. Max 72 chars. Imperative ("add", not "added"). Lowercase subject, no trailing period.
 - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert.
 - Subject line only: no body, no footer, no attribution (`Co-Authored-By`, "Generated with").
-- MR titles follow the same rules.
 
 ## Branch name
 
