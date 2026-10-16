@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
 const SCRIPT = resolve('skills/build-agent/scripts/check-agent.mjs');
 const run = (...args) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8', timeout: 30_000 });
+const runLink = (root, ...args) =>
+  spawnSync('node', [join(root, 'link.mjs'), ...args], { encoding: 'utf8', timeout: 30_000 });
 const BODY = 'Read-only reviewer.\n\n## Task\n\n1. Read the inputs.\n\n## Return\n\n```text\nScore: 1\n```\n';
 
 describe('check-agent CLI', () => {
@@ -67,5 +69,38 @@ describe('check-agent CLI', () => {
     // Assert
     assert.equal(result.status, 2);
     assert.match(result.stderr, /not found/);
+  });
+});
+
+describe('check CLI through a symlink', () => {
+  let root;
+  before(() => {
+    root = mkdtempSync(join(tmpdir(), 'check-link-'));
+    symlinkSync(SCRIPT, join(root, 'link.mjs'));
+    writeFileSync(
+      join(root, 'linked.md'),
+      `---\nname: linked\ndescription: Use proactively to review.\ntools: Read\n---\n\n${BODY}`
+    );
+  });
+  after(() => rmSync(root, { recursive: true, force: true }));
+
+  test('runs and reports ok for a valid file when started via a symlink', () => {
+    // Arrange
+    const file = join(root, 'linked.md');
+    // Act
+    const result = runLink(root, file, '--scope', 'plugin');
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(JSON.parse(result.stdout).ok, true);
+  });
+
+  test('exits 2 with a usage error when started via a symlink without a path', () => {
+    // Arrange
+    const args = [];
+    // Act
+    const result = runLink(root, ...args);
+    // Assert
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /usage/);
   });
 });

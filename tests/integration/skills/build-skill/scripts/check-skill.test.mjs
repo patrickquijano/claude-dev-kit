@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
 const SCRIPT = resolve('skills/build-skill/scripts/check-skill.mjs');
 const run = (...args) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8', timeout: 30_000 });
+
+const runLink = (root, ...args) =>
+  spawnSync('node', [join(root, 'link.mjs'), ...args], { encoding: 'utf8', timeout: 30_000 });
 
 describe('check-skill CLI', () => {
   let root;
@@ -107,5 +110,41 @@ describe('check-skill CLI', () => {
     const result = run(dir, '--kind', 'task');
     // Assert
     assert.equal(result.status, 0, result.stdout);
+  });
+});
+
+describe('check CLI through a symlink', () => {
+  let root;
+  before(() => {
+    root = mkdtempSync(join(tmpdir(), 'check-link-'));
+    symlinkSync(SCRIPT, join(root, 'link.mjs'));
+    mkdirSync(join(root, 'linked'));
+    writeFileSync(
+      join(root, 'linked', 'SKILL.md'),
+      '---\nname: linked\ndescription: Reviews code. Use when asked.\n---\n\n# Review\n\n## Files\n\n- For rules, see `${CLAUDE_SKILL_DIR}/references/rules.md`.\n\n## Output\n\n```text\nResult: done\n```\n'
+    );
+    mkdirSync(join(root, 'linked', 'references'));
+    writeFileSync(join(root, 'linked', 'references', 'rules.md'), '# Rules\n');
+  });
+  after(() => rmSync(root, { recursive: true, force: true }));
+
+  test('runs and reports ok for a valid file when started via a symlink', () => {
+    // Arrange
+    const file = join(root, 'linked');
+    // Act
+    const result = runLink(root, file);
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(JSON.parse(result.stdout).ok, true);
+  });
+
+  test('exits 2 with a usage error when started via a symlink without a path', () => {
+    // Arrange
+    const args = [];
+    // Act
+    const result = runLink(root, ...args);
+    // Assert
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /usage/);
   });
 });

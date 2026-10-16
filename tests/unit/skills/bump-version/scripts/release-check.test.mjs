@@ -657,6 +657,30 @@ describe('pre-1.0 rule and versionReset', () => {
     assert.ok(!r.notes.some((n) => n.startsWith('reset ')));
   });
 
+  test('ignores a reset in a higher major than the base', () => {
+    // Arrange
+    const { deps } = at('0.1.0', '0.1.1', {
+      policy: { ...POLICY, versionReset: { version: '1.0.0', reason: 'ahead' } }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.1');
+    assert.ok(!r.notes.some((n) => n.startsWith('reset ')));
+  });
+
+  test('applies a reset to a lower major while the base is above 0.x', () => {
+    // Arrange
+    const { deps } = at('2.0.0', '2.0.0', {
+      policy: { ...POLICY, versionReset: { version: '1.0.0', reason: 'back to 1' } }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '1.0.0');
+    assert.ok(r.notes.includes('reset 2.0.0 -> 1.0.0: back to 1'));
+  });
+
   test('stops applying a reset once the base is in the reset major', () => {
     // Arrange
     const { deps } = at('0.1.1', '0.1.2', {
