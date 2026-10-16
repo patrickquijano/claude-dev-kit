@@ -12,7 +12,7 @@
 
 ## Check
 
-Run `check` from the root. JSON `skipped` with note `no release policy` → `Stopped: 1: no release policy`; never create a policy. A failure with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → `Blocked:` with its fix, `Stopped: 2: <code>: <fix>`. Read `level`, `required`, `base`, `target`, `drivers`, and `failures`. `required` follows the 0.x rule (breaking bumps minor, anything else patch, while major is 0) and a policy `versionReset` below the base; a `reset` note says so. `skipped` (no release-relevant changes) or no `version-*` failure → the version is fine.
+Run `check` from the root. JSON `skipped` with note `no release policy` → `Stopped: 1: no release policy`; never create a policy. A failure with `no-remote`, `fetch-failed`, `no-merge-base`, or `unsafe-state` → `Blocked:` with its fix, `Stopped: 2: <code>: <fix>`. Read `level`, `required`, `base`, `target`, `drivers`, and `failures`. `required` follows the 0.x rule (breaking bumps minor, anything else patch, while major is 0) and a policy `versionReset` in a lower major than the base; a `reset` note says so. `skipped` (no release-relevant changes) or no `version-*` failure → the version is fine.
 
 ## Confirm
 

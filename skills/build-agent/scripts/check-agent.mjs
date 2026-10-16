@@ -1,6 +1,6 @@
 // Mechanical checks for one subagent file (frontmatter, body structure, scope-ignored fields); prints JSON.
 // Self-contained on purpose: plugin installs have no node_modules, and no skill may import another skill's files.
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -273,7 +273,7 @@ export function main(argv, deps = defaults) {
   return result.ok ? 0 : 1;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     process.exitCode = main(process.argv.slice(2));
   } catch (err) {

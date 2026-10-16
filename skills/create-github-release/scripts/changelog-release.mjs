@@ -1,9 +1,8 @@
 // Release plan for cdk:create-github-release: the latest released section of a Keep a Changelog file, its tag, and its notes.
 // Writes only the `--notes-out` file. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 const git = (cwd, args) => spawnSync('git', args, { cwd, maxBuffer: 1 << 28, timeout: 15_000, windowsHide: true });

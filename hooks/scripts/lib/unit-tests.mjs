@@ -43,7 +43,8 @@ export function unitTestCommand(cwd, deps = realDeps) {
   if (scripts) {
     const pm = packageManager(cwd, deps);
     if (typeof scripts['test:unit'] === 'string') return `${pm} run test:unit`;
-    if (typeof scripts.test === 'string' && !NPM_STUB.test(scripts.test)) return `${pm} test`;
+    if (typeof scripts.test === 'string' && !NPM_STUB.test(scripts.test))
+      return pm === 'bun' ? 'bun run test' : `${pm} test`;
   }
   if (pytestConfigured(cwd, deps)) return 'pytest';
   const has = (f) => deps.existsSync(path.join(cwd, f));

@@ -288,9 +288,9 @@ export function evaluate(cwd, { target, ci = false, prePush = false, pendingSubj
   });
   const baseRaw = policy.versionFiles.map((v) => readKey(show(d, cwd, ref, v.path) ?? '', v.key));
   const baseV = baseRaw.map(parseVer).find(Boolean) ?? null;
-  // A policy `versionReset` below the base replaces the computed level until it merges and becomes the base.
+  // A policy `versionReset` in a lower major than the base replaces the computed level; once the reset merges the majors match and it stops applying.
   const reset = parseVer(policy.versionReset?.version);
-  const resetting = baseV && reset && cmpVer(reset, baseV) < 0;
+  const resetting = baseV && reset && reset[0] < baseV[0];
   if (resetting) notes.push(`reset ${fmt(baseV)} -> ${fmt(reset)}: ${policy.versionReset.reason ?? 'no reason given'}`);
   const required = resetting ? reset : baseV ? bumpVer(baseV, level) : null;
   const headVs = heads.map((h) => parseVer(h.head));

@@ -1,6 +1,6 @@
 // Mechanical checks for one skill directory (frontmatter, size, layout, links, standalone, injection, Output); prints JSON.
 // Self-contained on purpose: plugin installs have no node_modules, and no skill may link another skill's files.
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, join, posix, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -395,7 +395,7 @@ export function main(argv, deps = defaults) {
   return result.ok ? 0 : 1;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     process.exitCode = main(process.argv.slice(2));
   } catch (err) {

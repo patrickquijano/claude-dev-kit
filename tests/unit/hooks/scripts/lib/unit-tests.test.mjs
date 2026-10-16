@@ -41,7 +41,7 @@ test('unitTestCommand detects yarn and bun lockfiles', () => {
   // Act
   const results = [unitTestCommand('/r', yarn), unitTestCommand('/r', bun)];
   // Assert
-  assert.deepEqual(results, ['yarn test', 'bun test']);
+  assert.deepEqual(results, ['yarn test', 'bun run test']);
 });
 
 test('unitTestCommand detects pytest from pytest.ini or pyproject.toml', () => {

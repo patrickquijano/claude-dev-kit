@@ -657,6 +657,18 @@ describe('pre-1.0 rule and versionReset', () => {
     assert.ok(!r.notes.some((n) => n.startsWith('reset ')));
   });
 
+  test('stops applying a reset once the base is in the reset major', () => {
+    // Arrange
+    const { deps } = at('0.1.1', '0.1.2', {
+      policy: { ...POLICY, versionReset: { version: '0.1.0', reason: 'old reset' } }
+    });
+    // Act
+    const r = evaluate(ROOT, {}, deps);
+    // Assert
+    assert.equal(r.required, '0.1.2');
+    assert.ok(!r.notes.some((n) => n.startsWith('reset ')));
+  });
+
   test('ignores a malformed reset', () => {
     // Arrange
     const { deps } = at('1.0.0', '1.1.0', {

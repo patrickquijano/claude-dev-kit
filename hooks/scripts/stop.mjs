@@ -1,5 +1,5 @@
 // Stop hook: format and lint the whole repository per changed file-type group (lib/format-lint-repo.mjs), then block
-// once per prompt with the end-of-task steps when the turn changed files (lib/task-end.mjs).
+// once per distinct uncommitted working-tree state with the end-of-task steps (lib/task-end.mjs).
 import { formatLintRepo } from './lib/format-lint-repo.mjs';
 import { readJsonStdin, runIfMain } from './lib/hook-io.mjs';
 import { gate } from './lib/task-end.mjs';
