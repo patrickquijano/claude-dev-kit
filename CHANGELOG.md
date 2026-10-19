@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `/cdk:implement-requirement` takes a requirement, spec file, or issue text and carries it to a validated change: it offers plan mode first, asks clarifying questions, sets goals with acceptance criteria, compares approaches (you pick one, or `--yes` takes the recommended one), implements with tests, and runs the project's documented checks, fixing errors and warnings and looping back to the goals for up to 3 rounds. It never commits.
+
 ### Changed
 
 - **Breaking:** the end-of-task gate now fires whenever uncommitted changes exist, once per distinct working-tree state, instead of only when files changed since the prompt. The commit step commits all uncommitted changes (no `paths:` scope), and `UserPromptSubmit` no longer records a baseline.
