@@ -1,0 +1,64 @@
+---
+name: implement-requirement
+description: Implements a requirement end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use only when the user explicitly asks to implement a requirement.
+argument-hint: '[--yes] <requirement | spec file | issue text>'
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *)
+---
+
+# Implement Requirement
+
+Input: $ARGUMENTS (strip `--yes`; the rest is the requirement text, a spec file path, or issue text)
+
+## Context
+
+- Root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
+- Branch: !`git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '<none>'`
+- Status: !`git status --porcelain=v1 2>/dev/null || echo '<none>'`
+
+A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+
+## Rules
+
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Never commit, push, stash, or `reset --hard`; the end-of-task hook offers the commit afterwards.
+- Change only what the goals need; no adjacent refactors.
+- Lint, type check, test, and build commands come from the project's documented commands (CLAUDE.md `Commands`, then manifest scripts), not from `commands.md`.
+- Add or update tests for every behavior the change touches; never weaken, skip, or delete an existing test.
+- Caps: clarify max 3 rounds; fix max 3 attempts per validate pass; step 9 max 3 rounds in total. Cap hit → print the Output with what is left under `Open:` and `Stopped: <step>: <reason>`.
+- AskUserQuestion: max 4 questions per batch, recommended option first with a one-line reason, a `Stop` option on every batch, and nothing already answered.
+- `--yes` is unattended: it asks nothing, records each assumption, and picks every recommended option, and continues without plan mode.
+- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
+
+## Workflow
+
+1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Note the dirty paths from Status; never edit one without asking.
+2. **Plan mode.** Not in plan mode → ask whether to enter it, recommended option first with a reason from the input; the plan-mode path: `${CLAUDE_SKILL_DIR}/references/plan.md`.
+3. **Analyze.** Read the input (a file path or URL gets read), explore the affected code (an Explore subagent for broad sweeps), and restate the requirement in one paragraph.
+4. **Clarify.** Ask batches for the gaps in scope, behavior, edge cases, and constraints, up to the cap. `Stop` → `Result: cancelled`.
+5. **Goals.** List numbered goals, each with a checkable acceptance criterion, plus non-goals: `${CLAUDE_SKILL_DIR}/references/plan.md`.
+6. **Approaches.** Compare 2–3 approaches with the recommended one first and ask `Pick` | `Stop`; in plan mode, write the plan and call `ExitPlanMode`: `${CLAUDE_SKILL_DIR}/references/plan.md`.
+7. **Implement.** Make the smallest change set the approach needs, following repo conventions, with tests for each changed behavior.
+8. **Validate.** Run the documented checks, fix errors and warnings, and mark each criterion met or unmet with evidence: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+9. **Iterate.** A criterion unmet or a check still failing → back to step 5 with what was learned, up to the cap; the rest goes to `Open:`: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+
+## Files
+
+- For goals, acceptance criteria, and the approach ask (steps 2, 5–6), see `${CLAUDE_SKILL_DIR}/references/plan.md`.
+- For checks, evidence, and the iteration loop (steps 8–9), see `${CLAUDE_SKILL_DIR}/references/validate.md`.
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+
+## Output
+
+```text
+Requirement: <one line>
+Plan mode: entered | declined | skipped (<reason>)
+Goals: <n> met, <m> unmet
+Approach: <chosen approach — one line>
+Files: <path>, …
+Tests: <path — added | updated>, … | none (<reason>)
+Verify: <command> pass | fail | skipped (<reason>), … | not run
+Rounds: <n>/3
+Open: <id: severity, reason; recommended fix>, … | none | not run (nothing-to-do | cancelled | stopped)
+Result: done | nothing-to-do | stopped | cancelled
+Stopped: <step>: <reason> | none
+```
