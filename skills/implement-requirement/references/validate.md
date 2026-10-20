@@ -1,29 +1,30 @@
 # Validate
 
-Detail for steps 8–9.
+Detail for steps 8–9 (the verifier, the implementer's fix loop, and the iteration).
 
-## Find the checks
+## Verify
 
-1. CLAUDE.md `Commands` (and `.claude/rules/` files that name a verify command).
-2. Manifest scripts (`package.json`, `composer.json`, `Makefile`, `pyproject.toml`, and the like).
-3. Neither has a command for a kind → record it as `skipped (no documented command)`; never invent one.
-
-Run in this order: the new or changed tests, lint, type check, the full test suite, build. Use check mode where the project has one.
-
-## Fix
-
-- Fix every error and warning in files this run changed; up to 3 attempts per pass, re-running the failed command each time.
-- A failure in a file this run did not change → do not fix it; list it under `Open:` with the evidence.
-- Never weaken, skip, or delete a test to get green.
+Spawn `cdk:implementation-verifier` with the root, the goals with their acceptance criteria, and the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
 
 ## Evidence
 
-Mark each goal `met` or `unmet` with the proof that settles it:
+Map the verifier's return:
+
+- `Goals:` → each goal `met`, `unmet`, or `unverified` with its evidence; an `unverified` goal counts as unmet for the Output.
+- `Checks:` → the Output `Verify:` line, one entry per command.
+- `Findings:` and failed checks → the fix list below.
 
 ```text
 G1: met — <test path> passes | <command> output | <observed behavior>
 G2: unmet — <what failed, file:line>
 ```
+
+## Fix
+
+- Send the implementer (`cdk:requirement-implementer`) a fix list of every finding and failed check in files this run changed: id, file, line, evidence, recommendation. Then spawn a fresh verifier on the new changed paths.
+- Up to 3 attempts per pass; each attempt is one implementer re-spawn plus one verifier run.
+- A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
+- Never let a test be weakened, skipped, or deleted to get green; reject such a change and re-send the finding.
 
 Run `diff-stat` to confirm the change set matches the approach; an unplanned file is reverted or justified.
 
