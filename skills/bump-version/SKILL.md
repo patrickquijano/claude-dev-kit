@@ -55,6 +55,7 @@ Files:
 Changelog: <path> (created | updated | unchanged) | skipped (<reason>) | not run
 Checks: version <ok|<codes>>, changelog <ok|<codes>>
 Blocked: <items needing the caller | none>
+Next: /cdk:commit-changes | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

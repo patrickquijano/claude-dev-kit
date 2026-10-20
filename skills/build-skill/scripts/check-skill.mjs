@@ -220,8 +220,12 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
     } else {
       let end = lines.findIndex((l, i) => i > start && /^##\s/.test(l));
       if (end === -1) end = lines.length;
-      if (!lines.slice(start, end).some((l) => /^Result:/.test(l))) {
+      const output = lines.slice(start, end);
+      if (!output.some((l) => /^Result:/.test(l))) {
         found.push(error('output-result', 'Q1', 'SKILL.md', start + 1, 'Output has no "Result:" line'));
+      }
+      if (!output.some((l) => /^Next:/.test(l))) {
+        found.push(warning('output-next', 'Q4', 'SKILL.md', start + 1, 'Output has no "Next:" follow-up line'));
       }
     }
   }

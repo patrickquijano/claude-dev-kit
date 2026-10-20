@@ -6,7 +6,7 @@
 
 - Frontmatter · Body · Layout · Quality · Scoring
 
-## Frontmatter (35)
+## Frontmatter (34)
 
 | ID  | Pts | Criterion                                                                                                                                                 | Rule                |
 | --- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
@@ -17,20 +17,20 @@
 | F5  | 6   | Invocation flags match the chosen kind per the invocation matrix                                                                                          | F Invocation matrix |
 | F6  | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                       | F Format            |
 | F7  | 4   | Optional fields justified: `allowed-tools` not used as a restriction, `context: fork` only with a self-contained task body, no unused `model` or `effort` | F Fields            |
-| F8  | 3   | `name` is an action (verb-first), not an actor; S (warning) plus judgment                                                                                 | F Fields            |
+| F8  | 2   | `name` is an action (verb-first), not an actor; S (warning) plus judgment                                                                                 | F Fields            |
 
-## Body (45)
+## Body (43)
 
 | ID  | Pts | Criterion                                                                                                                                                              | Rule                       |
 | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | B1  | 4   | S: `SKILL.md` under 500 lines                                                                                                                                          | B Lazy loading             |
 | B2  | 6   | Structure matches the kind (Task: Rules, Workflow, Output; Reference: topic sections; Background-only: facts, no steps)                                                | B Structure per kind       |
-| B3  | 4   | Short imperative text; nothing Claude already knows                                                                                                                    | B Style                    |
+| B3  | 3   | Short imperative text; nothing Claude already knows                                                                                                                    | B Style                    |
 | B4  | 7   | S (contents list): Detail lives in `references/`, `assets/`, `scripts/`; each linked with when to read; one level deep; long references open with a contents list      | B Lazy loading             |
 | B5  | 4   | Rules that must survive compaction sit in the first 5,000 tokens                                                                                                       | B Compaction               |
 | B6  | 4   | S (injection): Substitutions correct (`${CLAUDE_SKILL_DIR}` for paths, `$ARGUMENTS` declared use); every `!` injection ends with a fallback; none inside `references/` | B Substitutions, Injection |
 | B7  | 4   | Every loop or retry states its cap (N/A without loops)                                                                                                                 | B Structure per kind       |
-| B8  | 5   | One term per concept, one default plus an escape hatch, no time-sensitive facts, no Windows paths                                                                      | B Style, Don'ts            |
+| B8  | 4   | One term per concept, one default plus an escape hatch, no time-sensitive facts, no Windows paths                                                                      | B Style, Don'ts            |
 | B9  | 4   | Navigation section: every bundled file has a when-to-read cue (script checks the section exists)                                                                       | B Navigation               |
 | B10 | 3   | Deterministic or mechanical work lives in `scripts/`, not prose (N/A without such work)                                                                                | B What stays               |
 
@@ -42,13 +42,14 @@
 | L2  | 2   | S: Only `SKILL.md`, `references/`, `assets/`, `scripts/`; every bundled file is linked                                              | B Lazy loading, Don'ts |
 | L3  | 3   | S: Every link resolves to an existing file inside the skill directory (no other skill's files, except paths the caller allowlisted) | B Lazy loading         |
 
-## Quality (12)
+## Quality (15)
 
 | ID  | Pts | Criterion                                                                                                                | Rule                 |
 | --- | --- | ------------------------------------------------------------------------------------------------------------------------ | -------------------- |
 | Q1  | 4   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A only if they define no output | B Structure per kind |
 | Q2  | 4   | Steps with side effects confirm first and name each effect; destructive commands are never pre-approved                  | B Style              |
 | Q3  | 4   | One job: the description and workflow serve a single action                                                              | decide.md One job    |
+| Q4  | 3   | Proactive: Task Output names the follow-up (`Next:`, S warning); independent subagent spawns run in parallel             | B Structure per kind |
 
 ## Scoring
 

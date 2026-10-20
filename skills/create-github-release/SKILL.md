@@ -55,6 +55,7 @@ Prefix: <v | none> (<tags | changelog links | flag>)
 Release: <url> (created | already exists) | not reached
 Checks: gh auth <ok|fail>, permission <role>, clean tree <ok|fail>, main synced <ok|fail>, changelog <ok|<codes>>, tag <ok|<code>>, release <absent|exists>
 Blocked: <items needing the user | none>
+Next: none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

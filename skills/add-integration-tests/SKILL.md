@@ -63,6 +63,7 @@ Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none | skipped (non-local host)
 Suspected bugs: <file:line — kept failing>, … | none
+Next: /cdk:commit-changes | none
 Open: <item: reason; recommended fix>, … | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

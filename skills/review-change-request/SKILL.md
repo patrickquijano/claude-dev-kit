@@ -73,6 +73,7 @@ Threads resolved: <n> of <own open threads>
 Merged: yes (<squash | merge commit>; branch <deleted | kept>[; local branch deleted][; admin]) | no (<reason>) | not offered (<blockers>) | not requested
 Uncertainty: <list> | none
 Open: <id: severity, impact; recommended fix; who acts, …> | none
+Next: re-run /cdk:review-change-request after the author pushes fixes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

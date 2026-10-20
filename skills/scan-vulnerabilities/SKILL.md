@@ -78,6 +78,7 @@ Iterations: <k> of <max>
 Stop reason: <condition from step 7, or the pre-flight reason>
 MR: !<iid> <url> | PR: #<n> <url> | none
 Open: <id: severity, reason; recommended fix>, … | none
+Next: /cdk:prepare-change-request | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

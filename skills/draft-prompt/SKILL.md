@@ -43,6 +43,7 @@ Input: $ARGUMENTS
 Checks n/a: <list or none>
 Open gaps: <list or none>
 Follow-ups: <split-off tasks or none>
+Next: /cdk:implement-requirement to build it | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ````
@@ -52,6 +53,7 @@ Review-only:
 ```text
 Failed checks: <check — fix>, … | none
 Open: <unverified facts or unresolved items, or none>
+Next: /cdk:implement-requirement to build it | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

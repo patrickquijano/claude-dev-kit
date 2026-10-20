@@ -58,6 +58,7 @@ Commits:
 - <hash> <subject> [signature: G]
 Commitlint: pass | skipped (not installed) | fail (<error line>) | n/a
 Excluded: <files or none>
+Next: /cdk:prepare-change-request | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

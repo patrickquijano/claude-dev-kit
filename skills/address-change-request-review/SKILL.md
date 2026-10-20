@@ -79,6 +79,7 @@ Resolved: <n>; remaining open: <thread urls> | none
 Review requested: @<user>, … | no
 Failures: <operation: exact error> | none
 State: <state file path>
+Next: /cdk:address-change-request-review when more reviews arrive | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

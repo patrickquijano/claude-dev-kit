@@ -53,6 +53,7 @@ Reviewers:
 Checks: `<command>` → exit <n> | skipped (<reason>), … | none
 Findings: <b> blocking, <s> suggestions, <d> dropped | none
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
+Next: /cdk:prepare-change-request | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

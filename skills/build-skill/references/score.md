@@ -1,6 +1,6 @@
 # Score
 
-Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then fixes.
+Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then report and improve rounds.
 
 ## Run the check
 
@@ -11,11 +11,17 @@ Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then fixes.
 
 Spawn `cdk:skill-scorer` with: skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, scope, kind, invocation flags, and the check JSON verbatim. The scorer scores the "S" criteria from the JSON and judges the rest.
 
-## Fix loop
+## Report
 
-1. Fix every `errors` entry first, then rubric deductions, largest first, in the skill's own files only.
-2. Re-run `check-skill` and rescore. At most 3 rounds in total (shared with Rules); never edit a skill only to silence a finding.
-3. Plugin scope → run `validate-plugin` once from the plugin root; a failure goes to `Gaps:` with no retry.
+After each score, show the score table, the deductions (largest first), and any open `errors`. Nothing to fix, or the 3-round cap reached → leave the loop.
+
+## Improve round
+
+1. Spawn `cdk:skill-improver` with: skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, `frontmatter.md` and `body.md` paths, `${CLAUDE_SKILL_DIR}/assets/templates.md`, scope, kind, invocation flags, the check JSON, the scorer return, allowlisted paths, answers and `Omitted:`, round number, and last round's unresolved items. It edits only the skill directory; this skill edits nothing for score fixes.
+2. Its `Questions:` go to AskUserQuestion, each with an Omit option and a Stop option; re-spawn once with the answers. `Blocked:` items go to `Gaps:`.
+3. Show its `Map`, `Proactive`, and `Expected`.
+4. Re-run `check-skill` and rescore, then Report. Stop early when a round changes no file or the score does not rise. At most 3 rounds in total (shared with Rules); never edit a skill only to silence a finding.
+5. Plugin scope → run `validate-plugin` once from the plugin root; a failure goes to `Gaps:` with no retry.
 
 ## Gaps
 

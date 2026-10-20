@@ -36,16 +36,16 @@ Step 3. Read the state file (`state.md` `## State file`) first. Per the host `##
 
 Step 7. Spawn `cdk:cr-feedback-planner` with: the items file path, root, base and head SHAs, Dirty, the repo instruction summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md` (also its guidelines input: `## Labels`), `--self-review` yes/no, and whether a reviewer is outstanding.
 
-- Table columns: id (short), reviewer, `path:line`, label (decoration), blocking, classification, disposition, group, one-line plan.
+- Table columns: id (short), reviewer, `path:line`, label (decoration), blocking, classification, disposition, group, one-line plan. Under it list each group's `sites`, `tests`, and `checks`.
 - Its `Question:` lines → AskUserQuestion (header `Decision`, or `Clarify` for a `needs-clarification` item under `--self-review`; 2–4 options, recommended first), then respawn once with the answers.
 - Groups marked `blocked` are skipped in step 8 and their items stay `blocked`. `Conflicts` without an answer, and `needs-clarification` or `conflicting` items, stay `needs-decision` with no change.
 - Under `--self-review`, an answered `needs-clarification` item takes the planner's new classification; an unanswered one stays `needs-decision`.
 
 ## Implement
 
-Step 8. Per group, spawn `cdk:cr-feedback-implementer` with root, group id, the group plan and file list, the items' reviewer text, and the repo instruction summary (parallel in one message only for `parallel-safe` groups). Any agent `Question:` line → AskUserQuestion, or stop with that reason.
+Step 8. Per group, spawn `cdk:cr-feedback-implementer` with root, group id, the group plan and file list, its `sites`, `tests`, `ripple`, and `checks`, the items' reviewer text, and the repo instruction summary (parallel in one message only for `parallel-safe` groups). Any agent `Question:` line → AskUserQuestion, or stop with that reason.
 
-- `Blocked` entries → the item becomes `blocked` or `needs-decision`; `Deviations` go to Gate A and the verifier. `Map` feeds the item → commit map.
+- `Blocked` entries → the item becomes `blocked` or `needs-decision`; `Deviations` go to Gate A and the verifier. `Map` feeds the item → commit map. A `Self-check: unmet` line counts as a failed attempt for that group (existing per-group fix cap). Record `Follow-ups` for step 16.
 - Then `dirty-paths`: changed paths must be within the plan and disjoint from Dirty; otherwise restore that group's tracked files from `show-head-file`, report, and stop.
 - A file the group newly created stays in place and is reported (deleting needs the user's confirmation), then stop.
 
@@ -78,4 +78,4 @@ Step 14. Show each reply (item, disposition, body), the summary, the resolve can
 
 ## Open items
 
-Step 16. List in `Open:` each failed or skipped validation command, each failure, each thread still open in `Resolved:`, each blocked, conflicting, or needs-clarification item, `Pushed: no`, `Review requested: no`, skipped or unposted replies, and any collector `Notes` (truncation). Give each its impact and recommended fix. Nothing is edited, posted, or pushed here.
+Step 16. List in `Open:` each failed or skipped validation command, each failure, each thread still open in `Resolved:`, each blocked, conflicting, or needs-clarification item, `Pushed: no`, `Review requested: no`, skipped or unposted replies, any planner and implementer `Follow-ups` (recommended as follow-up work), and any collector `Notes` (truncation). Give each its impact and recommended fix. Nothing is edited, posted, or pushed here.

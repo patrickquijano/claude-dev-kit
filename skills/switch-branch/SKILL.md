@@ -50,6 +50,7 @@ Switched from: <previous branch>
 Unstaged: <files or none>
 Changes carried: <count> files
 Commits carried: <count> | none
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

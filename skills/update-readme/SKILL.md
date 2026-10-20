@@ -1,11 +1,11 @@
 ---
-name: build-readme
+name: update-readme
 description: Creates, updates, or scores a README.md from archetype templates against a 100-point rubric, improving up to 3 rounds. Use only when the user explicitly asks to write, improve, or score a README.
 argument-hint: '[optional archetype | score]'
 allowed-tools: Bash(git rev-parse *)
 ---
 
-# Write README
+# Update README
 
 Input: $ARGUMENTS
 
@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Every command in the README must exist in the repo (script, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, and author voice; change only stale, wrong, or missing items.
 - Never drop a required section of the rubric. No facts for it → ask in step 3, else write one explicit line ("No configuration.").
-- Pass score = 95/100. Improve rounds capped at 3; the counter starts at 0 and rises each improve round. Then stop and list leftovers in `Open:`.
+- Pass score = 95/100. Only `cdk:readme-improver` applies score fixes. Improve rounds capped at 3; the counter starts at 0 and rises each improve round. Then stop and list leftovers in `Open:`.
 - Score-only never writes. Formatter and linter runs prompt for permission; expected.
 - Commit nothing; the README is the only file written.
 
@@ -38,7 +38,8 @@ Input: $ARGUMENTS
    - Final ≥100 lines → ToC after the intro; shorter → none.
 5. **Write.** Print archetype, outline, and changed sections; write `README.md` at root without asking. Facts `Formatter` not none → run it on the README.
 6. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Spawn `cdk:readme-scorer` with: README path, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), `Omitted:` list.
-7. **Gate.** Score-only or total ≥95 → `Result: done`, show deductions if any. Below 95 at 3 rounds → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`. Else improve per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round` and rescore. Then list leftovers per `## Leftovers`.
+7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or total ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
+8. **Improve.** Below 95 and rounds <3 → spawn `cdk:readme-improver` per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, then step 5 format, step 6 rescore, step 7. Then list leftovers per `## Leftovers`.
 
 ## Files
 
@@ -63,6 +64,7 @@ Score: <n>/100 (pass | below 95)
 Rounds: <improve rounds>
 Omitted: <items the user chose to omit | none>
 Open: <criterion (lost pts): fix, ... | none>
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

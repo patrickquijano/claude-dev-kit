@@ -52,6 +52,7 @@ Conflicts: <file — resolution> or none
 Skipped: <commits or none>
 Pushed: <remote>/<current> (force-with-lease | -u) | no
 Open: <item: impact; command to run, …> | none
+Next: /cdk:prepare-change-request | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -69,6 +69,7 @@ Git ignore: shared graph.json + GRAPH_REPORT.md (<n> lines added) | up to date |
 Lint/format ignores: <file: added paths>, … | none found
 Rules: .claude/rules/graphify.md <added | present | kept (differs)>; CLAUDE.md section <present | missing>
 Open: <item: reason; suggested fix>, … | none
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

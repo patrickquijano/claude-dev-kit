@@ -77,6 +77,7 @@ Ignores: <file: added path>, ... | up to date
 Smoke test: <pass/fail lines> | skipped (<reason>)
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
 Open: <item: impact; recommended fix, ...> | none
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

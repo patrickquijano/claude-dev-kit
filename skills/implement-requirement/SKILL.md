@@ -59,6 +59,7 @@ Tests: <path — added | updated>, … | none (<reason>)
 Verify: <command> pass | fail | skipped (<reason>), … | not run
 Rounds: <n>/3
 Open: <id: severity, reason; recommended fix>, … | none | not run (nothing-to-do | cancelled | stopped)
+Next: /cdk:review-local-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

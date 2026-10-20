@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { dateLine, sessionStart } from '../../../../../hooks/scripts/lib/session-start.mjs';
 
-function make({ configured = false, present = false, rules = 'RULES\n', readFails = false } = {}) {
+function make({ configured = false, present = false } = {}) {
   const deps = {
     env: { CLAUDE_PROJECT_DIR: '/repo', CLAUDE_PLUGIN_ROOT: '/plugin' },
     cwd: () => '/cwd',
@@ -10,11 +10,7 @@ function make({ configured = false, present = false, rules = 'RULES\n', readFail
     defaultRoot: () => '/default',
     realpathSync: (p) => p,
     graphifyConfigured: () => configured,
-    graphifyFilesExist: () => present,
-    readFileSync: (p) => {
-      if (readFails) throw new Error('ENOENT');
-      return `${rules}|${p}`;
-    }
+    graphifyFilesExist: () => present
   };
   return { deps };
 }
@@ -65,17 +61,17 @@ test('sessionStart returns the date line as additional context', () => {
   assert.match(result.hookSpecificOutput.additionalContext, /^Today is Tuesday, October, 13, 2026/);
 });
 
-test('sessionStart adds the Graphify rules when a graph is ready', () => {
+test('sessionStart points at the Graphify rules file when a graph is ready', () => {
   // Arrange
   const { deps } = make({ configured: true, present: true });
   // Act
   const result = sessionStart({}, deps);
   // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /Use Graphify to navigate this repository:\n\nRULES/);
   assert.match(
     result.hookSpecificOutput.additionalContext,
-    /\/plugin\/skills\/setup-graphify\/assets\/graphify-rules\.md/
+    /Graphify is set up; read \/plugin\/skills\/setup-graphify\/assets\/graphify-rules\.md before navigating code\./
   );
+  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /RULES/);
 });
 
 test('sessionStart falls back to the default plugin root', () => {
@@ -104,15 +100,6 @@ test('sessionStart omits Graphify rules when the graph files are missing', () =>
   const result = sessionStart({}, deps);
   // Assert
   assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart lets an unreadable rules file bubble', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true, readFails: true });
-  // Act
-  const act = () => sessionStart({}, deps);
-  // Assert
-  assert.throws(act, /ENOENT/);
 });
 
 test('sessionStart lets a missing project directory bubble', () => {

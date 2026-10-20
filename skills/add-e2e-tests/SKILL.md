@@ -64,6 +64,7 @@ Run: <suite command>
 Rounds: <n>/3
 Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none
+Next: /cdk:commit-changes | none
 Open: <id: severity, reason; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

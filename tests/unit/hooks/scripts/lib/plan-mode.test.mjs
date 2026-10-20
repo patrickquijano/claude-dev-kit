@@ -175,7 +175,7 @@ test('output: asks Claude to weigh the context and recommend an option', () => {
   assert.equal(out.systemMessage, undefined);
   assert.equal(out.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
   assert.match(ctx, /AskUserQuestion/);
-  assert.match(ctx, /weigh this prompt against everything in your context/);
+  assert.match(ctx, /weigh this prompt against your context/);
   assert.match(ctx, /\(Recommended\)/);
   assert.match(ctx, /Lean Enter/);
   assert.match(ctx, /Lean Continue/);
