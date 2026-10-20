@@ -4,7 +4,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Architecture
 
-- Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction, and `/cdk:ship-release` chains skills to ship a GitHub PR or GitLab MR end to end. `build-skill` and `build-agent` run their `scripts/check-*.mjs`, score with the `*-scorer` agents, and delegate fixes to the `*-improver` agents for up to 3 rounds. Rules `.claude/rules/skills.md`.
+- Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction, and `/cdk:ship-release` chains skills to ship a GitHub PR or GitLab MR end to end. `build-skill` and `build-agent` run their `scripts/check-*.mjs`, score with the `rubric-scorer` agent, and delegate fixes to the `rubric-improver` agent for up to 3 rounds. Rules `.claude/rules/skills.md`.
 - Subagents: `agents/` — read-only workers (analyzers, scorers, CR reviewers) spawned by skills (`topic-researcher` is also delegated to directly). Write exceptions and rules: `.claude/rules/agents.md`.
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior, error policy, and end-of-task steps: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`, each mirroring the source path. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
