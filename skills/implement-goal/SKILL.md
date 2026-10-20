@@ -1,11 +1,11 @@
 ---
-name: implement-requirement
-description: Implements a requirement end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use only when the user explicitly asks to implement a requirement.
+name: implement-goal
+description: Implements a goal end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use only when the user explicitly asks to implement a goal.
 argument-hint: '[--yes] <requirement | spec file | issue text>'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *)
 ---
 
-# Implement Requirement
+# Implement Goal
 
 Input: $ARGUMENTS (strip `--yes`; the rest is the requirement text, a spec file path, or issue text)
 
