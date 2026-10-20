@@ -10,9 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - `/cdk:update-gitignore` explores the repo, through `cdk:repo-analyzer` (kind `gitignore`), for generated, local, and secret paths that should not be committed, reports each with its evidence and confidence, and appends the ones you approve to the root `.gitignore`. It skips paths already ignored, never reads `.env*` contents, and never untracks, commits, or pushes; tracked files that match are only reported.
 - `/cdk:publish-github-release` publishes a draft GitHub release: it finds the drafts (several → you pick one, or `--tag <tag>` names it) or drafts a new one from the latest `CHANGELOG.md` section, then asks the action (publish or keep as draft), latest or pre-release, whether to replace the draft's notes with the changelog section, an optional discussion category, and, for an Action repo, whether to list it on the GitHub Marketplace (a web-only step, so on Yes it keeps the release a draft and hands you its link to publish from the browser). The tag must already exist on `origin`; the skill never creates a tag, never edits a published release, and never forces (`--yes` publishes the lone draft with the defaults).
+- `/cdk:setup-format-lint` covers TOML (Taplo), GitHub Actions workflows (actionlint), SQL (SQLFluff), Terraform (`terraform fmt`, TFLint), Rust (rustfmt, Clippy), Ruby (RuboCop), Java (google-java-format, Checkstyle), Kotlin (ktlint), Swift (SwiftFormat, SwiftLint), Vue and Svelte (Prettier, ESLint plugins), C and C++ (clang-format, clang-tidy), Lua (StyLua, Luacheck), Bats files (shfmt, ShellCheck), and mypy as an optional Python linter.
 
 ### Changed
 
+- `/cdk:setup-format-lint` now writes every ignore path that exists to each tool's own ignore config, including `node_modules/`, instead of skipping tools that inherit `.gitignore` or skip a path by default; new configs no longer enable `.gitignore` inheritance.
+- `/cdk:setup-format-lint` writes matching yamlfmt and yamllint configs (indent, document start, comment padding, sequence indent, line endings) and turns YAML line length off in both; a kept config that conflicts or sets a line limit is listed under `Open:`.
+- **Breaking:** `/cdk:implement-requirement` is renamed `/cdk:implement-goal`, with the title "Implement Goal" and a description that now says "implement a goal". Use the new name; the old one no longer exists.
 - **Breaking:** the role-specific subagents are merged into 15 agents that take a `kind` or `role` input, with no stubs left under the old names. Update any direct use of the old names:
   - `cdk:repo-analyzer` replaces the devcontainer, gitignore, permission, project-instruction, readme, test-gap, and workflow analyzers.
   - `cdk:rubric-scorer` and `cdk:rubric-improver` replace the per-kind (agent, skill, readme, project-instruction) scorers and improvers.
@@ -21,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `cdk:version-resolver` replaces `cdk:actions-version-resolver` and `cdk:dependency-analyzer`.
   - `cdk:cr-feedback-analyzer` replaces the feedback collector, planner, and replier.
   - `cdk:plan-implementer` and `cdk:change-verifier` replace the feedback implementer and verifier and the requirement implementer and verifier.
-- `/cdk:implement-requirement` now implements through `cdk:plan-implementer` and reviews and tests through `cdk:change-verifier` (`goals`); findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
+- `/cdk:implement-goal` now implements through `cdk:plan-implementer` and reviews and tests through `cdk:change-verifier` (`goals`); findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
 - The README title now reads `CDK`.
 - `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
 - The end-of-task steps now fire once per turn that changed the working tree, compared with the tree `UserPromptSubmit` recorded at turn start, so Q&A turns and an already-dirty tree stay silent. They no longer include the commit-and-push step: run `/cdk:commit-changes` yourself, and `/cdk:commit-changes` no longer lists a hook as a trigger.
