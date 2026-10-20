@@ -1,5 +1,5 @@
 ---
 schema_version: '1.1'
-name: build-readme-asks-first
+name: update-readme-asks-first
 context:
   scaffold_script: fixture.sh

@@ -18,11 +18,10 @@ AskUserQuestion or Write unavailable → ask the pending question as plain text 
 
 ## Improve round
 
-Below 95 and rounds < 3: show the deductions table (criterion, lost pts, fix), then improve without asking.
+Below 95 and rounds < 3: rounds + 1, then spawn `cdk:readme-improver` with root, rubric path, README path, archetype, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits `README.md` only.
 
-- Rounds + 1; apply the scorer fixes to the README.
-- A fix needing a non-derivable fact the user did not omit → ask first.
-- Write and format (step 5), then score again (step 6).
+- Its `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
+- Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 5), then score again (step 6) and report (step 7).
 
 ## Leftovers
 
