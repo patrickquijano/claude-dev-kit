@@ -1,16 +1,8 @@
 # Git
 
-## Commits
-
-`commit-msg` hook reject msgs breaking rules.
-
-- Never commit secrets/creds; read from env vars.
-
 ## Branches
 
-- Conventional Branch: `<type>/<short-description>` (e.g. `feat/add-build-skill`).
-- Max 72 chars.
-- Imperative, lowercase, hyphen-separated.
+- Branch names: max 72 chars.
 
 ## Push
 
@@ -20,4 +12,4 @@
 ## Git hooks
 
 - Never bypass hooks with `--no-verify` or local `HUSKY=0`; `HUSKY=0` CI only.
-- Verify: `git log --show-signature -1` (`post-commit` only reports; it does not block).
+- Verify: `git log --show-signature -1`.

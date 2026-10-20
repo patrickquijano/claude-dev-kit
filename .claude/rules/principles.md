@@ -1,20 +1,19 @@
 # Principles
 
-- Verify each fact vs official docs or code before stating/using.
-- Missing/ambiguous info → ask user w/ options, recommendation, why; no assume.
-- Failed check → find root cause, fix, re-run the same command (`npm run lint`, `npm test`) until it passes.
+- Before stating a command, path, or API, confirm it with Grep/Read of the repo or the official docs.
+- Missing info → AskUserQuestion with the recommended option first; never guess.
+- Failed check → fix, then re-run the same command (`npm run lint`, `npm test`) until it exits 0.
 - Comments: max 2 sentences.
-- Review, validate, test each changed component before finishing the task, using `Verify:` line in its `.claude/rules/` file.
 - Verify: Definition of done checklist in `.claude/CLAUDE.md`.
 
 ## Design principles
 
-- DRY: reuse existing; extract shared code on third occurrence (rule of three); prefer duplication over wrong abstraction.
-- YAGNI: build only what needed now.
-- Security: validate untrusted input at trust boundaries; errors never expose secrets or stack traces (`.claude/rules/es-modules.md`).
-- Testing: new or changed runtime `.mjs` behavior gets unit tests asserting observable output (`.claude/rules/tests.md`).
-- Structure: one responsibility per module; keep entry scripts thin and logic in `hooks/scripts/lib/` (entry script + lib split).
-- Behavior: fail fast; pass dependencies through `deps` (injected in unit tests); no swallowed errors (`.claude/rules/es-modules.md`).
-- Shared logic lives once: `skills/bump-version/scripts/release-check.mjs` serves the hook, the skill gate, and CI.
+- DRY: extract shared code on the third occurrence; prefer duplication over wrong abstraction.
+- YAGNI: every new abstraction has a caller in the same change.
+- Security: validate untrusted input at trust boundaries; `npm audit` is in the Definition of done.
+- Testing: new or changed behavior gets a test (`.claude/rules/tests.md`).
+- Structure: one entry script per hook event, logic in `hooks/scripts/lib/` (`.claude/CLAUDE.md` Architecture).
+- Behavior: fail fast; catch rules in `.claude/rules/es-modules.md`.
+- Observability: no logger; error output per `.claude/rules/hooks.md` Error policy.
 - Maintainability: tidy only lines the change already edits; record larger cleanups as tech debt in an issue instead of fixing them in the same change.
 - Add a pattern only for a problem the code shows now; avoid overengineering, indirection, and unneeded dependencies.
