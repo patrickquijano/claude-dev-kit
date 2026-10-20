@@ -1,17 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { decide, gate } from '../../../../../hooks/scripts/lib/task-end.mjs';
+import { decide, gate, markTurnStart } from '../../../../../hooks/scripts/lib/task-end.mjs';
 
 function make({
   installed = false,
   configured = false,
   present = false,
   inside = true,
-  marker = false,
   unsafe = false,
   badCwd = false,
-  unitTests = null,
-  changelog = false
+  unitTests = null
 } = {}) {
   return {
     env: { CLAUDE_PROJECT_DIR: '/repo' },
@@ -28,53 +26,50 @@ function make({
       if (args[0] === 'rev-parse' && args[1] === '--is-inside-work-tree') {
         return { status: inside ? 0 : 128, stdout: Buffer.from('true\n') };
       }
-      return { status: 0, stdout: Buffer.from('.git/cdk-ship-release\n') };
+      return { status: 0, stdout: Buffer.from('.git/cdk-task-end.md\n') };
     },
-    existsSync: (p) => (String(p).endsWith('CHANGELOG.md') ? changelog : marker),
     unsafeState: () => unsafe
   };
 }
 const prompt = {};
 
-test('decide asks for changelog, docs, and commit steps in a git repo', () => {
+test('decide asks for changelog and docs steps in a git repo', () => {
   // Arrange
   const deps = make();
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 3);
+  assert.equal(result.length, 2);
   assert.match(result[0], /README\.md or related docs/);
   assert.match(result[1], /cdk:update-changelog/);
-  assert.match(result[2], /cdk:commit-changes/);
 });
 
-test('decide tells the commit step to commit all uncommitted changes with no paths argument', () => {
+test('decide never emits a commit or push step in a safe git repo', () => {
   // Arrange
-  const deps = make();
+  const deps = make({ installed: true, configured: true, present: true, unitTests: 'npm run test:unit' });
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[2], /no `paths:` argument/);
-  assert.match(result[2], /all uncommitted changes/);
+  assert.doesNotMatch(result.join('\n'), /cdk:commit-changes|Commit and push|push/);
 });
 
-test('decide tells Claude to skip the commit step when the working tree is clean', () => {
+test('decide never emits a commit or push step outside git or in an unsafe state', () => {
   // Arrange
-  const deps = make();
+  const outside = make({ inside: false });
+  const unsafe = make({ unsafe: true });
+  // Act
+  const text = [...decide(prompt, outside), ...decide(prompt, unsafe)].join('\n');
+  // Assert
+  assert.doesNotMatch(text, /cdk:commit-changes|Commit and push|push/);
+});
+
+test('decide ends with the changelog step in a safe git repo', () => {
+  // Arrange
+  const deps = make({ installed: true, configured: true, present: true });
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.match(result[2], /working tree is clean, skip this step/);
-});
-
-test('decide does not scope the commit step to this task or leave dirty files out', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.doesNotMatch(result[2], /paths: </);
-  assert.doesNotMatch(result[2], /already dirty/);
+  assert.match(result.at(-1), /cdk:update-changelog/);
 });
 
 test('decide runs graphify update first when the graph exists', () => {
@@ -83,9 +78,8 @@ test('decide runs graphify update first when the graph exists', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 4);
+  assert.equal(result.length, 3);
   assert.match(result[0], /graphify update \./);
-  assert.match(result[3], /cdk:commit-changes/);
 });
 
 test('decide asks for the graphify skill when configured but the graph is missing', () => {
@@ -134,19 +128,8 @@ test('decide makes every step conditional on git status', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 4);
+  assert.equal(result.length, 3);
   for (const step of result) assert.match(step, /git status --porcelain/);
-});
-
-test('decide omits only the commit step while the ship-release marker exists', () => {
-  // Arrange
-  const deps = make({ marker: true });
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.equal(result.length, 2);
-  assert.match(result[0], /README\.md or related docs/);
-  assert.match(result[1], /cdk:update-changelog/);
 });
 
 test('decide keeps only the docs step in an unsafe git state', () => {
@@ -159,7 +142,7 @@ test('decide keeps only the docs step in an unsafe git state', () => {
   assert.match(result[0], /README\.md or related docs/);
 });
 
-test('decide keeps Graphify and docs but no changelog or commit outside a git repo', () => {
+test('decide keeps Graphify and docs but no changelog outside a git repo', () => {
   // Arrange
   const deps = make({ inside: false, installed: true, configured: true, present: true });
   // Act
@@ -188,7 +171,6 @@ test('decide puts the docs step between Graphify and the changelog step', () => 
   assert.match(result[0], /graphify update/);
   assert.match(result[1], /README\.md or related docs/);
   assert.match(result[2], /cdk:update-changelog/);
-  assert.match(result[3], /cdk:commit-changes/);
 });
 
 test('decide forbids a release or version bump in the changelog step', () => {
@@ -212,17 +194,6 @@ test('decide makes the changelog step ask first with Update changelog and Skip',
   assert.match(result[1], /\(Recommended\)/);
 });
 
-test('decide makes the commit step ask first with Commit and push and Skip', () => {
-  // Arrange
-  const deps = make();
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.match(result[2], /AskUserQuestion/);
-  assert.match(result[2], /"Commit and push" and "Skip"/);
-  assert.match(result[2], /\(Recommended\)/);
-});
-
 test('decide does not ask in the docs, unit-test, or Graphify steps', () => {
   // Arrange
   const deps = make({ installed: true, configured: true, present: true, unitTests: 'npm run test:unit' });
@@ -241,27 +212,6 @@ test('decide has no ask at all in an unsafe git state', () => {
   const result = decide(prompt, deps);
   // Assert
   assert.doesNotMatch(result.join('\n'), /AskUserQuestion/);
-});
-
-test('decide keeps the changelog step when CHANGELOG.md is missing', () => {
-  // Arrange
-  const deps = make({ changelog: false });
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.equal(
-    result.some((p) => /update-changelog/.test(p)),
-    true
-  );
-});
-
-test('decide keeps the changelog step while the ship-release marker exists', () => {
-  // Arrange
-  const deps = make({ marker: true });
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.match(result[1], /cdk:update-changelog/);
 });
 
 test('decide omits the changelog step in an unsafe git state', () => {
@@ -303,7 +253,7 @@ test('decide puts the unit-test step first, before Graphify', () => {
   // Act
   const result = decide(prompt, deps);
   // Assert
-  assert.equal(result.length, 5);
+  assert.equal(result.length, 4);
   assert.match(result[0], /run the unit tests/);
   assert.match(result[1], /graphify update/);
 });
@@ -340,17 +290,7 @@ test('decide keeps the unit-test step outside a git repo', () => {
   assert.match(result[0], /`cargo test`/);
 });
 
-test('decide keeps the unit-test step under the ship-release marker', () => {
-  // Arrange
-  const deps = make({ marker: true, unitTests: 'pytest' });
-  // Act
-  const result = decide(prompt, deps);
-  // Assert
-  assert.equal(result.length, 3);
-  assert.match(result[0], /`pytest`/);
-});
-
-const stateDeps = ({ state = {}, now = 'b', writeError = null, inside = true } = {}) => {
+const stateDeps = ({ state = { turnStart: 'a' }, now = 'b', writeError = null, inside = true } = {}) => {
   const writes = [];
   const texts = [];
   return {
@@ -371,22 +311,24 @@ const session = { session_id: 's1' };
 
 test('gate blocks a dirty tree with no state, with the steps in order', () => {
   // Arrange
-  const deps = stateDeps({ state: {}, now: 'b' });
+  const deps = stateDeps({ now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
-  assert.equal(result.decision, 'block');
-  assert.match(deps.texts[0].text, /1\. .*README\.md.*\n2\. .*cdk:update-changelog.*\n3\. .*cdk:commit-changes/s);
-  assert.deepEqual(deps.writes, [{ firedAt: 'b', awaiting: true }]);
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
+  assert.match(deps.texts[0].text, /1\. .*README\.md.*\n2\. .*cdk:update-changelog/s);
+  assert.deepEqual(deps.writes, [{ turnStart: 'a', firedAt: 'b', awaiting: true }]);
 });
 
 test('gate blocks when the fingerprint differs from the last fired tree', () => {
   // Arrange
-  const deps = stateDeps({ state: { firedAt: 'a', awaiting: false }, now: 'b' });
+  const deps = stateDeps({ state: { turnStart: 'a', firedAt: 'a', awaiting: false }, now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
 });
 
 test('gate lets Claude stop when the task is unfinished and waiting on the user', () => {
@@ -405,9 +347,12 @@ test('gate sends a one-line reason that points at the steps file', () => {
   // Act
   const result = gate(session, deps);
   // Assert
-  assert.equal(result.reason, `End-of-task steps pending: read ${deps.texts[0].file} and follow it, in order.`);
-  assert.equal(result.reason.includes('\n'), false);
-  assert.match(deps.texts[0].file, /\/repo\/\.git\/cdk-ship-release$/);
+  assert.equal(
+    result.hookSpecificOutput.additionalContext,
+    `End-of-task steps pending: read ${deps.texts[0].file} and follow it, in order.`
+  );
+  assert.equal(result.hookSpecificOutput.additionalContext.includes('\n'), false);
+  assert.match(deps.texts[0].file, /\/repo\/\.git\/cdk-task-end\.md$/);
 });
 
 for (const code of ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC']) {
@@ -417,9 +362,10 @@ for (const code of ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC']) {
     // Act
     const result = gate(session, deps);
     // Assert
-    assert.equal(result.decision, 'block');
-    assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:update-changelog/s);
-    assert.deepEqual(deps.writes, [{ firedAt: 'b', awaiting: true }]);
+    assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+    assert.equal(result.decision, undefined);
+    assert.match(result.hookSpecificOutput.additionalContext, /1\. .*README\.md.*\n2\. .*cdk:update-changelog/s);
+    assert.deepEqual(deps.writes, [{ turnStart: 'a', firedAt: 'b', awaiting: true }]);
   });
 }
 
@@ -439,27 +385,28 @@ test('gate falls back to the inline steps when git gives no steps path', () => {
   // Act
   const result = gate(session, deps);
   // Assert
-  assert.match(result.reason, /1\. .*README\.md/);
+  assert.match(result.hookSpecificOutput.additionalContext, /1\. .*README\.md/);
   assert.deepEqual(deps.texts, []);
 });
 
 test('gate blocks a stop_hook_active continuation that was not awaiting the steps', () => {
   // Arrange
-  const deps = stateDeps({ state: { firedAt: 'a', awaiting: false }, now: 'b' });
+  const deps = stateDeps({ state: { turnStart: 'a', firedAt: 'a', awaiting: false }, now: 'b' });
   // Act
   const result = gate({ ...session, stop_hook_active: true }, deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
 });
 
 test('gate records the tree and returns null for the continuation that ran the steps', () => {
   // Arrange
-  const deps = stateDeps({ state: { firedAt: 'a', awaiting: true }, now: 'c' });
+  const deps = stateDeps({ state: { turnStart: 'a', firedAt: 'a', awaiting: true }, now: 'c' });
   // Act
   const result = gate({ ...session, stop_hook_active: true }, deps);
   // Assert
   assert.equal(result, null);
-  assert.deepEqual(deps.writes, [{ firedAt: 'c', awaiting: false }]);
+  assert.deepEqual(deps.writes, [{ turnStart: 'a', firedAt: 'c', awaiting: false }]);
 });
 
 test('gate returns null for a clean tree', () => {
@@ -473,7 +420,7 @@ test('gate returns null for a clean tree', () => {
 
 test('gate returns null when the fingerprint equals the last fired tree', () => {
   // Arrange
-  const deps = stateDeps({ state: { firedAt: 'b', awaiting: false }, now: 'b' });
+  const deps = stateDeps({ state: { turnStart: 'a', firedAt: 'b', awaiting: false }, now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
@@ -500,9 +447,83 @@ test('gate returns null when there is no session id', () => {
 
 test('gate ignores an old-format state file and fires once', () => {
   // Arrange
-  const deps = stateDeps({ state: { baseline: 'a', fired: true }, now: 'b' });
+  const deps = stateDeps({ state: { turnStart: 'a', baseline: 'a', fired: true }, now: 'b' });
   // Act
   const result = gate(session, deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
+});
+
+test('gate returns null when no turn start was recorded', () => {
+  // Arrange
+  const deps = stateDeps({ state: {}, now: 'b' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(deps.writes, []);
+});
+
+test('gate returns null when the tree equals the turn start', () => {
+  // Arrange
+  const deps = stateDeps({ state: { turnStart: 'b' }, now: 'b' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result, null);
+});
+
+test('gate fires when the tree changed since the turn start', () => {
+  // Arrange
+  const deps = stateDeps({ state: { turnStart: 'a' }, now: 'b' });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+});
+
+test('gate keeps the turn start after a continuation', () => {
+  // Arrange
+  const deps = stateDeps({ state: { turnStart: 'a', firedAt: 'b', awaiting: true }, now: 'c' });
+  // Act
+  gate({ ...session, stop_hook_active: true }, deps);
+  // Assert
+  assert.equal(deps.writes[0].turnStart, 'a');
+});
+
+test('markTurnStart writes the fingerprint and keeps other state', () => {
+  // Arrange
+  const deps = stateDeps({ state: { firedAt: 'x', awaiting: false }, now: 'n' });
+  // Act
+  markTurnStart(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, [{ firedAt: 'x', awaiting: false, turnStart: 'n' }]);
+});
+
+test('markTurnStart records a clean tree as an empty fingerprint', () => {
+  // Arrange
+  const deps = stateDeps({ state: {}, now: '' });
+  // Act
+  markTurnStart(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, [{ turnStart: '' }]);
+});
+
+test('markTurnStart does nothing without a session id', () => {
+  // Arrange
+  const deps = stateDeps();
+  // Act
+  markTurnStart({}, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
+});
+
+test('markTurnStart does nothing when the fingerprint is null', () => {
+  // Arrange
+  const deps = stateDeps({ now: null });
+  // Act
+  markTurnStart(session, deps);
+  // Assert
+  assert.deepEqual(deps.writes, []);
 });

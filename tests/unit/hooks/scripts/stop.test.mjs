@@ -17,11 +17,11 @@ const run = async (input, result, pending = null) => {
 
 test('main: prints the formatLintRepo result as JSON', async () => {
   // Arrange
-  const result = { decision: 'block', reason: 'fix' };
+  const result = { systemMessage: 'm', hookSpecificOutput: { hookEventName: 'Stop', additionalContext: 'fix' } };
   // Act
   const { writes } = await run('{}', result);
   // Assert
-  assert.deepEqual(writes, ['{"decision":"block","reason":"fix"}']);
+  assert.deepEqual(writes, [JSON.stringify(result)]);
 });
 
 test('main: passes the parsed event to formatLintRepo', async () => {
@@ -60,18 +60,24 @@ test('main: rejects for empty stdin', async () => {
   await assert.rejects(act, SyntaxError);
 });
 
-test('main: a format block wins and the gate is not consulted', async () => {
+test('main: a format failure wins and the gate is not consulted', async () => {
   // Arrange
-  const lint = { decision: 'block', reason: 'fix' };
+  const lint = { systemMessage: 'm', hookSpecificOutput: { hookEventName: 'Stop', additionalContext: 'fix' } };
   // Act
-  const { writes } = await run('{}', lint, { decision: 'block', reason: 'steps', systemMessage: 'g' });
+  const { writes } = await run('{}', lint, {
+    hookSpecificOutput: { hookEventName: 'Stop', additionalContext: 'steps' },
+    systemMessage: 'g'
+  });
   // Assert
   assert.deepEqual(writes, [JSON.stringify(lint)]);
 });
 
-test('main: prints the gate block when format passes with nothing to report', async () => {
+test('main: prints the gate result when format passes with nothing to report', async () => {
   // Arrange
-  const pending = { decision: 'block', reason: 'steps', systemMessage: 'End-of-task steps pending' };
+  const pending = {
+    hookSpecificOutput: { hookEventName: 'Stop', additionalContext: 'steps' },
+    systemMessage: 'End-of-task steps pending'
+  };
   // Act
   const { writes } = await run('{}', null, pending);
   // Assert
@@ -80,7 +86,7 @@ test('main: prints the gate block when format passes with nothing to report', as
 
 test('main: joins the format and gate system messages', async () => {
   // Arrange
-  const pending = { decision: 'block', reason: 'steps', systemMessage: 'G' };
+  const pending = { hookSpecificOutput: { hookEventName: 'Stop', additionalContext: 'steps' }, systemMessage: 'G' };
   // Act
   const { writes } = await run('{}', { systemMessage: 'F' }, pending);
   // Assert

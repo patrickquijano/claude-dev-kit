@@ -24,14 +24,6 @@ export function unsafeState(cwd, status = '', deps = realDeps) {
   return status.split('\0').some((entry) => /^(U.|.U|AA|DD) /.test(entry));
 }
 
-// Absolute path of the /cdk:ship-release marker when it exists, else ''; `run(cwd, args)` is a git runner.
-export function shipReleaseMarker(cwd, run, exists = existsSync) {
-  const r = run(cwd, ['rev-parse', '--git-path', 'cdk-ship-release']);
-  if (r.status !== 0) return '';
-  const file = path.resolve(cwd, r.stdout.toString().trim());
-  return exists(file) ? file : '';
-}
-
 // Temp state file for one hook, per project and (optionally) session.
 export const statePath = (name, cwd, session = '', deps = realDeps) =>
   path.join(deps.tmpdir(), `cdk-${name}-${sha(cwd)}-${sha(session)}.json`);

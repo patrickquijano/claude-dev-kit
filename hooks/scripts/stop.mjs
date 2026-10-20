@@ -1,5 +1,5 @@
-// Stop hook: format and lint the whole repository per changed file-type group (lib/format-lint-repo.mjs), then block
-// once per distinct uncommitted working-tree state with the end-of-task steps (lib/task-end.mjs).
+// Stop hook: format and lint the whole repository per changed file-type group (lib/format-lint-repo.mjs), then prompt
+// Claude once per distinct uncommitted working-tree state with the end-of-task steps (lib/task-end.mjs).
 import { formatLintRepo } from './lib/format-lint-repo.mjs';
 import { readJsonStdin, runIfMain } from './lib/hook-io.mjs';
 import { gate } from './lib/task-end.mjs';
@@ -12,7 +12,7 @@ export async function main(deps = {}) {
   const input = await readJsonStdin(d.stream);
   const lint = d.formatLintRepo(input);
   // Lint failures first; the gate checks again on the next stop because it has not fired yet.
-  if (lint?.decision === 'block') return d.write(JSON.stringify(lint));
+  if (lint?.hookSpecificOutput) return d.write(JSON.stringify(lint));
   const pending = d.gate(input);
   if (pending) {
     const message = [lint?.systemMessage, pending.systemMessage].filter(Boolean).join(' | ');
@@ -21,4 +21,4 @@ export async function main(deps = {}) {
   if (lint) d.write(JSON.stringify(lint));
 }
 
-await runIfMain(import.meta.url, main, { label: 'stop' });
+await runIfMain(import.meta.url, main, { label: 'stop', failCode: 0 });

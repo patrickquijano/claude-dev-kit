@@ -1,8 +1,8 @@
 // PostToolUse hook: format and lint the file Claude just wrote or edited.
-// Prints one JSON object; failures block with the tool output so Claude can fix them.
+// Prints one JSON object; failures return the tool output as additionalContext so Claude can fix them.
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { blockOutput, projectDir as resolveProjectDir } from './hook-io.mjs';
+import { contextOutput, MAX, projectDir as resolveProjectDir } from './hook-io.mjs';
 import {
   TABLE,
   WIN_UNSAFE,
@@ -64,6 +64,12 @@ export function formatLint(input, deps = {}) {
   if (!lines.length) return null;
   const message = lines.join(' | ');
   return failures.length
-    ? blockOutput(message, `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`)
+    ? contextOutput(
+        'PostToolUse',
+        `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`.slice(0, MAX),
+        {
+          systemMessage: message
+        }
+      )
     : { systemMessage: message };
 }

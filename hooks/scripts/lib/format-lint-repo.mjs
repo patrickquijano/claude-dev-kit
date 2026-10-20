@@ -1,9 +1,9 @@
 // Stop hook: format and lint the whole repository with the tools in tools.mjs, one group of file types at a time.
-// A group runs only when its files or tool configs changed since its last run; remaining issues block Claude.
+// A group runs only when its files or tool configs changed since its last run; remaining issues continue Claude with the failures.
 import { createHash } from 'node:crypto';
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { blockOutput, expected, projectDir } from './hook-io.mjs';
+import { expected, projectDir, stopOutput } from './hook-io.mjs';
 import { git, statePath } from './git-state.mjs';
 import {
   FILE,
@@ -189,7 +189,7 @@ export function formatLintRepo(input, deps = {}) {
   if (!lines.length) return null;
   const message = lines.join(' | ');
   return failures.length
-    ? blockOutput(
+    ? stopOutput(
         message,
         `Repository format/lint issues; fix every error and warning, then finish (this hook re-runs on changed file types):\n${failures.join('\n\n')}`
       )

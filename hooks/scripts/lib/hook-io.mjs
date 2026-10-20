@@ -15,15 +15,25 @@ const oneLine = (err) =>
 
 // Runs `fn` only when the module is the process entry script (not when imported by tests). This is the one error
 // boundary of an entry script: an error `fn` throws prints `cdk <label>: <message>` to stderr and sets exit code
-// `failCode` (1 is non-blocking; 2 makes a gate fail closed). A number `fn` returns becomes the exit code.
+// `failCode` (1 is the default). With `failCode: 0` it instead prints a `systemMessage`
+// JSON to stdout and sets no exit code, so the harness shows no hook error. A number `fn` returns becomes the exit code.
 export async function runIfMain(metaUrl, fn, { label = 'hook', failCode = 1 } = {}, argv = process.argv, io = {}) {
   if (!argv[1] || metaUrl !== pathToFileURL(argv[1]).href) return;
-  const { stderr = (text) => process.stderr.write(text), setExit = (code) => (process.exitCode = code) } = io;
+  const {
+    stderr = (text) => process.stderr.write(text),
+    stdout = (text) => process.stdout.write(text),
+    setExit = (code) => (process.exitCode = code)
+  } = io;
   try {
     const code = await fn();
     if (typeof code === 'number') setExit(code);
   } catch (err) {
-    stderr(`cdk ${label}: ${oneLine(err)}\n`);
+    const message = `cdk ${label}: ${oneLine(err)}`;
+    if (failCode === 0) {
+      stdout(`${JSON.stringify({ systemMessage: message })}\n`);
+      return;
+    }
+    stderr(`${message}\n`);
     setExit(failCode);
   }
 }
@@ -58,9 +68,5 @@ export const contextOutput = (event, text, extra = {}) => ({
   hookSpecificOutput: { hookEventName: event, additionalContext: text }
 });
 
-// Hook output that blocks with a reason capped at MAX.
-export const blockOutput = (systemMessage, reason) => ({
-  systemMessage,
-  decision: 'block',
-  reason: reason.slice(0, MAX)
-});
+// Stop hook output that continues Claude with `reason` as additional context; the transcript shows no hook error.
+export const stopOutput = (systemMessage, reason) => contextOutput('Stop', reason.slice(0, MAX), { systemMessage });

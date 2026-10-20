@@ -1,12 +1,12 @@
-// End-of-task logic: the Stop hook (gate) blocks once per distinct uncommitted working-tree state, telling Claude what to do
-// once the task is done: run the unit tests, refresh the Graphify graph, update docs, add changelog entries, then group,
-// commit, and push the changes (the changelog and commit steps ask the user first). A step is left out only when it cannot run.
-import { existsSync, realpathSync, writeFileSync } from 'node:fs';
+// End-of-task logic: the Stop hook (gate) prompts Claude once per turn that changed the working tree, telling Claude what to do
+// once the task is done: run the unit tests, refresh the Graphify graph, update docs, add changelog entries (the changelog step asks the user first). A step is left out only when it cannot run.
+// UserPromptSubmit (markTurnStart) records the tree each turn starts with so Q&A turns and a pre-dirty tree stay silent.
+import { realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fingerprint } from './format-lint-repo.mjs';
-import { git, readState, sha, shipReleaseMarker, statePath, unsafeState, writeState } from './git-state.mjs';
+import { git, readState, sha, statePath, unsafeState, writeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist, which } from './graphify.mjs';
-import { blockOutput, expected, projectDir } from './hook-io.mjs';
+import { expected, projectDir, stopOutput } from './hook-io.mjs';
 import { unitTestCommand } from './unit-tests.mjs';
 
 // Side effects as a swappable bundle so tests never touch git, graphify, or the fs.
@@ -17,7 +17,6 @@ export const realDeps = {
   graphifyConfigured,
   graphifyFilesExist,
   unitTestCommand,
-  existsSync,
   realpathSync,
   fingerprint,
   readState,
@@ -38,7 +37,6 @@ const ask = (topic, run, lean) =>
   `first ask the user with AskUserQuestion whether to ${topic}: options "${run}" and "Skip"; put the one you recommend first and end its label with "(Recommended)", and give each option a one-line reason grounded in this task's changes. ${lean} On "${run}",`;
 const CHANGELOG = `${STATUS} If this task changed user-facing behavior (skills, agents, hooks, commands, or anything CHANGELOG.md covers), ${ask('update the changelog', 'Update changelog', 'Lean Skip when the change is internal only or Unreleased already covers it.')} invoke the \`cdk:update-changelog\` skill via the Skill tool to add entries under Unreleased; never cut a release or bump the version. On "Skip", or when nothing user-facing changed, skip this step.`;
 const DOCS = `${STATUS} If this task changed behavior, commands, paths, or components that README.md or related docs (CLAUDE.md, .claude/rules, skill references) describe, update them so they match; otherwise skip this step.`;
-const COMMIT = `${STATUS} If the status lists changes, ${ask('commit and push them', 'Commit and push', 'Lean Skip when the work is unfinished, a check still fails, or the user said not to commit.')} invoke the \`cdk:commit-changes\` skill via the Skill tool with no \`paths:\` argument to group all uncommitted changes atomically and logically, commit, and push. On "Skip", or if the working tree is clean, skip this step.`;
 
 // Ordered end-of-task steps; empty when none apply.
 export function decide(input, deps = realDeps) {
@@ -51,12 +49,9 @@ export function decide(input, deps = realDeps) {
     else parts.push(deps.graphifyConfigured(cwd) ? GRAPHIFY_BUILD : GRAPHIFY_SETUP);
   }
   const inside = deps.git(cwd, ['rev-parse', '--is-inside-work-tree']).status === 0;
-  // /cdk:ship-release owns its commits while its marker exists.
-  const marker = inside && shipReleaseMarker(cwd, deps.git, deps.existsSync);
   const unsafe = inside && deps.unsafeState(cwd);
   parts.push(DOCS);
   if (inside && !unsafe) parts.push(CHANGELOG);
-  if (inside && !unsafe && !marker) parts.push(COMMIT);
   return parts;
 }
 
@@ -84,7 +79,17 @@ function writeSteps(file, parts, deps) {
 const stateFile = (input, cwd, deps) => deps.statePath('task-end', cwd, input.session_id);
 const validSession = (input) => typeof input?.session_id === 'string' && input.session_id !== '';
 
-// Stop-hook result: blocks once per distinct uncommitted working-tree state; else null.
+// Records the working-tree fingerprint at the start of a turn; the gate fires only when the turn changed it.
+export function markTurnStart(input, deps = realDeps) {
+  if (!validSession(input)) return;
+  const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
+  const now = deps.fingerprint(cwd, []);
+  if (now === null) return;
+  const file = stateFile(input, cwd, deps);
+  deps.writeState(file, { ...deps.readState(file), turnStart: now });
+}
+
+// Stop-hook result: continues Claude once when this turn changed the working tree to a state not yet fired; else null.
 export function gate(input, deps = realDeps) {
   if (!validSession(input)) return null;
   const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
@@ -94,16 +99,16 @@ export function gate(input, deps = realDeps) {
   if (!now) return null;
   // The continuation that ran the steps may have edited docs or the changelog; record that tree instead of re-asking.
   if (state.awaiting && input.stop_hook_active === true) {
-    deps.writeState(file, { firedAt: now, awaiting: false });
+    deps.writeState(file, { ...state, firedAt: now, awaiting: false });
     return null;
   }
-  if (now === state.firedAt) return null;
+  if (state.turnStart === undefined || now === state.turnStart || now === state.firedAt) return null;
   const parts = decide(input, deps);
   if (!parts.length) return null;
-  deps.writeState(file, { firedAt: now, awaiting: true });
+  deps.writeState(file, { ...state, firedAt: now, awaiting: true });
   const steps = stepsFile(cwd, input.session_id, deps);
   const reason = writeSteps(steps, parts, deps)
     ? `End-of-task steps pending: read ${steps} and follow it, in order.`
     : `${INSTRUCTION}\n${numbered(parts)}`;
-  return blockOutput('End-of-task steps pending', reason);
+  return stopOutput('End-of-task steps pending', reason);
 }

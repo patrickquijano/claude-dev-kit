@@ -4,7 +4,7 @@ import { Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
 import {
   MAX,
-  blockOutput,
+  stopOutput,
   contextOutput,
   expected,
   projectDir,
@@ -62,8 +62,11 @@ test('runIfMain: skips fn when there is no entry script', async () => {
 const ENTRY = pathToFileURL('/tmp/entry.mjs').href;
 const ARGV = ['node', '/tmp/entry.mjs'];
 const capture = () => {
-  const seen = { err: [], exit: [] };
-  return { seen, io: { stderr: (t) => seen.err.push(t), setExit: (c) => seen.exit.push(c) } };
+  const seen = { err: [], out: [], exit: [] };
+  return {
+    seen,
+    io: { stderr: (t) => seen.err.push(t), stdout: (t) => seen.out.push(t), setExit: (c) => seen.exit.push(c) }
+  };
 };
 
 test('runIfMain: prints one labeled stderr line and exits 1 when fn throws', async () => {
@@ -93,12 +96,40 @@ test('runIfMain: uses failCode 2 for a gate', async () => {
     async () => {
       throw new Error('bad');
     },
-    { label: 'pre-tool-use', failCode: 2 },
+    { label: 'gate', failCode: 2 },
     ARGV,
     io
   );
   // Assert
   assert.deepEqual(seen.exit, [2]);
+});
+
+test('runIfMain: failCode 0 prints a systemMessage to stdout, nothing to stderr, and sets no exit code', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(
+    ENTRY,
+    () => {
+      throw new Error('boom\n    at stack line');
+    },
+    { label: 'stop', failCode: 0 },
+    ARGV,
+    io
+  );
+  // Assert
+  assert.deepEqual(seen.out, ['{"systemMessage":"cdk stop: boom"}\n']);
+  assert.deepEqual(seen.err, []);
+  assert.deepEqual(seen.exit, []);
+});
+
+test('runIfMain: failCode 0 prints nothing when fn succeeds', async () => {
+  // Arrange
+  const { seen, io } = capture();
+  // Act
+  await runIfMain(ENTRY, () => undefined, { label: 'stop', failCode: 0 }, ARGV, io);
+  // Assert
+  assert.deepEqual(seen.out, []);
 });
 
 test('runIfMain: caps a long error message', async () => {
@@ -151,7 +182,7 @@ test('runIfMain: reports nothing when another script is the entry', async () => 
     io
   );
   // Assert
-  assert.deepEqual(seen, { err: [], exit: [] });
+  assert.deepEqual(seen, { err: [], out: [], exit: [] });
 });
 
 test('expected: true when the error code is listed', () => {
@@ -343,29 +374,41 @@ test('contextOutput: has no top-level fields beyond hookSpecificOutput by defaul
   assert.deepEqual(Object.keys(out), ['hookSpecificOutput']);
 });
 
-test('blockOutput: blocks with the message and the reason', () => {
+test('stopOutput: continues Claude with the reason as Stop additionalContext', () => {
   // Arrange
-  const reason = 'fix it';
+  const reason = 'do the steps';
   // Act
-  const out = blockOutput('msg', reason);
+  const out = stopOutput('msg', reason);
   // Assert
-  assert.deepEqual(out, { systemMessage: 'msg', decision: 'block', reason: 'fix it' });
+  assert.deepEqual(out, {
+    systemMessage: 'msg',
+    hookSpecificOutput: { hookEventName: 'Stop', additionalContext: reason }
+  });
 });
 
-test('blockOutput: caps the reason at MAX characters', () => {
+test('stopOutput: has no decision key', () => {
+  // Arrange
+  const reason = 'x';
+  // Act
+  const out = stopOutput('msg', reason);
+  // Assert
+  assert.equal('decision' in out, false);
+});
+
+test('stopOutput: caps the context at MAX characters', () => {
   // Arrange
   const reason = 'x'.repeat(MAX + 100);
   // Act
-  const out = blockOutput('msg', reason);
+  const out = stopOutput('msg', reason);
   // Assert
-  assert.equal(out.reason.length, MAX);
+  assert.equal(out.hookSpecificOutput.additionalContext.length, MAX);
 });
 
-test('blockOutput: keeps a reason shorter than MAX whole', () => {
+test('stopOutput: keeps a reason shorter than MAX whole', () => {
   // Arrange
   const reason = 'x'.repeat(MAX - 1);
   // Act
-  const out = blockOutput('msg', reason);
+  const out = stopOutput('msg', reason);
   // Assert
-  assert.equal(out.reason, reason);
+  assert.equal(out.hookSpecificOutput.additionalContext, reason);
 });
