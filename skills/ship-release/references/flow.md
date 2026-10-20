@@ -12,8 +12,7 @@ Context → Git, Node, and npx version present (not `<none>`), plus `gh-version`
 
 - Signing: `signing-key` set; `signing-format` = `ssh` also needs `signers-file` set and existing. Missing → blocker `signing` (not a stop); never edit the signing config.
 - Target: `--target`, else `.claude/release-policy.json` `defaultBranch`, else `default-branch` without `origin/`. Then `fetch`.
-- Any failure so far → blocker. A pre-flight stop prints `Open: pre-flight: <reason>` and ends the run with no marker.
-- Otherwise write the hold marker last: Write tool, absolute path from `marker-path`, any short content. The plugin's end-of-task hook skips its commit step while it exists; step 10 deletes it.
+- Any failure so far → blocker. A pre-flight stop prints `Open: pre-flight: <reason>` and ends the run.
 
 ## Resume detection
 

@@ -32,11 +32,10 @@ Input: $ARGUMENTS
 - Caps: 3 review-address-re-review rounds, 2 check waits of 30 minutes each, 2 attempts per blocker; a cap hit stops that step and follows `## Blockers` in `flow.md`.
 - Review comments use Conventional Comments: `issue (blocking)` (critical, high), `suggestion (non-blocking)` (medium, low), `question`, `nitpick`. An own PR is reviewed as `COMMENT`; a clean verdict with passing checks counts as approval.
 - AskUserQuestion unavailable → ask the pending question as plain text with its options and end the turn; squash and delete default to the recommended options. Unattended runs ask only the bump confirmation, and report what is left.
-- The hold marker is written at pre-flight and deleted on every path out after that, including a stop; if interrupted, delete it (`marker-path`, `remove-marker`).
 
 ## Workflow
 
-1. **Pre-flight.** Tools, auth, signing, target, `fetch`; then write the hold marker last (`flow.md` `## Pre-flight`). Failure → blocker.
+1. **Pre-flight.** Tools, auth, signing, target, `fetch` (`flow.md` `## Pre-flight`). Failure → blocker.
 2. **Resume.** Find the branch's PR or MR and jump to the matching step (`flow.md` `## Resume detection`).
 3. **Branch.** On the target or a protected branch with changes → invoke `cdk:switch-branch` (`flow.md` `## Branch`).
 4. **Commit.** Dirty tree → invoke `cdk:commit-changes`. A clean tree with unpushed commits needs nothing; step 7 pushes them.
@@ -45,7 +44,7 @@ Input: $ARGUMENTS
 7. **PR or MR.** Invoke `cdk:prepare-change-request --target <target> --yes --gate report --squash <yes|no> --delete-branch <yes|no>`; keep the number or iid, `Findings file:`, and head SHA. `stopped` → blocker `PR/MR create`.
 8. **Review loop.** Up to 3 rounds of `cdk:review-change-request`, then `cdk:address-change-request-review` and step 5 (`flow.md` `## Review loop`). Merged → step 9.
 9. **Sync target.** `switch-target`, `fetch`, `ff-target`; dirty tree is a blocker (`flow.md` `## Sync target`).
-10. **Clean up.** Delete the marker (`remove-marker`) on every path out; list leftovers in `Open:` (`flow.md` `## Open items`).
+10. **Open items.** List leftovers in `Open:` (`flow.md` `## Open items`).
 11. **Output.** Print `## Output`.
 
 ## Blockers
