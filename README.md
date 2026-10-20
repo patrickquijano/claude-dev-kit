@@ -94,46 +94,23 @@ Every skill that reports findings (failed or skipped checks, gaps, suspected bug
 
 Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 
-| Agent                              | Purpose                                                                                                                                                                       |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cdk:actions-version-resolver`     | Resolve latest stable action, runner, and image versions with SHAs or digests for `build-github-workflows`.                                                                   |
-| `cdk:change-analyzer`              | Read changes and unique commits; draft atomic commit groups, a branch name, or an MR title and description for `commit-changes`, `switch-branch`, `prepare-change-request`.   |
-| `cdk:project-instruction-analyzer` | Extract and flag memory-file instructions; collect commands, stack, and patterns for `update-project-instructions`.                                                           |
-| `cdk:project-instruction-scorer`   | Score CLAUDE.md and rules against the 100-point rubric for `update-project-instructions`.                                                                                     |
-| `cdk:project-instruction-improver` | Work through open scorer deductions in CLAUDE.md and rules, editing only those files, for `update-project-instructions`.                                                      |
-| `cdk:conflict-analyzer`            | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                                                                                       |
-| `cdk:dependency-analyzer`          | Find outdated packages, breaking changes, and affected code for `upgrade-dependencies`.                                                                                       |
-| `cdk:devcontainer-analyzer`        | Detect stacks, versions, services, ports, and existing Docker files for `setup-devcontainer`.                                                                                 |
-| `cdk:dockerfile-reviewer`          | Check a Dockerfile against practices, `docker build --check`, hadolint for `build-dockerfile`.                                                                                |
-| `cdk:format-lint-analyzer`         | Detect file types, roles, candidates, and package manager, resolve latest stable versions, or run checks for `setup-format-lint`.                                             |
-| `cdk:gitignore-analyzer`           | Find generated, local, and secret paths not yet ignored for `update-gitignore`.                                                                                               |
-| `cdk:permission-analyzer`          | Inventory the commands a repo runs (tools, scripts, CI, destructive, privileged) for `setup-permissions`.                                                                     |
-| `cdk:cr-feedback-collector`        | Rank open PRs by unresolved feedback or normalize raw review data for `address-change-request-review`.                                                                        |
-| `cdk:cr-feedback-implementer`      | Apply one planned group of review fixes to the working tree for `address-change-request-review`.                                                                              |
-| `cdk:cr-feedback-planner`          | Classify feedback items, group them, detect conflicts, and plan changes for `address-change-request-review`.                                                                  |
-| `cdk:cr-feedback-replier`          | Draft per-item replies with commit and validation evidence for `address-change-request-review`.                                                                               |
-| `cdk:cr-feedback-validator`        | Run the repo's documented checks in check mode for `address-change-request-review`.                                                                                           |
-| `cdk:cr-feedback-verifier`         | Verify each feedback item against the final diff and validation for `address-change-request-review`.                                                                          |
-| `cdk:cr-correctness-reviewer`      | Review the branch diff for bugs, regressions, and unintended changes for `prepare-change-request`, `review-change-request`, `review-local-changes`.                           |
-| `cdk:cr-docs-reviewer`             | Review the branch diff for documentation, configuration, migration, and changelog needs for `prepare-change-request`.                                                         |
-| `cdk:cr-maintainability-reviewer`  | Review the branch diff for duplication, dead code, naming, layering, and convention drift for `prepare-change-request`, `review-change-request`, `review-local-changes`.      |
-| `cdk:cr-security-reviewer`         | Review the branch diff for secrets, authorization, validation, injection, and dependency risks for `prepare-change-request`, `review-change-request`, `review-local-changes`. |
-| `cdk:cr-test-reviewer`             | Review test coverage and run the documented checks for `prepare-change-request`, `review-change-request`, `review-local-changes`.                                             |
-| `cdk:requirement-implementer`      | Apply the chosen approach to the planned files, with tests, for `implement-requirement`.                                                                                      |
-| `cdk:implementation-verifier`      | Review the diff, run the documented checks in check mode, and mark each goal for `implement-requirement`.                                                                     |
-| `cdk:readme-analyzer`              | Collect repo facts and guess README archetype for `update-readme`.                                                                                                            |
-| `cdk:readme-scorer`                | Score README against the 100-point rubric for `update-readme`.                                                                                                                |
-| `cdk:readme-improver`              | Work through open scorer deductions in README.md, editing only that file, for `update-readme`.                                                                                |
-| `cdk:security-scanner`             | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                                           |
-| `cdk:agent-scorer`                 | Score a subagent file against the 100-point rubric for `build-agent`.                                                                                                         |
-| `cdk:skill-scorer`                 | Score a skill directory against the 100-point rubric for `build-skill`.                                                                                                       |
-| `cdk:skill-improver`               | Work through check errors and scorer deductions in a skill directory, editing only that directory, for `build-skill`.                                                         |
-| `cdk:agent-improver`               | Work through check errors and scorer deductions in a subagent file, editing only that file, for `build-agent`.                                                                |
-| `cdk:speckit-open-items-analyzer`  | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                                                      |
-| `cdk:test-gap-analyzer`            | Detect stack, test tooling, conventions, and untested targets for the `add-*-tests` skills; report tester state for `setup-testing`.                                          |
-| `cdk:topic-researcher`             | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                                           |
-| `cdk:workflow-analyzer`            | Collect workflows, commands, services, naming, and pinning signals for `build-github-workflows`.                                                                              |
-| `cdk:workflow-reviewer`            | Check workflows against practices, naming, contracts, POSIX sh, the gate job, actionlint, and zizmor for `build-github-workflows`.                                            |
+| Agent                             | Purpose                                                                                                                                                                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cdk:version-resolver`            | Resolve latest stable versions for one kind (`actions`, `dependencies`, `packages`) for `build-github-workflows`, `upgrade-dependencies`, and `setup-format-lint`.                                                                |
+| `cdk:change-analyzer`             | Read changes and unique commits; draft atomic commit groups, a branch name, or an MR title and description for `commit-changes`, `switch-branch`, `prepare-change-request`.                                                       |
+| `cdk:rubric-scorer`               | Score one kind (`agent`, `skill`, `readme`, `project-instructions`) against its 100-point rubric for `build-agent`, `build-skill`, `update-readme`, `update-project-instructions`.                                                |
+| `cdk:conflict-analyzer`           | Analyze one conflicted file and propose a resolution for `rebase-onto`.                                                                                                                                                           |
+| `cdk:repo-analyzer`               | Collect repo facts for one kind (`devcontainer`, `gitignore`, `permissions`, `readme`, `workflows`, `instructions`, `tests`) for the matching setup, build, update, and add-tests skills.                                         |
+| `cdk:practices-reviewer`          | Check a Dockerfile (`dockerfile`) or GitHub Actions workflows (`workflow`) against practices and available linters for `build-dockerfile` and `build-github-workflows`.                                                           |
+| `cdk:format-lint-analyzer`        | Detect file types, roles, candidates, and package manager, or run checks for `setup-format-lint`.                                                                                                                                 |
+| `cdk:cr-feedback-analyzer`        | Rank open PRs, normalize review data, plan changes, or draft replies (`discover`, `normalize`, `plan`, `reply`) for `address-change-request-review`.                                                                              |
+| `cdk:plan-implementer`            | Apply one planned group of review fixes (`review-group`) or a requirement's approach (`requirement`) to the planned files for `address-change-request-review` and `implement-requirement`.                                        |
+| `cdk:change-verifier`             | Run the repo's documented checks in check mode (`checks`), judge the diff against goals (`goals`), or verify feedback items against the final diff (`feedback`), for `address-change-request-review` and `implement-requirement`. |
+| `cdk:cr-reviewer`                 | Review the branch diff for one role (`correctness`, `tests`, `security`, `maintainability`, `docs`); role `tests` also runs the documented checks, for `prepare-change-request`, `review-change-request`, `review-local-changes`. |
+| `cdk:security-scanner`            | Run applicable Docker scanners, redact, dedupe, and prioritize findings for `scan-vulnerabilities`.                                                                                                                               |
+| `cdk:rubric-improver`             | Work through open scorer deductions for one kind (`agent`, `skill`, `readme`, `project-instructions`), editing only that kind's target, for `build-agent`, `build-skill`, `update-readme`, `update-project-instructions`.         |
+| `cdk:speckit-open-items-analyzer` | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                                                                                                          |
+| `cdk:topic-researcher`            | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                                                                                               |
 
 ### Hooks
 
@@ -175,7 +152,7 @@ Claude scores the existing `README.md` against the 100-point rubric and prints a
 
 ## Versioning and changelog
 
-A repo opts in with `.claude/release-policy.json` (changelog path, version files, `userFacing` globs, `exempt` entries with a reason). Without it nothing below runs. With it, a PR or MR cannot be created until `CHANGELOG.md` has a new `Unreleased` entry and every version file holds the version the branch commits require: breaking = major, `feat` = minor, otherwise patch, measured from the target branch tip. While the major version is 0, a breaking change bumps minor and everything else bumps patch; standard SemVer applies from 1.0.0. Three layers run the same script, `skills/bump-version/scripts/release-check.mjs`:
+A repo opts in with `.claude/release-policy.json` (changelog path, version files, `userFacing` globs, `exempt` entries with a reason). Without it nothing below runs. With it, a PR or MR cannot be created until `CHANGELOG.md` has a new `Unreleased` entry and every version file holds the version the branch commits require: breaking = major, `feat` = minor, otherwise patch, measured from the target branch tip. While the major version is 0, a breaking change bumps minor and everything else bumps patch; standard SemVer applies from 1.0.0. Two layers run the same script, `skills/bump-version/scripts/release-check.mjs`:
 
 1. `/cdk:prepare-change-request` runs a release gate first: on failure it chains `/cdk:bump-version` (after asking you to confirm the bump; it runs `/cdk:update-changelog` when a changelog exists), then `/cdk:update-changelog` for any changelog failure left, then `/cdk:commit-changes` (atomic commits and push), and revalidate.
 2. `.github/workflows/release-check.yml` runs the same check on every PR to `main`; make `release-check` a required status check, since it cannot be bypassed locally.
@@ -188,7 +165,7 @@ There is no per-PR override. The only exception is an `exempt` entry with a writ
 
 ## Configuration
 
-The opt-in release policy `.claude/release-policy.json` sets the changelog path, default branch, `versionFiles`, `userFacing` globs, `exempt` entries, and an optional `versionReset`; `release-check` reads it. Without the file, the release check does nothing.
+The opt-in release policy `.claude/release-policy.json` sets the changelog path, default branch, `remote`, `versionFiles`, `userFacing` globs, `exempt` entries, and an optional `versionReset`; `release-check` reads it. Without the file, the release check does nothing.
 
 ## Development
 
