@@ -56,6 +56,7 @@ Excluded:
 - <change> — <reason>
 Checks: completeness <ok|n>, accuracy <ok|n>, duplicates <ok|n>, classification <ok|n>, ordering <ok|n>, format <ok|n>, links <ok|n>, consistency <ok|n>, released sections <unchanged|n>, idempotency <ok|n>
 Blocked: <items needing user input | none>
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

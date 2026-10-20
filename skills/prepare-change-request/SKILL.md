@@ -89,6 +89,7 @@ Gate: passed | stopped | reported (<n> gating findings, --gate report)
 Findings file: <scratch>/findings.md (head <sha>) | none
 Release: ok (<level> → <version>) | skipped (<reason>) | fixed (<codes>) | failed (<codes>)
 Open: <item: impact; recommended fix; who acts, …> | none
+Next: /cdk:address-change-request-review when reviews arrive | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

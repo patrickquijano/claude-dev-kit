@@ -72,6 +72,7 @@ Skipped practices: <item — reason> | none
 Policy applied: <cdk policy item — see practices.md>, … | none
 Check-name map: <old check → new check (format unverified)>, … | none
 Unresolved: <item — reason> | none
+Next: /cdk:commit-changes | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

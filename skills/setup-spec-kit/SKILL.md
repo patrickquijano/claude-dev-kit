@@ -63,6 +63,7 @@ Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo
 Lint/format ignores: <file: added paths>, … | skipped <file: reason> | none found
 Required skills: all present | missing <dirs>
 Open: <item: reason; recommended fix>, … | none | not run (stopped | cancelled)
+Next: /cdk:run-spec-kit | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

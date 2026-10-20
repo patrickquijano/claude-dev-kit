@@ -61,6 +61,7 @@ Scripts: <name → command>, … | none
 Context note: <file: added | replaced | unchanged> | none
 Docker: <available | unavailable (fakes)>
 Open: <id: severity, reason; recommended fix, …> | none
+Next: /cdk:add-unit-tests | /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

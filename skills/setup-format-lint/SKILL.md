@@ -65,6 +65,7 @@ Ignores: <file: added paths>, … | up to date
 Check: <tool: N problems>, … | not run
 Problems: <tool: first lines>, … | none
 Open: <item: impact; recommended fix, …> | none
+Next: /cdk:setup-husky | /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

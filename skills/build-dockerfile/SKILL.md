@@ -60,6 +60,7 @@ Checks: docker build --check <pass | fail | not installed | error (<first line>)
 Findings: <path:line practice id — fix>, … | none
 Build: docker build -t <name> -f <Dockerfile> <context>
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …) | none | not run
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

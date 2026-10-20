@@ -42,6 +42,7 @@ Verdict: <valid | likely valid, needs reproduction | invalid>; severity <level>
 Fix: <applied | partial | not-applied> (<passes> pass(es), <n> re-assess)
 Test: verified | partial (<k> not run) | failed (<k> checks failing) | not run
 Open: <check or blocker: reason; recommended fix, …> | none
+Next: /cdk:review-local-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

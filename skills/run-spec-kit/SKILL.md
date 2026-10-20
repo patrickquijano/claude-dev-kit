@@ -53,6 +53,7 @@ Implement: <rounds> round(s), converged | not converged (<k> tasks left)
 Addressed: <fixed> fixed, <skipped> skipped (<c> of them CRITICAL), <open> open
 Open: none | items below, one per line
   <open item or unchecked task; CRITICAL prefixed `CRITICAL:`; recommended fix>
+Next: /cdk:review-local-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

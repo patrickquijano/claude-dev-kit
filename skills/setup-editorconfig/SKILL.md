@@ -55,6 +55,7 @@ Kept: <glob>, … | none
 Nested configs: <paths> | none
 Check: <N problems> | not run
 Open: <problem or uncovered type: reason; recommended fix>, … | none
+Next: /cdk:setup-format-lint | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

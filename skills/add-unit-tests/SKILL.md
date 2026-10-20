@@ -65,6 +65,7 @@ Practices: bundled + <docs fetched | WebFetch unavailable>
 Baseline failures: <test>, … | none
 Suspected bugs: <file:line — kept failing>, … | none
 Uncovered: <file — n%>, … | none
+Next: /cdk:commit-changes | none
 Open: <item: reason; recommended fix>, … | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

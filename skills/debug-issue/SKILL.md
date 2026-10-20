@@ -58,6 +58,7 @@ Hypotheses: <n> confirmed, <m> ruled out, <k> open
 Regression test: <path — fails before, passes after | fails before, fix not applied> | none (<reason>)
 Fix: applied (<files>) | not applied (diagnose only) | not applied (<reason>)
 Verify: <command> pass | fail | skipped (<reason>), … | not run
+Next: /cdk:commit-changes | none
 Open: <id: severity, reason; recommended fix>, … | none | not run (nothing-to-do | cancelled | stopped)
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

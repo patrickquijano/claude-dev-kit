@@ -65,6 +65,7 @@ Conflicting: <rule - resolution>, ... | none
 Reclassified: <command: from -> to - reason>, ... | none
 Validation: pass | fail: <reason>
 Open: <item: impact; recommended fix>, ... | none
+Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
