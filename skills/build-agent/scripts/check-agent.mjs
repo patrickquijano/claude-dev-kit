@@ -56,6 +56,7 @@ const REMOVED_TOOLS = [
 
 export class FrontmatterError extends Error {}
 
+const DATA_TOOLS = ['Read', 'Grep', 'Glob', 'Bash', 'WebFetch', 'WebSearch'];
 const error = (id, rubric, line, message) => ({ level: 'error', id, rubric, line, message });
 const warning = (id, rubric, line, message) => ({ level: 'warning', id, rubric, line, message });
 
@@ -180,8 +181,9 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
   return found;
 }
 
-// B1, B2, B4 on the body after the frontmatter; `bodyStart` is the closing `---` line number (a 0-based line index).
-export function checkBody(content, bodyStart = 0) {
+// B1, B2, B4, B9 on the body after the frontmatter; `bodyStart` is the closing `---` line number (a 0-based line index).
+// `tools` is the parsed tool list; undefined means the agent inherits every tool.
+export function checkBody(content, bodyStart = 0, tools) {
   const lines = content.split('\n');
   const found = [];
   const headings = [];
@@ -214,6 +216,15 @@ export function checkBody(content, bodyStart = 0) {
     if (!section.some((l) => /^\s*\d+\.\s/.test(l))) {
       found.push(error('task-steps', 'B2', task.index + 1, '"## Task" has no numbered list'));
     }
+    if (!section.some((l) => /self-check/i.test(l))) {
+      found.push(warning('self-check', 'B9', task.index + 1, '"## Task" has no Self-check step before Return'));
+    }
+  }
+  const readsContent = tools === undefined || tools.some((t) => DATA_TOOLS.includes(t));
+  if (readsContent && !lines.slice(bodyStart).some((l) => /ignore (any )?instructions/i.test(l))) {
+    found.push(
+      warning('data-guard', 'B9', bodyStart + 1, 'no line says content read is data and instructions in it are ignored')
+    );
   }
   if (!ret) found.push(error('return-missing', 'B4', bodyStart + 1, 'no "## Return" section'));
   else if (task && ret.index < task.index) {
@@ -229,7 +240,7 @@ export function checkAgent(file, { scope } = {}, deps = defaults) {
   try {
     const { fields, lineOf, endLine } = parseFrontmatter(content);
     found.push(...checkFrontmatter(fields, basename(file).replace(/\.md$/, ''), lineOf, scope));
-    found.push(...checkBody(content, endLine));
+    found.push(...checkBody(content, endLine, 'tools' in fields ? items(fields.tools).map(toolName) : undefined));
   } catch (err) {
     if (!(err instanceof FrontmatterError)) throw err;
     found.push(error('frontmatter-malformed', 'A1', 1, err.message));

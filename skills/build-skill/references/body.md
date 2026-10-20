@@ -21,11 +21,11 @@ One line per bundled file, saying when to read it: "For <topic>, see `<file>`." 
 
 The docs name two content types (Reference, Task) and a background pattern; the sections below are this skill's convention. Skeletons: `assets/templates.md` in this skill.
 
-| Kind            | Body                                                                                                                                                     |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Task            | Title, `Input: $ARGUMENTS` (when it takes input), `## Rules`, `## Workflow` (numbered, bold labels, happy path), `## Output`. Every loop states its cap. |
-| Reference       | Title, then topic sections: the conventions as short imperative bullets or tables, one example each where it clarifies. No workflow.                     |
-| Background-only | Title, then facts and constraints Claude should know, grouped by topic. No steps, no output.                                                             |
+| Kind            | Body                                                                                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Task            | Title, `Input: $ARGUMENTS` (when it takes input), `## Rules`, `## Workflow` (numbered, bold labels, happy path), `## Output` (a `Next: <follow-up> \| none` line before `Result:`). Every loop states its cap. |
+| Reference       | Title, then topic sections: the conventions as short imperative bullets or tables, one example each where it clarifies. No workflow.                                                                           |
+| Background-only | Title, then facts and constraints Claude should know, grouped by topic. No steps, no output.                                                                                                                   |
 
 ## Lazy loading
 
@@ -67,6 +67,7 @@ An invoked skill stays in context but is not re-read later. After compaction onl
 - Short imperative steps, one default plus one escape hatch rather than many options.
 - One term per concept throughout; a concrete example beats a paragraph.
 - Multi-step work: a checklist. Quality-critical work: validate, fix, repeat, with a cap.
+- Task Output ends with a proactive `Next: <follow-up> | none` line before `Result:`, naming the logical next skill (`/cdk:<name>`) or action; spawn independent subagents in one parallel turn.
 - Name MCP tools fully (`Server:tool`); list dependencies instead of assuming they are installed.
 
 ## Don'ts

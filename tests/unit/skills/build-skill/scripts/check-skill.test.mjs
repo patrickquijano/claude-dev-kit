@@ -166,7 +166,7 @@ describe('checkFrontmatter', () => {
 });
 
 describe('checkBody', () => {
-  const task = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
+  const task = '## Output\n\n```text\nScope: x\nNext: /cdk:y | none\nResult: done\n```\n';
 
   test('passes a task body with a Result line and a Files section', () => {
     // Arrange
@@ -215,11 +215,31 @@ describe('checkBody', () => {
 
   test('errors when a task Output has no Result line', () => {
     // Arrange
-    const body = '## Output\n\n```text\nScope: x\n```\n';
+    const body = '## Output\n\n```text\nScope: x\nNext: none\n```\n';
     // Act
     const found = checkBody(body, { kind: 'task' });
     // Assert
     assert.deepEqual(ids(found), ['output-result']);
+  });
+
+  test('warns output-next when a task Output has no Next line', () => {
+    // Arrange
+    const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
+    const outside = '## Output\n\n```text\nResult: done\n```\n\n## Notes\n\nNext: later\n';
+    // Act
+    const found = [...checkBody(body, { kind: 'task' }), ...checkBody(outside, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(ids(found), ['output-next', 'output-next']);
+  });
+
+  test('accepts a Next line before Result and one with a slash command', () => {
+    // Arrange
+    const plain = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
+    const chained = '## Output\n\n```text\nNext: /cdk:commit-changes | none\nResult: done\n```\n';
+    // Act
+    const found = [...checkBody(plain, { kind: 'task' }), ...checkBody(chained, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(found, []);
   });
 
   test('skips the Output check for a reference skill', () => {
