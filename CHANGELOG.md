@@ -8,13 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `/cdk:update-gitignore` explores the repo, through the new read-only `cdk:gitignore-analyzer` agent, for generated, local, and secret paths that should not be committed, reports each with its evidence and confidence, and appends the ones you approve to the root `.gitignore`. It skips paths already ignored, never reads `.env*` contents, and never untracks, commits, or pushes; tracked files that match are only reported.
+- `/cdk:update-gitignore` explores the repo, through `cdk:repo-analyzer` (kind `gitignore`), for generated, local, and secret paths that should not be committed, reports each with its evidence and confidence, and appends the ones you approve to the root `.gitignore`. It skips paths already ignored, never reads `.env*` contents, and never untracks, commits, or pushes; tracked files that match are only reported.
 - `/cdk:publish-github-release` publishes a draft GitHub release: it finds the drafts (several → you pick one, or `--tag <tag>` names it) or drafts a new one from the latest `CHANGELOG.md` section, then asks the action (publish or keep as draft), latest or pre-release, whether to replace the draft's notes with the changelog section, an optional discussion category, and, for an Action repo, whether to list it on the GitHub Marketplace (a web-only step, so on Yes it keeps the release a draft and hands you its link to publish from the browser). The tag must already exist on `origin`; the skill never creates a tag, never edits a published release, and never forces (`--yes` publishes the lone draft with the defaults).
-- `cdk:requirement-implementer` and `cdk:implementation-verifier` agents for `/cdk:implement-requirement`: the implementer edits code and tests only in its planned files (no shell, never commits); the verifier is read-only, reviews the diff, runs the documented checks in check mode, and marks each goal met, unmet, or unverified with evidence.
 
 ### Changed
 
-- `/cdk:implement-requirement` now implements through `cdk:requirement-implementer` and reviews and tests through `cdk:implementation-verifier`; findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
+- **Breaking:** the role-specific subagents are merged into 15 agents that take a `kind` or `role` input, with no stubs left under the old names. Update any direct use of the old names:
+  - `cdk:repo-analyzer` replaces the devcontainer, gitignore, permission, project-instruction, readme, test-gap, and workflow analyzers.
+  - `cdk:rubric-scorer` and `cdk:rubric-improver` replace the per-kind (agent, skill, readme, project-instruction) scorers and improvers.
+  - `cdk:cr-reviewer` replaces the five `cr-*-reviewer` agents (`correctness`, `tests`, `security`, `maintainability`, `docs`).
+  - `cdk:practices-reviewer` replaces the Dockerfile and workflow reviewers.
+  - `cdk:version-resolver` replaces `cdk:actions-version-resolver` and `cdk:dependency-analyzer`.
+  - `cdk:cr-feedback-analyzer` replaces the feedback collector, planner, and replier.
+  - `cdk:plan-implementer` and `cdk:change-verifier` replace the feedback implementer and verifier and the requirement implementer and verifier.
+- `/cdk:implement-requirement` now implements through `cdk:plan-implementer` and reviews and tests through `cdk:change-verifier` (`goals`); findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
 - The README title now reads `CDK`.
 - `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
 - The end-of-task steps now fire once per turn that changed the working tree, compared with the tree `UserPromptSubmit` recorded at turn start, so Q&A turns and an already-dirty tree stay silent. They no longer include the commit-and-push step: run `/cdk:commit-changes` yourself, and `/cdk:commit-changes` no longer lists a hook as a trigger.
