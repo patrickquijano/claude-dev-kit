@@ -350,15 +350,21 @@ test('decide keeps the unit-test step under the ship-release marker', () => {
   assert.match(result[0], /`pytest`/);
 });
 
-const stateDeps = ({ state = {}, now = 'b' } = {}) => {
+const stateDeps = ({ state = {}, now = 'b', writeError = null, inside = true } = {}) => {
   const writes = [];
+  const texts = [];
   return {
-    ...make(),
+    ...make({ inside }),
     fingerprint: () => now,
     statePath: () => '/state.json',
     readState: () => state,
     writeState: (f, v) => writes.push(v),
-    writes
+    writeText: (f, t) => {
+      if (writeError) throw writeError;
+      texts.push({ file: f, text: t });
+    },
+    writes,
+    texts
   };
 };
 const session = { session_id: 's1' };
@@ -370,7 +376,7 @@ test('gate blocks a dirty tree with no state, with the steps in order', () => {
   const result = gate(session, deps);
   // Assert
   assert.equal(result.decision, 'block');
-  assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:update-changelog.*\n3\. .*cdk:commit-changes/s);
+  assert.match(deps.texts[0].text, /1\. .*README\.md.*\n2\. .*cdk:update-changelog.*\n3\. .*cdk:commit-changes/s);
   assert.deepEqual(deps.writes, [{ firedAt: 'b', awaiting: true }]);
 });
 
@@ -387,10 +393,54 @@ test('gate lets Claude stop when the task is unfinished and waiting on the user'
   // Arrange
   const deps = stateDeps();
   // Act
+  gate(session, deps);
+  // Assert
+  assert.match(deps.texts[0].text, /The working tree has uncommitted changes/);
+  assert.match(deps.texts[0].text, /not finished and you are waiting on the user, say so and stop/);
+});
+
+test('gate sends a one-line reason that points at the steps file', () => {
+  // Arrange
+  const deps = stateDeps();
+  // Act
   const result = gate(session, deps);
   // Assert
-  assert.match(result.reason, /The working tree has uncommitted changes/);
-  assert.match(result.reason, /not finished and you are waiting on the user, say so and stop/);
+  assert.equal(result.reason, `End-of-task steps pending: read ${deps.texts[0].file} and follow it, in order.`);
+  assert.equal(result.reason.includes('\n'), false);
+  assert.match(deps.texts[0].file, /\/repo\/\.git\/cdk-ship-release$/);
+});
+
+for (const code of ['EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC']) {
+  test(`gate falls back to the inline steps when the file write fails with ${code}`, () => {
+    // Arrange
+    const deps = stateDeps({ writeError: Object.assign(new Error(code), { code }) });
+    // Act
+    const result = gate(session, deps);
+    // Assert
+    assert.equal(result.decision, 'block');
+    assert.match(result.reason, /1\. .*README\.md.*\n2\. .*cdk:update-changelog/s);
+    assert.deepEqual(deps.writes, [{ firedAt: 'b', awaiting: true }]);
+  });
+}
+
+test('gate lets an unexpected file write error bubble', () => {
+  // Arrange
+  const deps = stateDeps({ writeError: Object.assign(new Error('boom'), { code: 'EIO' }) });
+  // Act
+  const act = () => gate(session, deps);
+  // Assert
+  assert.throws(act, /boom/);
+});
+
+test('gate falls back to the inline steps when git gives no steps path', () => {
+  // Arrange
+  const deps = stateDeps({ inside: false });
+  deps.git = (cwd, args) => ({ status: args[1] === '--git-path' ? 128 : 0, stdout: Buffer.from('') });
+  // Act
+  const result = gate(session, deps);
+  // Assert
+  assert.match(result.reason, /1\. .*README\.md/);
+  assert.deepEqual(deps.texts, []);
 });
 
 test('gate blocks a stop_hook_active continuation that was not awaiting the steps', () => {

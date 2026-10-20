@@ -29,9 +29,9 @@ export function decide(event) {
   return { action: 'none', rule };
 }
 
-const WEIGH = `Before any other tool call, weigh this prompt against everything in your context (instructions, rules, memory, the conversation so far) and ask the user with AskUserQuestion whether to enter plan mode. Options: "Enter plan mode" and "Continue without plan mode"; put the one you recommend first and end its label with "(Recommended)", and give each option a one-line reason grounded in that context. Lean Enter when the prompt changes several files or components, has several valid approaches, has unclear requirements, changes behavior or architecture, or is risky or hard to reverse. Lean Continue when it is a question or explanation, a small or fully specified change, work already covered by an approved plan or spec, or a follow-up inside the current task.`;
-const FORCED = `Before any other tool call, ask the user with AskUserQuestion whether to enter plan mode: the prompt carries #plan, so put "Enter plan mode (Recommended)" first with the reason "you asked for it with #plan", then "Continue without plan mode".`;
-const AFTER = ` If they choose to enter, call EnterPlanMode (load it with ToolSearch if deferred) and plan this prompt. Otherwise do the prompt in the current mode.`;
+const WEIGH = `Before any other tool call, weigh this prompt against your context and ask the user with AskUserQuestion whether to enter plan mode: options "Enter plan mode" and "Continue without plan mode", the one you recommend first with "(Recommended)" on its label, each with a one-line reason from your context. Lean Enter for multi-file, ambiguous, behavior-changing, or risky work; Lean Continue for questions, small specified changes, work an approved plan covers, or follow-ups.`;
+const FORCED = `Before any other tool call, ask the user with AskUserQuestion whether to enter plan mode: "Enter plan mode (Recommended)" first, reason "you asked for it with #plan", then "Continue without plan mode".`;
+const AFTER = ` On Enter, call EnterPlanMode (ToolSearch if deferred) and plan this prompt; otherwise do it in the current mode.`;
 
 export function output({ action, rule }) {
   if (action === 'none') return null;

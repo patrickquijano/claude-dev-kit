@@ -1,11 +1,12 @@
 // End-of-task logic: the Stop hook (gate) blocks once per distinct uncommitted working-tree state, telling Claude what to do
 // once the task is done: run the unit tests, refresh the Graphify graph, update docs, add changelog entries, then group,
 // commit, and push the changes (the changelog and commit steps ask the user first). A step is left out only when it cannot run.
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, realpathSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { fingerprint } from './format-lint-repo.mjs';
-import { git, readState, shipReleaseMarker, statePath, unsafeState, writeState } from './git-state.mjs';
+import { git, readState, sha, shipReleaseMarker, statePath, unsafeState, writeState } from './git-state.mjs';
 import { graphifyConfigured, graphifyFilesExist, which } from './graphify.mjs';
-import { blockOutput, projectDir } from './hook-io.mjs';
+import { blockOutput, expected, projectDir } from './hook-io.mjs';
 import { unitTestCommand } from './unit-tests.mjs';
 
 // Side effects as a swappable bundle so tests never touch git, graphify, or the fs.
@@ -21,6 +22,7 @@ export const realDeps = {
   fingerprint,
   readState,
   writeState,
+  writeText: writeFileSync,
   statePath,
   env: process.env,
   cwd: () => process.cwd()
@@ -59,6 +61,26 @@ export function decide(input, deps = realDeps) {
 }
 
 const numbered = (parts) => parts.map((p, i) => `${i + 1}. ${p}`).join('\n');
+const INSTRUCTION =
+  'The working tree has uncommitted changes. If the task is finished, do these end-of-task steps now, in order, then stop. If it is not finished and you are waiting on the user, say so and stop:';
+
+// Absolute path of this session's steps file inside the git dir, or '' outside git.
+function stepsFile(cwd, session, deps) {
+  const r = deps.git(cwd, ['rev-parse', '--git-path', `cdk-task-end-${sha(session)}.md`]);
+  return r.status === 0 ? path.resolve(cwd, r.stdout.toString().trim()) : '';
+}
+
+// Writes the steps to the file and returns true; false when there is no git dir or it is unwritable.
+function writeSteps(file, parts, deps) {
+  if (!file) return false;
+  try {
+    deps.writeText(file, `${INSTRUCTION}\n${numbered(parts)}\n`);
+    return true;
+  } catch (e) {
+    if (!expected(e, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw e;
+    return false;
+  }
+}
 const stateFile = (input, cwd, deps) => deps.statePath('task-end', cwd, input.session_id);
 const validSession = (input) => typeof input?.session_id === 'string' && input.session_id !== '';
 
@@ -79,8 +101,9 @@ export function gate(input, deps = realDeps) {
   const parts = decide(input, deps);
   if (!parts.length) return null;
   deps.writeState(file, { firedAt: now, awaiting: true });
-  return blockOutput(
-    'End-of-task steps pending',
-    `The working tree has uncommitted changes. If the task is finished, do these end-of-task steps now, in order, then stop. If it is not finished and you are waiting on the user, say so and stop:\n${numbered(parts)}`
-  );
+  const steps = stepsFile(cwd, input.session_id, deps);
+  const reason = writeSteps(steps, parts, deps)
+    ? `End-of-task steps pending: read ${steps} and follow it, in order.`
+    : `${INSTRUCTION}\n${numbered(parts)}`;
+  return blockOutput('End-of-task steps pending', reason);
 }

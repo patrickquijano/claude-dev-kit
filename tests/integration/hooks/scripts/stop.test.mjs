@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
@@ -50,7 +50,9 @@ test('cli: gate blocks the first stop on a dirty tree with the steps in order, t
   assert.equal(clean.stdout, '');
   const out = JSON.parse(first.stdout);
   assert.equal(out.decision, 'block');
-  assert.match(out.reason, /README\.md or related docs.*cdk:update-changelog.*cdk:commit-changes/s);
+  assert.match(out.reason, /^End-of-task steps pending: read .+\.md and follow it, in order\.$/);
+  const file = out.reason.slice('End-of-task steps pending: read '.length, -' and follow it, in order.'.length);
+  assert.match(readFileSync(file, 'utf8'), /README\.md or related docs.*cdk:update-changelog.*cdk:commit-changes/s);
   assert.equal(second.stdout, '');
 });
 

@@ -1,6 +1,6 @@
-// SessionStart hook: tell Claude the local date and time, plus the Graphify usage rules when a graph is ready.
+// SessionStart hook: tell Claude the local date and time, plus a pointer to the Graphify usage rules when a graph is ready.
 // Prints one JSON object with hookSpecificOutput.additionalContext.
-import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { git, shipReleaseMarker } from './git-state.mjs';
@@ -11,7 +11,6 @@ import { contextOutput, projectDir } from './hook-io.mjs';
 export const realDeps = {
   graphifyConfigured,
   graphifyFilesExist,
-  readFileSync,
   realpathSync,
   existsSync,
   statSync,
@@ -45,10 +44,8 @@ export function sessionStart(input = {}, deps = realDeps) {
   const cwd = projectDir(input, { env: deps.env, cwd: deps.cwd, realpath: deps.realpathSync });
   if (deps.graphifyConfigured(cwd) && deps.graphifyFilesExist(cwd)) {
     const root = deps.env.CLAUDE_PLUGIN_ROOT || deps.defaultRoot();
-    const rules = deps.readFileSync(path.join(root, 'skills', 'setup-graphify', 'assets', 'graphify-rules.md'), 'utf8');
-    context.push(
-      `Use Graphify to navigate this repository:\n\n${rules.trim()}\n\nThe cdk Stop hook names the graphify step to run once the task is done; do not run it on your own.`
-    );
+    const rules = path.join(root, 'skills', 'setup-graphify', 'assets', 'graphify-rules.md');
+    context.push(`Graphify is set up; read ${rules} before navigating code.`);
   }
   // A fresh session cannot own a ship-release run; resume and compact may still be inside one.
   if (['startup', 'clear', 'fork'].includes(input.source)) {
