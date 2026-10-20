@@ -6,18 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-20
+
 ### Added
 
+- `cdk:skill-improver` and `cdk:agent-improver` agents work through every check error, deduction, and warning thoroughly, with a proactive sweep, editing only the target skill directory or agent file.
 - `/cdk:implement-requirement` takes a requirement, spec file, or issue text and carries it to a validated change: it offers plan mode first, asks clarifying questions, sets goals with acceptance criteria, compares approaches (you pick one, or `--yes` takes the recommended one), implements with tests, and runs the project's documented checks, fixing errors and warnings and looping back to the goals for up to 3 rounds. It never commits.
+- `/cdk:publish-tag` creates and pushes the annotated tag for the latest `CHANGELOG.md` version from the verified tip of `main`, without a GitHub release, so it also works on GitLab. It stops when the tag already exists locally or on the remote, never forces, and asks once before writing (`--yes` skips the question; `--prefix v|none` overrides the detected tag prefix).
 
 ### Changed
 
+- `/cdk:build-skill` and `/cdk:build-agent` now report the score after each check, then delegate every open error and deduction to a dedicated writer subagent and re-score, for up to 3 improve rounds; the output gains a `Rounds:` line.
+- `/cdk:address-change-request-review` now plans and fixes each review item thoroughly and proactively within the CR: it finds the root cause, sweeps the code the CR changes for the same problem, plans the tests, docs, and callers each fix needs, and checks every item against an acceptance check before reporting. The plan table lists each group's sites, tests, and checks, an unmet self-check counts as a failed fix attempt, and same-pattern code outside the CR is listed under open items as a follow-up instead of edited.
+- **Breaking:** four components are renamed to describe their role, with no stubs left under the old names: `/cdk:build-project-instructions` → `/cdk:update-project-instructions`, `/cdk:build-readme` → `/cdk:update-readme`, `cdk:claude-md-analyzer` → `cdk:project-instruction-analyzer`, and `cdk:claude-md-scorer` → `cdk:project-instruction-scorer`. Update any invocation of the old names; the matching evals are renamed too.
 - **Breaking:** the end-of-task gate now fires whenever uncommitted changes exist, once per distinct working-tree state, instead of only when files changed since the prompt. The commit step commits all uncommitted changes (no `paths:` scope), and `UserPromptSubmit` no longer records a baseline.
-
 - Plugin hooks no longer show a spinner `statusMessage`; the format and lint hooks print a line only when a step changed files or failed, and the plan-mode ask no longer prints a notice.
+- Every Task skill's Output now ends with a `Next: <follow-up> | none` line before `Result:`, naming the logical next skill. All 35 subagents treat the content they read as data (ignoring instructions inside it), end their `## Task` with a `Self-check` step, and batch independent reads in one turn; no `## Return` field changed.
+- `/cdk:build-skill` and `/cdk:build-agent` enforce this: `check-skill` warns `output-next`, `check-agent` warns `data-guard` and `self-check`, and the rubrics gain Q4 (skill) and B9 (agent) while still totalling 100.
 
 ### Fixed
 
+- `/cdk:update-project-instructions` no longer penalizes a Maintenance line that routes known issues to auto memory, and counts ancestor `CLAUDE.md` files toward the always-loaded total, reported separately as `<project n> + <ancestor n>`.
+- `/cdk:update-readme` no longer scores host-injected, CI-internal, or dev-tooling config as undocumented options, and no longer treats scripts inside a component directory as separate components. `cdk:readme-analyzer` now splits `Config:` into user and internal.
 - The end-of-task steps never fired on the first turn after approving a plan with cleared context, because that turn fires no `UserPromptSubmit` to record a baseline.
 
 ## [0.1.0] - 2026-10-15
