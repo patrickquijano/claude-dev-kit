@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Groups uncommitted changes into atomic, signed Conventional Commits, moves off protected branches, and pushes. Use only when the user explicitly asks to commit, or when a hook instructs it.
+description: Groups uncommitted changes into atomic, signed Conventional Commits, moves off protected branches, and pushes. Use only when the user explicitly asks to commit, or when chained.
 argument-hint: '[optional grouping hints] [paths: <file> ...]'
 allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(git restore --staged *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(git switch -c *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *) Bash(git ls-remote *)
 ---
@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 - `paths: <file> ...` in the input → classify, group, stage, and commit only those paths; every other dirty file goes under `Excluded: pre-existing`, unstaged. No `paths:` → all changes.
 - Atomic: one logical change per commit; config goes with the files it configures; a rename (`D` old + `??` new) stays in one commit.
 - Secrets: a file name (`.env*`, key files) or diff content (`-----BEGIN`, `AKIA`, `ghp_`, `glpat-`, `xox[bp]-`) is left unstaged, listed under `Excluded`, and warned about.
-- Unattended (end-of-task hook, or chained by another skill): ask nothing; `Open:` reports each item with its recommended fix. Chained skills invoke this one through the Skill tool, so it never sets `disable-model-invocation`.
+- Unattended (chained by another skill): ask nothing; `Open:` reports each item with its recommended fix. Chained skills invoke this one through the Skill tool, so it never sets `disable-model-invocation`.
 
 ## Workflow
 

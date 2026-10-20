@@ -24,9 +24,9 @@ Input: $ARGUMENTS
 - Breaking changes come from the package's official changelog, release notes, or migration guide, never from memory. None found → say so in the plan and treat the major upgrade as high risk.
 - One package (or one tightly coupled set, like `react` + `react-dom`) per upgrade step, validated before the next. Exception: patch and minor upgrades go as one batch; a batch failure → split it and retry package by package.
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
-- Never commit, push, or change files outside the repo; the end-of-task hook commits.
+- Never commit, push, or change files outside the repo; the user commits afterwards (`/cdk:commit-changes`).
 - Caps: fix rounds per failing check 3, then revert that package and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
-- Unattended (chained, hook-run): ask nothing; apply patch and minor only and list majors under `Open:`.
+- Unattended (chained): ask nothing; apply patch and minor only and list majors under `Open:`.
 - Pre-flight stops and cancels print the Output with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
 
 ## Workflow
