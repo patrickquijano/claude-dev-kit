@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks and writes; `cdk:test-gap-analyzer` cannot ask.
+- Only this skill asks and writes; `cdk:repo-analyzer` cannot ask.
 - Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `write-*-tests` skills chain this with one kind and one package.
 - Idempotent: a re-run with everything configured changes nothing. Never overwrite an existing config, script, or tester; an existing tester of a kind wins over the recommendation.
 - Writes: test config, dev-dependency and browser installs per a user pick, run scripts in the manifest, and the context note; never test files beyond an empty-suite placeholder a runner needs, never production code.
@@ -31,7 +31,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Project dir = Context Repo root, else cwd. Stop on a rebase or merge in progress (`Stopped: 1: git operation in progress`); find packages, package manager, Docker (`flow.md` `## Pre-flight`).
-2. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message, kind `setup` (`flow.md` `## Analyze`).
+2. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `setup` (`flow.md` `## Analyze`).
 3. **Decide.** Print the per-package table. All selected kinds configured and faker present → `Result: nothing-to-do`. Else ask per missing tool (`flow.md` `## Decide`).
 4. **Install.** Picked testers, the faker library, and e2e browsers as dev dependencies; a failed install stops the skill.
 5. **Configure.** Missing configs only, in the native layout (`flow.md` `## Configure and scripts`).

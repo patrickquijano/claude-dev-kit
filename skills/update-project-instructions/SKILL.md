@@ -25,7 +25,7 @@ Input: $ARGUMENTS
 - Never invent commands, paths, or policies. Not derivable → ask; user omits → leave out, add to `Omitted:`; never re-ask an omitted item.
 - Update mode: keep correct content and author voice; change only stale, wrong, duplicate, conflicting, or missing items. Move any `Known issues` section to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove it; auto memory unavailable → keep it and report it.
 - Conflict → never resolve silently; ask.
-- Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only `cdk:project-instruction-improver` applies score fixes. Never loop past the cap; list what is left in `Open:`.
+- Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only `cdk:rubric-improver` applies score fixes. Never loop past the cap; list what is left in `Open:`.
 - Score-only never writes. Formatter runs prompt for permission; expected.
 
 ## Workflow
@@ -33,14 +33,14 @@ Input: $ARGUMENTS
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd. `CLAUDE.md` or `.claude/CLAUDE.md` exists → update (both → ask which is the target); none → create, target `CLAUDE.md`. Existing `.claude/rules/` files are edited in place, never re-templated.
    - Input `score` or an audit-only request → score-only: steps 2, 6, 7. No target file → `Result: nothing-to-do`, suggest create mode.
    - Split input: existing file paths → `Input files:`; the rest → `Input text:`.
-2. **Analyze.** Spawn `cdk:project-instruction-analyzer` with root, `Target:`, `Input files:`, `Input text:`; keep its facts block.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: instructions`, `model: sonnet`, root, `Target:`, `Input files:`, `Input text:`; keep its facts block.
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
 4. **Draft.** Create → fill `assets/template.md`; update → edit in place. Place each instruction per rubric `## Placement rules` and principles per `principles.md` `## Placement`. Always-loaded non-blank lines stay <200; overflow → path-scoped rules.
    - Show file list (new | changed | deleted), outline, dropped and moved items, suggested hooks; write without asking and print each diff. Tracked file to delete → ask Delete (Recommended) | Keep.
 5. **Write.** Write the files; facts `Formatter` not none → run it on them.
-6. **Score.** Spawn `cdk:project-instruction-scorer` per `flow.md` `## Scorer input`.
+6. **Score.** Spawn `cdk:rubric-scorer` with `kind: project-instructions` per `flow.md` `## Scorer input`.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-8. **Improve.** <95 and rounds <3 → spawn `cdk:project-instruction-improver` per `flow.md` `## Improve`, then step 5 format, step 6 rescore, step 7.
+8. **Improve.** <95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: project-instructions`) per `flow.md` `## Improve`, then step 5 format, step 6 rescore, step 7.
 9. **Leftovers.** List each leftover deduction in `Open:` with its fix; print the Output.
 
 ## Files

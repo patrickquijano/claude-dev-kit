@@ -37,8 +37,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 4. **Clarify.** Ask batches for the gaps in scope, behavior, edge cases, and constraints, up to the cap. `Stop` → `Result: cancelled`.
 5. **Goals.** List numbered goals, each with a checkable acceptance criterion, plus non-goals: `${CLAUDE_SKILL_DIR}/references/plan.md`.
 6. **Approaches.** Compare 2–3 approaches with the recommended one first and ask `Pick` | `Stop`; in plan mode, write the plan and call `ExitPlanMode`: `${CLAUDE_SKILL_DIR}/references/plan.md`.
-7. **Implement.** Spawn cdk:requirement-implementer with the root, restated requirement, goals, chosen approach, planned files, and repo instruction summary; `Changed:` → Output `Files`, `Tests:` → Output `Tests`, `Deviations:` → `Open:`, and `Question:` or a `blocked` status → ask the user and re-spawn.
-8. **Review and test.** Spawn cdk:implementation-verifier with root, goals, and `Changed:` paths; its `Goals:`, `Findings:`, and `Checks:` feed the Output, `Limitations:` → `Open:`, a `blocked` status or `Question:` → ask the user, and findings or failed checks go back to the implementer as a fix list, then a fresh verifier, up to the fix cap: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+7. **Implement.** Spawn cdk:plan-implementer with `kind: requirement`, the root, restated requirement, goals, chosen approach, planned files, and repo instruction summary; `Changed:` → Output `Files`, `Tests:` → Output `Tests`, `Deviations:` → `Open:`, and `Question:` or a `blocked` status → ask the user and re-spawn.
+8. **Review and test.** Spawn cdk:change-verifier with `kind: goals`, root, goals, and `Changed:` paths; its `Goals:`, `Findings:`, and `Checks:` feed the Output, `Limitations:` → `Open:`, a `blocked` status or `Question:` → ask the user, and findings or failed checks go back to the implementer as a fix list, then a fresh verifier, up to the fix cap: `${CLAUDE_SKILL_DIR}/references/validate.md`.
 9. **Iterate.** A criterion unmet or a check still failing → back to step 5 with what was learned, up to the cap; the rest goes to `Open:`: `${CLAUDE_SKILL_DIR}/references/validate.md`.
 
 ## Files

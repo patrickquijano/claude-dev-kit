@@ -9,7 +9,7 @@ Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then report a
 
 ## Spawn the scorer
 
-Spawn `cdk:skill-scorer` with: skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, scope, kind, invocation flags, and the check JSON verbatim. The scorer scores the "S" criteria from the JSON and judges the rest.
+Spawn `cdk:rubric-scorer` with: `kind: skill`, skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, scope, kind, invocation flags, and the check JSON verbatim. The scorer scores the "S" criteria from the JSON and judges the rest.
 
 ## Report
 
@@ -17,7 +17,7 @@ After each score, show the score table, the deductions (largest first), and any 
 
 ## Improve round
 
-1. Spawn `cdk:skill-improver` with: skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, `frontmatter.md` and `body.md` paths, `${CLAUDE_SKILL_DIR}/assets/templates.md`, scope, kind, invocation flags, the check JSON, the scorer return, allowlisted paths, answers and `Omitted:`, round number, and last round's unresolved items. It edits only the skill directory; this skill edits nothing for score fixes.
+1. Spawn `cdk:rubric-improver` with: `kind: skill`, skill dir, `${CLAUDE_SKILL_DIR}/references/rubric.md`, `frontmatter.md` and `body.md` paths, `${CLAUDE_SKILL_DIR}/assets/templates.md`, scope, kind, invocation flags, the check JSON, the scorer return, allowlisted paths, answers and `Omitted:`, round number, and last round's unresolved items. It edits only the skill directory; this skill edits nothing for score fixes.
 2. Its `Questions:` go to AskUserQuestion, each with an Omit option and a Stop option; re-spawn once with the answers. `Blocked:` items go to `Gaps:`.
 3. Show its `Map`, `Proactive`, and `Expected`.
 4. Re-run `check-skill` and rescore, then Report. Stop early when a round changes no file or the score does not rise. At most 3 rounds in total (shared with Rules); never edit a skill only to silence a finding.

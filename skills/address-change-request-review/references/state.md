@@ -1,6 +1,6 @@
 # Feedback state
 
-Used by `cdk:address-change-request-review` and its `cr-feedback-*` agents (GitHub pull requests and GitLab merge requests; "CR" below). The orchestrator alone writes the state file.
+Used by `cdk:address-change-request-review` and its `cr-feedback-analyzer` agent (GitHub pull requests and GitLab merge requests; "CR" below). The orchestrator alone writes the state file.
 
 ## State file
 

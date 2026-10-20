@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Every test follows `${CLAUDE_SKILL_DIR}/references/conventions.md` (Shared rules, Faker libraries, End to end).
-- Only this skill asks and writes; `cdk:test-gap-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
+- Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
 - Writes: test files and test-only config (seed scripts, auth setup); framework and browser installs belong to `cdk:setup-testing`; never production code.
 - Never run against production or shared environments; only a locally started app or a URL the user confirms is local or safe.
 - Caps: analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1.
@@ -32,7 +32,7 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** Project dir = Context Repo root, else cwd. Stop on a rebase or merge in progress; take scope from the input, else `all` (`flow.md` `## Pre-flight`).
 2. **Packages.** Find packages with `list-files` and manifests; detect the JS package manager (`flow.md` `## Packages`).
-3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message, kind `e2e` (`flow.md` `## Analyze`).
+3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `e2e` (`flow.md` `## Analyze`).
 4. **Decide.** Take Recommended picks; ask only the local-or-safe app URL; chain `cdk:setup-testing` for missing tools (`flow.md` `## Decide`).
 5. **Practices.** WebFetch the picked framework's official docs for framework-specific rules; unavailable → bundled rules only.
 6. **Baseline.** Run the existing e2e suite with the app started; note failures and continue. Every journey covered → `Result: nothing-to-do` after step 10.

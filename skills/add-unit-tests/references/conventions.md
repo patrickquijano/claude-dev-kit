@@ -1,6 +1,6 @@
 # Unit test conventions
 
-Rules for the tests this skill writes and for `cdk:test-gap-analyzer`. Runner detection lives in `stacks.md` beside this file.
+Rules for the tests this skill writes and for `cdk:repo-analyzer` kind `tests`. Runner detection lives in `stacks.md` beside this file.
 
 ## Contents
 

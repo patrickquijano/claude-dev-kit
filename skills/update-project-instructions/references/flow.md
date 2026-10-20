@@ -13,7 +13,7 @@ Branch detail for steps 3, 6, 7, and 8 of `SKILL.md`.
 
 ## Scorer input
 
-Spawn `cdk:project-instruction-scorer` with:
+Spawn `cdk:rubric-scorer` with `kind: project-instructions` and:
 
 - File paths: the target memory file, its `@imports`, every file written in step 5, and every `.claude/rules/**/*.md` from facts `Memory files` (so Z1, P2, and E1 see all files).
 - Rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md` and principles path `${CLAUDE_SKILL_DIR}/references/principles.md`.
@@ -21,7 +21,7 @@ Spawn `cdk:project-instruction-scorer` with:
 
 ## Improve
 
-- Round counter +1. Spawn `cdk:project-instruction-improver` with: root, rubric and principles paths, the file paths from `## Scorer input`, the scorer return (table and deductions), the facts block with answers merged, `Omitted:`, the round number, and last round's unresolved items.
+- Round counter +1. Spawn `cdk:rubric-improver` with: `kind: project-instructions`, root, rubric and principles paths, the file paths from `## Scorer input`, the scorer return (table and deductions), the facts block with answers merged, `Omitted:`, the round number, and last round's unresolved items.
 - Its `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
 - After it returns, show its `Map:`, `Proactive:`, and `Expected:`, run step 5 format on its `Files changed:`, rescore (step 6), and report (step 7).
 - Cap 3 rounds; deductions left after the cap go to `Open:`, never re-entered.

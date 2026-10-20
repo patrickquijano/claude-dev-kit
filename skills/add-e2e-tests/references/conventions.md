@@ -1,6 +1,6 @@
 # Conventions
 
-Test rules for `add-e2e-tests` and its `cdk:test-gap-analyzer`. `<x>` follows `stacks.md`.
+Test rules for `add-e2e-tests` and its `cdk:repo-analyzer` kind `tests`. `<x>` follows `stacks.md`.
 
 ## Contents
 

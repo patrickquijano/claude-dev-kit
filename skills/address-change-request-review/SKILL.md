@@ -44,14 +44,14 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 3. **Branch guard.** Read the state file, `fetch-head`, put the tree on the CR head branch; keep `headSha`; diverged, unsafe, or stale → stop (`flow.md` `## Branch guard`).
 4. **Resume.** State file for the same CR → resume per `state.md` `## Resume`, and say so.
 5. **Fetch.** Per the host `## Gather`; save JSON under Scratch.
-6. **Normalize.** Spawn `cdk:cr-feedback-collector` with host, mode `normalize`, Self, the scratch paths, and `state.md`; merge its items into the state file by id. Nothing needing a response → `Result: nothing-to-do`.
-7. **Plan.** Spawn `cdk:cr-feedback-planner`; show the plan table; answer its questions (`flow.md` `## Plan`). No `actionable` item → step 13.
-8. **Implement.** Per group, spawn `cdk:cr-feedback-implementer`; check the changed paths (`flow.md` `## Implement`).
-9. **Validate.** Run the repo's write formatter on changed files, then spawn `cdk:cr-feedback-validator`. Failure → step 8 for that group.
-10. **Verify.** Write `diff-head` to `<scratch>/final.diff`, spawn `cdk:cr-feedback-verifier`. Any item not `addressed` or any unmapped change → step 8 for that group.
+6. **Normalize.** Spawn `cdk:cr-feedback-analyzer` with `model: haiku`, host, mode `normalize`, Self, the scratch paths, and `state.md`; merge its items into the state file by id. Nothing needing a response → `Result: nothing-to-do`.
+7. **Plan.** Spawn `cdk:cr-feedback-analyzer` with `model: opus` and mode `plan`; show the plan table; answer its questions (`flow.md` `## Plan`). No `actionable` item → step 13.
+8. **Implement.** Per group, spawn `cdk:plan-implementer` with `kind: review-group`; check the changed paths (`flow.md` `## Implement`).
+9. **Validate.** Run the repo's write formatter on changed files, then spawn `cdk:change-verifier` with `kind: checks`. Failure → step 8 for that group.
+10. **Verify.** Write `diff-head` to `<scratch>/final.diff`, spawn `cdk:change-verifier` with `kind: feedback` and `model: opus`. Any item not `addressed` or any unmapped change → step 8 for that group.
 11. **Gate A.** Show `diff-stat`, proposed commits, item → commit map, validation. Ask `Commit + push` | `Commit only` | `Revise` | `Stop`; `--yes` → `Commit + push`.
 12. **Commit + push.** One signed atomic commit per group, then `push` after the host re-fetch (`flow.md` `## Commit and push`).
-13. **Replies.** Spawn `cdk:cr-feedback-replier`; draft the revision summary when a commit was pushed (`flow.md` `## Replies`).
+13. **Replies.** Spawn `cdk:cr-feedback-analyzer` with mode `reply`; draft the revision summary when a commit was pushed (`flow.md` `## Replies`).
 14. **Gate B.** Show replies, summary, resolve candidates, re-request targets. Ask multiSelect `Post replies` | `Resolve threads` | `Re-request review`; `--yes` → all that apply. Nothing → step 16.
 15. **Mutate.** One item at a time per the host `## Mutations` and `## Re-request`; record each result in `ops[]` before the next; then the host `## Verify after mutations`.
 16. **Report.** List every leftover in `Open:` (`flow.md` `## Open items`), then print the Output.

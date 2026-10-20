@@ -26,7 +26,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 ## Workflow
 
 1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
-2. **Analyze.** Spawn `cdk:gitignore-analyzer` with the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 6 with `nothing-to-do`.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 6 with `nothing-to-do`.
 3. **Report.** Show a table: path, category, evidence, confidence, grouped by category.
 4. **Choose.** AskUserQuestion: Add all (Recommended) | Add high-confidence only | Report only | Stop. Each option names the write.
 5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Then `check-ignore` the written paths.

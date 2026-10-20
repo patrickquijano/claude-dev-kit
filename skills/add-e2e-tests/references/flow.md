@@ -20,9 +20,9 @@ Step detail for `add-e2e-tests`. Read the section a step links.
 
 ## Analyze
 
-Spawn one `cdk:test-gap-analyzer` per package, all in one message. Each receives:
+Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package, all in one message. Each receives:
 
-- package path, kind `e2e`, scope, package manager (`n/a` for non-JS);
+- package path, test kind `e2e`, scope, package manager (`n/a` for non-JS);
 - the paths `${CLAUDE_SKILL_DIR}/references/stacks.md` and `${CLAUDE_SKILL_DIR}/references/conventions.md`.
 
 Use its `Runner:`, `Faker:`, `Conventions:`, `Style sample:`, `App start:`, and `Targets:` fields. Ask each returned `Questions:` once, then re-spawn only those analyzers with the same input plus the answers. Still open after that → stop (`Stopped: 3: analyzer questions unresolved`) with `Open:` none.

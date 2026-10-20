@@ -22,7 +22,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Only this skill asks the user (AskUserQuestion); subagents cannot. If AskUserQuestion or Write is unavailable, ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Never commit, push, stash, reset, or touch the user's index or refs: the snapshot uses a temporary index and leaves a dangling commit (`${CLAUDE_SKILL_DIR}/references/snapshot.md`).
 - Review contract, severity, validation, and direct review: `${CLAUDE_SKILL_DIR}/references/findings.md`. A small, low-risk change is reviewed here with no subagents; otherwise spawn the four reviewers in one message.
-- Local checks run by default: the working tree is the code under review (pass no `checks:` to `cdk:cr-test-reviewer`).
+- Local checks run by default: the working tree is the code under review (pass no `checks:` to role `tests`).
 - `--yes` is unattended: ask nothing in step 7 and report each open item with its recommended fix.
 - Caps: reviewer respawn on a malformed return 1; fix attempts per item 2; one ask pass over the open items. Cap hit: list what is left under `Resolution:` and finish.
 
@@ -32,7 +32,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 2. **Base.** Default `merge-base(origin/<default>, HEAD)`; `--uncommitted` → `HEAD`. Detail: `snapshot.md`.
 3. **Snapshot.** Build the dangling snapshot commit of the working tree with a temporary index. Empty range → `Result: nothing-to-do`.
 4. **Gather.** Write `diff.patch` (`diff-range`), `name-status.txt` (`name-status`), and `log.txt` (`range-log`) to the scratch dir with Write.
-5. **Review.** Direct-review criteria met (sizes from `diff-numstat`) → review here, marked `direct`. Else spawn `cdk:cr-correctness-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-maintainability-reviewer` in one message (inputs in `findings.md` `## Reviewer input`).
+5. **Review.** Direct-review criteria met (sizes from `diff-numstat`) → review here, marked `direct`. Else spawn `cdk:cr-reviewer` once per role (`correctness`, `security`, `tests`, `maintainability`) in one message, with `model: opus` on `correctness` and `security` (inputs in `findings.md` `## Reviewer input`).
 6. **Consolidate.** Validate and deduplicate per `findings.md` `## Parent validation`; re-read each finding's `file` and `line` in the working tree and drop one the code does not support.
 7. **Resolve findings.** Fix safe findings in the working tree, ask about the rest. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md`.
 8. **Report.** Print the findings table (id, severity, `path:line`, label, one line, recommended fix), the check results, and the Output.

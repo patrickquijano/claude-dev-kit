@@ -27,7 +27,7 @@ Build the `Dockerfile` from practices.md in this order: syntax line, image `ARG`
 
 ## Verify
 
-Spawn `cdk:dockerfile-reviewer` with: Dockerfile path(s), `.dockerignore` path (or none), practices path `${CLAUDE_SKILL_DIR}/references/practices.md`, build context dir, target (default | devcontainer). Use its `Findings`, `Checks`, `Tool output`.
+Spawn `cdk:practices-reviewer` with: `kind: dockerfile`, Dockerfile path(s), `.dockerignore` path (or none), practices path `${CLAUDE_SKILL_DIR}/references/practices.md`, build context dir, target (default | devcontainer). Use its `Findings`, `Checks`, `Tool output`.
 
 - Review mode → report findings; write nothing.
 - Create or update → each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.

@@ -1,6 +1,6 @@
 # Stacks
 
-Detection signals, runners, Recommended e2e frameworks, package manager, and targeted runs per stack, for `add-e2e-tests` and `cdk:test-gap-analyzer`.
+Detection signals, runners, Recommended e2e frameworks, package manager, and targeted runs per stack, for `add-e2e-tests` and `cdk:repo-analyzer` kind `tests`.
 
 ## Contents
 

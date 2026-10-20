@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
 - `docker build --check` is the primary check; hadolint only on a heredoc-free file, so it usually reports `skipped (heredoc)`.
-- Writes and AskUserQuestion happen here only; `cdk:dockerfile-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
+- Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Resolution:` and stop.
 - Chained by `cdk:setup-devcontainer` (devcontainer target): unattended, ask nothing, report leftovers.
@@ -35,7 +35,7 @@ Input: $ARGUMENTS
 3. **Clarify.** Ask only missing facts; apply the defaults without asking. Devcontainer → skip (`flow.md` `## Clarify`).
 4. **Draft and plan.** Build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
 5. **Write** `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
-6. **Verify.** Spawn `cdk:dockerfile-reviewer`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
+6. **Verify.** Spawn `cdk:practices-reviewer` with `kind: dockerfile`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
 7. **Report** leftovers under `Resolution:`, then print the Output.
 
 ## Files

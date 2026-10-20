@@ -26,7 +26,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 - Target: `--target <branch>`, else the host's default branch; ask only when none is found.
 - Writes (`git push`, CR create and update, draft flag, GitLab merge options) happen only in step 13, after the step 12 confirmation or with `--yes`; the release gate's chained `cdk:commit-changes` also pushes under the gate's own consent. None is in `allowed-tools`.
 - `--yes` (set by `cdk:ship-release` and `cdk:scan-vulnerabilities`) skips only the consent asks: step 12 and the release gate's ask. It never skips a stop or the gate itself, and skips the step 7 gate only with `--gate report` (valid only with `--yes`): gating findings go to the managed section and `Open:`. `--dry-run` runs steps 1–12, prints the result, and writes nothing.
-- Reviewers: a small, low-risk change per `${CLAUDE_SKILL_DIR}/references/findings.md` `## Direct review` is reviewed here with no subagents; otherwise the five reviewers `cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer` run, read-only. Parse, validate, deduplicate, and gate per `findings.md` `## Parent validation`.
+- Reviewers: a small, low-risk change per `${CLAUDE_SKILL_DIR}/references/findings.md` `## Direct review` is reviewed here with no subagents; otherwise five `cdk:cr-reviewer` runs, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), read-only. Parse, validate, deduplicate, and gate per `findings.md` `## Parent validation`.
 - CR title: Conventional Commits, max 72 chars, imperative, no attribution (`${CLAUDE_SKILL_DIR}/references/conventions.md`); a repo commitlint config wins and is checked with `commitlint` (not installed → `skipped (not installed)`; no config → `n/a`). Body claims come only from commits, the diff, and reviewer evidence; unknown → keep the template placeholder.
 - Existing CR: change only the managed section and, when chosen, the title; keep every other byte of the body, assignees, and reviewers. Body goes through `<scratch>/body.md`, never inline shell args. Assignee = Self; reviewers none on create, kept on update.
 - Merge options: `--squash` and `--delete-branch` preset them; GitLab sets them via the API, GitHub leaves them to the merge step (`chosen at review`).
@@ -53,7 +53,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 14. **Verify.** Host file `## Verify`; mismatch → report the field, `Stopped: 14: <field mismatch>`.
 15. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
-Step 6 spawns, in one message, five parallel Agent calls: `cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`, `cdk:cr-docs-reviewer`. Each gets root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths.
+Step 6 spawns, in one message, five parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), with `model: opus` on `correctness` and `security`. Each gets `role:`, root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths.
 
 ## Files
 

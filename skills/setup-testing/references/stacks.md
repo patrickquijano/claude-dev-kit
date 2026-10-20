@@ -1,6 +1,6 @@
 # Stacks
 
-Detection signals, runners, recommended testers, faker libraries, and targeted runs per stack, for `setup-testing` and `cdk:test-gap-analyzer`.
+Detection signals, runners, recommended testers, faker libraries, and targeted runs per stack, for `setup-testing` and `cdk:repo-analyzer` kind `tests`.
 
 ## Contents
 

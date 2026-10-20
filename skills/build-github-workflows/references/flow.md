@@ -31,7 +31,7 @@ Step 6. Per `layout.md` and `practices.md`:
 
 ## Verify and fix loop
 
-Step 9. Spawn `cdk:workflow-reviewer` and use its `Findings`, `Checks`, and `Tool output`.
+Step 9. Spawn `cdk:practices-reviewer` with `kind: workflow` and use its `Findings`, `Checks`, and `Tool output`.
 
 - Each `error` or `warning` finding: fix it in a file this run wrote, print the diff, write, and re-run the reviewer. Max 3 attempts. `info` is listed only.
 - A tool `error` (actionlint or zizmor failed to run) is reported with no fix loop.

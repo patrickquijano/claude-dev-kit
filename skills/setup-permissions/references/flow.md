@@ -13,7 +13,7 @@ Detail for the Workflow steps in `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/refe
 
 ## Analyze
 
-Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Ignore its `Known issue:` lines. Its `Gaps:` become `skipped` notes.
+Spawn `cdk:repo-analyzer` with `kind: permissions`, the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Ignore its `Known issue:` lines. Its `Gaps:` become `skipped` notes.
 
 ## MCP inventory
 

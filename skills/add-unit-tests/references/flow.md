@@ -4,7 +4,7 @@ Conditional branches for steps 3, 5, 6, and 10 of `SKILL.md`.
 
 ## Analyze (step 3)
 
-- Spawn one `cdk:test-gap-analyzer` per package, all in one message. Input per agent: package path, kind `unit`, scope, package manager (`n/a` for non-JS), the path `${CLAUDE_SKILL_DIR}/references/stacks.md`, the path `${CLAUDE_SKILL_DIR}/references/conventions.md`.
+- Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package, all in one message. Input per agent: package path, test kind `unit`, scope, package manager (`n/a` for non-JS), the path `${CLAUDE_SKILL_DIR}/references/stacks.md`, the path `${CLAUDE_SKILL_DIR}/references/conventions.md`.
 - The agent cannot ask. Ask each returned `Questions:` line with AskUserQuestion, then re-spawn only those agents with the same input plus the answers, once. Still open → `Stopped: 3: analyzer questions unresolved`, `Resolution: not run (stopped)`.
 
 ## Missing tooling (step 5)

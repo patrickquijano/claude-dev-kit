@@ -1,6 +1,6 @@
 # Stacks
 
-Detection signals, integration runners, Recommended testers, and targeted runs per stack, for this skill and `cdk:test-gap-analyzer`.
+Detection signals, integration runners, Recommended testers, and targeted runs per stack, for this skill and `cdk:repo-analyzer` kind `tests`.
 
 ## Contents
 

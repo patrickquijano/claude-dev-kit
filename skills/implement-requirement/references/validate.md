@@ -4,7 +4,7 @@ Detail for steps 8–9 (the verifier, the implementer's fix loop, and the iterat
 
 ## Verify
 
-Spawn `cdk:implementation-verifier` with the root, the goals with their acceptance criteria, and the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
+Spawn `cdk:change-verifier` with `kind: goals`, the root, the goals with their acceptance criteria, and the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
 
 ## Evidence
 
@@ -21,7 +21,7 @@ G2: unmet — <what failed, file:line>
 
 ## Fix
 
-- Send the implementer (`cdk:requirement-implementer`) a fix list of every finding and failed check in files this run changed: id, file, line, evidence, recommendation. Then spawn a fresh verifier on the new changed paths.
+- Send the implementer (`cdk:plan-implementer` with `kind: requirement`) a fix list of every finding and failed check in files this run changed: id, file, line, evidence, recommendation. Then spawn a fresh verifier on the new changed paths.
 - Up to 3 attempts per pass; each attempt is one implementer re-spawn plus one verifier run.
 - A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
 - Never let a test be weakened, skipped, or deleted to get green; reject such a change and re-send the finding.

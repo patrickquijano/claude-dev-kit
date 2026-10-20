@@ -25,7 +25,7 @@ Input: $ARGUMENTS
 - Narrowest safe pattern: never allow shells, interpreters, chaining, arbitrary scripts, code runners, or privilege escalation; an unclassifiable command goes to ask.
 - Git-recoverable damage (`rm`, `git reset --hard`, `git clean`) goes to ask, never deny. Deny only host-harming and privileged commands, anchored at the program name.
 - Settings file with comments, invalid JSON, or a non-object `permissions` = stop; never overwrite it.
-- Ask only here (`cdk:permission-analyzer` cannot): batches of at most 4 questions, 2-4 options each, recommended first with its reason. AskUserQuestion unavailable = ask in plain chat; unattended = take the recommendation.
+- Ask only here (`cdk:repo-analyzer` cannot): batches of at most 4 questions, 2-4 options each, recommended first with its reason. AskUserQuestion unavailable = ask in plain chat; unattended = take the recommendation.
 - Caps: re-spawn the analyzer at most once; validate-fix at most 3 attempts; fix loop at most 2 rounds. Every question is asked once.
 - Not chained by `cdk:setup-project`: it writes user scope, which every project shares.
 - Stop answer at Confirm = `Result: cancelled`. Any other stop after candidates exist: run the fix loop once (no new Validate round), then print the Output with `Stopped:` set.
@@ -34,7 +34,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Repo root from Context (`<none>` = cwd); platform, settings dir, and target per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
-2. **Analyze.** Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS`; ask its `Questions:`, re-spawn once (`## Analyze`).
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: permissions`, the repo root and `$ARGUMENTS`; ask its `Questions:`, re-spawn once (`## Analyze`).
 3. **MCP inventory.** Servers via `mcp-list`, tools from this session's own list only (`## MCP inventory`).
 4. **Classify.** Apply `catalog.md` to commands, baseline, and MCP tools into candidate rules (`## Classify`).
 5. **Merge.** Compare with the existing lists, append new rules, ask on unsafe or blocking existing ones (`## Merge`).

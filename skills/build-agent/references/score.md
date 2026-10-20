@@ -9,7 +9,7 @@ Step 6 of `SKILL.md`: mechanical check first, then rubric scoring, then report a
 
 ## Spawn the scorer
 
-Spawn `cdk:agent-scorer` with: the agent file, `${CLAUDE_SKILL_DIR}/references/rubric.md`, scope, the check JSON verbatim, and the spawning skill's path when one exists.
+Spawn `cdk:rubric-scorer` with: `kind: agent`, the agent file, `${CLAUDE_SKILL_DIR}/references/rubric.md`, scope, the check JSON verbatim, and the spawning skill's path when one exists.
 
 ## Report
 
@@ -17,7 +17,7 @@ After each score, show the score table, the deductions (largest first), and `Con
 
 ## Improve round
 
-1. Spawn `cdk:agent-improver` with: the agent file, `${CLAUDE_SKILL_DIR}/references/rubric.md`, `frontmatter.md`, `body.md`, and `decide.md` paths, scope, the check JSON, the scorer return with `Contract:`, the spawning skill's path, the model and color answers, round number, and last round's unresolved items. It edits only the agent file; this skill edits nothing for score fixes.
+1. Spawn `cdk:rubric-improver` with: `kind: agent`, the agent file, `${CLAUDE_SKILL_DIR}/references/rubric.md`, `frontmatter.md`, `body.md`, and `decide.md` paths, scope, the check JSON, the scorer return with `Contract:`, the spawning skill's path, the model and color answers, round number, and last round's unresolved items. It edits only the agent file; this skill edits nothing for score fixes.
 2. Its `Questions:` go to AskUserQuestion, each with an Omit option and a Stop option; re-spawn once with the answers. `Blocked:` items, including `Contract:` mismatches, go to `Gaps:`; the spawning skill is never edited.
 3. Show its `Map`, `Proactive`, and `Expected`.
 4. Re-run `check-agent` and rescore, then Report. Stop early when a round changes no file or the score does not rise. At most 3 rounds in total (shared with Rules); never edit an agent only to silence a finding.

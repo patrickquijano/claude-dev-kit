@@ -1,6 +1,6 @@
 # Integration test conventions
 
-Read by this skill and its `cdk:test-gap-analyzer`. `<x>`, `<py>`, `<mvn>`, `<gradle>` follow `stacks.md`.
+Read by this skill and its `cdk:repo-analyzer` kind `tests`. `<x>`, `<py>`, `<mvn>`, `<gradle>` follow `stacks.md`.
 
 ## Contents
 

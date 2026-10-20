@@ -13,7 +13,7 @@
 
 ## Analyze
 
-Spawn one `cdk:test-gap-analyzer` per package in one message. Input per package: package path, kind `setup`, scope `all`, package manager (`n/a` for non-JS), and the paths of `${CLAUDE_SKILL_DIR}/references/stacks.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, and again `stacks.md` as the conventions file (its `## Faker libraries` is all `setup` needs). Use its `Stack:`, `Testers:`, `Faker:`, `Missing:` lines. Ask its `Questions:` only for the selected kinds, then re-spawn those analyzers once with the answers appended; `Questions:` still open → `Stopped: 2: analyzer questions unresolved`.
+Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package in one message. Input per package: package path, test kind `setup`, scope `all`, package manager (`n/a` for non-JS), and the paths of `${CLAUDE_SKILL_DIR}/references/stacks.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, and again `stacks.md` as the conventions file (its `## Faker libraries` is all `setup` needs). Use its `Stack:`, `Testers:`, `Faker:`, `Missing:` lines. Ask its `Questions:` only for the selected kinds, then re-spawn those analyzers once with the answers appended; `Questions:` still open → `Stopped: 2: analyzer questions unresolved`.
 
 ## Decide
 

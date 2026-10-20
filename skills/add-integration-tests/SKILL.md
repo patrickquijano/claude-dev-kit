@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Follow `${CLAUDE_SKILL_DIR}/references/conventions.md` (shared rules, faker libraries, integration rules); each states why.
-- Only this skill asks and writes; `cdk:test-gap-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are handled here.
+- Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are handled here.
 - Writes: test files and test-only config (compose file for test services, fixtures). Tester installs and suite config belong to `cdk:setup-testing`. Never edit production code.
 - Never point tests at production or shared environments; only throwaway services, stubs, or fakes.
 - Caps: step 3 re-spawns an analyzer at most once (`Stopped: 3: analyzer questions unresolved`); step 4 re-spawns once more after setup (`Stopped: 4: tester still missing`); step 9 run-fix rounds at most 3 (`Stopped: 9: tests still failing after 3 rounds`); step 10 one pass.
@@ -31,7 +31,7 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** Root = Context, else cwd. Stop on a rebase or merge in progress (`git-dir`: `rebase-merge`, `rebase-apply`, `MERGE_HEAD`; `Stopped: 1: git operation in progress`). Run `docker-info` once. Scope = paths, symbols, or a description from the input; absent → `all`; no match → ask with the closest fits.
 2. **Packages.** `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); manifests per `${CLAUDE_SKILL_DIR}/references/stacks.md`. Monorepo → one package each, only those the scope touches. JS package manager per stacks.md; several lockfiles → ask.
-3. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message (inputs in `flow.md` `## Analyze`); ask its `Questions:`, re-spawn once with answers.
+3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message (inputs in `flow.md` `## Analyze`); ask its `Questions:`, re-spawn once with answers.
 4. **Decide.** Take the Recommended pick per open choice and report it; `Missing:` tooling → chain `cdk:setup-testing integration <package>` (`flow.md` `## Decide`).
 5. **Practices.** WebFetch the runner's official docs (plus Testcontainers when a container is picked); note runner-specific rules. WebFetch unavailable → bundled rules only.
 6. **Baseline.** Run the existing integration suite unless it targets a non-local host (`flow.md` `## Baseline`). Every boundary already covered → `Result: nothing-to-do`.

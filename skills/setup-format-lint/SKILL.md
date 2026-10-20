@@ -15,8 +15,8 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Analysis in a subagent: spawn `cdk:format-lint-analyzer` with `mode=detect` (step 2), `mode=versions` (step 6), `mode=check` (step 10). It cannot ask or install; relay its `Gaps` and an `unknown` manager with AskUserQuestion.
-- Agent input: root, mode, and answers to earlier `Gaps`. `versions` adds the packages to install and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
+- Analysis in a subagent: spawn `cdk:format-lint-analyzer` with `mode=detect` (step 2) and `mode=check` (step 10), and `cdk:version-resolver` with `kind: packages` (step 6). They cannot ask or install; relay their `Gaps` and an `unknown` manager with AskUserQuestion.
+- Agent input: root, mode (analyzer), and answers to earlier `Gaps`. The resolver takes root, the packages to install, and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Idempotent: installed tool → skip install; configured tool → keep its config; ignore entry present → skip. Never overwrite a user file; edits append only missing keys or entries.
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
@@ -34,7 +34,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 3. **Existing.** Filled roles keep their tool; the analyzer already applied the catalog rules for what counts as filled.
 4. **Choose tools.** Per unfilled role: one candidate → use it; several formatters → the first, no question; linters → `multiSelect` question (`references/flow.md` `## Choose tools`).
 5. **Package manager.** Only when an npm tool is installed or checked; ask on `unknown`, create a missing `package.json` (`package-manager.md`).
-6. **Versions.** Only for tools to install or version-dependent configs; spawn the analyzer (`mode=versions`); `Unverified` → skip that tool.
+6. **Versions.** Only for tools to install or version-dependent configs; spawn `cdk:version-resolver` (`kind: packages`); `Unverified` → skip that tool.
 7. **Install.** Missing tools only, each at its resolved version; native tools after a per-tool question (`references/flow.md` `## Install`).
 8. **Configure.** Write each missing config with the catalog defaults, no question; existing config → keep (`tools.md` `## Config files and defaults`).
 9. **Overlaps and ignores.** Apply the catalog overlaps, then add the analyzer's ignore candidates in each tool's syntax (`ignores.md`).

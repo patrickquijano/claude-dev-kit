@@ -16,7 +16,7 @@ This skill decides, writes, and enforces the rules; `skill-creator` is optional,
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files. `skill-creator` is optional, for evals only.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
 - Loops: clarify at most 3 rounds; improve rounds at most 3. Never loop past the cap; report what is left in `Gaps:`.
-- Only `cdk:skill-improver` applies score fixes.
+- Only `cdk:rubric-improver` applies score fixes.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - `validate-plugin` runs once from the plugin root; a failure goes to `Gaps:` with no retry.
 - Never write outside the chosen scope's skill directory; update edits in place and keeps existing sections.
@@ -32,9 +32,9 @@ This skill decides, writes, and enforces the rules; `skill-creator` is optional,
 3. **Kind.** AskUserQuestion: Reference | Task | Background-only, recommended from `decide.md` `## Kind`; then only the flags `decide.md` `## Invocation` cannot derive.
 4. **Clarify.** Fill every missing item (name, triggers, arguments, side effects, outputs) per Rules. Stop → `Result: cancelled`.
 5. **Draft.** Write the files per `${CLAUDE_SKILL_DIR}/references/frontmatter.md`, `${CLAUDE_SKILL_DIR}/references/body.md`, and `${CLAUDE_SKILL_DIR}/assets/templates.md`; update edits in place.
-6. **Check and score.** Run `check-skill`, spawn `cdk:skill-scorer` with its JSON, per `${CLAUDE_SKILL_DIR}/references/score.md`.
+6. **Check and score.** Run `check-skill`, spawn `cdk:rubric-scorer` with `kind: skill` and its JSON, per `${CLAUDE_SKILL_DIR}/references/score.md`.
 7. **Report.** Show the score table and deductions per `score.md` `## Report`. Check passes with no deductions, or 3 rounds done → step 9.
-8. **Improve.** Spawn `cdk:skill-improver` per `score.md` `## Improve round`, then repeat steps 6 and 7.
+8. **Improve.** Spawn `cdk:rubric-improver` (`kind: skill`) per `score.md` `## Improve round`, then repeat steps 6 and 7.
 9. **Evals.** Only when `skill-creator` is in the session's skill list: AskUserQuestion Skip (Recommended) | Run skill-creator evals | Stop; follow `${CLAUDE_SKILL_DIR}/references/evals.md`. Not listed → `Evals: n/a`.
 10. **Output.** Print the block below, nothing else.
 

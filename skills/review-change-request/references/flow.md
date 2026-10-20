@@ -15,7 +15,7 @@ Host-neutral rules for `cdk:review-change-request`; host commands live in `githu
 
 - `--reuse-findings <file>` present and its first line `Head: <sha>` equals the CR head SHA → use its blocks for the four roles (ignore `docs`) as the reviewers' output and mark them `reused`. A different SHA or an unreadable file → say so and run the full review.
 - Else the Direct review criteria from `findings.md` met → review directly, mark `direct`.
-- Else one message, four parallel Agent calls. Each gets only: root, base, merge-base, head, and the three scratch file paths (`diff.patch`, `name-status.txt`, `log.txt`). Add `checks: skip <reason>` for `cdk:cr-test-reviewer` when skipping, and the own-threads digest for `cdk:cr-correctness-reviewer`.
+- Else one message, four parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`), with `model: opus` on `correctness` and `security`. Each gets only: `role:`, root, base, merge-base, head, and the three scratch file paths (`diff.patch`, `name-status.txt`, `log.txt`). Add `checks: skip <reason>` for role `tests` when skipping, and the own-threads digest for role `correctness`.
 
 ## Local checks
 

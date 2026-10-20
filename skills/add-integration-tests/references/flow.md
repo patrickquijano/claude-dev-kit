@@ -6,7 +6,7 @@
 
 ## Analyze
 
-Each `cdk:test-gap-analyzer` receives: package path, kind `integration`, scope, package manager (`n/a` for non-JS), the absolute path of `${CLAUDE_SKILL_DIR}/references/stacks.md`, and of `${CLAUDE_SKILL_DIR}/references/conventions.md`. Use its `Runner:`, `Faker:`, `Mocks:`, `Conventions:`, `Targets:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers; still open → `Stopped: 3: analyzer questions unresolved`.
+Each `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) receives: package path, test kind `integration`, scope, package manager (`n/a` for non-JS), the absolute path of `${CLAUDE_SKILL_DIR}/references/stacks.md`, and of `${CLAUDE_SKILL_DIR}/references/conventions.md`. Use its `Runner:`, `Faker:`, `Mocks:`, `Conventions:`, `Targets:` fields. Ask returned `Questions:`, then re-spawn only those analyzers with the same inputs plus the answers; still open → `Stopped: 3: analyzer questions unresolved`.
 
 ## Decide
 

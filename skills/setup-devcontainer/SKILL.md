@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:build-dockerfile`; `cdk:devcontainer-analyzer` only reads.
+- Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:build-dockerfile`; `cdk:repo-analyzer` only reads.
 - Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. A skipped item gets a reason in the Output.
 - No invented facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. A failed lookup is asked in step 3 call 3, never guessed.
 - Pinning per practices.md: the image approach at the `<image major>-…` tag, features at `:<major>` with the committed `devcontainer-lock.json`, service images at an exact release tag; a Dockerfile base at the exact full tag plus digest, as `cdk:build-dockerfile` requires.
@@ -33,7 +33,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root, `<none>` → cwd. Update mode when `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists, else create; update → read each config and the files it references fully.
-2. **Analyze.** Spawn `cdk:devcontainer-analyzer` with the root only. Use its Return for every later step.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: devcontainer` and the root only. Use its Return for every later step.
 3. **Clarify.** Ask services and Claude Code first, then only the questions that apply, then only the gaps left. Recommended option first; derivable facts are never asked (`flow.md` `## Clarify`).
 4. **Look up** the base image tag, feature majors, and each service's tag, port, data directory, env vars, and health command (practices.md). Failure → call 3; call 3 spent → step 10, then stop.
 5. **Draft.** devcontainer.json, Compose files, the `.gitattributes` LF rule, the firewall script, and the Dockerfile handoff arguments (`flow.md` `## Draft`).

@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks the user and writes; `cdk:workflow-analyzer`, `cdk:actions-version-resolver`, and `cdk:workflow-reviewer` are read-only.
+- Only this skill asks the user and writes; `cdk:repo-analyzer`, `cdk:version-resolver`, and `cdk:practices-reviewer` are read-only.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print finished files in place of a pending question.
 - No invented facts: triggers, commands, runtime versions, secret and variable names, environments, and services come from the input, the repo, or the resolver. Not derivable means ask. Nothing is written until every item is settled.
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md` and every other item that fits; each says why. A skipped item gets its reason in the Output.
@@ -34,14 +34,14 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Root = Context Repo root, else cwd. Input names or matches an existing workflow, or `.github/workflows/` has files the request touches: update; else create. Input too thin to name a trigger or job: step 3.
-2. **Analyze.** Spawn `cdk:workflow-analyzer` with the root, a request summary, `${CLAUDE_SKILL_DIR}/references/versions.md`, and `${CLAUDE_SKILL_DIR}/references/practices.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming`, `Dependabot`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: workflows`, `model: sonnet`, the root, a request summary, `${CLAUDE_SKILL_DIR}/references/versions.md`, and `${CLAUDE_SKILL_DIR}/references/practices.md`. Use its facts (`Root`, `Stack`, `Commands`, `Workflows`, `Reusables`, `Actions`, `Services`, `Environments`, `Secrets`, `Vars`, `Naming`, `Dependabot`, `Required checks`, `Pinning signals`, `Questions`); do not re-read the repo.
 3. **Clarify.** Derive the design from the input and analyzer; ask only what stays missing, in one AskUserQuestion call; nothing to change: `Result: nothing-to-do`. See `flow.md` `## Clarify`.
 4. **Docs check.** WebFetch only the pages `practices.md` names for features this request uses, and always the Dependabot options page. A differing fact: follow the doc, record it under `Docs checked`.
-5. **Resolve.** Spawn `cdk:actions-version-resolver` with `${CLAUDE_SKILL_DIR}/references/versions.md`, the actions, remote reusable workflows, images (variant, major.minor), runner need and architecture, and the analyzer's pinning signals. Its `Unresolved` items (including `Pinning: unknown`: SHA recommended | tag; a non-LTS newest runner: newest | newest LTS) get one AskUserQuestion inside the step 3 cap, or `Stopped`. Keep its table for steps 6, 9, and 11.
+5. **Resolve.** Spawn `cdk:version-resolver` with `kind: actions`, `${CLAUDE_SKILL_DIR}/references/versions.md`, the actions, remote reusable workflows, images (variant, major.minor), runner need and architecture, and the analyzer's pinning signals. Its `Unresolved` items (including `Pinning: unknown`: SHA recommended | tag; a non-LTS newest runner: newest | newest LTS) get one AskUserQuestion inside the step 3 cap, or `Stopped`. Keep its table for steps 6, 9, and 11.
 6. **Draft.** The orchestrator, one callee per job, the `_gate.yml` callee when a touched job has a required check, and `.github/dependabot.yml`, per `layout.md` and `practices.md`. See `flow.md` `## Draft`.
 7. **Plan.** Print the file list with a one-line purpose each, the resolved versions table, and the diff for existing files; then write without asking.
 8. **Write** the files under `.github/workflows/` and `.github/dependabot.yml`.
-9. **Verify.** Spawn `cdk:workflow-reviewer` with the workflow paths and `.github/dependabot.yml` when written, `${CLAUDE_SKILL_DIR}/references/practices.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, the resolver table, the pinning mode, the files written, the existing names kept or renamed with approval, and in update mode the diff. Fix each `error` or `warning`, print the diff, write, re-run (cap in Rules). See `flow.md` `## Verify and fix loop`.
+9. **Verify.** Spawn `cdk:practices-reviewer` with `kind: workflow`, the workflow paths and `.github/dependabot.yml` when written, `${CLAUDE_SKILL_DIR}/references/practices.md`, `${CLAUDE_SKILL_DIR}/references/layout.md`, the resolver table, the pinning mode, the files written, the existing names kept or renamed with approval, and in update mode the diff. Fix each `error` or `warning`, print the diff, write, re-run (cap in Rules). See `flow.md` `## Verify and fix loop`.
 10. **Open items.** List every leftover under `Open:` (`flow.md` `## Open items`).
 11. **Report** the Output below.
 

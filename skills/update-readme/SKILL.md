@@ -23,23 +23,23 @@ Input: $ARGUMENTS
 - Every command in the README must exist in the repo (script, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, and author voice; change only stale, wrong, or missing items.
 - Never drop a required section of the rubric. No facts for it → ask in step 3, else write one explicit line ("No configuration.").
-- Pass score = 95/100. Only `cdk:readme-improver` applies score fixes. Improve rounds capped at 3; the counter starts at 0 and rises each improve round. Then stop and list leftovers in `Open:`.
+- Pass score = 95/100. Only `cdk:rubric-improver` applies score fixes. Improve rounds capped at 3; the counter starts at 0 and rises each improve round. Then stop and list leftovers in `Open:`.
 - Score-only never writes. Formatter and linter runs prompt for permission; expected.
 - Commit nothing; the README is the only file written.
 
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd. Find `README*` at root, case-insensitive. `README.md` → update; none → create; score-only and non-`.md` cases: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
-2. **Analyze.** Spawn `cdk:readme-analyzer` with the repo root. Keep its facts block for steps 3, 4, 6.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: readme` and the repo root. Keep its facts block for steps 3, 4, 6.
 3. **Clarify.** Archetype: input names one → use it, else the analyzer guess, no question. Each analyzer `Gaps:` item → one question with an "Omit" option (max 4 per call); record omissions as `Omitted:`.
 4. **Draft.** Read `## Required sections` in `${CLAUDE_SKILL_DIR}/references/rubric.md`.
    - Create → fill the archetype template (`## Files`) from facts and answers; apply then strip each `<!-- -->` instruction; drop empty optional sections.
    - Update → map the README to archetype sections; fix `Stale` facts, add missing required sections, keep order.
    - Final ≥100 lines → ToC after the intro; shorter → none.
 5. **Write.** Print archetype, outline, and changed sections; write `README.md` at root without asking. Facts `Formatter` not none → run it on the README.
-6. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Spawn `cdk:readme-scorer` with: README path, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), `Omitted:` list.
+6. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Spawn `cdk:rubric-scorer` with: `kind: readme`, README path, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), `Omitted:` list.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or total ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-8. **Improve.** Below 95 and rounds <3 → spawn `cdk:readme-improver` per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, then step 5 format, step 6 rescore, step 7. Then list leftovers per `## Leftovers`.
+8. **Improve.** Below 95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: readme`) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, then step 5 format, step 6 rescore, step 7. Then list leftovers per `## Leftovers`.
 
 ## Files
 
