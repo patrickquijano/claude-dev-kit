@@ -4,14 +4,11 @@ import {
   POLICY_FILE,
   bump,
   changelogParts,
-  createTarget,
   evaluate,
   levelOf,
   loadPolicy,
   main,
-  report,
-  runHook,
-  segments
+  report
 } from '../../../../../skills/bump-version/scripts/release-check.mjs';
 
 const ROOT = '/repo';
@@ -184,12 +181,11 @@ describe('loadPolicy', () => {
     // Arrange
     const { deps } = world({ policy: { versionFiles: [{ path: 'v.json', key: 'version' }] } });
     // Act
-    const { root, policy, hash } = loadPolicy('/repo/sub', deps);
+    const { root, policy } = loadPolicy('/repo/sub', deps);
     // Assert
     assert.equal(root, ROOT);
     assert.equal(policy.defaultBranch, 'main');
     assert.deepEqual(policy.versionFiles, [{ path: 'v.json', key: 'version' }]);
-    assert.equal(typeof hash, 'string');
   });
 
   test('uses the given directory as the root when git reports none', () => {
@@ -705,125 +701,6 @@ describe('pre-1.0 rule and versionReset', () => {
   });
 });
 
-describe('segments', () => {
-  test('splits on &&, |, and ;', () => {
-    // Arrange
-    const command = 'a && b | c; d';
-    // Act
-    const result = segments(command);
-    // Assert
-    assert.deepEqual(result, [['a'], ['b'], ['c'], ['d']]);
-  });
-
-  test('keeps quoted operators inside one token', () => {
-    // Arrange
-    const command = 'echo "a && b"';
-    // Act
-    const result = segments(command);
-    // Assert
-    assert.deepEqual(result, [['echo', 'a && b']]);
-  });
-
-  test('returns no segments for an empty command', () => {
-    // Arrange
-    const command = '   ';
-    // Act
-    const result = segments(command);
-    // Assert
-    assert.deepEqual(result, []);
-  });
-
-  test('keeps a lone & inside the segment', () => {
-    // Arrange
-    const command = 'a & b';
-    // Act
-    const result = segments(command);
-    // Assert
-    assert.deepEqual(result, [['a', 'b']]);
-  });
-});
-
-describe('createTarget', () => {
-  const bash = (command) => ({ tool_name: 'Bash', tool_input: { command } });
-  const mcp = (tool_input) => ({ tool_name: 'mcp__plugin_gitlab_gitlab__save_merge_request', tool_input });
-
-  test('returns the default branch for gh pr create without a base', () => {
-    // Arrange
-    const event = bash('gh pr create -t x');
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, 'main');
-  });
-
-  test('reads the base from --base= after a chained prefix', () => {
-    // Arrange
-    const event = bash('cd x && GH_TOKEN=1 gh -R a/b pr create -B rel');
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, 'rel');
-  });
-
-  test('reads the base from a gh api POST field', () => {
-    // Arrange
-    const event = bash('gh api repos/a/b/pulls -X POST -f base=dev');
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, 'dev');
-  });
-
-  test('reads the target from glab mr create and glab api', () => {
-    // Arrange
-    const events = [
-      bash('glab mr create -b dev'),
-      bash('glab mr new --target-branch=x'),
-      bash('glab api projects/1/merge_requests -F target_branch=y')
-    ];
-    // Act
-    const targets = events.map((e) => createTarget(e, 'main'));
-    // Assert
-    assert.deepEqual(targets, ['dev', 'x', 'y']);
-  });
-
-  test('reads the target from an MCP create call', () => {
-    // Arrange
-    const event = mcp({ title: 't', target_branch: 'dev' });
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, 'dev');
-  });
-
-  test('returns undefined for an MCP update of an existing request', () => {
-    // Arrange
-    const event = mcp({ merge_request_iid: 3, title: 't' });
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, undefined);
-  });
-
-  test('returns undefined for commands that do not create a request', () => {
-    // Arrange
-    const commands = ['gh pr view 1', 'glab mr list', 'gh api repos/a/b/pulls', 'echo "gh pr create"'];
-    // Act
-    const targets = commands.map((c) => createTarget(bash(c), 'main'));
-    // Assert
-    assert.deepEqual(targets, [undefined, undefined, undefined, undefined]);
-  });
-
-  test('returns undefined for a tool other than Bash or the MCP create', () => {
-    // Arrange
-    const event = { tool_name: 'Read', tool_input: { file_path: 'x' } };
-    // Act
-    const target = createTarget(event, 'main');
-    // Assert
-    assert.equal(target, undefined);
-  });
-});
-
 describe('report', () => {
   test('formats each failure with its fix', () => {
     // Arrange
@@ -850,117 +727,6 @@ describe('report', () => {
     const text = report(result);
     // Assert
     assert.equal(text, '');
-  });
-});
-
-describe('runHook', () => {
-  const hookDeps = (input, over = {}) => {
-    const w = world({ policy: POLICY, ...over.world });
-    const state = {};
-    const stderr = [];
-    const deps = {
-      ...w.deps,
-      readJsonStdin: async () => {
-        const parsed = typeof input === 'string' ? JSON.parse(input) : input;
-        if (!parsed || typeof parsed !== 'object') throw new TypeError('hook input is not a JSON object');
-        return parsed;
-      },
-      env: { CLAUDE_PROJECT_DIR: ROOT },
-      cwd: () => ROOT,
-      statePath: () => 'state-file',
-      readState: () => state,
-      writeState: (_f, s) => Object.assign(state, s),
-      stderr: (t) => stderr.push(t),
-      ...over.deps
-    };
-    return { deps, state, stderr };
-  };
-  const create = { tool_name: 'Bash', tool_input: { command: 'gh pr create -B main' } };
-
-  test('blocks with exit 2 and the fixes when the checks fail', async () => {
-    // Arrange
-    const { deps, stderr } = hookDeps(create);
-    // Act
-    const code = await runHook(deps);
-    // Assert
-    assert.equal(code, 2);
-    assert.match(stderr.join(''), /changelog-unchanged/);
-    assert.match(stderr.join(''), /Blocked PR\/MR creation/);
-  });
-
-  test('allows and caches the pass when the checks succeed', async () => {
-    // Arrange
-    const { deps, state } = hookDeps(create, {
-      world: { head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } }
-    });
-    // Act
-    const code = await runHook(deps);
-    // Assert
-    assert.equal(code, 0);
-    assert.equal(typeof state.pass, 'string');
-  });
-
-  test('allows a cached pass without evaluating again', async () => {
-    // Arrange
-    const first = hookDeps(create, {
-      world: { head: { 'plugin.json': pj('1.1.0'), 'CHANGELOG.md': withEntry('Added a.') } }
-    });
-    await runHook(first.deps);
-    const second = hookDeps(create, {
-      world: { remote: false },
-      deps: { readState: () => first.state }
-    });
-    // Act
-    const code = await runHook(second.deps);
-    // Assert
-    assert.equal(code, 0);
-  });
-
-  test('allows a command that does not create a request', async () => {
-    // Arrange
-    const { deps } = hookDeps({ tool_name: 'Bash', tool_input: { command: 'git status' } });
-    // Act
-    const code = await runHook(deps);
-    // Assert
-    assert.equal(code, 0);
-  });
-
-  test('allows when the repo has no release policy', async () => {
-    // Arrange
-    const { deps } = hookDeps(create, { world: { policy: null } });
-    // Act
-    const code = await runHook(deps);
-    // Assert
-    assert.equal(code, 0);
-  });
-
-  test('lets invalid stdin bubble so the entry fails closed', async () => {
-    // Arrange
-    const { deps } = hookDeps('not json');
-    // Act
-    const act = runHook(deps);
-    // Assert
-    await assert.rejects(act, SyntaxError);
-  });
-
-  test('lets JSON null stdin bubble so the entry fails closed', async () => {
-    // Arrange
-    const { deps } = hookDeps('null');
-    // Act
-    const act = runHook(deps);
-    // Assert
-    await assert.rejects(act, TypeError);
-  });
-
-  test('blocks with exit 2 when the policy file is invalid', async () => {
-    // Arrange
-    const { deps, stderr } = hookDeps(create);
-    deps.readFileSync = () => '{ nope';
-    // Act
-    const code = await runHook(deps);
-    // Assert
-    assert.equal(code, 2);
-    assert.match(stderr.join(''), /invalid \.claude\/release-policy\.json/);
   });
 });
 

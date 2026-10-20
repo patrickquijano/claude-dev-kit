@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 import { bump, evaluate } from '../../../../../skills/bump-version/scripts/release-check.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../../../../../skills/bump-version/scripts/release-check.mjs', import.meta.url));
-const HOOK = fileURLToPath(new URL('../../../../../hooks/scripts/pre-tool-use.mjs', import.meta.url));
 const POLICY = {
   changelog: 'CHANGELOG.md',
   defaultBranch: 'main',
@@ -67,8 +66,6 @@ function repo({ policy = POLICY } = {}) {
   sh(work, 'checkout', '-q', '-b', 'feat/x');
   return { dir, work };
 }
-const runHook = (input) =>
-  spawnSync('node', [HOOK], { input: JSON.stringify(input), encoding: 'utf8', timeout: 60_000 });
 const runCli = (cwd, args) => spawnSync('node', [SCRIPT, ...args], { cwd, encoding: 'utf8', timeout: 60_000 });
 
 after(() => {
@@ -92,16 +89,6 @@ describe('release-check without a policy', () => {
     const res = bump(work);
     // Assert
     assert.deepEqual(res.changed, []);
-  });
-
-  test('hook allows PR creation', () => {
-    // Arrange
-    const { work } = repo({ policy: null });
-    const event = { tool_name: 'Bash', cwd: work, tool_input: { command: 'gh pr create' } };
-    // Act
-    const res = runHook(event);
-    // Assert
-    assert.equal(res.status, 0);
   });
 });
 
@@ -436,58 +423,6 @@ describe('release-check bump', () => {
     // Assert
     assert.ok(res.changed.some((c) => c.to === '1.1.0'));
     assert.equal(JSON.parse(readFileSync(path.join(work, 'plugin.json'), 'utf8')).version, '1.1.0');
-  });
-});
-
-describe('release-check hook', () => {
-  const event = (work, command) => ({ tool_name: 'Bash', cwd: work, tool_input: { command } });
-
-  test('blocks with exit 2 and the codes until fixed', () => {
-    // Arrange
-    const { work } = repo();
-    commit(work, { 'skills/a/SKILL.md': 'a\n' }, 'feat: a');
-    push(work);
-    // Act
-    const res = runHook(event(work, 'gh pr create -B main'));
-    // Assert
-    assert.equal(res.status, 2);
-    assert.match(res.stderr, /changelog-unchanged/);
-    assert.match(res.stderr, /version-unchanged/);
-  });
-
-  test('allows a command that does not create a request', () => {
-    // Arrange
-    const { work } = repo();
-    commit(work, { 'skills/a/SKILL.md': 'a\n' }, 'feat: a');
-    push(work);
-    // Act
-    const res = runHook(event(work, 'git status'));
-    // Assert
-    assert.equal(res.status, 0);
-  });
-
-  test('allows once the release files are pushed', () => {
-    // Arrange
-    const { work } = repo();
-    commit(work, { 'skills/a/SKILL.md': 'a\n' }, 'feat: a');
-    commit(work, { 'CHANGELOG.md': withChangelog('Added a.'), 'plugin.json': pj('1.1.0') }, 'chore: release files');
-    push(work);
-    // Act
-    const res = runHook(event(work, 'gh pr create -B main'));
-    // Assert
-    assert.equal(res.status, 0);
-  });
-
-  test('allows a repeat call from the cache', () => {
-    // Arrange
-    const { work } = repo();
-    commit(work, released(), 'feat: a');
-    push(work);
-    runHook(event(work, 'gh pr create -B main'));
-    // Act
-    const res = runHook(event(work, 'gh pr create -B main'));
-    // Assert
-    assert.equal(res.status, 0);
   });
 });
 
