@@ -17,7 +17,7 @@
 
 ## Target
 
-No question. Input names a branch → use it when listed or `verify-ref` passes, else report and stop. No input → the default; not listed → stop and tell the user to name a target. Report `divergence` as "<behind> behind, <ahead> ahead".
+No question. Input names a branch → try `origin/<input>` first (listed or `verify-ref` passes), then the local `<input>` (`verify-ref`), else report and stop. No input → the default; not listed → stop and tell the user to name a target. Report `divergence` as "<behind> behind, <ahead> ahead".
 
 ## Conflict loop
 
@@ -34,7 +34,7 @@ No question. Input names a branch → use it when listed or `verify-ref` passes,
 
 ## Push
 
-- `open-mr` returns an open MR (glab missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
+- `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
 - Upstream = `origin/<current>` → ask: Push with lease (Recommended; the remote holds the pre-rebase history) | Skip. Lease → `push-lease`.
 - Upstream is another branch (e.g. `origin/main`) → never force; ask: Skip (Recommended) | Push -u to `origin/<current>` (no force; rejected if it holds other history) → `push-upstream`.
 - No upstream → ask: Push -u (Recommended) | Skip → `push-upstream`.
@@ -42,4 +42,4 @@ No question. Input names a branch → use it when listed or `verify-ref` passes,
 
 ## Open items
 
-Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).
+Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: an unattended conflict abort (the files that conflicted), `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).

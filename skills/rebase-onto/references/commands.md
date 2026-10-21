@@ -20,8 +20,6 @@
 | `conflicted-files` | `git diff --name-only --diff-filter=U`                                                             | Unmerged files                                        |
 | `replayed-commit`  | `git log -1 --format='%h %s' REBASE_HEAD`                                                          | Commit being replayed                                 |
 | `merge-base`       | `git merge-base <target> REBASE_HEAD`                                                              | Common ancestor                                       |
-| `theirs-diff`      | `git show REBASE_HEAD -- <file>`                                                                   | Your side of a conflict                               |
-| `ours-log`         | `git log -p <merge-base>..HEAD -- <file>`                                                          | Target plus replayed commits                          |
 | `keep-target`      | `git checkout --ours -- <file>`                                                                    | Whole file from `HEAD`                                |
 | `keep-mine`        | `git checkout --theirs -- <file>`                                                                  | Whole file from the replayed commit                   |
 | `remove-file`      | `git rm -- <file>`                                                                                 | Resolve delete/modify by deleting                     |
@@ -31,5 +29,6 @@
 | `continue`         | `git -c core.editor=true rebase --continue`                                                        | Next commit                                           |
 | `signatures`       | `git log --format='%h %G? %s' <target>..HEAD`                                                      | `%G?` per commit                                      |
 | `open-mr`          | `glab mr list --source-branch <current> -F json`                                                   | Open MR for the branch                                |
+| `open-pr`          | `gh pr list --head <current> --state open --json number,url`                                       | Open GitHub PR for the branch                         |
 | `push-lease`       | `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>` | Rewritten history                                     |
 | `push-upstream`    | `git push -u origin HEAD:<current>`                                                                | Set upstream, no force                                |

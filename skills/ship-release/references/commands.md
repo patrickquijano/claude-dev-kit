@@ -20,7 +20,9 @@
 | `glab-mr-list`     | `glab mr list --source-branch <current> -F json`                             | MRs for the branch                    |
 | `unshipped-count`  | `git rev-list --count origin/<target>..HEAD`                                 | Commits not on target                 |
 | `target-diff`      | `git diff origin/<target>...HEAD`                                            | Shipped change vs README              |
-| `checks-watch`     | `gh pr checks <n> --required --watch`                                        | Wait for required checks              |
+| `checks-poll`      | `gh pr checks <n> --required`                                                | One poll; exit 8 = checks pending     |
+| `poll-wait`        | `sleep 30`                                                                   | Pause between check polls             |
+| `glab-mr-view`     | `glab mr view <iid> -F json`                                                 | MR state and `head_pipeline`          |
 | `switch-target`    | `git switch <target>`                                                        | Switch to the target                  |
 | `ff-target`        | `git merge --ff-only origin/<target>`                                        | Fast-forward the target               |
 | `is-ancestor`      | `git merge-base --is-ancestor <target> <source branch tip>`                  | Local commits are in the merge        |
