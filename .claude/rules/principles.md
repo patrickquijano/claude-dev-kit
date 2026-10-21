@@ -6,6 +6,13 @@
 - Comments: max 2 sentences.
 - Verify: Definition of done checklist in `.claude/CLAUDE.md`.
 
+## Working discipline
+
+- Finish every step in full; never stop at a partial result.
+- Never assume or invent: confirm each path, command, and fact by reading it, and ask when it is unknown.
+- Think twice before an irreversible step, then double-check the result against the repo's standards before reporting.
+- Be token efficient: read only what the task needs, keep output terse, and take the fewest steps; when orchestrating autonomous work that splits cleanly, spawn independent subagents in parallel.
+
 ## Design principles
 
 - DRY: extract shared code on the third occurrence; prefer duplication over wrong abstraction.
