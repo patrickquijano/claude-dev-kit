@@ -150,6 +150,9 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
       found.push(error('enum-value', 'A7', at('model'), `model "${model}" must be an alias or a full model id`));
     }
   }
+  for (const key of ['model', 'effort']) {
+    if (!(key in fields)) found.push(warning(`${key}-missing`, 'A5', 1, `${key} is not set`));
+  }
   for (const key of BOOLEANS) {
     if (key in fields && !['true', 'false'].includes(fields[key])) {
       found.push(error('boolean-value', 'A7', at(key), `${key} must be true or false`));
