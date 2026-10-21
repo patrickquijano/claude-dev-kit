@@ -27,7 +27,7 @@ Input: $ARGUMENTS
 - `docker build --check` is the primary check; hadolint only on a heredoc-free file, so it usually reports `skipped (heredoc)`.
 - Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Resolution:` and stop.
+- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
 - Chained by `cdk:setup-devcontainer` (devcontainer target): unattended, ask nothing, report leftovers.
 
 ## Workflow
@@ -38,7 +38,7 @@ Input: $ARGUMENTS
 4. **Draft and plan.** Build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
 5. **Write** `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
 6. **Verify.** Spawn `cdk:practices-reviewer` with `kind: dockerfile`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
-7. **Report** leftovers under `Resolution:`, then print the Output.
+7. **Report** leftovers under `Open:`, then print the Output.
 
 ## Files
 
@@ -61,7 +61,8 @@ Distro: <debian | ubuntu | alpine> (<reason when not Debian slim>)
 Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>
 Findings: <path:line practice id — fix>, … | none
 Build: docker build -t <name> -f <Dockerfile> <context>
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …) | none | not run
+Resolution: <n> resolved, <m> open (see Open) | none | not run
+Open: <id: severity, reason; recommended fix>, … | none
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
