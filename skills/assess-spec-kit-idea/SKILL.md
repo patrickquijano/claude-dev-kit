@@ -1,6 +1,6 @@
 ---
 name: assess-spec-kit-idea
-description: Assesses an idea with the GitHub Spec Kit assess extension before building it and returns a go, clarify, or kill verdict. Use only when the user explicitly asks to vet an idea with Spec Kit.
+description: Vets an idea with Spec Kit's assess extension: go, clarify, or kill verdict; on go, asks before building. Use only when the user explicitly asks to vet an idea with Spec Kit.
 argument-hint: '<idea text | URL | ticket | codebase pointer> [handoff=no]'
 ---
 
@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
 - `handoff=no` in the input (any position): strip it from the idea; a go verdict then stops at step 6. Default: hand off.
 - Caps: Clarify loop 2 re-runs, then stop; no other loop or retry.
-- Chaining `cdk:run-spec-kit`: Skill tool, main thread, never `context: fork`; invoking this skill counts as the user's request for it. Read its Output `Result:` line.
+- Chaining `cdk:run-spec-kit`: Skill tool, main thread, never `context: fork`, only after the user confirms the hand-off question (step 6; unattended never starts it). Read its Output `Result:` line.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Unattended (chained, no AskUserQuestion): ask nothing; stop at the first question needing the user and list it in `Open:`.
 - Never set `disable-model-invocation: true` on this skill; it is chained through the Skill tool.
@@ -30,7 +30,7 @@ Input: $ARGUMENTS
 3. **Intake.** Run `speckit-assess-intake <idea>`; take the slug from its `Slug:` line.
 4. **Research, define, shape.** Run `speckit-assess-research`, `-define`, `-shape`, each with `slug=<slug>`.
 5. **Decide.** Run `speckit-assess-decide slug=<slug>`, then read the verdict: `go` → 6, `needs-clarification` → 7, `kill` → show the reason, end. Else `flow.md` `## Verdict`.
-6. **Hand off.** Unless `handoff=no`, print the Output, then invoke `cdk:run-spec-kit` with the `## If go` section verbatim (`flow.md` `## Hand off`).
+6. **Hand off.** Unless `handoff=no`, print the Output, ask ("Start run-spec-kit", "Stop here"), then on start invoke `cdk:run-spec-kit` with the `## If go` section verbatim (`flow.md` `## Hand off`).
 7. **Clarify.** Max 2 re-runs: ask the blocking questions, re-run the revisit stage through decide, re-read the verdict (`flow.md` `## Clarify`).
 8. **Report.** List anything left in `Open:` and print the Output.
 

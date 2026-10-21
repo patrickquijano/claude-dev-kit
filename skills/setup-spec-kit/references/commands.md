@@ -4,7 +4,7 @@
 | ------------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------- |
 | `has-specify`            | `command -v specify`                                                                               | Succeeds when installed             |
 | `has-uv`                 | `command -v uv`                                                                                    | Succeeds when uv exists             |
-| `install-specify`        | `uv tool install specify-cli`                                                                      | Install Spec Kit CLI                |
+| `install-specify`        | `uv tool install specify-cli --from git+https://github.com/github/spec-kit.git@v1.2.2`             | Install Spec Kit CLI                |
 | `version`                | `specify --version`                                                                                | Installed version                   |
 | `integration-install`    | `specify integration install claude`                                                               | Add Claude integration              |
 | `init-here`              | `specify init --here --integration claude --force --non-interactive`                               | Initialize the current project      |

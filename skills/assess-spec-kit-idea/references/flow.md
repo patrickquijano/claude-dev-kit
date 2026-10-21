@@ -18,7 +18,8 @@ Read the section whose heading starts with `## If go`, up to the next `##` headi
 
 - Section missing → `Next: none`, `Result: stopped`, `Stopped: Hand off: no If go section`; list leftover open questions or risks from `decision.md` in `Open:`, print the Output, end.
 - `handoff=no` → `Next: handoff ready`, `Result: done`, print the Output, end.
-- Else print the Output first (run-spec-kit output would bury it), then invoke `cdk:run-spec-kit` via the Skill tool with the section body verbatim as its argument. `Next: run-spec-kit started`; it owns the rest, including its post-converge review.
+- Unattended → `Next: handoff ready`, `Result: done`, print the Output, end; never start run-spec-kit unasked.
+- Else print the Output first (run-spec-kit output would bury it), then AskUserQuestion: "Start run-spec-kit (builds the feature, edits files)" | "Stop here". Stop → `Next: handoff ready`, end. Start → invoke `cdk:run-spec-kit` via the Skill tool with the section body verbatim as its argument. `Next: run-spec-kit started`; it owns the rest, including its post-converge review.
 
 ## Clarify
 

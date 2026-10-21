@@ -6,8 +6,8 @@
 | `has-graphify`         | `command -v graphify`               | Succeeds when installed             |
 | `has-uv`               | `command -v uv`                     | Succeeds when uv exists             |
 | `has-pipx`             | `command -v pipx`                   | Succeeds when pipx exists           |
-| `install-uv`           | `uv tool install graphifyy`         | Install graphify with uv            |
-| `install-pipx`         | `pipx install graphifyy`            | Install graphify with pipx          |
+| `install-uv`           | `uv tool install graphifyy==0.9.93` | Install graphify with uv            |
+| `install-pipx`         | `pipx install graphifyy==0.9.93`    | Install graphify with pipx          |
 | `version`              | `graphify --version`                | Installed version                   |
 | `install-skill`        | `graphify install --project`        | Register the Claude skill           |
 | `install-claude-hooks` | `graphify claude install --project` | Add Claude hooks, CLAUDE.md section |
