@@ -65,8 +65,8 @@ Summary: <two sentences, facts only>
 
 ## Direct review
 
-A small, low-risk change is reviewed by the parent with no subagent.
+A small, low-risk change is reviewed by the parent with no reviewer subagent.
 
 - Applies only when every item holds, counted from `name-status.txt` and `diff-numstat`: at most 5 changed files; at most 200 added plus deleted lines; no sensitive path (auth or permissions code, secrets or `.env*`, CI config, dependency manifests or lockfiles, migrations, hook scripts). Any doubt → spawn.
 - The parent covers all four roles and emits the same block per role under the same rules. It reads each changed file in the working tree, not only the diff.
-- The test role still runs the repository's documented lint, typecheck, test, and build commands (read-only) as `[required]`. A skipped required check leaves it `incomplete`.
+- The test role's documented lint, typecheck, test, and build commands (read-only) run as `[required]` in a subagent. Spawn `cdk:change-verifier` kind `checks` (inputs: root, changed file paths, repo instruction summary) and map its `Checks:` to the test role's `Commands:`: each `[required]` fail → `check-failed`, each skipped required → `incomplete`. The parent keeps the small-diff judgement and reads the changed files itself.

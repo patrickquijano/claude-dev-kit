@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
 - Writes: test files and test-only config (seed scripts, auth setup); framework and browser installs belong to `cdk:setup-testing`; never production code.
 - Never run against production or shared environments; only a locally started app or a URL the user confirms is local or safe.
-- Caps: analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1.
+- Caps: one practices researcher (step 5); analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1.
 - Stop answer or user cancel: `Result: cancelled`. A cap hit or failure after tests exist: run step 10, then `Result: stopped` with `Stopped: <step>: <reason>`.
 - Unattended (chained or no AskUserQuestion): ask nothing; take Recommended picks; an unanswerable local-or-safe URL question stops.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print a final result in place of a pending question.
@@ -36,7 +36,7 @@ Input: $ARGUMENTS
 2. **Packages.** Find packages with `list-files` and manifests; detect the JS package manager (`flow.md` `## Packages`).
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `e2e` (`flow.md` `## Analyze`).
 4. **Decide.** Take Recommended picks; ask only the local-or-safe app URL; chain `cdk:setup-testing` for missing tools (`flow.md` `## Decide`).
-5. **Practices.** WebFetch the picked framework's official docs for framework-specific rules; unavailable → bundled rules only.
+5. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the picked framework's official docs; unavailable → bundled rules only.
 6. **Baseline.** Run the existing e2e suite with the app started; note failures and continue. Every journey covered → `Result: nothing-to-do` after step 10.
 7. **Plan.** Print one table per package (journey, entry `file:line`, steps, assertions, data setup), critical journeys first; continue without asking.
 8. **Write.** One test per journey in the project's style and the End to end rules: AAA, seeded faker data, user-facing locators, retrying assertions.

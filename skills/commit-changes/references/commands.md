@@ -8,7 +8,7 @@
 | `scratch`              | `mktemp -d`                                         | Temp dir for message and patches           |
 | `numstat`              | `git diff HEAD --numstat`                           | Per-file line counts                       |
 | `untracked-numstat`    | `git diff --no-index --numstat -- /dev/null <file>` | Line counts of an untracked file           |
-| `diff-head`            | `git diff HEAD`                                     | Tracked changes for secret scan            |
+| `diff-head`            | `git diff HEAD`                                     | Tracked changes for small-path secret scan |
 | `current-branch`       | `git rev-parse --abbrev-ref HEAD`                   | Current branch name (preloaded in Context) |
 | `short-head`           | `git rev-parse --short HEAD`                        | Short sha for detached HEAD                |
 | `default-branch`       | `git symbolic-ref --short refs/remotes/origin/HEAD` | Origin default branch                      |

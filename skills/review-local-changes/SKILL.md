@@ -23,10 +23,10 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion); subagents cannot. If AskUserQuestion or Write is unavailable, ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Never commit, push, stash, reset, or touch the user's index or refs: the snapshot uses a temporary index and leaves a dangling commit (`${CLAUDE_SKILL_DIR}/references/snapshot.md`).
-- Review contract, severity, validation, and direct review: `${CLAUDE_SKILL_DIR}/references/findings.md`. A small, low-risk change is reviewed here with no subagents; otherwise spawn the four reviewers in one message.
-- Local checks run by default: the working tree is the code under review (pass no `checks:` to role `tests`).
+- Review contract, severity, validation, and direct review: `${CLAUDE_SKILL_DIR}/references/findings.md`. A small, low-risk change is reviewed here with no reviewer subagents; otherwise spawn the four reviewers in one message.
+- Local checks run by default: the working tree is the code under review (reviewer path: pass no `checks:` to role `tests`; direct review: the `cdk:change-verifier` run).
 - `--yes` is unattended: ask nothing in step 7 and report each open item with its recommended fix.
-- Caps: reviewer respawn on a malformed return 1; fix attempts per item 2; one ask pass over the open items. Cap hit: list what is left under `Resolution:` and finish.
+- Caps: reviewer respawn on a malformed return 1; fix attempts per item 2; implementer spawns <=4 per message; verifier spawns 1 per implementer batch; one ask pass over the open items. Cap hit: list what is left under `Resolution:` and finish.
 
 ## Workflow
 
@@ -52,7 +52,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 Range: <base short>..<snapshot short> (<n> files, +<a> -<d>; <committed | uncommitted | both>)
 Reviewers:
 - <role>: <status>[ direct] — <n critical>, <n high>, <n medium>, <n low>
-Checks: `<command>` → exit <n> | skipped (<reason>), … | none
+Checks: `<command>` → exit <n> | skipped (<reason>), … | none  (the post-fix verifier result replaces the review-time one)
 Findings: <b> blocking, <s> suggestions, <d> dropped | none
 Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …), <k> accepted | none | not run (nothing-to-do | cancelled | stopped)
 Next: /cdk:prepare-change-request | none

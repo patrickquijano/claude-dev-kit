@@ -27,7 +27,7 @@ Input: $ARGUMENTS
 - One package (or one tightly coupled set, like `react` + `react-dom`) per upgrade step, validated before the next. Exception: patch and minor upgrades go as one batch; a batch failure → split it and retry package by package.
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
 - Never commit, push, or change files outside the repo; the user commits afterwards (`/cdk:commit-changes`).
-- Caps: fix rounds per failing check 3, then revert that package and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
+- Caps: researchers one per selected major (and minor with breaking changes), at most 4 per message, batches until all are done (step 6); no usable `Answer:` → mark the package high risk and continue; fix rounds per failing check 3, then revert that package and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
 - Unattended (chained): ask nothing; apply patch and minor only and list majors under `Open:`.
 - Pre-flight stops and cancels print the Output with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
 
@@ -38,11 +38,11 @@ Input: $ARGUMENTS
 3. **Analyze.** Spawn one `cdk:version-resolver` with `kind: dependencies` per project in one message: project path, its manager, the `managers.md` path, the input's package filter. `tool-check` fails → exclude that project from steps 5-9 and say why.
 4. **Report.** Print one table per project: package, current, latest, bump, dev?, breaking changes with URL, affected files, config files, requires. Nothing outdated → `Result: nothing-to-do`.
 5. **Select.** `patch-minor-only` → all patch and minor, no question. Else AskUserQuestion per `${CLAUDE_SKILL_DIR}/references/select.md`.
-6. **Plan.** Per selected major (and minor with breaking changes): the guide's required edit per affected file and config. Print it; apply without asking (the diff is reviewable).
-7. **Baseline.** Run the step 9 checks once before any upgrade; only new failures count later.
+6. **Plan.** Spawn one `cdk:topic-researcher` per selected major (and minor with breaking changes) in one message (scope: `Breaking:` URLs and `Affects:` hits); its `Answer:` is the required edit per file. Print it; apply without asking.
+7. **Baseline.** Run step 9's `checks` once before any upgrade (changed paths: none, baseline run); record its `Checks:` and `Required failing:`, and only new failures count later.
 8. **Apply.** Per package, patch and minor batch first, then majors with dependencies before dependents: record its manifest specifier, run its `managers.md` upgrade command (workspace: in the declaring member), apply the planned edits, then step 9.
-9. **Validate.** Run install (from lockfile), build, type check, lint, tests from the resolver's `Checks:`, skipping missing ones. New failure → fix or revert per `${CLAUDE_SKILL_DIR}/references/validate.md`.
-10. **Review.** Show `diff-stat` and a per-package summary. Re-read changed files for leftovers (old API names, stale keys, deprecated options); record them under `Leftovers:`.
+9. **Validate.** Run install (from lockfile) inline, then spawn `cdk:change-verifier` (`kind: checks`; root, changed paths, the resolver's `Checks:` as the documented commands); consume `Checks:` and `Required failing:`. New failure → fix or revert per `${CLAUDE_SKILL_DIR}/references/validate.md`.
+10. **Review.** Show `diff-stat` and a per-package summary. Spawn `Explore` with the changed files and old identifiers for leftovers (old API names, stale keys, deprecated options); record its findings under `Leftovers:`.
 11. **Retry.** Retry each reverted or skipped package once by a safer path, only when checks pass at baseline; declined majors stay open. Rerun step 9 for it.
 12. **Report.** Print the Output; list unfixed failures, reverts, declined majors, and leftovers under `Open:`.
 

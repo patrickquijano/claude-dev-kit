@@ -14,7 +14,7 @@ Rules for the tests this skill writes and for `cdk:repo-analyzer` kind `tests`. 
 - Match the project: existing test location, file naming, runner, assertion style, helpers, and fixtures win over the defaults here. No tests yet → the runner's documented default layout.
 - Missing tooling (runner, coverage provider, faker library) → chain `cdk:setup-testing unit <package>`; it asks per tool, installs only the picked one as a dev dependency, and configures it. Never install unasked.
 - Decisions with several fitting answers (runner, mock library, layout) → take the Recommended pick, no question, and report each pick with its reason. Derivable from the repo → use it.
-- Best practices: apply this file, then WebFetch the detected runner's official docs (Official docs list, else the runner's manifest `homepage`). WebFetch unavailable or failing → bundled rules only; say so in the Output.
+- Best practices: apply this file, then use the practices researcher's cited rules from the detected runner's official docs (Official docs list, else the runner's manifest `homepage`). Researcher unavailable or failing → bundled rules only; say so in the Output.
 - Independent and order-free: no test depends on another test's state or run order; each cleans up what it creates.
 - Names state behavior and condition (`returns empty list when user has no orders`), not the method name alone.
 - No fixed sleeps; wait on a condition or use fake timers.

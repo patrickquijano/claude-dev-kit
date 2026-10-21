@@ -16,11 +16,11 @@ Per item write: impact, recommended fix (smallest change at the root cause), rea
 
 ## Fix
 
-Safe items only: edit the file, then run the item's validation (re-read the lines, or re-run the failing check once). Mark `resolved` only when it passes in this run. A failed validation: restore the original text, try one alternative, else leave the item `open`. Max 2 attempts per item. Never weaken a check, delete a failing test, or suppress a warning.
+Safe items only: spawn `cdk:plan-implementer` kind `requirement` per item (inputs: root, the item as the requirement, its validation as the acceptance criteria, the recommended fix as the approach, the item's files as the planned file list, repo instruction summary); items with disjoint files spawn in one message (<=4 per message). Consume `Status:`, `Changed:`, `Deviations:`. Then spawn `cdk:change-verifier` kind `checks` (inputs: root, the union of the implementers' `Changed:` paths including added tests, repo instruction summary) and re-read each item's lines. Attribute a failing check to the item whose `Changed:` paths it names; a failure matching no item (pre-existing) is reported, not charged. Mark `resolved` only when `Status: done` and the check passes in this run; a skipped required check leaves it `open`. A failed validation: re-spawn once with the failing lines as the fix list, else leave the item `open`; a `Question:` or `blocked` leaves it `open`. Max 2 attempts per item, shared with `## Ask`. Never weaken a check, delete a failing test, or suppress a warning.
 
 ## Ask
 
-Skip under `--yes`. Otherwise one AskUserQuestion call (max 4 questions, one per item or tight group): 2-4 options each naming its effect, the recommended one first with "(Recommended)" and a reason, plus `Leave open`. A chosen fix runs as in Fix. Items left open and options declined go to `Resolution:`.
+Skip under `--yes`. Otherwise one AskUserQuestion call (max 4 questions, one per item or tight group): 2-4 options each naming its effect, the recommended one first with "(Recommended)" and a reason, plus `Leave open`. A chosen fix runs as in `## Fix` (plan-implementer, then change-verifier; the 2 attempts per item are shared). Items left open and options declined go to `Resolution:`.
 
 ## Report
 

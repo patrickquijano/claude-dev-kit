@@ -22,7 +22,7 @@ No question. Input names a branch → use it when listed or `verify-ref` passes,
 ## Conflict loop
 
 - Files: `conflicted-files`; commit: `replayed-commit`; ancestor: `merge-base`.
-- Analysis: ≥3 files → one `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, and merge-base (≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block. Fewer → inline: read the hunks, mine = `theirs-diff`, ours = `ours-log`.
+- Analysis: always one `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, and merge-base (≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block.
 - AskUserQuestion per file (≤4 per batch), recommendation from the analysis with its justification (default Merge both unless one side clearly supersedes):
   - Merge both: combine the hunks (analyzer `combined` text or by hand); show the proposed hunk in the question; choosing it writes it and continues to `stage-file`. A Revise option (max 5 rounds) lets the user edit it, then re-asks.
   - Keep target: `keep-target`; discards all your changes to the file from this commit.

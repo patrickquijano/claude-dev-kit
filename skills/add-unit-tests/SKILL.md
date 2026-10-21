@@ -23,7 +23,7 @@ Input: $ARGUMENTS
 - Follow `${CLAUDE_SKILL_DIR}/references/conventions.md` (AAA, faker, coverage, unit, ES modules, safety); read it fully in step 1.
 - Never edit production code. Writes: test files (moved with `git-mv`), test setup files, runner globs. Tool installs and configs belong to `cdk:setup-testing`.
 - `cdk:repo-analyzer` cannot ask: ask its `Questions:` and `Missing:` lines here with AskUserQuestion.
-- Caps: analyzer re-spawn 1 (step 3); setup chain re-spawn 1 (step 5); fixes per new test 2 and coverage rounds 5 (step 10); leftover fix pass 1 round (step 11).
+- Caps: analyzer re-spawn 1 (step 3); one practices researcher (step 4); setup chain re-spawn 1 (step 5); fixes per new test 2 and coverage rounds 5 (step 10); leftover fix pass 1 round (step 11).
 - A cap hit or failure → run step 11 on what is left, without re-entering the loop, then print the Output with `Result: stopped`. A stop answer → `Result: cancelled`.
 - Detail for steps 3, 5, 6, 10, 11 and the AskUserQuestion or Write fallbacks: `${CLAUDE_SKILL_DIR}/references/flow.md`.
 
@@ -32,7 +32,7 @@ Input: $ARGUMENTS
 1. **Pre-flight.** Read `conventions.md`. Project dir = Context → Repo root, else cwd. Extract target (percent, default 90), metric (line, branch, statement, function; default line), scope (paths, symbols, feature; default `all`). Target outside 1–100 or empty scope → AskUserQuestion with the closest fits.
 2. **Packages.** `list-files` (outside git: Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output). Find packages and JS package managers per `${CLAUDE_SKILL_DIR}/references/stacks.md`; keep those the scope touches.
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package, test kind `unit`; use `Runner:`, `Coverage:`, `Faker:`, `Conventions:`. Ask `Questions:`, re-spawn per `flow.md`.
-4. **Practices.** WebFetch the runner's official docs (`conventions.md` Shared rules); note runner-specific rules.
+4. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs; unavailable → bundled rules only.
 5. **Decide.** Take Recommended picks and report them. `Missing:` runner, coverage, or faker → chain `cdk:setup-testing unit <package>` per `flow.md`.
 6. **Baseline.** Measure existing coverage per `flow.md`. Target already met and nothing misplaced or non-conforming → `Result: nothing-to-do`.
 7. **Relocate and upgrade.** JS/TS ES modules only, before new tests: `git-mv` each `Misplaced:` test to `tests/unit/`, fix runner globs, upgrade each `Non-conforming:` test, hand I/O cases to `cdk:add-integration-tests`.

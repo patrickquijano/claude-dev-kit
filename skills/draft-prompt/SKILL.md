@@ -20,12 +20,12 @@ Input: $ARGUMENTS
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only. Nothing is written to disk, so no approval is asked.
 - AskUserQuestion unavailable (or unattended run): ask nothing, pick the recommended option, draft, and list the gap in `Open gaps:`.
-- Loops: clarify (step 3) max 2 batches; the check-and-fix pass (step 5) max 3 rounds. Anything still failing → `Open gaps:` (draft) or `Failed checks:` (review-only), never silently dropped.
+- Loops: clarify (step 3) max 2 batches; the check-and-fix pass (step 5) max 3 rounds; step 2 one Explore spawn. Anything still failing → `Open gaps:` (draft) or `Failed checks:` (review-only), never silently dropped.
 
 ## Workflow
 
 1. **Analyze.** Input empty → AskUserQuestion for the task. Existing prompt → review it; review-only request → review-only mode. Extract goal, audience, start and target state, files, stack, constraints, prior failures.
-2. **Ground.** Read repo facts that fill the gaps (manifests, test and lint commands, paths); confirm every named path, command, and version exists, in the input prompt too.
+2. **Ground.** Spawn one Explore agent with the facts to confirm (every path, command, and version named, in the input prompt too, plus the manifests and test and lint commands that fill gaps); it returns `verified | unverified` per fact, with the commands and versions found.
 3. **Clarify.** Gaps remain → AskUserQuestion, ≤4 questions per batch, 2–4 options each, recommended first with "(Recommended)" and the reason. Max 2 batches, then continue. Review-only mode skips this step.
 4. **Draft** per structure.md. Review-only mode: walk checks.md against the input prompt instead, each unverified fact a failed check, then go to step 6.
 5. **Check.** Walk checks.md against the draft; fix each failure and re-walk, up to 3 rounds.

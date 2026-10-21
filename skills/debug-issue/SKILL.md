@@ -25,7 +25,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Root cause first: no fix and no test edit until the cause is shown with `file:line` evidence. A guess is labeled a hypothesis. Temporary probes (logs, prints) are allowed during step 4, tracked, and reverted before step 6.
 - Test, lint, type check, and build commands come from the project's documented commands (CLAUDE.md `Commands`), not from `commands.md`.
 - The regression test must fail for the reported reason before the fix and pass after; never weaken, skip, or delete an existing test.
-- Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
+- Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn; step 4 Explore max 5 per message, one round plus one widen round; step 9 `cdk:change-verifier` once, plus once per step 10 round, plus one respawn on `Question`. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
 - Never commit, push, stash, or `reset --hard`; a bisect always ends with `bisect-reset`.
 - Regression test: match the project's runner, location, and naming; Arrange, Act, Assert blocks; inputs from the stack's faker library when the project has one; a unit test unless only an integration test can reproduce the bug. For a broader test suite, the user can run `cdk:add-unit-tests` afterwards.
 - `--yes` picks the recommended option of step 7 and of the bisect ask and counts as unattended for step 10.
@@ -37,17 +37,17 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Note the dirty paths from Status; neither the test (step 6) nor the fix (step 8) touches a dirty path without asking.
 2. **Evidence.** Pull the error, stack trace, failing test, expected versus actual, and repro steps from the input. No way to reproduce → ask once with AskUserQuestion (`I will add details` | `Cancel`); none given → `Result: cancelled`.
 3. **Reproduce.** Run the failing test or steps, up to 3 tries. Not reproducible → say so and continue with static evidence, marked `unreproduced`.
-4. **Isolate.** Rank hypotheses, test the cheapest first, and record each as confirmed or ruled out. Bisect and research: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
+4. **Isolate.** Rank hypotheses; read-only ones go to parallel Explore agents, probes stay inline; record each as confirmed or ruled out. Details, bisect, research: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
 5. **Root cause.** Report the cause with `file:line` evidence, why it produces the symptom, and the smallest fix.
 6. **Regression test.** Draft the test, write it, and run it; it must fail for the reported reason. Fails for another reason → fix the test; a failure that cannot be made to match → `Regression test: none` and say why.
 7. **Confirm.** One AskUserQuestion: `Apply fix (Recommended)` | `Diagnose only` | `Cancel`. `Diagnose only` → keep the test, list its path, step 10; `Cancel` → remove the test file this run wrote, `Result: cancelled`.
 8. **Fix.** Apply the minimal change that the root cause calls for, nothing adjacent; up to 3 attempts, each re-run against the regression test.
-9. **Verify.** The new test passes, then the documented lint, type check, test, and build commands for the changed files (CLAUDE.md `Commands`); record each as pass, fail, or skipped with the reason.
-10. **Fix leftovers.** Failed or skipped checks, open hypotheses, or a test that did not fail first: fix what this run changed, re-run, up to the cap; list the rest in `Open:`.
+9. **Verify.** Spawn `cdk:change-verifier` kind `goals` (goals: regression test passes, root cause fixed; changed paths); record each `Checks` line as pass, fail, or skipped. Inputs and Return: `${CLAUDE_SKILL_DIR}/references/isolate.md` `## Verify`.
+10. **Fix leftovers.** Unmet or unverified goals, `Findings`, failed or skipped checks, open hypotheses, or a test that did not fail first: fix what this run changed, re-run step 9, up to the cap; list the rest in `Open:`.
 
 ## Files
 
-- For the hypothesis loop, bisect, and research (step 4), see `${CLAUDE_SKILL_DIR}/references/isolate.md`.
+- For the hypothesis loop, bisect, research (step 4), and verify (step 9), see `${CLAUDE_SKILL_DIR}/references/isolate.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 
 ## Output

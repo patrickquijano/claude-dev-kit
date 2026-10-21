@@ -26,7 +26,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Change only what the goals need; no adjacent refactors.
 - Lint, type check, test, and build commands come from the project's documented commands (CLAUDE.md `Commands`, then manifest scripts), not from `commands.md`.
 - Add or update tests for every behavior the change touches; never weaken, skip, or delete an existing test.
-- Caps: clarify max 3 rounds; fix max 3 attempts per validate pass (each attempt is an implementer re-spawn plus a fresh verifier run); step 9 max 3 rounds in total. Cap hit → print the Output with what is left under `Open:` and `Stopped: <step>: <reason>`.
+- Caps: clarify max 3 rounds; fix max 3 attempts per validate pass (each attempt is an implementer re-spawn plus a fresh verifier run); step 9 max 3 rounds in total; step 3 one Explore spawn. Cap hit → print the Output with what is left under `Open:` and `Stopped: <step>: <reason>`.
 - AskUserQuestion: max 4 questions per batch, recommended option first with a one-line reason, a `Stop` option on every batch, and nothing already answered.
 - `--yes` is unattended: it asks nothing, records each assumption, and picks every recommended option, and continues without plan mode.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
@@ -35,7 +35,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Note the dirty paths from Status; never edit one without asking.
 2. **Plan mode.** Not in plan mode → ask whether to enter it, recommended option first with a reason from the input; the plan-mode path: `${CLAUDE_SKILL_DIR}/references/plan.md`.
-3. **Analyze.** Read the input (a file path or URL gets read), explore the affected code (an Explore subagent for broad sweeps), and restate the requirement in one paragraph.
+3. **Analyze.** Always spawn one Explore agent with the input (a file path or URL it reads, else the requirement text); it returns the restated requirement and affected `path:line` references. Use them to restate the requirement in one paragraph.
 4. **Clarify.** Ask batches for the gaps in scope, behavior, edge cases, and constraints, up to the cap. `Stop` → `Result: cancelled`.
 5. **Goals.** List numbered goals, each with a checkable acceptance criterion, plus non-goals: `${CLAUDE_SKILL_DIR}/references/plan.md`.
 6. **Approaches.** Compare 2–3 approaches with the recommended one first and ask `Pick` | `Stop`; in plan mode, write the plan and call `ExitPlanMode`: `${CLAUDE_SKILL_DIR}/references/plan.md`.
