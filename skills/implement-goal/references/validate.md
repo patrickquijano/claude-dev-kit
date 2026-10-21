@@ -26,7 +26,10 @@ G2: unmet — <what failed, file:line>
 - A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
 - Never let a test be weakened, skipped, or deleted to get green; reject such a change and re-send the finding.
 
-Run `diff-stat` to confirm the change set matches the approach; an unplanned file is reverted or justified.
+Run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
+
+- A newly changed path that is not planned: AskUserQuestion `Revert it` (`restore-path`; an untracked new file is removed with the file tool) | `Keep it` | `Stop`; unattended → leave it and list it under `Open:`.
+- A Dirty path whose diff changed: never `restore-path` it (that would drop the user's own edits). AskUserQuestion `Keep it` | `Stop`; unattended → `Result: stopped`, `Stopped: 8: dirty path edited`, with the path under `Open:`.
 
 ## Iterate
 

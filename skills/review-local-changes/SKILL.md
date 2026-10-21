@@ -2,7 +2,7 @@
 name: review-local-changes
 description: Reviews unpushed commits and uncommitted changes before a PR exists, fixes safe findings, and asks about the rest. Use only when the user explicitly asks to review their local changes.
 argument-hint: '[--uncommitted] [--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git commit-tree *) Bash(GIT_INDEX_FILE=* git read-tree *) Bash(GIT_INDEX_FILE=* git add -A) Bash(GIT_INDEX_FILE=* git write-tree) Bash(mktemp -d)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git commit-tree *) Bash(GIT_INDEX_FILE=*/review-local-changes.*/index git read-tree *) Bash(GIT_INDEX_FILE=*/review-local-changes.*/index git add -A) Bash(GIT_INDEX_FILE=*/review-local-changes.*/index git write-tree) Bash(mktemp -d *)
 ---
 
 # Review Local Changes
@@ -26,6 +26,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Review contract, severity, validation, and direct review: `${CLAUDE_SKILL_DIR}/references/findings.md`. A small, low-risk change is reviewed here with no reviewer subagents; otherwise spawn the four reviewers in one message.
 - Local checks run by default: the working tree is the code under review (reviewer path: pass no `checks:` to role `tests`; direct review: the `cdk:change-verifier` run).
 - `--yes` is unattended: ask nothing in step 7 and report each open item with its recommended fix under `Open:`.
+- A finding in a file with uncommitted changes (Dirty) is fixed only after an explicit yes in `flow.md` `## Ask`; unattended it stays open.
 - Caps: reviewer respawn on a malformed return 1; fix attempts per item 2; implementer spawns <=4 per message; verifier spawns 1 per implementer batch; one ask pass over the open items. Cap hit: list what is left under `Resolution:` and finish.
 
 ## Workflow

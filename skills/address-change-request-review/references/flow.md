@@ -13,13 +13,13 @@ Step 1. Run the host `## Pre-flight` in `github.md` or `gitlab.md`; a failure st
 - Keep the `dirty-paths` paths as Dirty (recorded, not just noted).
 - Stop if any of `MERGE_HEAD`, `rebase-merge`, `rebase-apply`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `BISECT_LOG` exists under `git-path` for that name.
 - Read repo instructions (CLAUDE.md, `.claude/rules/`, CONTRIBUTING, commitlint config) and follow them.
-- Signing: `git config --get user.signingkey` set; `gpg.format` = `ssh` → `gpg.ssh.allowedSignersFile` set and the file exists; `.husky/` present → `commit.gpgsign` = `true`. Missing → stop and say what to set. Never edit signing config or retry unsigned.
+- Signing is enforced when `commit.gpgsign` = `true`, `.husky/` is present, or the repo instructions require signed commits. Enforced → `git config --get user.signingkey` set; `gpg.format` = `ssh` → `gpg.ssh.allowedSignersFile` set and the file exists; missing → stop and say what to set. Never edit signing config or retry unsigned. Not enforced → the commit step uses `commit` (unsigned) and skips `signatures`.
 
 ## Find CR
 
 Step 2. `$ARGUMENTS`: an optional number (strip `#` or `!`), `--self-review`, `--yes`; anything else → stop.
 
-- Per the host `## Find`: the CR must be open. Another author's CR → AskUserQuestion `Continue (co-author)` | `Cancel` (`--yes` continues; `--yes` with no number and no branch match → stop).
+- Per the host `## Find`: the CR must be open. Another author's CR → AskUserQuestion `Continue (co-author)` | `Cancel`; under `--yes` → stop (`Stopped: 2: another author's CR`). `--yes` with no number and no branch match → stop.
 - Else the host `## Candidates`: spawn `cdk:cr-feedback-analyzer` with `model: haiku`, host, mode `discover`, Self, `${CLAUDE_SKILL_DIR}/references/state.md`, and the scratch paths of the candidate data. None → `Result: nothing-to-do`.
 - Else ask: up to 4 CRs by `updated` desc (label `#<n> <title>`, description `<head> → <base>, <reason>`), none marked recommended; a typed number must be in the list.
 
@@ -27,7 +27,7 @@ Step 2. `$ARGUMENTS`: an optional number (strip `#` or `!`), `--self-review`, `-
 
 Step 3. Read the state file (`state.md` `## State file`) first. Per the host `## Branch` get remote, head ref, expected head SHA, fork handling. Then `fetch-head`.
 
-- Current ≠ head branch → switch only when no Dirty path differs between them (`head-diff-names` ∩ Dirty = ∅), else stop. Head branch not yet local → `switch-track`.
+- Current ≠ head branch → `switch-local` only when no Dirty path differs between them (`head-diff-names` ∩ Dirty = ∅), else stop. Head branch not yet local → `switch-track`.
 - Behind → `pull-ff`; diverged → stop.
 - Ahead of `<remote>/<head>` only when every commit in `<remote>/<head>..HEAD` is recorded in the state file's `commits[]`; else stop.
 - Keep `headSha = remote-head-sha`; it must equal the host's head SHA re-read after the fetch, else stop ("push or pull first").
@@ -58,7 +58,7 @@ Step 8. Per group, spawn `cdk:plan-implementer` with `kind: review-group`, root,
 
 Step 12. Subjects: `<type>(<optional scope>): <subject>`, max 72 chars, imperative, lowercase, no trailing period, no body, footer, or attribution; types feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert. A repo commitlint config wins.
 
-- Per coherent group: subject to `<scratch>/msg`, `commitlint` when configured (fail → redraft, cap in Rules; not installed → note it), `stage-files`, `commit`, then `signatures`: every flag `G`, else stop. A signing failure → stop with the exact line.
+- Per coherent group: subject to `<scratch>/msg`, `commitlint` when configured (fail → redraft, cap in Rules; not installed → note it), `stage-files`, `commit-signed` (enforced signing) or `commit`, then, when signed, `signatures`: every flag `G`, else stop. A signing failure → stop with the exact line.
 - Push: re-fetch the CR per the host `## Re-fetch before a mutation`; head ≠ `headSha` or CR not open → retry only for a lagging read (3 × 5 s), then stop ("new commits on the CR"). Then `push`; rejected → report the exact line, stop.
 - Record commits, `pushedSha`, and `cr:<n>:push`; items go `committed`, then `pushed`. No changed files → items stay `no-change` or `needs-decision`; skip to step 13.
 

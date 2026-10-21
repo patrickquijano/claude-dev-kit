@@ -56,8 +56,8 @@ Read a tracked repo template with `git show HEAD:<path>` (path resolved via `git
 Only the confirmed effects, in order. `<remote>` = the target ref's remote.
 
 1. Push: `git push -u <remote> HEAD:<branch>`.
-2. Create: `gh pr create -B <target> -H <branch> -t '<title>' -F <scratch>/body.md -a @me [-r <u1,u2>] [-d]`.
-3. Update: `gh pr edit <n> -F <scratch>/body.md --add-assignee @me [--add-reviewer <u1,u2>] [-t '<title>']`; `--draft` on a ready PR → `gh pr ready <n> --undo`.
+2. Create: `gh pr create -B <target> -H <branch> -t '<title>' -F <scratch>/body.md -a @me [-d]`.
+3. Update: `gh pr edit <n> -F <scratch>/body.md --add-assignee @me [-t '<title>']`; `--draft` on a ready PR → `gh pr ready <n> --undo`.
 4. Merge options: none set here; `--squash` and `--delete-branch` go to `cdk:review-change-request`, whose merge applies them.
 
 A title containing `'` is escaped as `'\''` inside single quotes.

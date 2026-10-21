@@ -2,7 +2,7 @@
 name: prepare-change-request
 description: Reviews a branch with parallel reviewers, then creates or updates a GitHub PR or GitLab MR with a filled template. Use only when the user explicitly asks to prepare, open, or update a PR or MR.
 argument-hint: '[--target <branch>] [--template <name|path>] [--draft] [--dry-run] [--yes] [--gate report] [--squash <yes|no>] [--delete-branch <yes|no>]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api --paginate projects/:id/members/all) Bash(glab api projects/:id/templates/merge_requests) Bash(glab mr list *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api projects/:id/templates/merge_requests) Bash(glab mr list *)
 ---
 
 # Prepare Change Request
@@ -22,10 +22,10 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks the user; subagents cannot. Missing or ambiguous state, target, template, check result, or CR identity → stop with the reason. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn.
+- Only this skill asks the user; subagents cannot. Missing or ambiguous state, template, check result, or CR identity → stop with the reason. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn.
 - Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`).
 - Review only the committed range `merge-base..HEAD`; uncommitted changes are out of scope.
-- Target: `--target <branch>`, else the host's default branch; ask only when none is found.
+- Target: `--target <branch>`, else the host's default branch; ask only when none is found; unattended → `Stopped: 4: no target`.
 - Writes (`git push`, CR create and update, draft flag, GitLab merge options) happen only in step 13, after the step 12 confirmation or with `--yes`; the release gate's chained `cdk:commit-changes` also pushes under the gate's own consent. None is in `allowed-tools`.
 - `--yes` (set by `cdk:ship-release` and `cdk:scan-vulnerabilities`) skips only the consent asks: step 12 and the release gate's ask. It never skips a stop or the gate itself, and skips the step 7 gate only with `--gate report` (valid only with `--yes`): gating findings go to the managed section and `Open:`. `--dry-run` runs steps 1–12, prints the result, and writes nothing.
 - Reviewers: a small, low-risk change per `${CLAUDE_SKILL_DIR}/references/findings.md` `## Direct review` is reviewed here with no reviewer subagents; otherwise five `cdk:cr-reviewer` runs, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), read-only. Parse, validate, deduplicate, and gate per `findings.md` `## Parent validation`.
@@ -33,7 +33,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 - Existing CR: change only the managed section and, when chosen, the title; keep every other byte of the body, assignees, and reviewers. Body goes through `<scratch>/body.md`, never inline shell args. Assignee = Self; reviewers none on create, kept on update.
 - Merge options: `--squash` and `--delete-branch` preset them; GitLab sets them via the API, GitHub leaves them to the merge step (`chosen at review`).
 - Release gate: step 5 runs `${CLAUDE_SKILL_DIR}/references/release-gate.md`, chaining `cdk:bump-version` (check-only), `cdk:update-changelog`, and `cdk:commit-changes` through the Skill tool in this thread. A version bump always needs the user's confirmation; `--yes` and `auto` never skip it. A gate stop ends the run.
-- Caps: Other target 3 re-asks; reviewer username 3 re-asks; reviewer respawn on a malformed return 1; analyzer respawn after `Questions` 1; title redrafts 3; Revise 5 rounds; failed push, create, or update retried once; release gate 2 rounds. Cap hit → report and print the Output with `Result: stopped`.
+- Caps: Other target 3 re-asks; reviewer respawn on a malformed return 1; analyzer respawn after `Questions` 1; title redrafts 3; Revise 5 rounds; failed push, create, or update retried once; release gate 2 rounds. Cap hit → report and print the Output with `Result: stopped`.
 - Never `--force`, `--no-verify`, stash, or reset; never commit directly. Never clear reviewers or assignees silently.
 - Unattended (`--yes`, chained): ask nothing beyond the gate's version confirmation; report leftovers in `Open:`.
 
@@ -71,7 +71,7 @@ Step 6 spawns, in one message, five parallel `cdk:cr-reviewer` Agent calls, one 
 ## Output
 
 ```text
-CR: PR #<n> <url> | MR !<iid> <url> (created | updated) | none (dry-run, would create) | #<n> <url> (dry-run, would update)
+CR: PR #<n> <url> | MR !<iid> <url> (created | updated) | none (dry-run, would create) | PR #<n> <url> | MR !<iid> <url> (dry-run, would update)
 Title: <title>
 Branches: <head> → <target>
 Template: <name> (<explicit | repository | bundled>)

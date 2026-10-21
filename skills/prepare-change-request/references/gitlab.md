@@ -52,15 +52,13 @@ Content of an API template: `glab api projects/:id/templates/merge_requests/<key
 Only the confirmed effects, in order.
 
 1. Push: `git push -u origin HEAD:<source>`.
-2. Create: `glab mr create -s <source> -b <target> -t '<title>' -a <self> [--reviewer <u1,u2>] [--draft] -y --description-file - <<'EOF'` … `EOF`; keep the new `iid`.
-3. Update: `glab mr update <iid> [-t '<title>'] [-a <self>] [--reviewer <u1,u2>] [--target-branch <target>] [--draft | --ready] -y --description-file - <<'EOF'` … `EOF`. `--reviewer` without a prefix replaces the list, so pass the full selection; `--target-branch` only when changed.
+2. Create: `glab mr create -s <source> -b <target> -t '<title>' -a <self> [--draft] -y --description-file <scratch>/body.md`; keep the new `iid`.
+3. Update: `glab mr update <iid> [-t '<title>'] [--target-branch <target>] [--draft | --ready] -y --description-file <scratch>/body.md`. Never pass `--reviewer` or `-a` (both lists stay; `-a` may replace the assignees); Self not among the assignees → list it under `Open:`. `--target-branch` only when changed.
 4. Merge options, create and update alike: `glab api projects/:id/merge_requests/<iid> -X PUT -F remove_source_branch=<bool> [-F squash=<bool>]`; squash enforced → omit `-F squash`. Never pass `--remove-source-branch` or `--squash-before-merge` to `glab mr create` or `glab mr update`.
 
-Write the body to `<scratch>/body.md` first and feed it through the quoted heredoc; backticks and `$` stay literal. A title containing `'` is escaped as `'\''` inside single quotes.
+The body is the file `<scratch>/body.md` (`--description-file <path>`), never a heredoc, so a body line like `EOF` cannot end it early. A title containing `'` is escaped as `'\''` inside single quotes.
 
 Merge options default: update → the MR's current `force_remove_source_branch` and `squash`; create → delete source = Project `remove_source_branch_after_merge`; squash by Project `squash_option`: `always`/`never` → enforced, `default_on` → yes, `default_off` → no. `--squash` and `--delete-branch` win, except an enforced squash always wins (note it).
-
-Typed reviewer usernames must be active project members (`glab api --paginate projects/:id/members/all`, `state=active`), else re-ask.
 
 ## Verify
 

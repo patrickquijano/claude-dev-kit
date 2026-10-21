@@ -4,7 +4,7 @@ description: Drafts a brief, effective prompt from a rough task, or reviews one,
 argument-hint: '<rough task | existing prompt>'
 ---
 
-# Write Prompt
+# Draft Prompt
 
 Input: $ARGUMENTS
 
@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Analyze.** Input empty → AskUserQuestion for the task. Existing prompt → review it; review-only request → review-only mode. Extract goal, audience, start and target state, files, stack, constraints, prior failures.
+1. **Analyze.** Input empty → AskUserQuestion for the task (none given → `Result: cancelled`); AskUserQuestion unavailable or an unattended run → print the Output with no prompt, `Result: nothing-to-do`, `Open: no input`. Existing prompt → review it; review-only request → review-only mode. Extract goal, audience, start and target state, files, stack, constraints, prior failures.
 2. **Ground.** Spawn one `cdk:codebase-explorer` (kind `facts`) with the facts to confirm (every path, command, and version named, in the input prompt too, plus the manifests and test and lint commands that fill gaps); it returns `Facts`: `verified | unverified` per fact, with the commands and versions found.
 3. **Clarify.** Gaps remain → AskUserQuestion, ≤4 questions per batch, 2–4 options each, recommended first with "(Recommended)" and the reason. Max 2 batches, then continue. Review-only mode skips this step.
 4. **Draft** per structure.md. Review-only mode: walk checks.md against the input prompt instead, each unverified fact a failed check, then go to step 6.
@@ -55,7 +55,7 @@ Review-only:
 ```text
 Failed checks: <check — fix>, … | none
 Open: <unverified facts or unresolved items, or none>
-Next: /cdk:implement-goal to build it | none
+Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

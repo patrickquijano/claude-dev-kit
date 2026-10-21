@@ -109,7 +109,7 @@ Orchestrator only, after the Gate B approval and the re-fetch, one item at a tim
 - Thread reply: mutation file `mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{id databaseId url}}}`; `gh api graphql -F query=@<file> -f t=<thread node id> -F b=@<scratch>/reply.md`; record `comment.id` as `replyId`. The input also accepts an optional `pullRequestReviewId`; omit it so the reply posts immediately rather than into a pending review.
 - General comment (reply to a PR comment or review summary, which have no thread): `gh api repos/<owner>/<repo>/issues/<n>/comments -X POST -F body=@<scratch>/reply.md` (record the returned `id` as `replyId`); open the body with a quote of the first line of the item (`> <text>`) and its link so the target is clear.
 - Resolve: mutation file `mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{id isResolved}}}`; `gh api graphql -F query=@<file> -f t=<thread node id>`; only per the state.md resolve rule.
-- Revision summary (one general comment after the replies, when drafted): same endpoint as a general comment.
+- Revision summary (one general comment after the replies, when drafted): same endpoint as a general comment; skip when `cr:<n>:summary` is in `ops[]`, else record that key after success (`state.md` `## Idempotency`).
 - Never call: merge, approve, dismiss, delete or minimize comment, `unresolveReviewThread`, branch protection, or any `gh pr` write.
 
 ## Re-request

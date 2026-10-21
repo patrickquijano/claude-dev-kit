@@ -10,7 +10,7 @@ List every kept finding, every reviewer with `Status: incomplete`, and every `Ch
 
 Per item write: impact, recommended fix (smallest change at the root cause), real alternatives only, and the validation that proves it. Classify:
 
-- `safe`: in scope, reversible, no new behavior or dependency.
+- `safe`: in scope, reversible, no new behavior or dependency, and none of its files is in Dirty (`snapshot.md`): a fix would rewrite the user's own uncommitted edits. A finding whose file is in Dirty is `needs-decision` ("file has uncommitted changes"), asked in `## Ask` with the fix as an option; an explicit yes there lets the fix run on that Dirty file (the implementer is told to keep the user's other edits), and under `--yes` it stays `open`.
 - `needs-decision`: several valid fixes, a scope or compatibility choice, or user input.
 - `blocked`: out of scope, destructive, or needs access.
 
