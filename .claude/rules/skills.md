@@ -15,6 +15,7 @@ paths:
 - Skills that chain skills, and the skills they chain, never set `context: fork`; chain via the Skill tool in the main thread, never the Agent tool, so no subagent nests another.
 - Each `allowed-tools` entry is a command the Workflow runs. Never pre-approve `git push`, MR create/update, or comment, approve, resolve, merge endpoints. Never pre-approve a `glab api` or `gh api` pattern ending in `*`: flags appended after it (`-X PUT`, `-f`) turn the read into a write.
 - Body (Task skills): `Input: $ARGUMENTS` (omit when no input), `## Rules`, `## Workflow` (numbered steps, bold labels `**Pre-flight.**`), `## Output` (fenced `text`, has a `Next: <follow-up> | none` line (warned by `check-skill`), then ends `Result: done | nothing-to-do | stopped | cancelled` + `Stopped: <step>: <reason> | none`). Reference and background-only skills use topic sections instead.
+- Skills spawn only named `cdk:` agents (`cdk:codebase-explorer` for lookups, `cdk:task-worker` for other read-only work), never `Explore` or `general-purpose`; `check-skill` warns.
 - Side-effect confirmation options name each effect ("Commit + push").
 - Every loop and retry states its cap in Rules. A skill that reports findings (failed or skipped checks, gaps, open items) runs its own capped fix loop where it needs one and lists what is left under `Open:` before `Result:`. Unattended runs (chained, `--auto`, or `--yes`) ask nothing and report what is left.
 - Verify: `plugin-dev:skill-reviewer` agent; `node skills/build-skill/scripts/check-skill.mjs skills/<name>` for the mechanical rules.

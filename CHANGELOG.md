@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Skills no longer spawn the built-in `Explore` or `general-purpose` agents: new read-only `cdk:codebase-explorer` (kinds `locate`, `hypothesis`, `facts`, `leftovers`, `triage`) and `cdk:task-worker` agents with fixed `## Return` blocks replace them, `/cdk:debug-issue`, `/cdk:build-subagent`, `/cdk:implement-goal`, `/cdk:draft-prompt`, `/cdk:upgrade-dependencies`, and `/cdk:scan-vulnerabilities` call the explorer, and every skill's Efficiency line names the cdk agents. `check-skill` warns when a skill body spawns either built-in.
 - `/cdk:setup-format-lint` now writes every ignore path that exists to each tool's own ignore config, including `node_modules/`, instead of skipping tools that inherit `.gitignore` or skip a path by default; new configs no longer enable `.gitignore` inheritance.
 - `/cdk:setup-format-lint` writes matching yamlfmt and yamllint configs (indent, document start, comment padding, sequence indent, line endings) and turns YAML line length off in both; a kept config that conflicts or sets a line limit is listed under `Open:`.
 - **Breaking:** `/cdk:implement-requirement` is renamed `/cdk:implement-goal`, with the title "Implement Goal" and a description that now says "implement a goal". Use the new name; the old one no longer exists.

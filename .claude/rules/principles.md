@@ -11,7 +11,7 @@
 - Finish every step in full; never stop at a partial result.
 - Never assume or invent: confirm each path, command, and fact by reading it, and ask when it is unknown.
 - Think twice before an irreversible step, then double-check the result against the repo's standards before reporting.
-- Be token efficient: read only what the task needs, keep output terse, and take the fewest steps; when orchestrating autonomous work that splits cleanly, spawn independent subagents in parallel.
+- Be token efficient: read only what the task needs, keep output terse, and take the fewest steps; when orchestrating autonomous work that splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 
 ## Design principles
 
