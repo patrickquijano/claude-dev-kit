@@ -35,7 +35,7 @@ Input: $ARGUMENTS
 4. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs; unavailable → bundled rules only.
 5. **Decide.** Take Recommended picks and report them. `Missing:` runner, coverage, or faker → chain `cdk:setup-testing unit <package>` per `flow.md`.
 6. **Baseline.** Measure existing coverage per `flow.md`. Target already met and nothing misplaced or non-conforming → `Result: nothing-to-do`.
-7. **Relocate and upgrade.** JS/TS ES modules only, before new tests: `git-mv` each `Misplaced:` test to `tests/unit/`, fix runner globs, upgrade each `Non-conforming:` test, hand I/O cases to `cdk:add-integration-tests`.
+7. **Relocate and upgrade.** JS/TS ES modules only, before new tests; any `Misplaced:` or `Non-conforming:` test → first AskUserQuestion ("Move and rewrite them", "Skip them", "Stop"); unattended lists each under `Open:` and skips it. Then `git-mv` each `Misplaced:` test to `tests/unit/`, fix runner globs, upgrade each `Non-conforming:` test, hand I/O cases to `cdk:add-integration-tests`.
 8. **Plan.** Print a table per package (target `file:line`, symbol, positive and negative cases, doubles; lowest coverage first). Continue without asking.
 9. **Write.** Per target, in the project's style and `conventions.md` Unit: AAA, seeded faker inputs, 2+ positive, 2+ negative, I/O doubled.
 10. **Measure.** Run new tests with coverage; fix and add cases per the measure loop in `flow.md`.

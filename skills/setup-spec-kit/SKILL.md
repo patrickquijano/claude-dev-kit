@@ -30,7 +30,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
    - `.specify/` and every required skill dir exist → skip.
    - `.specify/` and every core dir exist, extension dirs missing → skip; step 3 adds them.
    - `.specify/` exists, any core dir missing (initialized for another agent) → run `integration-install`, no question.
-   - No `.specify/` → tell the user init merges into the current directory (it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`), then run `init-here` with no question; the permission prompt guards it (not pre-approved).
+   - No `.specify/` → tell the user init merges into the current directory (it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`), then run `init-here` (`--force` merge; not pre-approved, so the permission prompt guards it). A non-empty project → first AskUserQuestion ("Init here (merges with --force)", "Stop"); unattended proceeds and records it under `Open:`.
    - Command fails → quote the error line, stop.
 3. **Extensions.** Parse `extension-list` (objects with `id`, `priority`). Per extension in Rules: absent → `extension-add`; priority differs → `extension-set-priority`; else ok. Then check every required skill dir. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append missing lines to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Lines (from the Spec Kit extension user guide):

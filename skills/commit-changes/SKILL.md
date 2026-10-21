@@ -33,7 +33,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Check signing per `conventions.md` `## Signing`. Missing or mismatch → stop and tell the user what to set.
-2. **Unstage.** `staged-names` non-empty → `unstage`.
+2. **Unstage.** `staged-names` non-empty → `unstage`; a path both staged and modified (`MM` in `status`) → first AskUserQuestion ("Unstage all (drops the staged split)", "Stop"); unattended unstages and notes it under `Open:`.
 3. **Collect.** `status`; with `paths:`, set the rest aside as `Excluded: pre-existing`. Nothing left → `Result: nothing-to-do`. Make a temp dir with `scratch` for the message and patch files.
 4. **Classify.** `numstat` (fails, e.g. no commits yet → analyzed) plus `untracked-numstat` per untracked file. Small = all of the count limits: ≤5 files; ≤150 added + deleted lines; no binary; no delete or rename; no lockfile, CI, migration, or infra path (`*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `.github/`, `.gitlab-ci.yml`, `migrations/`, `Dockerfile*`, `docker-compose*`, Terraform); one top-level directory; no grouping hints. Else analyzed (it scans secrets). Only a small candidate runs `diff-head` and checks the untracked files for a secret-pattern name or hit; any hit → analyzed.
 5. **Branch guard.** Current = Context → Branch; `HEAD` (detached) → `detached@<sha>` from `short-head`, protected. Default = `default-branch` minus `origin/` (unset → `main`). Current is default or protected → switch needed.

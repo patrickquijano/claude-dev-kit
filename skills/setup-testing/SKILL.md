@@ -1,7 +1,7 @@
 ---
 name: setup-testing
 description: Sets up unit, integration, and end-to-end test tooling per package, with a recommended tester per kind and run scripts. Use only when the user explicitly asks to set up testing, or when chained.
-argument-hint: '[unit|integration|e2e …] [package paths]'
+argument-hint: '[unit|integration|e2e …] [package paths] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(docker info *)
 ---
 
@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 - Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `write-*-tests` skills chain this with one kind and one package.
 - Idempotent: a re-run with everything configured changes nothing. Never overwrite an existing config, script, or tester; an existing tester of a kind wins over the recommendation.
 - Writes: test config, dev-dependency and browser installs per a user pick, run scripts in the manifest, and the context note; never test files beyond an empty-suite placeholder a runner needs, never production code.
-- Never install unasked: one AskUserQuestion per missing tool, each option naming its effect, Recommended first with its reason, Stop last, at most 4 questions per call. Unattended run (chained with a kind, `--yes`, or auto) → take the Recommended pick and report it.
+- Never install unasked, except in an unattended run (below): one AskUserQuestion per missing tool, each option naming its effect, Recommended first with its reason, Stop last, at most 4 questions per call. Unattended run (chained with a kind, `--yes`, or auto) → take the Recommended pick and report it.
 - Layout: stack-native first, `tests/{unit,integration,e2e}` fallback; integration is always a separate suite.
 - Caps: step 2 re-spawns an analyzer at most once; the fix pass in step 9 runs once; install and smoke failures stop the skill with no retry.
 - Stop answer → `Result: cancelled`. Any later failure → step 9, then `Result: stopped` with `Stopped: <step>: <reason>`.

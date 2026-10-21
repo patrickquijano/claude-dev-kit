@@ -1,7 +1,7 @@
 ---
 name: add-integration-tests
 description: Writes integration tests apart from unit tests, with a throwaway container, stub, or fake per boundary, run until they pass. Use only when the user explicitly asks to write integration tests.
-argument-hint: '[paths | feature description]'
+argument-hint: '[paths | feature description] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(docker info *)
 ---
 

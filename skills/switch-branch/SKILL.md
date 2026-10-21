@@ -32,7 +32,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** `inside-work-tree` fails → stop. `status` shows a rebase, merge, or cherry-pick in progress → stop and tell the user to finish or abort it. Origin = Context → Origin; `<none>` → skip the remote check and the push.
-2. **Unstage.** `staged-files` non-empty → `unstage`; failure (no HEAD) → stop.
+2. **Unstage.** `staged-files` non-empty → `unstage`; a path both staged and modified (`MM` in `changes`) → first AskUserQuestion ("Unstage all (drops the staged split)", "Stop"); unattended unstages and notes it. Failure (no HEAD) → stop.
 3. **Collect.** Current = Context → Branch; `HEAD` → `detached@` plus `short-head`. Base = `origin-head` when `verify-ref` resolves it, else the first that `verify-full-ref` resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master`. Current equals the base's branch name → base = `origin/<name>` when that ref resolves, else no base. Count `unique-commits` (no base or failure → 0). `changes` empty, no commits, no input → `Result: nothing-to-do`.
 4. **Analyze.** Spawn `cdk:change-analyzer` with root, `mode=branch-name`, `base` (`none` without one), and the input as hints. Take `Branch` and the `Changes` count; `Questions` → AskUserQuestion, then respawn once.
 5. **Name.** `local-branch-exists` exit 0 or `remote-branch-exists` non-empty → append `-2`, `-3`, … (cap in Rules); an `ls-remote` error counts as not on remote.

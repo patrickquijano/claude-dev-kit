@@ -1,7 +1,7 @@
 ---
 name: scan-vulnerabilities
 description: Scans the repo for vulnerabilities with free Docker scanners, remediates, validates, rescans, and reports before and after. Use only when the user explicitly asks to scan for or fix vulnerabilities.
-argument-hint: '[max-iterations=<n>] [image=<ref>]... [zap-target=<local url>] [zap-mode=baseline|api|full] [zap-spec=<openapi path or local url>]'
+argument-hint: '[max-iterations=<n>] [image=<ref>]... [zap-target=<local url>] [zap-mode=baseline|api|full] [zap-spec=<openapi path or local url>] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git status *) Bash(git diff *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git stash create) Bash(docker info *) Bash(command -v *)
 ---
 
