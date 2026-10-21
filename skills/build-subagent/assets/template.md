@@ -9,7 +9,8 @@ Path: `<scope root>/<name>.md`
 name: <kebab-case, no ":">
 description: <Use proactively to <job> when <situation>. Read-only.> # ≤200 chars, no skill or agent names
 tools: <minimal comma list> # read-only: Read, Grep, Glob
-model: <haiku|sonnet|opus|fable|<full model id>> # omit on inherit
+model: <haiku|sonnet|opus|fable|<full model id>>
+effort: <low|medium|high|xhigh|max>
 color: <red|blue|green|yellow|purple|orange|pink|cyan> # omit on No color
 ---
 

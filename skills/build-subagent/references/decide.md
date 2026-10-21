@@ -4,7 +4,7 @@ Recommend one option per question with a one-line reason; the user can override.
 
 ## Contents
 
-- Fit · One job · Scope · Fields · Model · Color
+- Fit · One job · Scope · Fields · Model and effort · Color
 
 ## Fit
 
@@ -59,8 +59,8 @@ Set a field only on a signal; omit every field at its default.
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `tools`                                                  | Always: an explicit minimal allowlist                                              | Read-only `Read, Grep, Glob`; tests `Bash, Read, Grep`; edits `Read, Edit, Write, Grep, Glob` |
 | `disallowedTools`                                        | Inheriting all tools but one must go (a specifier removes the whole tool)          | Omit                                                                                          |
-| `model`                                                  | Always asked; omitted only on `inherit` (the default: the main conversation model) | See `## Model`                                                                                |
-| `effort`                                                 | The task needs more or less reasoning than the session                             | Omit                                                                                          |
+| `model`                                                  | Always asked and set; never `inherit`                                              | See `## Model and effort`                                                                     |
+| `effort`                                                 | Always asked and set                                                               | See `## Model and effort`                                                                     |
 | `maxTurns`                                               | Runs can loop or wander; it is the stop condition                                  | Set for loops                                                                                 |
 | `isolation`                                              | The agent writes files in parallel with others: `worktree`                         | Omit otherwise                                                                                |
 | `background`                                             | It should always run in the background                                             | Omit                                                                                          |
@@ -72,32 +72,51 @@ Set a field only on a signal; omit every field at its default.
 
 `autoCompactWindow` is a known field; never recommend it.
 
-## Model
+## Model and effort
 
-`model` and `color` are asked in every create and update, in one AskUserQuestion batch. Ground each recommendation:
+`model`, `effort`, and `color` are asked in every create and update, in one AskUserQuestion batch; a question the input already answers is skipped. Ground each recommendation (from the job, tools, and sibling agents; never `inherit`):
 
-1. Take the job, tools, and return shape from Clarify. Glob the target scope's agents directory, Grep `^model:` and `^color:` in the siblings, and sort each sibling into a role by its `description`.
+1. Take the job, tools, and return shape from Clarify. Glob the target scope's agents directory, Grep `^model:`, `^effort:`, and `^color:` in the siblings, and sort each sibling into a role by its `description`.
 2. Siblings of the same role agree → recommend that value and cite it ("matches 6 sibling analyzers").
 3. No siblings, or they disagree → use the table below.
 4. The job fits two rows → recommend the row for its hardest step (model) or the domain color over the generic one (color), and say in the reason that it was a close call.
-5. Every reason cites a job, tool, or sibling fact; never recommend from the name alone.
+5. Every reason cites a job, tool, or sibling fact, and names the criterion below that decided it; never recommend from the name alone.
 6. Update mode → recommend the current value when the evidence supports it; otherwise recommend the better value with the reason.
 
-| Model     | Pick for                                                                                                                                                                   | Trade-off                                                                                                                         |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `haiku`   | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                           |
-| `sonnet`  | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                         |
-| `opus`    | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                                    |
-| `fable`   | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest; about 2.5× `opus` pricing ($10 / $50 against $4 / $20 per MTok); recommend only when the input says `opus` is not enough |
-| `inherit` | Follow the session model (also what omitting `model` does)                                                                                                                 | Cost and quality vary with the session; recommend only when the input asks for it                                                 |
+Criteria for both `model` and `effort`:
+
+- Reasoning depth: how many steps, and how interdependent.
+- Cost of a miss: what a wrong result costs the parent.
+- Context size: files, diff, or sources read.
+- Spawn frequency and latency: fan-out and parallel runs.
+- Tool power: read-only lookup against edits or Bash.
+- Sibling consensus (step 2).
+
+| Model    | Pick for                                                                                                                                                                   | Trade-off                                                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `haiku`  | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                           |
+| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                         |
+| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                                    |
+| `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest; about 2.5× `opus` pricing ($10 / $50 against $4 / $20 per MTok); recommend only when the input says `opus` is not enough |
+
+Never recommend or write `inherit`, and never omit `model`; an input that asks for `inherit` → recommend the alias the criteria support and say why.
+
+| Effort   | Pick for                                                                                               | Trade-off                                                    |
+| -------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `low`    | Fixed-rule lookups and inventories, or spawns that are frequent or fanned out where latency matters    | Fastest and cheapest; shallow reasoning                      |
+| `medium` | Bounded judgment over a moderate scope: scoring, drafting, analysis                                    | Balanced speed and depth                                     |
+| `high`   | Multi-step reasoning across files where a miss is costly: correctness or security review, verification | Slower and costlier; catches more                            |
+| `xhigh`  | Interdependent planning, conflict resolution, long-horizon edits                                       | Slower still; use when `high` misses cross-step dependencies |
+| `max`    | Only when the input says `xhigh` is not enough                                                         | Slowest and most expensive level                             |
 
 Question layout (each question allows at most 4 options):
 
-- Model: `haiku`, `sonnet`, `opus`, `fable`; the recommended one first, marked "(Recommended)" with its reason; each description states the cost or capability trade-off for this job. "Other" covers `inherit` or a full model ID. The input asks for `inherit` → it goes first as the recommendation and the alias the evidence supports least moves to "Other".
+- Model: `haiku`, `sonnet`, `opus`, `fable`; the recommended one first, marked "(Recommended)" with its reason; each description states the cost or capability trade-off for this job. "Other" covers a full model ID only, never `inherit`.
+- Effort: the recommended level first, marked "(Recommended)" with its reason, then the two neighbouring levels with their trade-offs. "Other" covers the rest.
 
 ## Color
 
-`color` only changes how the agent is displayed in the task list and transcript; consistent role colors let the user tell at a glance what kind of agent is running. Ground the recommendation with the steps in `## Model`.
+`color` only changes how the agent is displayed in the task list and transcript; consistent role colors let the user tell at a glance what kind of agent is running. Ground the recommendation with the steps in `## Model and effort`.
 
 | Color    | Role                                    |
 | -------- | --------------------------------------- |
