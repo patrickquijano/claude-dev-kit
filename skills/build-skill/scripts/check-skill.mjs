@@ -202,6 +202,24 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
     found.push(error('injection-fallback', 'B6', 'SKILL.md', line, `${what} has no || fallback`));
   }
 
+  lines.forEach((l, i) => {
+    if (
+      i >= bodyStart &&
+      !/\bnever\b/i.test(l) &&
+      /\b(spawn|spawns|spawning|delegate)\b[^\n]*(\bExplore\b|general-purpose)/i.test(l)
+    ) {
+      found.push(
+        warning(
+          'spawn-builtin',
+          'B8',
+          'SKILL.md',
+          i + 1,
+          'spawns Explore or general-purpose: name a cdk: agent instead'
+        )
+      );
+    }
+  });
+
   if (hasBundled && !lines.slice(bodyStart).some((l) => /^##\s+(Files|Navigation)\b/i.test(l))) {
     found.push(
       error(

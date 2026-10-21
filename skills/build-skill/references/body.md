@@ -67,7 +67,8 @@ An invoked skill stays in context but is not re-read later. After compaction onl
 - Short imperative steps, one default plus one escape hatch rather than many options.
 - One term per concept throughout; a concrete example beats a paragraph.
 - Multi-step work: a checklist. Quality-critical work: validate, fix, repeat, with a cap.
-- Task Output ends with a proactive `Next: <follow-up> | none` line before `Result:`, naming the logical next skill (`/cdk:<name>`) or action; spawn independent subagents in one parallel turn.
+- Spawn only named `cdk:` agents from a skill, never `Explore` or `general-purpose` (`check-skill` warns).
+- Task Output ends with a proactive `Next: <follow-up> | none` line before `Result:`, naming the logical next skill (`/cdk:<name>`) or action; spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Every skill carries the Rigor and Efficiency bullets from `assets/templates.md`: Task skills as the first bullets of `## Rules`, Reference and Background-only skills as a short topic line.
 - Name MCP tools fully (`Server:tool`); list dependencies instead of assuming they are installed.
 

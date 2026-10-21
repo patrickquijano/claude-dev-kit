@@ -222,6 +222,19 @@ describe('checkBody', () => {
     assert.deepEqual(ids(found), ['output-result']);
   });
 
+  test('warns spawn-builtin when a body spawns Explore or general-purpose', () => {
+    // Arrange
+    const bad = 'Spawn one Explore agent.\nDelegate to general-purpose.\n';
+    const ok = 'Spawn `cdk:task-worker`, never `Explore` or `general-purpose`.\nExplored 3 files.\n';
+    // Act
+    const found = [...checkBody(bad, { kind: 'task' }), ...checkBody(ok, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1, 2]
+    );
+  });
+
   test('warns output-next when a task Output has no Next line', () => {
     // Arrange
     const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
