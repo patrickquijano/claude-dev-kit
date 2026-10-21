@@ -35,7 +35,7 @@ Format: tool — config — add `<entry>` to — skip when. Append only missing 
 
 ## Candidate paths
 
-Offer only paths that exist.
+Offer only paths that exist. `bin/`, `build/`, and `out/` also need a matching line in the repo `.gitignore` (read it); they can hold source or committed scripts.
 
 - Build output: `dist/`, `build/`, `out/`, `.next/`, `.nuxt/`, `.turbo/`, `bin/`, `obj/`, `target/`, `__pycache__/`, `.gradle/`, `.build/` (Swift).
 - Coverage and caches: `coverage/`, `htmlcov/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.terraform/`.

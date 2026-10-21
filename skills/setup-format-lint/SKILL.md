@@ -37,7 +37,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 4. **Choose tools.** Per unfilled role: one candidate → use it; several formatters → the first, no question; linters → `multiSelect` question (`references/flow.md` `## Choose tools`).
 5. **Package manager.** Only when an npm tool is installed or checked; ask on `unknown`, create a missing `package.json` (`package-manager.md`).
 6. **Versions.** Only for tools to install or version-dependent configs; spawn `cdk:version-resolver` (`kind: packages`); `Unverified` → skip that tool.
-7. **Install.** Missing tools only, each at its resolved version; native tools after a per-tool question (`references/flow.md` `## Install`).
+7. **Install.** Missing tools only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools after a per-tool question (`references/flow.md` `## Install`).
 8. **Configure.** Write each missing config with the catalog defaults, no question; existing config → keep (`configs.md` `## Config files and defaults`, `## YAML alignment`).
 9. **Overlaps and ignores.** Apply the catalog overlaps (`configs.md` `## Overlaps`), then add every ignore candidate that exists in each tool's syntax, never skipping one a tool already inherits or skips (`ignores.md`).
 10. **Check.** Spawn the analyzer (`mode=check`) for the installed and kept tools; report counts and first `Problems` lines; never auto-fix user code.

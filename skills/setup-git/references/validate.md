@@ -2,7 +2,8 @@
 
 Step 9 (**Validate and repair**) checks. Commands run by name from `commands.md` in this folder.
 
-- Identity: `user.name` empty, or `user.email` not `<text>@<text>` or containing whitespace → ask in plain text (cap in SKILL.md Rules).
+- Unattended: every AskUserQuestion below takes its Recommended option, except identity and a key mismatch with no single repair, which go under `Open:`.
+- Identity: `user.name` empty, or `user.email` not `<text>@<text>` or containing whitespace → ask in plain text (cap in SKILL.md Rules); unattended: list under `Open:`.
 - Format: `gpg.format` not `openpgp`, `x509`, or `ssh`, or `ssh` on git < 2.34 → AskUserQuestion: the format that matches the current signing key's type (Recommended; keeps the key) | each other valid format this git supports.
 - Key type vs format: a `key::` value, a value starting `ssh-`, or an SSH key path with format `openpgp` or `x509`; or a hex key ID, fingerprint, or email with format `ssh` → AskUserQuestion: Switch `gpg.format` to match the key (Recommended; keeps your existing key) | Choose another key for the current format (step 6 candidates).
 - Key exists: SSH key file missing, `key::` value not in `agent-keys`, or OpenPGP key unknown to `gpg-key` → step 6 candidate flow; the chosen key replaces the value locally. A `.pub` key file must also pass `ssh-key-check`.

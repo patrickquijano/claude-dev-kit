@@ -27,7 +27,7 @@ Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package
 ## Configure and scripts
 
 - Write only missing configs, from stacks.md Recommended plus the runner's official docs via WebFetch (unavailable → bundled layout only; say so). Layout and per-kind config per `${CLAUDE_SKILL_DIR}/references/layout.md`.
-- Install with the stacks.md Add dev dependency command (Playwright browsers: `<x> playwright install`); a failed install stops the skill, no retry.
+- Install by the stack's `add-*` command (JS: the manager's, stacks.md Add dev dependency, with `<v>` from `js-version`; Python without uv or poetry, and JVM: edit the manifest instead) (Playwright browsers: `playwright-install`); a failed install stops the skill, no retry. At a JS workspace root (git root with `workspaces` or `pnpm-workspace.yaml`) add `-w` (pnpm) or `-W` (yarn 1) to the add command, and run the scripts there too.
 - Scripts: add `test:unit`, `test:integration`, `test:e2e` (or the stack's equivalent: Make target, Composer script, Gradle task) where missing; kinds never share one script.
 
 ## Context note

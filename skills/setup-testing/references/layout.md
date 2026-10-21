@@ -5,7 +5,8 @@ Native folder layout per stack, used by `setup-testing` step 5 when it writes a 
 ## Contents
 
 - Layout table · Fallback · Config per kind
-  An existing layout always wins. Paths are relative to the package. Integration stays a separate suite: own directory plus its own config, project, marker, or build tag.
+
+An existing layout always wins. Paths are relative to the package. Integration stays a separate suite: own directory plus its own config, project, marker, or build tag.
 
 | Stack                      | Unit                                | Integration                                                       | E2E                                               |
 | -------------------------- | ----------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------- |

@@ -38,13 +38,13 @@ Format: file type (keys) — formatters — linters. `—` = no candidate; skip 
 - Svelte (`svelte`) — Prettier with `prettier-plugin-svelte` — ESLint with `eslint-plugin-svelte` (its `prettier` config).
 - C/C++ (`c h cc cpp cxx hh hpp`) — clang-format — clang-tidy (needs `compile_commands.json`, else skipped and listed in `Open:`).
 - Lua (`lua`) — StyLua — Luacheck.
-- XML (`xml`) — xmlstarlet | xmllint | Prettier with `@prettier/plugin-xml` — xmllint. The format-lint hooks run Prettier (when configured for XML), then the first of xmlstarlet (`fo`) and xmllint (`--format`) found.
+- XML (`xml`) — xmlstarlet | xmllint | Prettier with `@prettier/plugin-xml` — xmllint. Format with Prettier when configured for XML, else the first of xmlstarlet (`fo`) and xmllint (`--format`) found.
 
 Not covered (list as `uncovered`): `.sass` (indented syntax; Prettier and Stylelint standard configs cannot parse it) and any type not listed.
 
 ## Versions
 
-Never pin or remember versions in this skill. Before any install or config write, the analyzer (`mode=versions`) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
+Never pin or remember versions in this skill. Before any install or config write, `cdk:version-resolver` (`kind: packages`) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
 
 Retained constraints (each applied only when the check fails; report under `Constraints`):
 

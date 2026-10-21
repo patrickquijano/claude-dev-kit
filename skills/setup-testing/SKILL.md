@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask.
-- Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `write-*-tests` skills chain this with one kind and one package.
+- Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `add-*-tests` skills chain this with one kind and one package.
 - Idempotent: a re-run with everything configured changes nothing. Never overwrite an existing config, script, or tester; an existing tester of a kind wins over the recommendation.
 - Writes: test config, dev-dependency and browser installs per a user pick, run scripts in the manifest, and the context note; never test files beyond an empty-suite placeholder a runner needs, never production code.
 - Never install unasked, except in an unattended run (below): one AskUserQuestion per missing tool, each option naming its effect, Recommended first with its reason, Stop last, at most 4 questions per call. Unattended run (chained with a kind, `--yes`, or auto) → take the Recommended pick and report it.
