@@ -37,11 +37,11 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
 4. **package.json.** Missing → create it per `package-manager.md` Missing package.json.
 5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Signing config missing → stop ("run /cdk:setup-git first"). `hooks.md` Events.
-6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir. Fail → quote the error line, stop.
-7. **Initialize Husky.** `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare`; always `run-prepare`. `init.md`.
+6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
+7. **Initialize Husky.** Ask before replacing another hook owner (lefthook, pre-commit, `.git/hooks` files); `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
 9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); `chmod-exec` copied stubs. `hooks.md` Copy.
-10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/.commitlintrc.json`. `hooks.md` Commitlint config.
+10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
 11. **Commit rules.** Message check skipped → skip. Copy `assets/commit-rules.md` to `.claude/rules/commits.md` at the git root (absent → write, identical → skip, differs → keep and report). Report when root `CLAUDE.md` does not mention commit rules; never edit it.
 12. **Git ignore.** Append `<pkg>/.husky/_/` (`.husky/_/` at root) to root `.gitignore`, creating it if missing; linters read only the root one.
 13. **Line endings.** Append `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root) to root `.gitattributes`, creating it if missing, unless an identical `eol=lf` line exists (CRLF breaks the `sh` stubs).
@@ -57,7 +57,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - For hook events, copying hooks, the commitlint config, and the smoke test (steps 5, 9, 10, 15), see `${CLAUDE_SKILL_DIR}/references/hooks.md`.
 - For `hooksPath`, `prepare` merging, and init (step 7), see `${CLAUDE_SKILL_DIR}/references/init.md`.
 - For tool ignore entries (step 14), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
-- Copied into the project (never read): `${CLAUDE_SKILL_DIR}/assets/` (hooks, `.commitlintrc.json`, `commit-rules.md`).
+- Copied into the project (never read): `${CLAUDE_SKILL_DIR}/assets/` (hooks, `commitlintrc.json`, `commit-rules.md`).
 
 ## Output
 

@@ -2,8 +2,6 @@
   "extends": ["@commitlint/config-conventional"],
   "rules": {
     "header-max-length": [2, "always", 72],
-    "body-empty": [2, "always"],
-    "footer-empty": [2, "always"],
-    "trailer-exists": [2, "never", "Co-authored-by:"]
+    "trailer-exists": [2, "never", "Co-"]
   }
 }
