@@ -12,14 +12,14 @@ A repo commitlint config wins over these rules.
 
 - Format: `<type>/<short-description>`, types as above.
 - Whole name (incl. `<type>/`) max 72 chars. Imperative verb first in description ("add-", not "added-"). Lowercase, hyphen-separated, `[a-z0-9-]` only.
-- Exists locally or on the remote → append `-2`, `-3`, ….
+- Exists locally or on the remote → append `-2`, `-3`, …, truncating the base so base + suffix stays at most 72 chars.
 
 ## Protected branch
 
-Host from `git remote get-url origin`; run commands verbatim:
+Host from `origin-url`; run the `commands.md` rows verbatim:
 
-- gitlab → `glab api --paginate projects/:id/protected_branches`; match `.[].name`, names may be globs (`release/*`).
-- github → `gh api repos/{owner}/{repo}/branches/{branch} --jq .protected` = `true`.
+- gitlab → `protected-gitlab`; match `.[].name`, names may be globs (`release/*`).
+- github → `protected-github` = `true`.
 - CLI missing, any API error (401/403/404), or other host → protected = `main`, `master`, `develop`, `release/*`.
 - Default branch and detached `HEAD` count as protected.
 

@@ -27,7 +27,7 @@ Input: $ARGUMENTS
 - Two paths from step 4, by counts and a secret-pattern scan, never by reading diffs for meaning: small = main thread, no subagent, no questions; analyzed = `cdk:change-analyzer` (`mode=group`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Any doubt → analyzed.
 - `paths: <file> ...` in the input → classify, group, stage, and commit only those paths; every other dirty file goes under `Excluded: pre-existing`, unstaged. No `paths:` → all changes.
 - Atomic: one logical change per commit; config goes with the files it configures; a rename (`D` old + `??` new) stays in one commit.
-- Secrets: a file name (`.env*`, key files) or diff content (`-----BEGIN`, `AKIA`, `ghp_`, `glpat-`, `xox[bp]-`) is left unstaged, listed under `Excluded`, and warned about.
+- Secrets: a file name (`.env*`, key files) or diff content (`-----BEGIN`, `AKIA`, `ghp_`, `github_pat_`, `gh[ousr]_`, `glpat-`, `xox[bp]-`, `sk-ant-`, `sk-proj-`, `AIza`) is left unstaged, listed under `Excluded`, and warned about.
 - Unattended (chained by another skill): ask nothing; `Open:` reports each item with its recommended fix. Chained skills invoke this one through the Skill tool, so it never sets `disable-model-invocation`.
 
 ## Workflow
