@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Breaking:** `/cdk:build-agent` is renamed `/cdk:build-subagent`. Use the new name; the old one no longer exists.
 - Working-discipline directives (rigor and efficiency) are added to all skills, subagents, and project rules, and to the `build-skill` and `build-subagent` templates and style rules.
 - The README title now reads `CDK`.
+- `/cdk:commit-changes`, `/cdk:switch-branch`, `/cdk:add-unit-tests`, and `/cdk:setup-spec-kit` ask before a destructive step (unstaging a split, moving or rewriting existing tests, a `--force` init in a non-empty project); unattended runs keep the old behavior or skip the step and report it under `Open:`.
+- `/cdk:review-local-changes`, `/cdk:update-changelog`, `/cdk:build-dockerfile`, and `/cdk:draft-prompt` list leftovers on an `Open:` line before `Result:`; `/cdk:draft-prompt` renames `Open gaps:` to `Open:`. `/cdk:publish-github-release` and `/cdk:setup-testing` state their `--yes` behavior, and `/cdk:setup-testing`, `/cdk:scan-vulnerabilities`, and `/cdk:add-integration-tests` list `[--yes]` in `argument-hint`.
 - Context-heavy skill steps now run in subagents that return compact results, so the main conversation stays lean: `/cdk:debug-issue` (hypothesis probes and verification), `/cdk:review-local-changes` (fixes and checks), the direct review in `/cdk:prepare-change-request` and `/cdk:review-change-request` (checks), `/cdk:upgrade-dependencies` (migration research, baseline and validation checks, leftovers), `/cdk:rebase-onto` (one conflict analyzer per conflicted file), `/cdk:scan-vulnerabilities` (finding triage), the `/cdk:add-unit-tests`, `/cdk:add-integration-tests`, and `/cdk:add-e2e-tests` practices lookup, `/cdk:build-github-workflows` (docs check), `/cdk:commit-changes` (large changes skip the inline secret scan), and the context reads in `/cdk:implement-goal`, `/cdk:draft-prompt`, and `/cdk:build-subagent`.
 - `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
 - The end-of-task steps now fire once per turn that changed the working tree, compared with the tree `UserPromptSubmit` recorded at turn start, so Q&A turns and an already-dirty tree stay silent. They no longer include the commit-and-push step: run `/cdk:commit-changes` yourself, and `/cdk:commit-changes` no longer lists a hook as a trigger.
@@ -37,6 +39,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Skills no longer pre-approve broad git patterns: `git symbolic-ref` is limited to `--short refs/remotes/origin/HEAD`, and `git ls-remote`, `git switch -c`, `git fetch *`, `git checkout --ours`/`--theirs`, and `specify extension add` stay permission-prompted.
+- `/cdk:commit-changes` and `/cdk:switch-branch` truncate a branch name so its `-N` suffix keeps it within 72 characters, and the secret scan in `/cdk:commit-changes` and `cdk:change-analyzer` also covers `github_pat_`, `gh[ousr]_`, `sk-ant-`, `sk-proj-`, and `AIza`.
+- `check-skill` no longer warns that a verb-first name such as `setup-devcontainer` ends in an actor suffix.
 - The Stop hook no longer shows a `Stop hook error` notice: the end-of-task steps and repo lint failures now reach Claude as `Stop hook feedback`, and a Stop hook crash prints a `cdk stop: …` message and exits 0 instead of exiting 1.
 
 ## [0.2.0] - 2026-10-20
