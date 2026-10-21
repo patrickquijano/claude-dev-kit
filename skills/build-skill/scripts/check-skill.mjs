@@ -51,6 +51,39 @@ const KNOWN_FIELDS = new Set([
 ]);
 const ALLOWED_TOP = new Set(['SKILL.md', 'references', 'assets', 'scripts']);
 const ACTOR_SUFFIX = /(er|or|ist|ant)$/;
+// A verb-first name (`setup-devcontainer`) names an action, so its object may end like an actor.
+const LEADING_VERB = new Set([
+  'add',
+  'address',
+  'assess',
+  'build',
+  'bump',
+  'check',
+  'commit',
+  'create',
+  'debug',
+  'deploy',
+  'draft',
+  'fix',
+  'format',
+  'generate',
+  'implement',
+  'lint',
+  'make',
+  'prepare',
+  'publish',
+  'rebase',
+  'review',
+  'run',
+  'scan',
+  'set',
+  'setup',
+  'switch',
+  'test',
+  'update',
+  'upgrade',
+  'write'
+]);
 const FENCE = /^\s*```/;
 
 export class FrontmatterError extends Error {}
@@ -127,8 +160,9 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
       found.push(error('name-dir', 'F1', 'SKILL.md', line, `name "${name}" must equal directory "${dirName}"`));
     if (/anthropic|claude/.test(name))
       found.push(error('name-reserved', 'F1', 'SKILL.md', line, 'name contains a reserved word'));
-    const last = name.split('-').pop();
-    if (ACTOR_SUFFIX.test(last)) {
+    const parts = name.split('-');
+    const last = parts[parts.length - 1];
+    if (!LEADING_VERB.has(parts[0]) && ACTOR_SUFFIX.test(last)) {
       found.push(
         warning(
           'name-actor',

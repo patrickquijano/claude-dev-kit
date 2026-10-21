@@ -95,6 +95,42 @@ describe('checkFrontmatter', () => {
     );
   });
 
+  test('skips the actor warning for a verb-first name', () => {
+    // Arrange
+    const fields = { name: 'setup-devcontainer', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'setup-devcontainer');
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('skips the actor warning for another verb-first name', () => {
+    // Arrange
+    const fields = { name: 'review-change-reviewer', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'review-change-reviewer');
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('still warns on an actor name whose first part is not a verb', () => {
+    // Arrange
+    const fields = { name: 'demo-runner', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo-runner');
+    // Assert
+    assert.deepEqual(ids(found), ['name-actor']);
+  });
+
+  test('still warns on a single-word actor name', () => {
+    // Arrange
+    const fields = { name: 'scanner', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'scanner');
+    // Assert
+    assert.deepEqual(ids(found), ['name-actor']);
+  });
+
   test('errors on an unknown field', () => {
     // Arrange
     const fields = { name: 'demo', description: 'x', colour: 'red' };
