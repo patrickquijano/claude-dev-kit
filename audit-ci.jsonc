@@ -1,0 +1,7 @@
+{
+  "moderate": true, // Same threshold as npm audit --audit-level=moderate.
+  "report-type": "summary",
+  // braces stack overflow: maintainer disputes it, no patch (micromatch/braces#85); only markdownlint-cli2 (dev) uses braces.
+  // Remove once the advisory is withdrawn or a patched braces ships; audit-ci then reports it as not found.
+  "allowlist": ["GHSA-vfj7-8cjw-p6xm"]
+}
