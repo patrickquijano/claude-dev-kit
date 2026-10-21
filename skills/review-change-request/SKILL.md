@@ -19,8 +19,10 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- User interaction (AskUserQuestion) only here; subagents cannot ask. Missing authentication, permission, or CR identity → stop with the exact error; never guess.
+- User interaction (AskUserQuestion) only here; subagents cannot ask. Missing authentication, permission, or CR identity → stop with the exact error.
 - Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`). Each step names the host-file section it uses. Host-neutral rules: `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - Advisory until the user picks Post or Merge in step 9, or `--yes` (`flow.md` `## Yes mode`) acts on settings the caller collected. Writes: the review, own-thread replies and resolves, approval, the merge. All stay out of `allowed-tools`, so each permission prompt is a second guard.
 - Merge only in step 12, only when the host `## Merge` offers it and the user picks Merge (or `--yes`). Never push, check out, edit the CR or its branches, dismiss reviews, or modify source files. Resolve only threads Self started and only when addressed. Approve only per the host `## Approve`. Never pass auto-merge or bypass repository policy, except the own-PR `--admin` case in the GitHub `## Merge`.

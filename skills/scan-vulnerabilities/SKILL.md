@@ -17,6 +17,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - User interaction (AskUserQuestion) only here; `cdk:security-scanner` cannot ask. Act on your own for safe, local, non-breaking work. Ask only at an approval boundary below.
 - Approval boundaries. Each needs explicit AskUserQuestion approval: breaking dependency upgrades; public API or data-contract changes; database migrations; architectural changes; destructive actions; production access; active DAST; authentication or authorization behavior changes; removing or replacing a major dependency; accepting or suppressing a high or critical finding. Without approval, the finding stays `needs-approval`.

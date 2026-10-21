@@ -10,8 +10,10 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Run each speckit step with the Skill tool in this main thread, one at a time, never via the Agent tool (a subagent has no AskUserQuestion). Wait for each to finish; speckit skills do not chain themselves.
-- Relay every question a speckit skill asks with AskUserQuestion; never invent answers. Pre-approved exceptions: accept the slug intake suggests (step 3); in step 7 re-runs only, answer yes to overwriting artifacts in the current slug. On the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
+- Relay every question a speckit skill asks with AskUserQuestion. Pre-approved exceptions: accept the slug intake suggests (step 3); in step 7 re-runs only, answer yes to overwriting artifacts in the current slug. On the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - Pass `slug=<slug>` to every step after intake. All five steps write only to `.specify/assessments/<slug>/`.
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
 - `handoff=no` in the input (any position): strip it from the idea; a go verdict then stops at step 6. Default: hand off.

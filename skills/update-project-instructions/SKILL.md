@@ -17,12 +17,14 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion); subagents cannot. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn; never print finished files in place of a pending question.
 - Best practices and rubric: `${CLAUDE_SKILL_DIR}/references/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/assets/template.md`.
 - Apply `${CLAUDE_SKILL_DIR}/references/principles.md` by default in create and update mode, adapted to facts and repo conventions, so every generated set carries engineering principles without the user asking.
 - Write scope: project `CLAUDE.md` (or `.claude/CLAUDE.md` when that is the existing one) and `.claude/rules/**/*.md`. Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy.
-- Never invent commands, paths, or policies. Not derivable → ask; user omits → leave out, add to `Omitted:`; never re-ask an omitted item.
+- Commands, paths, and policies not derivable → ask; user omits → leave out, add to `Omitted:`; never re-ask an omitted item.
 - Update mode: keep correct content and author voice; change only stale, wrong, duplicate, conflicting, or missing items. Move any `Known issues` section to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove it; auto memory unavailable → keep it and report it.
 - Conflict → never resolve silently; ask.
 - Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only `cdk:rubric-improver` applies score fixes. Never loop past the cap; list what is left in `Open:`.

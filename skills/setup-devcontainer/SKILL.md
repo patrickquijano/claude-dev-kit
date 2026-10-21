@@ -17,10 +17,12 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:build-dockerfile`; `cdk:repo-analyzer` only reads.
 - Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. A skipped item gets a reason in the Output.
-- No invented facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. A failed lookup is asked in step 3 call 3, never guessed.
+- Facts: stack, versions, commands, ports, and env vars come from the input or the repo; image tags, feature majors, service ports, data paths, env vars, and health commands come from the lookups practices.md names. A failed lookup is asked in step 3 call 3.
 - Pinning per practices.md: the image approach at the `<image major>-…` tag, features at `:<major>` with the committed `devcontainer-lock.json`, service images at an exact release tag; a Dockerfile base at the exact full tag plus digest, as `cdk:build-dockerfile` requires.
 - Dockerfile needed (system packages, firewall, or a custom build step) → chain `cdk:build-dockerfile` through the Skill tool in this thread, for any approach; never write or fix the Dockerfile here. A `stopped` or `cancelled` chained Result stops this run (step 8).
 - Credentials never land in git: `.devcontainer/.env` is gitignored and dockerignored, `.env.example` holds placeholders.

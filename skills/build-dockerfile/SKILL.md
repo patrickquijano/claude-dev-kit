@@ -17,9 +17,11 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md` and every other item that fits; a skipped item gets a reason in the Output. Input `target=devcontainer` → its `## Devcontainer target` replaces the items it names.
-- No invented facts: runtime version, build and start commands, port, env vars, and system packages come from the input or the repo. Not derivable → ask (default target only).
+- Facts: runtime version, build and start commands, port, env vars, and system packages come from the input or the repo. Not derivable → ask (default target only).
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
 - `docker build --check` is the primary check; hadolint only on a heredoc-free file, so it usually reports `skipped (heredoc)`.

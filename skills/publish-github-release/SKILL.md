@@ -18,9 +18,11 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only drafts are published; a release that is already published is never edited, deleted, or recreated. Never `--force`, `release delete`, or `--target`; `--discussion-category` only with a category the user picked from `discussion-categories`.
-- Changelog parsing and notes rendering belong to `${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs`; never parse the changelog or build notes by hand, and never invent notes.
+- Changelog parsing and notes rendering belong to `${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs`; never parse the changelog or build notes by hand.
 - Ask with AskUserQuestion, recommendation first with a one-line reason, a Stop option on every batch (Stop → `Result: cancelled`). The publish question is the confirmation; it names the tag, its commit state, and the effects (publish, notes change, tag creation).
 - Publish only after the user picks the action `Publish` and then `Latest` or `Pre-release`; a release is never made public without those picks. `Keep as draft` leaves the release a draft. `--yes` or an unattended run skips the questions with the defaults in `${CLAUDE_SKILL_DIR}/references/flow.md` `## Unattended`, never any check.
 - The GitHub Marketplace listing is a web-only step: never claim it was done. On a Marketplace `Yes` the release is never published here; it stays a draft and its link goes under `Open:` (`flow.md` `## Publish`).

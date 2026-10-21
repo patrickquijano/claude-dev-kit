@@ -17,12 +17,14 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user and writes; `cdk:repo-analyzer`, `cdk:version-resolver`, and `cdk:practices-reviewer` are read-only.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print finished files in place of a pending question.
-- No invented facts: triggers, commands, runtime versions, secret and variable names, environments, and services come from the input, the repo, or the resolver. Not derivable means ask. Nothing is written until every item is settled.
+- Facts: triggers, commands, runtime versions, secret and variable names, environments, and services come from the input, the repo, or the resolver. Not derivable means ask. Nothing is written until every item is settled.
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md` and every other item that fits; each says why. A skipped item gets its reason in the Output.
-- Versions are never hardcoded here: resolve every action, reusable workflow, runner label, and image per `${CLAUDE_SKILL_DIR}/references/versions.md` on each run, then write the verified values into the workflows. Never `ubuntu-latest`, `latest`, a bare major, or a floating alias. Unverifiable means ask or stop; never guess or use a remembered value.
+- Versions are never hardcoded here: resolve every action, reusable workflow, runner label, and image per `${CLAUDE_SKILL_DIR}/references/versions.md` on each run, then write the verified values into the workflows. Never `ubuntu-latest`, `latest`, a bare major, or a floating alias. Unverifiable means ask or stop; never use a remembered value.
 - Structure per `${CLAUDE_SKILL_DIR}/references/layout.md`: one orchestrator holding triggers and caller jobs, one `workflow_call` file per job, inputs, secrets, permissions, and outputs passed explicitly (never `secrets: inherit`).
 - Scripts are POSIX `sh` only, set via `defaults.run.shell: sh`; untrusted and secret values only through step `env:`.
 - Update mode changes only what the request needs; keep triggers and behavior, and keep job `name` values unless modularizing renames a required check (then the gate job supersedes and required checks move to it). Modularize only workflows the request touches. New names follow `practices.md` `## Naming`; existing names stay unless the user approves a rename.

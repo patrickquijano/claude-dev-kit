@@ -19,6 +19,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Root cause first: no fix and no test edit until the cause is shown with `file:line` evidence. A guess is labeled a hypothesis. Temporary probes (logs, prints) are allowed during step 4, tracked, and reverted before step 6.
 - Test, lint, type check, and build commands come from the project's documented commands (CLAUDE.md `Commands`), not from `commands.md`.

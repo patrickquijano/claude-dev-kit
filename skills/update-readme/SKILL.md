@@ -17,9 +17,11 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user; subagents cannot. AskUserQuestion or Write unavailable: see `flow.md` `## Fallback`.
-- Never invent facts: license, URLs, versions, contacts, badges. Not derivable → ask; user omits → leave out; never re-ask an omitted item.
+- License, URLs, versions, contacts, and badges not derivable → ask; user omits → leave out; never re-ask an omitted item.
 - Every command in the README must exist in the repo (script, Makefile, bin, documented tool). Unverified → drop.
 - Update mode: keep correct content, custom sections, and author voice; change only stale, wrong, or missing items.
 - Never drop a required section of the rubric. No facts for it → ask in step 3, else write one explicit line ("No configuration.").

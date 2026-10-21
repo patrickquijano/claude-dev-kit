@@ -10,10 +10,12 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Check every item in `${CLAUDE_SKILL_DIR}/references/checks.md`; each missed item is a known failure mode for agents.
 - Draft in the shape of `${CLAUDE_SKILL_DIR}/references/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
-- Never invent paths, commands, versions, or APIs; unverified → omit and report, since a wrong fact in a prompt misleads the agent.
+- Unverified path, command, version, or API → omit and report, since a wrong fact in a prompt misleads the agent.
 - Input holds several tasks → draft the first and list the rest as follow-ups.
 - Keep the prompt short: omit empty sections, no filler, no repeated facts; token cost repeats every turn.
 - Claude Code target only. Nothing is written to disk, so no approval is asked.

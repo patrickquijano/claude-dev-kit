@@ -17,6 +17,8 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - All logic lives in `${CLAUDE_SKILL_DIR}/scripts/release-check.mjs`; never compute a level or version yourself and never edit a version file by hand.
 - A bump needs the user's confirmation every time and only serves a PR or MR; never bump on your own. Only the input `confirmed`, passed by a caller after its own question, skips it; `--yes`, `auto`, and unattended mode never do.

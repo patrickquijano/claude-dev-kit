@@ -13,6 +13,8 @@ This skill decides, writes, and enforces the rules; `skill-creator` is optional,
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files. `skill-creator` is optional, for evals only.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
 - Loops: clarify at most 3 rounds; improve rounds at most 3. Never loop past the cap; report what is left in `Gaps:`.

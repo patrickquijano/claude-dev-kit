@@ -17,6 +17,8 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Every test follows `${CLAUDE_SKILL_DIR}/references/conventions.md` (Shared rules, Faker libraries, End to end).
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
