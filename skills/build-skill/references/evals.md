@@ -1,6 +1,6 @@
 # Evals
 
-Step 7 of `SKILL.md`: optional; runs only when `skill-creator` is in the session's skill list and the user picks it.
+Step 9 of `SKILL.md`: optional; runs only when `skill-creator` is in the session's skill list and the user picks it.
 
 `skill-creator` not listed → `Evals: n/a`; mention `/plugin install skill-creator@claude-plugins-official` as information only, never stop.
 
@@ -12,4 +12,4 @@ Run only your eval loop; do not rewrite the skill outside it.
 Return: eval results and any files you changed.
 ```
 
-If evals changed any files, re-run `check-skill` once and send failures to `Gaps:`.
+If evals changed any files, re-run `check-skill` once and send failures to `Open:`.

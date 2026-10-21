@@ -38,6 +38,8 @@ Input: $ARGUMENTS
 
 ```text
 <fixed fields>
+Open: <what is left | none>
+Next: <follow-up> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

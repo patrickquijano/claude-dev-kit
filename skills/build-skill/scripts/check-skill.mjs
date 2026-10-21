@@ -9,7 +9,7 @@ function listFiles(dir, prefix = '') {
   const out = [];
   for (const entry of readdirSync(join(dir, prefix), { withFileTypes: true })) {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
-    if (entry.name.startsWith('.')) continue; // .DS_Store and other dotfiles are not skill files
+    if (entry.name === '.DS_Store') continue; // macOS metadata; any other dotfile is listed and flagged by checkLayout
     if (entry.isDirectory()) out.push(...listFiles(dir, rel));
     else if (entry.isFile()) out.push(rel);
   }
@@ -284,11 +284,17 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
   return found;
 }
 
-// L2: only SKILL.md, references/, assets/, scripts/ beside the skill.
+// L2: only SKILL.md, references/, assets/, scripts/ beside the skill, and no dotfile or dot-directory (`.env`, `.git/`).
 export function checkLayout(files) {
   const found = [];
   if (!files.includes('SKILL.md')) found.push(error('skill-missing', 'L2', 'SKILL.md', 1, 'SKILL.md not found'));
   for (const file of files) {
+    if (file.split('/').some((part) => part.startsWith('.'))) {
+      found.push(
+        error('dotfile', 'L2', file, 1, `"${file}" is a dotfile; a skill ships none (only .DS_Store is ignored)`)
+      );
+      continue;
+    }
     const top = file.split('/')[0];
     const nested = file.includes('/');
     if (!ALLOWED_TOP.has(top) || (!nested && top !== 'SKILL.md')) {

@@ -332,6 +332,28 @@ describe('checkLayout', () => {
     );
   });
 
+  test('errors on a top-level dotfile', () => {
+    // Arrange
+    const files = ['SKILL.md', '.env'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(ids(found), ['dotfile']);
+    assert.equal(found[0].file, '.env');
+  });
+
+  test('errors on a dotfile nested in references', () => {
+    // Arrange
+    const files = ['SKILL.md', 'references/.secret.md', 'references/r.md'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.file),
+      ['references/.secret.md']
+    );
+  });
+
   test('errors when SKILL.md is missing', () => {
     // Arrange
     const files = ['references/r.md'];
