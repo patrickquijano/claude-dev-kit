@@ -27,6 +27,7 @@ Input: $ARGUMENTS
 - Caps: one practices researcher (step 5); step 3 re-spawns an analyzer at most once (`Stopped: 3: analyzer questions unresolved`); step 4 re-spawns once more after setup (`Stopped: 4: tester still missing`); step 9 run-fix rounds at most 3 (`Stopped: 9: tests still failing after 3 rounds`); step 10 one pass.
 - Cancel answer → `Result: cancelled`. A stop or cap hit after tests exist → step 10 once on what is left, then `Result: stopped` with `Stopped: <step>: <reason>`.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended runs (chained, `--yes`, auto) ask nothing: take the Recommended pick and list leftovers in `Open:`.
+- Pin every container image to an explicit tag (never `latest`). Start services only with `compose-up` and a distinct project name (`cdk-it-<random>`) used for both `compose-up` and `compose-down`; `compose-down` (which uses `-v`) runs after each run and when the skill stops, only for a project this run started, never on a pre-existing project or compose file.
 - Never delete or weaken a test to make it pass; a suspected production bug stays a failing test and is listed.
 
 ## Workflow
@@ -39,7 +40,7 @@ Input: $ARGUMENTS
 6. **Baseline.** Run the existing integration suite unless it targets a non-local host (`flow.md` `## Baseline`). Every boundary already covered → `Result: nothing-to-do`.
 7. **Plan.** Print a table per package: boundary `file:line`, dependency strategy, scenarios (success and failure), data setup and cleanup. Continue without asking.
 8. **Write.** Per boundary, in the project's style: AAA blocks, seeded faker data with unique keys, real wiring of the project's own components, the chosen dependency strategy, cleanup per test.
-9. **Run.** Run the integration suite; fix test or setup bugs and re-run (cap in Rules). Code that looks wrong → keep the test failing and list it (`flow.md` `## Run`).
+9. **Run.** Start container services with `compose-up`, run the integration suite; fix test or setup bugs and re-run (cap in Rules). Code that looks wrong → keep the test failing and list it (`flow.md` `## Run`).
 10. **Open items.** One pass over baseline failures, suspected bugs, and tests still failing (`flow.md` `## Open items`).
 11. **Report.** Print the Output.
 

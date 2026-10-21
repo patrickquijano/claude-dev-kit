@@ -1,15 +1,15 @@
 # Flow details
 
-Conditional branches for steps 3, 5, 6, and 10 of `SKILL.md`.
+Conditional branches for steps 3, 5, 6, 10, and 11 of `SKILL.md`.
 
 ## Analyze (step 3)
 
 - Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package, all in one message. Input per agent: package path, test kind `unit`, scope, package manager (`n/a` for non-JS), the path `${CLAUDE_SKILL_DIR}/references/stacks.md`, the path `${CLAUDE_SKILL_DIR}/references/conventions.md`.
-- The agent cannot ask. Ask each returned `Questions:` line with AskUserQuestion, then re-spawn only those agents with the same input plus the answers, once. Still open → `Stopped: 3: analyzer questions unresolved`, `Resolution: not run (stopped)`.
+- The agent cannot ask. Ask each returned `Questions:` line with AskUserQuestion, then re-spawn only those agents with the same input plus the answers, once. Still open → `Stopped: 3: analyzer questions unresolved`.
 
 ## Missing tooling (step 5)
 
-- A `Missing:` runner, coverage provider, or faker line → Skill `cdk:setup-testing` with args `unit <package>` (it asks, installs, configures), then re-spawn that package's analyzer once more (separate from the step 3 re-spawn). Still `Missing:` → `Stopped: setup-testing: tester still missing`.
+- A `Missing:` runner, coverage provider, or faker line → Skill `cdk:setup-testing` with args `unit <package>` (it asks, installs, configures), then re-spawn that package's analyzer once more (separate from the step 3 re-spawn). Still `Missing:` → `Stopped: 5: tester still missing`.
 - The chained skill ends `stopped` or `cancelled` → stop, relaying its `Stopped:` reason as `Stopped: <step>: setup-testing: <reason>`.
 - Unit mock library, test location, and similar picks: take Recommended, report.
 
@@ -34,4 +34,4 @@ Conditional branches for steps 3, 5, 6, and 10 of `SKILL.md`.
 
 - AskUserQuestion unavailable: take the Recommended option, or stop with `Stopped: <step>: input needed` when none exists; report each pick.
 - Write unavailable: stop with `Stopped: 9: cannot write test files`.
-- Unattended (chained or hook): ask nothing; an unanswerable question → `Result: stopped`.
+- Unattended (chained or hook): ask nothing; take Recommended picks and report them, record what stays unanswerable under `Open:`; with no Recommended pick → `Result: stopped` with `Stopped: <step>: input needed`.

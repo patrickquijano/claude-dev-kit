@@ -24,6 +24,7 @@ Input: $ARGUMENTS
 - Never edit production code. Writes: test files (moved with `git-mv`), test setup files, runner globs. Tool installs and configs belong to `cdk:setup-testing`.
 - `cdk:repo-analyzer` cannot ask: ask its `Questions:` and `Missing:` lines here with AskUserQuestion.
 - Caps: analyzer re-spawn 1 (step 3); one practices researcher (step 4); setup chain re-spawn 1 (step 5); fixes per new test 2 and coverage rounds 5 (step 10); leftover fix pass 1 round (step 11).
+- Coverage artifacts (reports, `.coverage`, `coverage/`) go to a scratch directory outside the repo through the runner's output option; any this run leaves in the repo are removed after each run and when the skill stops, only if untracked and absent before; remove with a file tool, one path at a time, never `rm -rf`.
 - A cap hit or failure → run step 11 on what is left, without re-entering the loop, then print the Output with `Result: stopped`. A stop answer → `Result: cancelled`.
 - Detail for steps 3, 5, 6, 10, 11 and the AskUserQuestion or Write fallbacks: `${CLAUDE_SKILL_DIR}/references/flow.md`.
 

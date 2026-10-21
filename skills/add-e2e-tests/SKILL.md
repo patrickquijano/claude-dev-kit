@@ -26,8 +26,9 @@ Input: $ARGUMENTS
 - Never run against production or shared environments; only a locally started app or a URL the user confirms is local or safe.
 - Caps: one practices researcher (step 5); analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1.
 - Stop answer or user cancel: `Result: cancelled`. A cap hit or failure after tests exist: run step 10, then `Result: stopped` with `Stopped: <step>: <reason>`.
-- Unattended (chained or no AskUserQuestion): ask nothing; take Recommended picks; an unanswerable local-or-safe URL question stops.
-- AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print a final result in place of a pending question.
+- Unattended (chained or no AskUserQuestion): ask nothing; take Recommended picks and record what stays open under `Open:`; an app URL not known to be local or safe stops (`Stopped: 4: app URL not confirmed local`).
+- Tests run only against a dedicated test database, never the dev one; none configured → ask (unattended: stop `Stopped: 4: no test database`). Start the app only with the analyzer's `App start:` command or the framework's `webServer` config, run as detected; stop it with `app-stop` after each run and when the skill stops, only the process this run started.
+- Attended, AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print a final result in place of a pending question.
 - Never delete or weaken a test to make a run pass; a suspected production bug keeps its test failing and goes to `Open:`.
 
 ## Workflow
