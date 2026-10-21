@@ -111,6 +111,8 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 | `cdk:rubric-improver`             | Work through open scorer deductions for one kind (`agent`, `skill`, `readme`, `project-instructions`), editing only that kind's target, for `build-subagent`, `build-skill`, `update-readme`, `update-project-instructions`.      |
 | `cdk:speckit-open-items-analyzer` | Find open Spec Kit items and propose fixes per round for `run-spec-kit`.                                                                                                                                                          |
 | `cdk:topic-researcher`            | Research a topic across 3–6 sources and return cited, reconciled findings; delegate to it directly.                                                                                                                               |
+| `cdk:codebase-explorer`           | Read-only lookups by `kind`: `locate`, `hypothesis`, `facts`, `leftovers`, `triage`; replaces `Explore`.                                                                                                                          |
+| `cdk:task-worker`                 | Read-only multi-step investigation of a well-scoped task no specific agent covers; replaces `general-purpose`.                                                                                                                    |
 
 ### Hooks
 
