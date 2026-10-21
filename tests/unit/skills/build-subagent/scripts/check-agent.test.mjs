@@ -8,7 +8,7 @@ import {
   main,
   parseArgs,
   parseFrontmatter
-} from '../../../../../skills/build-agent/scripts/check-agent.mjs';
+} from '../../../../../skills/build-subagent/scripts/check-agent.mjs';
 
 const ids = (found) => found.map((f) => f.id);
 const BODY =

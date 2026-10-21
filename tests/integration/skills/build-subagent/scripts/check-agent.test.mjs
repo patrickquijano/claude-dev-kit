@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
-const SCRIPT = resolve('skills/build-agent/scripts/check-agent.mjs');
+const SCRIPT = resolve('skills/build-subagent/scripts/check-agent.mjs');
 const run = (...args) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8', timeout: 30_000 });
 const runLink = (root, ...args) =>
   spawnSync('node', [join(root, 'link.mjs'), ...args], { encoding: 'utf8', timeout: 30_000 });

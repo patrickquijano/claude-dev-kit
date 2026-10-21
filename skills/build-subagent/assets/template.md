@@ -15,6 +15,8 @@ color: <red|blue|green|yellow|purple|orange|pink|cyan> # omit on No color
 
 <Role, one line. Read-only agents say so.>
 
+Rigor: verify every path, command, and claim against the files before stating it and return `Question:` instead of guessing, because the parent acts on this unverified; finish each step, reconsider the conclusion once, re-check it against the task's standards, keep the Return terse, and take the fewest reads that answer the task.
+
 ## Task
 
 1. Inputs from the prompt: <every input this agent reads>. A required input missing → return `Question: <what is needed and why>` and stop.

@@ -1,19 +1,20 @@
 ---
-name: build-agent
+name: build-subagent
 description: Creates or updates a custom subagent in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, or update a subagent.
 argument-hint: '[agent name or path] [what it should do]'
 allowed-tools: Read Glob Grep Agent AskUserQuestion Write Edit Bash(claude plugin validate *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
 ---
 
-# Build agent
+# Build subagent
 
 Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
-- Never assume: an item the input and the repo cannot answer is asked.
 - Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/frontmatter.md` and `${CLAUDE_SKILL_DIR}/references/body.md`; anything unverified is omitted and listed in `Gaps:`.
 - Loops: clarify at most 3 rounds; improve rounds at most 3. Never loop past the cap; report what is left in `Gaps:`.
 - Only `cdk:rubric-improver` applies score fixes.
