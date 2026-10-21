@@ -5,7 +5,7 @@ Steps 4 and 9 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/
 ## Hypothesis loop
 
 - List 2–5 hypotheses ranked by likelihood, each with the single cheapest experiment that would confirm or rule it out (read a value, add a temporary log, run one narrowed test, `recent-log` and `blame-lines` on the suspect lines).
-- Read-only hypotheses (read a value, trace callers, `recent-log`, `blame-lines`) → one Explore agent each (put the literal command text from `commands.md` in its prompt), all in one message (max 5), given the symptom, the hypothesis, and the suspect paths; each returns `confirmed | ruled out | inconclusive` with `file:line` evidence. Probe edits, temporary logs, and narrowed test runs stay inline, one at a time; record each result. Remove every temporary log or probe edit before step 6.
+- Read-only hypotheses (read a value, trace callers, `recent-log`, `blame-lines`) → one `cdk:codebase-explorer` (kind `hypothesis`) each (put the literal command text from `commands.md` in its prompt), all in one message (max 5), given the symptom, the hypothesis, and the suspect paths; each returns `Verdict: confirmed | ruled out | inconclusive` with `Evidence` as `file:line`. Probe edits, temporary logs, and narrowed test runs stay inline, one at a time; record each result. Remove every temporary log or probe edit before step 6.
 - A confirmed hypothesis ends the loop; all ruled out → widen once (callers, config, environment, data), then report `Root cause: not found` with what was excluded.
 
 ## Bisect

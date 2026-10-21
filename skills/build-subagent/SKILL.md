@@ -12,11 +12,11 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
 - Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/frontmatter.md` and `${CLAUDE_SKILL_DIR}/references/body.md`; anything unverified is omitted and listed in `Gaps:`.
-- Loops: clarify at most 3 rounds; improve rounds at most 3; step 1 one Explore spawn. Never loop past the cap; report what is left in `Gaps:`.
+- Loops: clarify at most 3 rounds; improve rounds at most 3; step 1 one `cdk:codebase-explorer` spawn. Never loop past the cap; report what is left in `Gaps:`.
 - Only `cdk:rubric-improver` applies score fixes.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. `validate-plugin` runs once; a failure goes to `Gaps:` with no retry.
 - Write only the agent file; update edits in place. The spawning skill is read, never edited: mismatches go to `Gaps:`.
@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Extract.** An existing agent named (path or `name`) → update: find it under `~/.claude/agents/`, `<repo>/.claude/agents/`, or a plugin `agents/` (recursive), then read it; else create. Pull job, triggers, inputs, tools, writes, return shape. Spawn one Explore agent to locate the spawning skill; it returns its path, the inputs it passes, and the `Return` fields it uses (none found → note it). Nothing to change → `Result: nothing-to-do`.
+1. **Extract.** An existing agent named (path or `name`) → update: find it under `~/.claude/agents/`, `<repo>/.claude/agents/`, or a plugin `agents/` (recursive), then read it; else create. Pull job, triggers, inputs, tools, writes, return shape. Spawn one `cdk:codebase-explorer` (kind `locate`, target = the agent name, root) to locate the spawning skill; it returns `Spawner`, `Inputs passed`, and `Return fields used` (none found → note it). Nothing to change → `Result: nothing-to-do`.
 2. **Fit.** Apply `${CLAUDE_SKILL_DIR}/references/decide.md` `## Fit` and `## One job`. Not a subagent → ask Stop (Recommended) | Build anyway; several jobs → ask Split | Pick one | Stop, recommended per `decide.md` `## One job`.
 3. **Scope.** AskUserQuestion: Personal | Project | Plugin, recommended from `decide.md` `## Scope`.
 4. **Clarify.** Fill name (an actor noun per `decide.md` `## One job`), description triggers, tools, return, writes, and the optional fields `decide.md` `## Fields` signals. Always ask model, effort, and color in one batch per `decide.md` `## Model and effort` and `## Color`. Stop → `Result: cancelled`.

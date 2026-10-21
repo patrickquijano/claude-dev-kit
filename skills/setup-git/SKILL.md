@@ -16,7 +16,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: a valid setting in any scope (`true` for the sign keys) or an ignore pattern already present is skipped. An invalid or inconsistent effective value is repaired (step 9). `nothing-to-do` = no config, file, or ignore write happened; the smoke test still runs.
 - Writes go to local config (`git config --local`); never `--global` or `--system`. Local overrides inherited values, so an invalid inherited value is repaired by a local write; a valid one is left alone.

@@ -22,7 +22,7 @@ Check `zap-target`, and `zap-spec` when it is a URL, against `scanners.md` `## O
 
 ## Triage
 
-Non-secret findings: spawn an Explore agent per finding or related group (<=4 per message, batches until done), each with the finding id, `path:line`, and scanner evidence, returning class (confirmed or false-positive with evidence), reachability and exposure as `path:line` (imports, call sites, config use), the resolved version or vulnerable pattern, and a proposed fix; the main thread spot-checks each `path:line` it relies on. For a secret finding, inline: check only that the file is tracked (`tracked-files`) and the fingerprint is current, then mark it `manual` with a rotate-and-move action. Re-score. Classify as `false-positive` (with evidence), `manual` (secret, third-party code, no fix), `needs-approval` (with the boundary named), or remediable. Write each decision to `remediation-log.md`.
+Non-secret findings: spawn a `cdk:codebase-explorer` (kind `triage`) per finding or related group (<=4 per message, batches until done), each with the finding id, `path:line`, and scanner evidence, returning `Class` (confirmed or false-positive with evidence), `Reachability` as `path:line` (imports, call sites, config use), `Version or pattern`, and `Fix`; the main thread spot-checks each `path:line` it relies on. For a secret finding, inline: check only that the file is tracked (`tracked-files`) and the fingerprint is current, then mark it `manual` with a rotate-and-move action. Re-score. Classify as `false-positive` (with evidence), `manual` (secret, third-party code, no fix), `needs-approval` (with the boundary named), or remediable. Write each decision to `remediation-log.md`.
 
 ## Remediate
 

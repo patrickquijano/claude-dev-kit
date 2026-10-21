@@ -20,12 +20,12 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Root cause first: no fix and no test edit until the cause is shown with `file:line` evidence. A guess is labeled a hypothesis. Temporary probes (logs, prints) are allowed during step 4, tracked, and reverted before step 6.
 - Test, lint, type check, and build commands come from the project's documented commands (CLAUDE.md `Commands`), not from `commands.md`.
 - The regression test must fail for the reported reason before the fix and pass after; never weaken, skip, or delete an existing test.
-- Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn; step 4 Explore max 5 per message, one round plus one widen round; step 9 `cdk:change-verifier` once, plus once per step 10 round, plus one respawn on `Question`. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
+- Caps: reproduce max 3 tries; fix max 3 attempts; step 10 max 3 rounds; one `cdk:topic-researcher` spawn; step 4 `cdk:codebase-explorer` max 5 per message, one round plus one widen round; step 9 `cdk:change-verifier` once, plus once per step 10 round, plus one respawn on `Question`. Cap hit at step 8 → run step 10 on what is left, then print the Output with `Stopped: <step>: <reason>` and end.
 - Never commit, push, stash, or `reset --hard`; a bisect always ends with `bisect-reset`.
 - Regression test: match the project's runner, location, and naming; Arrange, Act, Assert blocks; inputs from the stack's faker library when the project has one; a unit test unless only an integration test can reproduce the bug. For a broader test suite, the user can run `cdk:add-unit-tests` afterwards.
 - `--yes` picks the recommended option of step 7 and of the bisect ask and counts as unattended for step 10.
@@ -37,7 +37,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Note the dirty paths from Status; neither the test (step 6) nor the fix (step 8) touches a dirty path without asking.
 2. **Evidence.** Pull the error, stack trace, failing test, expected versus actual, and repro steps from the input. No way to reproduce → ask once with AskUserQuestion (`I will add details` | `Cancel`); none given → `Result: cancelled`.
 3. **Reproduce.** Run the failing test or steps, up to 3 tries. Not reproducible → say so and continue with static evidence, marked `unreproduced`.
-4. **Isolate.** Rank hypotheses; read-only ones go to parallel Explore agents, probes stay inline; record each as confirmed or ruled out. Details, bisect, research: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
+4. **Isolate.** Rank hypotheses; read-only ones go to parallel `cdk:codebase-explorer` agents (kind `hypothesis`), probes stay inline; record each as confirmed or ruled out. Details, bisect, research: `${CLAUDE_SKILL_DIR}/references/isolate.md`.
 5. **Root cause.** Report the cause with `file:line` evidence, why it produces the symptom, and the smallest fix.
 6. **Regression test.** Draft the test, write it, and run it; it must fail for the reported reason. Fails for another reason → fix the test; a failure that cannot be made to match → `Regression test: none` and say why.
 7. **Confirm.** One AskUserQuestion: `Apply fix (Recommended)` | `Diagnose only` | `Cancel`. `Diagnose only` → keep the test, list its path, step 10; `Cancel` → remove the test file this run wrote, `Result: cancelled`.

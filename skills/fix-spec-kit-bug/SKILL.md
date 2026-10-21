@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Run each speckit step with the Skill tool in this main thread, one at a time, never via the Agent tool (a subagent has no AskUserQuestion). Wait for each to finish.
 - Relay every question a speckit step asks with AskUserQuestion. Never edit `.specify/` templates or `.claude/skills/speckit-*/`.
 - Pre-approved, answered without asking: on pass 2 and later, yes to overwriting `assessment.md`, `fix.md`, and `test.md` in the current slug; in step 5, yes to running skipped or not-run checks.

@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent subagents in one parallel turn.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion); subagents cannot. Unavailable → ask the pending question as plain text, end the turn, and take the next message as the answer.
 - Latest stable only: skip pre-release, beta, RC, canary, and nightly versions, unless the user names one.
@@ -42,7 +42,7 @@ Input: $ARGUMENTS
 7. **Baseline.** Run step 9's `checks` once before any upgrade (changed paths: none, baseline run); record its `Checks:` and `Required failing:`, and only new failures count later.
 8. **Apply.** Per package, patch and minor batch first, then majors with dependencies before dependents: record its manifest specifier, run its `managers.md` upgrade command (workspace: in the declaring member), apply the planned edits, then step 9.
 9. **Validate.** Run install (from lockfile) inline, then spawn `cdk:change-verifier` (`kind: checks`; root, changed paths, the resolver's `Checks:` as the documented commands); consume `Checks:` and `Required failing:`. New failure → fix or revert per `${CLAUDE_SKILL_DIR}/references/validate.md`.
-10. **Review.** Show `diff-stat` and a per-package summary. Spawn `Explore` with the changed files and old identifiers for leftovers (old API names, stale keys, deprecated options); record its findings under `Leftovers:`.
+10. **Review.** Show `diff-stat` and a per-package summary. Spawn `cdk:codebase-explorer` (kind `leftovers`) with the changed files and old identifiers (old API names, stale keys, deprecated options); record its `Leftovers` list under `Leftovers:`.
 11. **Retry.** Retry each reverted or skipped package once by a safer path, only when checks pass at baseline; declined majors stay open. Rerun step 9 for it.
 12. **Report.** Print the Output; list unfixed failures, reverts, declined majors, and leftovers under `Open:`.
 
