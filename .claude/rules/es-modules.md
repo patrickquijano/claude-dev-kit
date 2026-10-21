@@ -12,4 +12,4 @@ paths:
 - Never log secrets or env values. No network calls unless they are the module's purpose.
 - Exit codes and output follow `.claude/rules/hooks.md`.
 - Pass side effects (runner, `fs`, env, clock, stdin/stdout) in as a `deps` parameter that defaults to the real one; keep the CLI body behind a main guard so an import never runs it. Tests: `.claude/rules/tests.md`.
-- Verify: `npm run lint`, `npm run test:unit`, then `npm audit --audit-level=moderate`.
+- Verify: `npm run lint`, `npm run test:unit`, then `npm run audit`.

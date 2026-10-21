@@ -176,7 +176,7 @@ npm run lint                       # eslint, markdownlint-cli2, yamllint, yamlfm
 npm test                           # unit, then integration (node:test)
 npm run test:unit
 npm run test:integration
-npm audit --audit-level=moderate
+npm run audit
 claude plugin validate --strict .
 claude plugin eval .               # LLM-graded eval suite in evals/; manual only, not run by hooks
 claude --plugin-dir .              # test local checkout; /reload-plugins after edits

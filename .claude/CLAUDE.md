@@ -49,7 +49,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - [ ] `npm run lint` passes.
 - [ ] `npm test` passes; new or changed behavior has a test.
-- [ ] `npm audit --audit-level=moderate` passes.
+- [ ] `npm run audit` passes.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
 
 ## Maintenance

@@ -17,7 +17,7 @@
 
 - DRY: extract shared code on the third occurrence; prefer duplication over wrong abstraction.
 - YAGNI: every new abstraction has a caller in the same change.
-- Security: validate untrusted input at trust boundaries; `npm audit` is in the Definition of done.
+- Security: validate untrusted input at trust boundaries; `npm run audit` is in the Definition of done.
 - Testing: new or changed behavior gets a test (`.claude/rules/tests.md`).
 - Structure: one entry script per hook event, logic in `hooks/scripts/lib/` (`.claude/CLAUDE.md` Architecture).
 - Behavior: fail fast; catch rules in `.claude/rules/es-modules.md`.
