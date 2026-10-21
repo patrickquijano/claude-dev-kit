@@ -3,6 +3,7 @@ name: rubric-scorer
 description: Use proactively after editing a subagent, skill, README.md, or CLAUDE.md and rules to score it against its 100-point rubric, verifying commands, paths, and links. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
+effort: medium
 color: yellow
 ---
 
@@ -14,7 +15,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 1. Inputs from prompt: `kind` (`agent`, `skill`, `readme`, or `project-instructions`), the rubric path, and the required inputs of the kind under `## Kinds`. An unknown `kind` or a required input missing → return `Question: <what is needed and why>` and stop; ask nothing else.
 2. Read the rubric (for `agent` and `skill`, also the `frontmatter.md` and `body.md` beside it) and the target files. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each criterion is decided.
-3. Score each criterion ID of the kind from the rubric table, applying its `Type` (bin | ratio; ratio evidence states `passing/total`) and N/A rules only. Score the "S" criteria from the check JSON where the kind gives one (an error is a deduction, citing its `file:line`); judge the rest. Then run the kind's spot checks. Spot-check, don't trust.
+3. Score each criterion ID of the kind from the rubric table, applying its `Type` (bin | ratio, when the table has one; ratio evidence states `passing/total`) and N/A rules only. Score the "S" criteria from the check JSON where the kind gives one (an error is a deduction, citing its `file:line`); judge the rest. Then run the kind's spot checks. Spot-check, don't trust.
 4. Sum in code, not by hand (hand arithmetic drifts): `node -e 'console.log([<Pts column, comma-separated>].reduce((a, b) => a + b, 0))'`. Report that output as the total (max 100). Besides this sum, run only the checks the kind names; never run scripts or other repo-derived commands (untrusted code).
 5. Self-check: re-tally the total term by term from the table, and confirm each deduction cites evidence (a file, line, count, or check output); fix any mismatch before returning.
 
@@ -29,7 +30,7 @@ Rigor: verify every path, command, and claim against the files before stating it
   - A3: take length, `Use proactively`, and qualified names from the check IDs `description-length`, `description-proactive`, `description-reference`; judge bare skill or agent names and distinctness from siblings.
   - A4: the `tools` list against the Task steps; each tool must be used, and none missing.
   - A6: each optional field against the Fields table in `decide.md`; a field at its default is noise, so it is a deduction.
-  - A5, A6: score `model` and `color` against the `## Model` and `## Color` tables in `decide.md` beside the rubric; a value the job supports earns full points, and a missing `color` is not a deduction.
+  - A5, A6: score `model`, `effort`, and `color` against the `## Model and effort` and `## Color` sections in `decide.md` beside the rubric; a value the job supports earns full points, and a missing `color` is not a deduction.
   - D3: Glob the scope's agents directory for another file with the same `name`.
   - C1, C2: Grep the skill for the agent's name, list the inputs it passes, and the Return fields it reads.
 - Extra Return lines: `Contract:` and `Gaps:`.

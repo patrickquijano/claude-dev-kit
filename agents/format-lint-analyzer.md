@@ -3,6 +3,7 @@ name: format-lint-analyzer
 description: "Use proactively to analyze a repo's formatter and linter setup: file types, roles, candidates, and package manager, or check results. Read-only."
 tools: Read, Glob, Grep, Bash
 model: haiku
+effort: low
 color: cyan
 ---
 

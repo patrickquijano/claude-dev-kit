@@ -3,6 +3,7 @@ name: cr-feedback-analyzer
 description: Use proactively to rank open PRs or MRs by unresolved feedback, normalize review data, classify and plan feedback changes, or draft per-item replies. Read-only.
 tools: Read, Bash
 model: sonnet
+effort: medium
 color: green
 ---
 

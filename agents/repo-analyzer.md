@@ -3,6 +3,7 @@ name: repo-analyzer
 description: Use proactively before writing a devcontainer, .gitignore, permission rules, README, CI workflows, project instructions, or tests to collect the repo facts that kind needs. Read-only.
 tools: Read, Glob, Grep, Bash
 model: haiku
+effort: low
 color: cyan
 ---
 
@@ -57,7 +58,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ### readme
 
-- Bash: `git ls-files` and `git remote get-url` only.
+- Bash: `git -C <root> ls-files` and `git -C <root> remote get-url` only.
 - Required inputs: root. List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
 - Manifests: `package.json`, `pyproject.toml`, `setup.cfg`, `Cargo.toml`, `go.mod`, `composer.json`, `pom.xml`, `build.gradle*`, `Gemfile`, `*.gemspec`, `.claude-plugin/plugin.json`, workspace files (`pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `go.work`). Extract name, description, version, runtime/engine pins, bins/entry points, workspaces.
 - Commands: package scripts, Makefile targets, `justfile`, `Taskfile.yml`, CI jobs. Record exact names.
@@ -65,12 +66,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Config: `.env.example`, config files, env vars read in code (Grep `process.env`, `os.environ`, `getenv`). Split user-set from internal: host-injected vars (e.g. `CLAUDE_*`), CI-internal vars, and dev-tooling config are internal.
 - Community: LICENSE (SPDX id from text, owner), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates, markdown linter config (`.markdownlint*`, `lint:md` script), formatter config.
 - Existing README (if any): headings, stated commands/components; mark each stale item (command or component not in repo, missing component).
-- Host: `git remote get-url origin` → github | gitlab | other (anchor slug rules).
+- Host: `git -C <root> remote get-url origin` → github | gitlab | other (anchor slug rules).
 - Archetype: pick one of `library | cli | application | plugin | monorepo | minimal | docs` with one-line reason.
 
 ### workflows
 
-- Bash: `git rev-parse`, `git remote get-url origin`, `git ls-files`, `command -v`, `gh api` with GET and no `-X` or `-f`, no network writes. Never print secret values; list names only.
+- Bash: `git -C <root> rev-parse`, `git -C <root> remote get-url origin`, `git -C <root> ls-files`, `command -v`, `gh api` with GET and no `-X` or `-f`, no network writes. Never print secret values; list names only.
 - Required inputs: root, a one-paragraph summary of the request, versions file path `versions.md` (for the pinning-mode order), practices path `practices.md` (for the naming scheme).
 - Read `.github/workflows/**`, `.github/actions/**`, any `action.yml`, `.github/dependabot.yml` or `.yaml`, `CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md`. Per workflow list: file, `name`, triggers, jobs (ID, `name`, `runs-on`, `uses`, `needs`), `permissions`, `concurrency`, `workflow_call` inputs/secrets/outputs, `uses:` refs with their ref form (SHA, exact tag, major, branch), `secrets.*`, `vars.*`, `environment` names.
 - Detect stacks, package managers, and the commands the request needs (lint, format, test, build, typecheck) from manifests, lockfiles, version files, `Makefile`, `scripts/`, task runners, and docs. Cite the file for each command; none found → say so, never invent.
@@ -248,4 +249,4 @@ Questions: <question for the skill to ask the user> | none
 
 Test kind `setup` → return only Package, Stack, Testers, Faker, Missing, Questions. No target found → `Targets: none` with the reason.
 
-Root missing → `Question: <what is needed and why>` instead.
+A required input missing → `Question: <what is needed and why>` instead.

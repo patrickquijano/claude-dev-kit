@@ -3,6 +3,7 @@ name: cr-reviewer
 description: Use proactively to review a branch diff or working-tree snapshot for one role: correctness, tests, security, maintainability, or docs. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
+effort: high
 color: purple
 ---
 

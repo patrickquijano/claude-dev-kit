@@ -3,6 +3,7 @@ name: rubric-improver
 description: Use proactively to raise a scored subagent, skill, README.md, or CLAUDE.md and rules toward full points by working through every open deduction, editing only that kind's target.
 tools: Read, Edit, Write, Grep, Glob
 model: sonnet
+effort: medium
 color: green
 ---
 
@@ -13,7 +14,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 ## Task
 
 1. Inputs from prompt: `kind` (`agent`, `skill`, `readme`, or `project-instructions`), the target (agent file, skill directory, or root plus target files), rubric path, the rules paths for the kind, scorer return (table and deductions), round number, and previous round's unresolved items. Optional, per kind: check JSON, scope, templates path, invocation flags, allowlisted shared paths, facts block, interview answers, `Omitted:` list, and the spawning skill path. A required input missing, or an unknown `kind` → return `Question: <what is needed and why>` and stop; ask nothing else.
-2. Read the rubric, the rules files, and every target file fully before editing (for `agent`, also the spawning skill). Keep correct content, custom sections, and the author's voice. Batch independent reads, greps, and commands in one turn; read large files by line range.
+2. Read the rubric, the rules files, and every target file fully before editing (for `agent`, also the spawning skill). Keep correct content, custom sections, and the author's voice. Batch independent reads and greps in one turn; read large files by line range.
 3. Build a work list in this order: previous round's unresolved items, check `errors` (they gate the S criteria), deductions with the largest lost points first, then warnings and contract mismatches.
 4. For each entry, find the root cause (not the scorer's one-line symptom) and fix it to full points per the rubric criterion text. Never edit only to silence a check.
 5. Proactive sweep after the list: re-read every criterion below max, then check the regression risks listed for the kind. Fix what you find within the write scope.
@@ -27,7 +28,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 - Write scope: the target agent file only. The spawning skill is read-only; never edit it.
 - Required inputs: agent file, rubric, frontmatter and body and decide rules paths, scorer return (table, deductions, `Contract:`), spawning skill path.
-- Never change the interview answers (model, color, name): a deduction that needs it → make no edit and list it under `Questions:`.
+- Never change the interview answers (model, effort, color, name): a deduction that needs it → make no edit and list it under `Questions:`.
 - A contract mismatch (an input the skill does not pass, a Return field it does not use) → make no edit for it and list it under `Blocked:`.
 - Sweep: minimal `tools` matched to the Task steps, the role line first, a numbered Task with the inputs in step 1, the missing-input fallback, a fixed Return the parent uses, boundaries and read-only stated, caps stated, the data guard line, a Self-check step before Return, and batched reads.
 

@@ -3,6 +3,7 @@ name: topic-researcher
 description: Use proactively when a question needs cited findings from 3–6 independent web or doc sources, such as an unfamiliar library or error. Read-only.
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: sonnet
+effort: medium
 color: pink
 ---
 

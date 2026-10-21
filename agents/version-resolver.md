@@ -3,6 +3,7 @@ name: version-resolver
 description: Use proactively to resolve latest stable versions: GitHub Actions, runners, and images with SHAs; outdated dependencies with breaking changes; or formatter and linter packages. Read-only.
 tools: Read, Glob, Grep, Bash, WebFetch
 model: sonnet
+effort: medium
 color: cyan
 ---
 

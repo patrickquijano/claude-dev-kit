@@ -3,6 +3,7 @@ name: practices-reviewer
 description: Use proactively after writing a Dockerfile or GitHub Actions workflows to review them against a practices file, run the available linters, and return line findings. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
+effort: medium
 color: purple
 ---
 

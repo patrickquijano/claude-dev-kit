@@ -3,6 +3,7 @@ name: change-verifier
 description: Use proactively after changes to run the repo's documented checks in check mode, judge the diff against goals, or check review feedback items against the final diff. Read-only.
 tools: Read, Grep, Glob, Bash
 model: sonnet
+effort: high
 color: blue
 ---
 

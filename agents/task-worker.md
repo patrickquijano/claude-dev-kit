@@ -3,6 +3,7 @@ name: task-worker
 description: Use proactively for a well-scoped, read-only, multi-step investigation of the repo that no specialized agent covers, returning an answer with evidence. Read-only.
 tools: Read, Glob, Grep, Bash
 model: sonnet
+effort: medium
 color: yellow
 ---
 
