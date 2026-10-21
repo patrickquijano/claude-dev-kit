@@ -26,6 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `cdk:cr-feedback-analyzer` replaces the feedback collector, planner, and replier.
   - `cdk:plan-implementer` and `cdk:change-verifier` replace the feedback implementer and verifier and the requirement implementer and verifier.
 - `/cdk:implement-goal` now implements through `cdk:plan-implementer` and reviews and tests through `cdk:change-verifier` (`goals`); findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
+- **Breaking:** `/cdk:build-agent` is renamed `/cdk:build-subagent`. Use the new name; the old one no longer exists.
+- Working-discipline directives (rigor and efficiency) are added to all skills, subagents, and project rules, and to the `build-skill` and `build-subagent` templates and style rules.
 - The README title now reads `CDK`.
 - `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
 - The end-of-task steps now fire once per turn that changed the working tree, compared with the tree `UserPromptSubmit` recorded at turn start, so Q&A turns and an already-dirty tree stay silent. They no longer include the commit-and-push step: run `/cdk:commit-changes` yourself, and `/cdk:commit-changes` no longer lists a hook as a trigger.
