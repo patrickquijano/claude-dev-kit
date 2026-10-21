@@ -2,7 +2,7 @@
 name: review-local-changes
 description: Reviews unpushed commits and uncommitted changes before a PR exists, fixes safe findings, and asks about the rest. Use only when the user explicitly asks to review their local changes.
 argument-hint: '[--uncommitted] [--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git symbolic-ref *) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git commit-tree *) Bash(GIT_INDEX_FILE=* git read-tree *) Bash(GIT_INDEX_FILE=* git add -A) Bash(GIT_INDEX_FILE=* git write-tree) Bash(mktemp -d)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git commit-tree *) Bash(GIT_INDEX_FILE=* git read-tree *) Bash(GIT_INDEX_FILE=* git add -A) Bash(GIT_INDEX_FILE=* git write-tree) Bash(mktemp -d)
 ---
 
 # Review Local Changes

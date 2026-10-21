@@ -2,7 +2,7 @@
 name: address-change-request-review
 description: 'Addresses review feedback on your own GitHub PR or GitLab MR: fixes, checks, commits, replies, and resolves threads after approval. Use only when the user explicitly asks to address review feedback.'
 argument-hint: '[optional number] [--self-review] [--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote -v) Bash(git remote get-url *) Bash(git fetch *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git config --get *) Bash(mktemp *) Bash(sleep 5) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote -v) Bash(git remote get-url *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(git config --get *) Bash(mktemp *) Bash(sleep 5) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab mr list *)
 ---
 
 # Address Change Request Review
@@ -35,7 +35,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 - Run agents in parallel only for groups the planner marks `parallel-safe`. Pass each agent only the paths and context it needs.
 - A skipped check is reported as skipped, never as passed.
 - Model text (replies, commit subjects) goes through scratch files (`-F`, `--input`, `git commit -F`), never inline in shell args. Write unavailable → create the file with Bash.
-- `allowed-tools` pre-approves reads only. Every graphql call, POST, PUT, `git switch`, `git pull`, `git add`, `git commit`, and `git push` stay permission-prompted.
+- `allowed-tools` pre-approves reads only. Every graphql call, POST, PUT, `git fetch`, `git switch`, `git pull`, `git add`, `git commit`, and `git push` stay permission-prompted.
 - Caps: CR choice re-asks 3; planner respawn with answers 1; fix attempts per group 3; verify rounds 2; commitlint redrafts 3; stale-head re-fetch 3 × 5 s; Revise rounds 3. Cap hit → stop as above.
 - Chained by other skills via the Skill tool.
 

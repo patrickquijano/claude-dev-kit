@@ -2,7 +2,7 @@
 name: update-changelog
 description: Creates or updates CHANGELOG.md per Keep a Changelog from branch commits and local changes, or cuts a dated release with `release`. Use only when the user explicitly asks to update the changelog.
 argument-hint: '[release <version> [YYYY-MM-DD]] [base <branch>]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref *) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(gh pr list *) Bash(glab mr list *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(gh pr list *) Bash(glab mr list *)
 ---
 
 # Write Changelog

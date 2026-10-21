@@ -2,7 +2,7 @@
 name: commit-changes
 description: Groups uncommitted changes into atomic, signed Conventional Commits, moves off protected branches, and pushes. Use only when the user explicitly asks to commit, or when chained.
 argument-hint: '[optional grouping hints] [paths: <file> ...]'
-allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git rev-parse *) Bash(git symbolic-ref *) Bash(git remote get-url *) Bash(git restore --staged *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(git switch -c *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *) Bash(git ls-remote *)
+allowed-tools: Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git config --get *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(git restore --staged *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *)
 ---
 
 # Commit Changes
@@ -21,7 +21,7 @@ Input: $ARGUMENTS
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Subjects, branch names, protected branches, and signing follow `${CLAUDE_SKILL_DIR}/references/conventions.md`. A repo commitlint config (`commitlint.config.*`, `.commitlintrc*`, or `commitlint` in `package.json`) is the source of truth; check each subject with `commitlint` (permission-prompted). Not installed → `Commitlint: skipped (not installed)`.
-- Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit`, `push`, and `push-upstream` stay out of `allowed-tools`, so the permission prompt guards them.
+- Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit`, `push`, `push-upstream`, `switch-branch`, and `remote-branch-exists` stay out of `allowed-tools`, so the permission prompt guards them.
 - Commit and push without asking for confirmation.
 - Caps: hook-fix retries 3 per commit; commitlint redrafts 3 per subject; analyzer respawn after `Questions` 1; branch-name suffix search 10. Cap hit → stop, `Open:` lists what is left.
 - Two paths from step 4, by counts and a secret-pattern scan, never by reading diffs for meaning: small = main thread, no subagent, no questions; analyzed = `cdk:change-analyzer` (`mode=group`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Any doubt → analyzed.

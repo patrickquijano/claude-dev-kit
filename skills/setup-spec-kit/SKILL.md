@@ -1,7 +1,7 @@
 ---
 name: setup-spec-kit
 description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit.
-allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension add *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
+allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
 ---
 
 # Setup Spec Kit
@@ -18,7 +18,7 @@ allowed-tools: Bash(command -v *) Bash(uv tool install specify-cli) Bash(specify
 - Extensions and priorities (lower number wins): `agent-context` 10, `assess` 20, `bug` 30. `agent-context` manages the CLAUDE.md context section, so it outranks the workflow extensions; gaps leave room for later inserts.
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
 - Caps: `extension-add` or `extension-set-priority` runs once per extension, no retries; one user-approved reinstall per extension whose skill dirs are missing; one retry pass over skipped ignore edits (step 6).
-- `specify extension remove` is deliberately not in `allowed-tools`: the reinstall deletes extension files, so its permission prompt is a second guard after the AskUserQuestion.
+- `specify extension remove` and `specify extension add` are deliberately not in `allowed-tools`: the reinstall deletes extension files and an add writes them, so the permission prompt is a second guard (after the AskUserQuestion for the reinstall).
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (chained): ask nothing; take the Recommended option.
 - Steps 1-2 stops and cancels: print the Output with `Open: not run` and end. A later stop still runs step 6 once, then prints the Output with `Result: stopped`.
 - Leftovers (failed extensions, missing skill dirs, skipped ignore edits) go to `Open:` with a recommended fix; never loop past the caps.
