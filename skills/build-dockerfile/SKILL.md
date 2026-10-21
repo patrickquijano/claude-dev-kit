@@ -27,7 +27,7 @@ Input: $ARGUMENTS
 - `docker build --check` is the primary check; hadolint only on a heredoc-free file, so it usually reports `skipped (heredoc)`.
 - Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
+- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts; tag listing 10 pages. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
 - Chained by `cdk:setup-devcontainer` (devcontainer target): unattended, ask nothing, report leftovers.
 
 ## Workflow

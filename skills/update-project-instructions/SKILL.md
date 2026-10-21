@@ -23,10 +23,11 @@ Input: $ARGUMENTS
 - Only this skill asks the user (AskUserQuestion); subagents cannot. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn; never print finished files in place of a pending question.
 - Best practices and rubric: `${CLAUDE_SKILL_DIR}/references/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/assets/template.md`.
 - Apply `${CLAUDE_SKILL_DIR}/references/principles.md` by default in create and update mode, adapted to facts and repo conventions, so every generated set carries engineering principles without the user asking.
-- Write scope: project `CLAUDE.md` (or `.claude/CLAUDE.md` when that is the existing one) and `.claude/rules/**/*.md`. Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy.
+- Write scope: project `CLAUDE.md` (or `.claude/CLAUDE.md` when that is the existing one) and `.claude/rules/**/*.md`. Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy. Exception: the auto-memory directory (`~/.claude/projects/<project>/memory/`) takes only the `Known issues` move below (a `feedback` memory plus its `MEMORY.md` pointer), never other edits.
 - Commands, paths, and policies not derivable → ask; user omits → leave out, add to `Omitted:`; never re-ask an omitted item.
 - Update mode: keep correct content and author voice; change only stale, wrong, duplicate, conflicting, or missing items. Move any `Known issues` section to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove it; auto memory unavailable → keep it and report it.
 - Conflict → never resolve silently; ask.
+- Unattended (chained or no way to ask): ask nothing; a conflict keeps the existing side, an ambiguous target is `CLAUDE.md`, a deletion is Keep, and an unanswerable gap goes to `Omitted:` (or `Open:` for score deductions).
 - Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only `cdk:rubric-improver` applies score fixes. Never loop past the cap; list what is left in `Open:`.
 - Score-only never writes. Formatter runs prompt for permission; expected.
 
@@ -38,11 +39,11 @@ Input: $ARGUMENTS
 2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: instructions`, `model: sonnet`, root, `Target:`, `Input files:`, `Input text:`; keep its facts block.
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
 4. **Draft.** Create → fill `assets/template.md`; update → edit in place. Place each instruction per rubric `## Placement rules` and principles per `principles.md` `## Placement`. Always-loaded non-blank lines stay <200; overflow → path-scoped rules.
-   - Show file list (new | changed | deleted), outline, dropped and moved items, suggested hooks; write without asking and print each diff. Tracked file to delete → ask Delete (Recommended) | Keep.
-5. **Write.** Write the files; facts `Formatter` not none → run it on them.
+   - Show file list (new | changed | deleted), outline, dropped and moved items (including a `Known issues` move), suggested hooks; write without asking and print each diff. Tracked file to delete → ask Delete (Recommended) | Keep.
+5. **Write.** Write the files; for a planned `Known issues` move also write the `feedback` memory and its `MEMORY.md` pointer in the existing auto-memory directory (path read from it, never guessed; none found → keep the section and report it), and list both paths in `Files:`. Then run `format-files`.
 6. **Score.** Spawn `cdk:rubric-scorer` with `kind: project-instructions` per `flow.md` `## Scorer input`.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-8. **Improve.** <95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: project-instructions`) per `flow.md` `## Improve`, then step 5 format, step 6 rescore, step 7.
+8. **Improve.** <95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: project-instructions`) per `flow.md` `## Improve`, then `format-files`, step 6 rescore, step 7.
 9. **Leftovers.** List each leftover deduction in `Open:` with its fix; print the Output.
 
 ## Files

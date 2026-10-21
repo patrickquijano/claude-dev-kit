@@ -30,7 +30,7 @@ Agents cost about 4× a chat's tokens and multi-agent about 15×; spawn only whe
 | The jobs need different tools, models, or read-only vs edit | Split     | A mixed allowlist breaks least privilege                     |
 | The input cannot say which job matters most                 | Stop      | Guessing builds the wrong agent; ask the user to narrow down |
 
-- Split → build the first agent now and list the rest in `Gaps:`; Pick one → drop the others and list them in `Gaps:`.
+- Split → build the first agent now and list the rest in `Open:`; Pick one → drop the others and list them in `Open:`.
 
 ### Name
 
@@ -92,12 +92,12 @@ Criteria for both `model` and `effort`:
 - Tool power: read-only lookup against edits or Bash.
 - Sibling consensus (step 2).
 
-| Model    | Pick for                                                                                                                                                                   | Trade-off                                                                                                                         |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `haiku`  | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                           |
-| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                         |
-| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                                    |
-| `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest; about 2.5× `opus` pricing ($10 / $50 against $4 / $20 per MTok); recommend only when the input says `opus` is not enough |
+| Model    | Pick for                                                                                                                                                                   | Trade-off                                                                                                                                 |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `haiku`  | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                                   |
+| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                                 |
+| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                                            |
+| `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (compare current prices in the models overview); recommend only when the input says `opus` is not enough |
 
 Never recommend or write `inherit`, and never omit `model`; an input that asks for `inherit` → recommend the alias the criteria support and say why.
 

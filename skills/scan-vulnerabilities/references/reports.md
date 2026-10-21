@@ -38,7 +38,7 @@ The final rescan is the last `iteration-<n>` and has `"kind": "final"`. The skil
 
 Secret values must never reach a report, log, prompt, diff, commit, or console.
 
-1. Scanners write only to `$RAW` (a `mktemp -d` dir outside the repo). Nobody reads, cats, greps, or prints a `$RAW` file. The one exception is a key-path listing, which shows structure but no values: `jq '[paths | map(tostring) | join(".")] | unique'`.
+1. Scanners write only to `$RAW` (a `mktemp -d` dir outside the repo; its path is saved in `<run dir>/.raw-path` at creation, and every later Bash call sets `RAW=$(cat "<run dir>/.raw-path")` with the literal run dir path). Nobody reads, cats, greps, or prints a `$RAW` file. The one exception is a key-path listing, which shows structure but no values: `jq '[paths | map(tostring) | join(".")] | unique'`.
 2. Project each raw JSON report into the run dir with the resolved jq image (`--network none`). Keep only the allow-listed fields below and drop everything else, so an unknown field cannot carry a value through. The jq program reads the file; Claude never does:
 
    ```bash
@@ -58,7 +58,7 @@ Secret values must never reach a report, log, prompt, diff, commit, or console.
    | zap         | `.site[].alerts[]`: `pluginid`, `alert`, `riskcode`, `confidence`, `cweid`, and `instances[]`: `uri` with the query string removed, `method`                                                                                                                                                                                                            |
 
 3. Logs: keep the logs of scanners that never print matched content: gitleaks (`--redact`), trivy, osv-scanner, checkov (`--compact`), kubescape, and dockle. For semgrep, keep stderr only. ZAP prints instance URLs with query strings, which can carry tokens, so keep only its `PASS`/`WARN-NEW`/`FAIL-NEW` summary counts. Any other log → write `log withheld: may contain matched content`.
-4. `rm -rf "$RAW"` after projection, also on failure.
+4. `raw-cleanup` (`rm -rf "$(cat "<repo root>/.vulnerability-reports/<ts>/.raw-path")"`, read from the saved path in the same call) after projection, also on failure and when the run stops.
 5. A finding keeps its file, line range, rule, scanner, and a fingerprint (`sha256` of rule + file + line), which is enough to locate it without the value.
 6. Commands are recorded with any token, password, cookie, or `Authorization` value replaced by `[REDACTED]`.
 

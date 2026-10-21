@@ -23,5 +23,5 @@ Spawn `cdk:rubric-scorer` with `kind: project-instructions` and:
 
 - Round counter +1. Spawn `cdk:rubric-improver` with: `kind: project-instructions`, root, rubric and principles paths, the file paths from `## Scorer input`, the scorer return (table and deductions), the facts block with answers merged, `Omitted:`, the round number, and last round's unresolved items.
 - Its `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
-- After it returns, show its `Map:`, `Proactive:`, and `Expected:`, run step 5 format on its `Files changed:`, rescore (step 6), and report (step 7).
+- After it returns, show its `Map:`, `Proactive:`, and `Expected:`, run `format-files` on its `Files changed:`, rescore (step 6), and report (step 7).
 - Cap 3 rounds; deductions left after the cap go to `Open:`, never re-entered.

@@ -23,7 +23,7 @@ Devcontainer target → skip. Each missing or ambiguous fact → AskUserQuestion
 
 ## Draft
 
-Build the `Dockerfile` from practices.md in this order: syntax line, image `ARG`s with tag and digest (resolve the tag, then run `image-digest` per practices.md; never guess; a failed lookup is asked once under the Clarify cap; devcontainer target: stop with `Stopped: 4: digest lookup needs docker`; review mode: report only), build stages, runtime stage, cache mounts for the package manager, unversioned installs with upgrades and same-layer cleanup, trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths, user and group from `ARG`s, heredoc and merged `RUN`s. Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
+Build the `Dockerfile` from practices.md in this order: syntax and check lines, image `ARG`s with tag and digest (resolve the tag, then run `image-digest` per practices.md; never guess; a failed lookup is asked once under the Clarify cap; devcontainer target: stop with `Stopped: 4: digest lookup needs docker`; review mode: report only), build stages, runtime stage, cache mounts for the package manager, unversioned installs with upgrades and same-layer cleanup, trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths, user and group from `ARG`s, heredoc and merged `RUN`s. Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
 
 ## Verify
 

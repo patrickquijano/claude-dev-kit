@@ -26,7 +26,7 @@ permissions: {} # least privilege; each job grants what it needs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: <true for PR CI | false for deploy and release>
+  cancel-in-progress: <${{ github.event_name == 'pull_request' }} for CI | false for deploy and release>
 
 jobs:
   <job-id>:

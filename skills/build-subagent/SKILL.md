@@ -15,11 +15,11 @@ Input: $ARGUMENTS
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
-- Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/frontmatter.md` and `${CLAUDE_SKILL_DIR}/references/body.md`; anything unverified is omitted and listed in `Gaps:`.
-- Loops: clarify at most 3 rounds; improve rounds at most 3; step 1 one `cdk:codebase-explorer` spawn. Never loop past the cap; report what is left in `Gaps:`.
+- Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/frontmatter.md` and `${CLAUDE_SKILL_DIR}/references/body.md`; anything unverified is omitted and listed in `Open:`.
+- Loops: clarify at most 3 rounds; improve rounds at most 3; step 1 one `cdk:codebase-explorer` spawn. Never loop past the cap; report what is left in `Open:`.
 - Only `cdk:rubric-improver` applies score fixes.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. `validate-plugin` runs once; a failure goes to `Gaps:` with no retry.
-- Write only the agent file; update edits in place. The spawning skill is read, never edited: mismatches go to `Gaps:`.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. `validate-plugin` runs once; a failure goes to `Open:` with no retry.
+- Write only the agent file; update edits in place. The spawning skill is read, never edited: mismatches go to `Open:`.
 - Name an agent as an actor, never an action: `code-reviewer`, not `review-code` or `reviewing`; a name that is a verb or gerund is asked (Rename | Keep).
 - One agent, one job: several jobs found are asked (Split | Pick one | Stop), each with a recommendation and a one-line reason; never build a multi-job agent.
 - `check-agent` is the source of truth for mechanical rules: never hand-check what it covers, never edit an agent only to silence it.
@@ -42,7 +42,7 @@ Input: $ARGUMENTS
 - For frontmatter fields, tools, and description writing, see `${CLAUDE_SKILL_DIR}/references/frontmatter.md`.
 - For body structure, style, and return format, see `${CLAUDE_SKILL_DIR}/references/body.md`.
 - For the agent skeleton, see `${CLAUDE_SKILL_DIR}/assets/template.md`.
-- For running the check, the report, the improve round, and `Gaps:`, see `${CLAUDE_SKILL_DIR}/references/score.md`.
+- For running the check, the report, the improve round, and `Open:`, see `${CLAUDE_SKILL_DIR}/references/score.md`.
 - For the scoring criteria, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the mechanical checks, run `${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs`; it is run, never read.
@@ -59,7 +59,7 @@ Rounds: <n>/3
 Checks: check-agent pass | fail; validate-plugin pass | fail | n/a
 Contract: ok | <n> mismatches | n/a
 Reload: none | restart (new agents dir) | /reload-plugins
-Gaps: <left | none>
+Open: <left | none>
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

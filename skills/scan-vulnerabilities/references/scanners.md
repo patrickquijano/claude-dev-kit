@@ -35,7 +35,7 @@ Steps per scanner:
 1. `curl -fsS --max-time 20 "https://api.github.com/repos/<release source>/releases?per_page=100&page=<n>"` (pages 1–3, stopping at the first page that holds a candidate); read `tag_name`, `draft`, `prerelease`.
 2. Keep releases with `draft: false`, `prerelease: false`, and a tag that strictly matches `<prefix>X.Y.Z` (prefix `v`, `jq-`, or none per the table). The strict match drops `-rc`, `-beta`, `-alpha`, nightly, and preview tags that the flag misses. A release or repo whose notes or README mark it deprecated or archived is skipped and reported; no registry exposes a deprecation flag.
 3. Highest semver whose major equals the verified major. A higher major → note it for `Newer major:`.
-4. Derive the image tag from the table, then `docker buildx imagetools inspect <image repo>:<tag> --format '{{json .Manifest.Digest}}'` (the multi-platform index digest). Tag not published → next lower stable release, at most 3 candidates.
+4. Derive the image tag from the table, then `image-digest` (`docker buildx imagetools inspect <image repo>:<tag> --format '{{json .Manifest}}'`, read its `digest`: the multi-platform index digest). Tag not published → next lower stable release, at most 3 candidates.
 5. Write `scanner-images.json` in the run dir: per scanner `version`, `image`, `tag`, `digest`, `release_url`, `resolved_at`, `newer_major`.
 
 A transient failure (network error, HTTP 403 or 429 from the unauthenticated GitHub rate limit) gets one retry within the run; a second failure is `version unverified: step 1`.
@@ -82,7 +82,7 @@ Common variables:
 ```bash
 ROOT=$(git rev-parse --show-toplevel)
 RUN="$ROOT/.vulnerability-reports/<ts>"
-RAW=$(mktemp -d)                     # host temp dir outside the repo; deleted after redaction
+RAW=$(mktemp -d); echo "$RAW" > "$RUN/.raw-path"   # host temp dir outside the repo; later Bash calls read it back (shell variables do not persist); deleted after redaction
 CACHE="$ROOT/.vulnerability-reports/.cache"
 mkdir -p "$RAW/<scanner>" "$CACHE/trivy"   # before each run, or Docker creates them as root
 COMMON=(--rm --name "cdk-vs-<scanner>-<iteration>" --user "$(id -u):$(id -g)" -e HOME=/tmp
@@ -181,4 +181,4 @@ Data that leaves the machine; print it at pre-flight and repeat it in `summary.m
 | kubescape   | 0                                   | non-zero                                    |
 | zap         | 0 (pass), 1 (fail), 2 (warn)        | 3                                           |
 
-Status is one of: `ok` (done, zero findings), `findings`, `failed`, `timeout`, `unavailable` (Docker or image pull failed), or `skipped`. A missing or unparsable report always gives `failed`. Run each scanner with a 10-minute Bash timeout. On timeout, `docker rm -f cdk-vs-<scanner>-<iteration>` (only this run's own container) and set status `timeout`.
+Status is one of: `ok` (done, zero findings), `findings`, `failed`, `timeout`, `unavailable` (Docker or image pull failed), or `skipped`. A missing or unparsable report always gives `failed`. Run each scanner with a 10-minute Bash timeout. On timeout, `container-remove` (only this run's own container) and set status `timeout`.

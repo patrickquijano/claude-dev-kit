@@ -38,15 +38,16 @@ Input: $ARGUMENTS
    - Create → fill the archetype template (`## Files`) from facts and answers; apply then strip each `<!-- -->` instruction; drop empty optional sections.
    - Update → map the README to archetype sections; fix `Stale` facts, add missing required sections, keep order.
    - Final ≥100 lines → ToC after the intro; shorter → none.
-5. **Write.** Print archetype, outline, and changed sections; write `README.md` at root without asking. Facts `Formatter` not none → run it on the README.
+5. **Write.** Print archetype, outline, and changed sections; write `README.md` at root without asking. Facts `Formatter` not none → `format-readme`.
 6. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Spawn `cdk:rubric-scorer` with: `kind: readme`, README path, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), `Omitted:` list.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or total ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-8. **Improve.** Below 95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: readme`) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, then step 5 format, step 6 rescore, step 7. Then list leftovers per `## Leftovers`.
+8. **Improve.** Below 95 and rounds <3 → spawn `cdk:rubric-improver` (`kind: readme`) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, then step 5 format, step 6 rescore, step 7.
+9. **Leftovers.** Always runs, after the loop ends or when step 7 reports `done`: list leftovers per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Leftovers`, then print the Output.
 
 ## Files
 
 - For score-only and non-`.md` pre-flight, the unattended fallback, the improve round, and leftovers, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
-- For the runnable command (repo root), see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the runnable commands (repo root, formatter), see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the scoring criteria, N/A rules, and required sections per archetype (steps 4 and 6), see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For the README skeleton of the chosen archetype (create mode, step 4), read one of:
   - `${CLAUDE_SKILL_DIR}/assets/templates/library.md`

@@ -34,21 +34,22 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never claim the code is secure, bug-free, or free of vulnerabilities. State only what the listed builds, tests, and rescans verified.
 - Caps: iterations `max-iterations` (default 5, range 1–10); 2 attempts per finding across all iterations; one agent re-spawn per agent error or missing Return (steps 4, 6, 8), then stop (`scanner agent failed`); a scanner `failed` or `timeout` runs again in the next scan, and after its second failure goes in `retry-used`; triage `cdk:codebase-explorer` spawns <=4 per message; approval questions: the top 4 `needs-approval` items by priority per iteration, the rest wait for the next iteration, or for step 7.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never report a result in place of a pending question.
-- Unattended (chained or `--yes`): ask nothing; approval-bound items stay `needs-approval` and are listed in `Open:`.
+- Cleanup: `raw-cleanup` (the raw dir path is saved in `<run dir>/.raw-path`) runs after each scanner run and when the skill stops, on any stop reason from step 4 onward; `container-remove` runs only after a scanner timeout and when the skill stops (a missing container is ignored).
+- Unattended (chained or `--yes`): ask nothing; ZAP is skipped (step 2), shipping is skipped (step 10), and approval-bound items stay `needs-approval`; all are listed in `Open:`.
 - Open items: step 11 runs once, only reports, and never re-enters the loop; leftovers go in `Open:` before `Result:`.
 
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` (not a git repo) → stop (`no git checkpoint possible`). `docker-info` fails → stop (`Docker unavailable; no scan run`). Then the conflict check, argument parsing, run dir, manifest, and `.specify/` check. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
-2. **DAST gate.** Only when `zap-target` is given: a non-local host, or `zap-mode=api` without `zap-spec` → ZAP `skipped`, no question; else ask. Detail: `flow.md` `## DAST gate`.
+2. **DAST gate.** Only when `zap-target` is given: unattended, a non-local host, or `zap-mode=api` without `zap-spec` → ZAP `skipped`, no question; else ask. Detail: `flow.md` `## DAST gate`.
 3. **Baseline.** Detect and run the validation commands per `remediation.md` `## Validation commands`. Record pass, fail, or unavailable. When build and every test command are unavailable → scan only, with stop reason `validation unavailable`.
 4. **Scan.** Iteration `i` (starts at 1): spawn `cdk:security-scanner` with `mode=full`. Copy its scan records and counts into `manifest.json`. Store its `Newer major:` line in `manifest.json`. Its `Images:` (informational except for jq) or `Scans:` line shows jq `unavailable` or unverified, in any iteration → stop (`redaction image unverified; no scan run`).
 5. **Triage.** Read `iteration-<i>/findings.json`; take open findings in priority order; confirm each, then classify `false-positive`, `manual`, `needs-approval`, or remediable and write it to `remediation-log.md`. Detail: `flow.md` `## Triage`.
 6. **Remediate.** Per remediable group in priority order: checkpoint, invoke `cdk:run-spec-kit`, validate, rescan with `mode=rescan`; a failure rolls back and retries once, or marks it `failed`. Then ask about up to 4 queued `needs-approval` items. Detail: `flow.md` `## Remediate`.
 7. **Continue or stop.** Stop when no confirmed remediable finding is left, `i` = max iterations, or another listed condition holds; else `i += 1`, back to step 4. Detail: `flow.md` `## Continue or stop`.
 8. **Final rescan.** Spawn the agent with `mode=final` as iteration `i + 1`.
-9. **Report.** Write `summary.md` per `reports.md` `## summary.md`, and finalize `manifest.json` `result`. Initial counts come from iteration 1, final counts from the final rescan. Remove the `cdk-vuln-scan/*` image tags this run built. Carry the `Newer major:` line stored in step 4 into the Output.
-10. **Ship.** Fixed count = 0 or protected paths still dirty → skip; else ask, then chain `cdk:switch-branch`, `cdk:commit-changes`, and `cdk:prepare-change-request --target <default branch> --yes`. Detail: `flow.md` `## Ship`.
+9. **Report.** Write `summary.md` per `reports.md` `## summary.md`, and finalize `manifest.json` `result`. Initial counts come from iteration 1, final counts from the final rescan. Remove the `cdk-vuln-scan/*` image tags this run built (`image-remove`). Carry the `Newer major:` line stored in step 4 into the Output.
+10. **Ship.** Fixed count = 0, unattended, or protected paths still dirty → skip; else ask, then chain `cdk:switch-branch`, `cdk:commit-changes`, and `cdk:prepare-change-request --target <default branch> --yes`. Detail: `flow.md` `## Ship`.
 11. **Open items.** After step 10 and once after every stop from step 4 onward; it only reports. Detail: `flow.md` `## Open items`.
 
 ## Files

@@ -62,7 +62,7 @@ Names are derived, never chosen: the same request always yields the same names.
 ## Runs, timeouts, concurrency
 
 - **Required** `timeout-minutes` on every callee job (default is 360, which hides hangs); set a value fitted to the job (**cdk**: derived from the repo's observed duration, else ask). Valid on steps too. Not allowed on caller jobs.
-- **Required** `concurrency` in the orchestrator (workflow level), group from `github`, `inputs`, `vars` only. `cancel-in-progress: true` for CI on PRs; `false` for deploys and releases. A new queued run cancels a pending run in the same group by default.
+- **Required** `concurrency` in the orchestrator (workflow level), group from `github`, `inputs`, `vars` only. `cancel-in-progress: ${{ github.event_name == 'pull_request' }}` for CI (cancels only superseded PR runs, never a push to a protected branch); `false` for deploys and releases. A new queued run cancels a pending run in the same group by default.
 - `needs` for ordering; give every dependent job an `if` only when it must run after a failed dependency.
 
 ## Cleanup (**cdk**; GitHub publishes no registry-logout guidance)

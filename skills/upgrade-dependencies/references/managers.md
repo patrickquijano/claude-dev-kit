@@ -12,7 +12,7 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 - Yarn 2+ — `yarn.lock` + `.yarnrc.yml` — no outdated command; use the registry lookup below — `yarn up <pkg>@<version>` — <https://yarnpkg.com/cli/up>
 - Bun — `bun.lock` (older `bun.lockb`) — `bun outdated` (no JSON) — `bun add <pkg>@<version>` — <https://bun.com/docs/cli/outdated>
 - Composer — `composer.json` + `composer.lock` — `composer outdated --direct --format=json` — `composer require <vendor/pkg>:^<version> -W` — a major bump needs a new constraint. <https://getcomposer.org/doc/03-cli.md>
-- pip — `requirements*.txt`, no lockfile — `pip list --outdated --format=json` — set `<pkg>==<version>` in the requirements file, then `pip install -r <file>` — no lockfile, so the requirements file is edited directly. <https://pip.pypa.io/en/stable/cli/pip_list/>
+- pip — `requirements*.txt`, no lockfile — `pip list --outdated --format=json`, then keep only packages declared in the requirements files (it also lists transitive and unrelated environment packages) — set `<pkg>==<version>` in the requirements file, then `pip install -r <file>` — no lockfile, so the requirements file is edited directly. <https://pip.pypa.io/en/stable/cli/pip_list/>
 - uv — `pyproject.toml` + `uv.lock` — `uv tree --outdated --frozen` (`--frozen` keeps `uv.lock` untouched) — `uv add "<pkg>>=<version>"` — `uv lock --upgrade-package <pkg>` stays within the existing constraint. <https://docs.astral.sh/uv/reference/cli/>
 - Poetry — `pyproject.toml` + `poetry.lock` — `poetry show --outdated --top-level --format json` — `poetry add <pkg>@^<version>` — `poetry update` never edits `pyproject.toml`. <https://python-poetry.org/docs/cli/>
 - Bundler — `Gemfile` + `Gemfile.lock` — `bundle outdated --parseable` — set the `Gemfile` constraint, then `bundle update --conservative <gem>` — <https://bundler.io/man/bundle-outdated.1.html>
@@ -24,6 +24,32 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 - Dart / Flutter — `pubspec.yaml` + `pubspec.lock` — `dart pub outdated --json` — `dart pub add <pkg>:^<version>` — <https://dart.dev/tools/pub/cmd/pub-outdated>
 - Swift PM — `Package.swift` + `Package.resolved` — `swift package update --dry-run` — edit `Package.swift`, then `swift package update <pkg>` — <https://www.swift.org/documentation/package-manager/>
 - Mix — `mix.exs` + `mix.lock` — `mix hex.outdated` — edit `mix.exs`, then `mix deps.update <pkg>` — <https://hexdocs.pm/hex/Mix.Tasks.Hex.Outdated.html>
+
+## Keep the existing specifier prefix
+
+This section overrides the upgrade-command rows above. A bare add or upgrade rewrites the specifier with the manager's default prefix (`^`). Read the recorded specifier first and keep its form (pip: keep the operator in the requirements file, `==`, `~=`, or `>=`, and change only the version): a range with a prefix (`~1.2.0`, `>=1.2`) → pass the same prefix with the new version (`<pkg>@~<version>`); an exact pin → the manager's exact flag (`-E` for npm, pnpm, Yarn 1, and Bun; Yarn 2+ writes an explicit range as given). A prefix the manager cannot express → list it under `Open:` and keep the manager's output.
+
+## Frozen install
+
+Step 9 installs from the lockfile with the command for the project's manager (`frozen-install` in `commands.md`). Never an install that rewrites the lockfile. _verify_ rows: check the tool's docs first.
+
+- npm — `npm ci`
+- pnpm — `pnpm install --frozen-lockfile`
+- Yarn 1 — `yarn install --frozen-lockfile`
+- Yarn 2+ — `yarn install --immutable`
+- Bun — `bun install --frozen-lockfile`
+- Composer — `composer install`
+- pip — `pip install -r <file>`
+- uv — `uv sync --frozen`
+- Poetry — `poetry install`
+- Bundler — `bundle install` (lockfile respected; `bundle config set frozen true` only when asked)
+- Cargo — `cargo build --locked`
+- Go — `go mod download`
+- .NET — `dotnet restore --locked-mode` (needs `packages.lock.json`; else `dotnet restore`)
+- Maven, Gradle — no separate install; the build resolves from the pinned versions
+- Dart / Flutter — `dart pub get --enforce-lockfile` _verify_
+- Swift PM — `swift package resolve --force-resolved-versions` _verify_
+- Mix — `mix deps.get`
 
 ## Workspace members
 

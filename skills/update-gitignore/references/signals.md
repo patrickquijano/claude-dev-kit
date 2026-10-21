@@ -31,3 +31,7 @@ Read manifests and tool configs, then look for what they produce on disk. A cand
 - Lockfiles (`package-lock.json`, `composer.lock`, `Cargo.lock` in applications), unless the user asks.
 - Files already tracked and intentionally committed (a library's `dist/`, vendored code); report them, do not ignore.
 - Source, docs, and templates such as `.env.example`.
+
+## Tracked secrets
+
+A tracked file matching the Secrets category (`.env`, `.env.*` except templates, `*.pem`, `*.key`, `credentials.json`) is secret exposure: the skill moves it from `Tracked but ignored` into `Secret exposure:` by name, never its contents, also when there are no candidates. Ignoring it does not remove it from history.
