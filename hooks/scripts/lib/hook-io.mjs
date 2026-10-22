@@ -62,11 +62,11 @@ export function projectDir(input, deps = {}, { prefer } = {}) {
   return d.realpath(first.find(Boolean) || d.cwd());
 }
 
-// Hook output that adds context for Claude; extra top-level fields (systemMessage) go in `extra`.
+// Hook output that adds context for Claude, capped at MAX characters; extra top-level fields (systemMessage) go in `extra`.
 export const contextOutput = (event, text, extra = {}) => ({
   ...extra,
-  hookSpecificOutput: { hookEventName: event, additionalContext: text }
+  hookSpecificOutput: { hookEventName: event, additionalContext: text.slice(0, MAX) }
 });
 
 // Stop hook output that continues Claude with `reason` as additional context; the transcript shows no hook error.
-export const stopOutput = (systemMessage, reason) => contextOutput('Stop', reason.slice(0, MAX), { systemMessage });
+export const stopOutput = (systemMessage, reason) => contextOutput('Stop', reason, { systemMessage });

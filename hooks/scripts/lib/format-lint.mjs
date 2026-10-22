@@ -2,7 +2,7 @@
 // Prints one JSON object; failures return the tool output as additionalContext so Claude can fix them.
 import { readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { contextOutput, MAX, projectDir as resolveProjectDir } from './hook-io.mjs';
+import { contextOutput, projectDir as resolveProjectDir } from './hook-io.mjs';
 import {
   TABLE,
   WIN_UNSAFE,
@@ -64,12 +64,8 @@ export function formatLint(input, deps = {}) {
   if (!lines.length) return null;
   const message = lines.join(' | ');
   return failures.length
-    ? contextOutput(
-        'PostToolUse',
-        `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`.slice(0, MAX),
-        {
-          systemMessage: message
-        }
-      )
+    ? contextOutput('PostToolUse', `Format/lint issues in ${target}; fix these issues:\n${failures.join('\n\n')}`, {
+        systemMessage: message
+      })
     : { systemMessage: message };
 }

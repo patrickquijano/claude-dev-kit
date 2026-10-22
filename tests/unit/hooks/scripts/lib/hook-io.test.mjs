@@ -374,6 +374,24 @@ test('contextOutput: has no top-level fields beyond hookSpecificOutput by defaul
   assert.deepEqual(Object.keys(out), ['hookSpecificOutput']);
 });
 
+test('contextOutput: caps the text at MAX characters', () => {
+  // Arrange
+  const text = 'x'.repeat(MAX + 100);
+  // Act
+  const out = contextOutput('PostToolUse', text);
+  // Assert
+  assert.equal(out.hookSpecificOutput.additionalContext.length, MAX);
+});
+
+test('contextOutput: keeps text shorter than MAX whole', () => {
+  // Arrange
+  const text = 'x'.repeat(MAX - 1);
+  // Act
+  const out = contextOutput('PostToolUse', text);
+  // Assert
+  assert.equal(out.hookSpecificOutput.additionalContext, text);
+});
+
 test('stopOutput: continues Claude with the reason as Stop additionalContext', () => {
   // Arrange
   const reason = 'do the steps';
