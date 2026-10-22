@@ -1,6 +1,7 @@
 // Release notes for cdk:publish-github-release: one released section of a Keep a Changelog file, rendered verbatim.
-// Writes only the `--notes-out` file. CLI: `notes --version <x.y.z|latest> [--changelog <path>] [--notes-out <file>]`, JSON on stdout.
+// Writes only the `--notes-out` file, which must sit under os.tmpdir() or CLAUDE_JOB_DIR. CLI: `notes --version <x.y.z|latest> [--changelog <path>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -116,6 +117,12 @@ export function notes({ changelog, version = 'latest' } = {}) {
   };
 }
 
+// True when `target` is strictly below `root`.
+function inside(root, target) {
+  const rel = path.relative(root, target);
+  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
 function arg(argv, name) {
   const i = argv.indexOf(name);
   return i < 0 ? undefined : argv[i + 1];
@@ -127,6 +134,9 @@ const realDeps = {
   mkdirSync,
   readFileSync,
   writeFileSync,
+  realpathSync,
+  tmpdir,
+  env: process.env,
   log: (text) => console.log(text),
   error: (text) => console.error(text)
 };
@@ -149,8 +159,26 @@ export function main(argv, deps = {}) {
     return 1;
   }
   const res = notes({ changelog: d.readFileSync(file, 'utf8'), version: arg(argv, '--version') ?? 'latest' });
-  const out = arg(argv, '--notes-out');
-  if (res.ok && out) {
+  const rawOut = arg(argv, '--notes-out');
+  if (res.ok && rawOut) {
+    const out = path.resolve(rawOut);
+    const tmp = d.tmpdir();
+    const roots = [tmp, d.realpathSync(tmp), d.env.CLAUDE_JOB_DIR].filter(Boolean).map((r) => path.resolve(r));
+    if (!roots.some((r) => inside(r, out))) {
+      d.log(
+        JSON.stringify({
+          ok: false,
+          errors: [
+            fail(
+              'notes-out-outside-scratch',
+              `${out} is outside the scratch directory`,
+              'write under the scratch directory or os.tmpdir()'
+            )
+          ]
+        })
+      );
+      return 1;
+    }
     d.mkdirSync(path.dirname(out), { recursive: true });
     d.writeFileSync(out, res.notes);
   }

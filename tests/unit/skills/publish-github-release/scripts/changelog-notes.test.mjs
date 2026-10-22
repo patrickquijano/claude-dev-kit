@@ -32,6 +32,7 @@ const CL = `# Changelog
 [Unreleased]: ${REPO}/compare/v1.0.0...HEAD
 [1.0.0]: ${REPO}/releases/tag/v1.0.0
 `;
+const TMP = path.resolve('/stub-tmp');
 const codes = (r) => r.errors.map((e) => e.code);
 
 describe('isSemver', () => {
@@ -197,6 +198,9 @@ describe('main', () => {
       writeFileSync: (file, text) => (out.files[file] = text),
       log: (t) => out.logs.push(t),
       error: (t) => out.errors.push(t),
+      tmpdir: () => TMP,
+      realpathSync: (p) => p,
+      env: {},
       ...over
     };
     return { out, deps };
@@ -205,11 +209,63 @@ describe('main', () => {
   test('writes the notes file and exits 0', () => {
     // Arrange
     const { out, deps } = stubs();
-    const target = path.resolve('scratch/notes.md');
+    const target = path.join(TMP, 'scratch', 'notes.md');
     // Act
     const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
     // Assert
     assert.deepEqual([code, out.files[target]], [0, '### Added\n\n- a\n']);
+  });
+
+  test('writes under the real path of the temp directory', () => {
+    // Arrange
+    const { out, deps } = stubs({ realpathSync: () => path.resolve('/private/stub-tmp') });
+    const target = path.resolve('/private/stub-tmp/notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, out.files[target]], [0, '### Added\n\n- a\n']);
+  });
+
+  test('writes under CLAUDE_JOB_DIR', () => {
+    // Arrange
+    const job = path.resolve('/stub-job');
+    const { out, deps } = stubs({ env: { CLAUDE_JOB_DIR: job } });
+    const target = path.join(job, 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, out.files[target]], [0, '### Added\n\n- a\n']);
+  });
+
+  test('rejects a notes file outside the allowed roots and writes nothing', () => {
+    // Arrange
+    const { out, deps } = stubs();
+    const target = path.resolve('/elsewhere/notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, JSON.parse(out.logs[0]).errors[0].code, out.files], [1, 'notes-out-outside-scratch', {}]);
+  });
+
+  test('rejects a path that escapes the temp directory with ..', () => {
+    // Arrange
+    const { out, deps } = stubs();
+    const target = path.join(TMP, '..', 'x', 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, JSON.parse(out.logs[0]).errors[0].code, out.files], [1, 'notes-out-outside-scratch', {}]);
+  });
+
+  test('rejects the temp directory itself and a sibling with the same prefix', () => {
+    // Arrange
+    const { out, deps } = stubs();
+    // Act
+    const codes = [TMP, `${TMP}-evil/notes.md`].map((t) =>
+      main(['notes', '--version', '1.0.0', '--notes-out', t], deps)
+    );
+    // Assert
+    assert.deepEqual([codes, out.files], [[1, 1], {}]);
   });
 
   test('prints the plan JSON without writing when no output file is given', () => {
