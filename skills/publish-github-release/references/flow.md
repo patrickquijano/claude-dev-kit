@@ -42,8 +42,8 @@ Batch 2 (only for `Publish`, at most 2 questions):
 
 ## Draft new
 
-- Scratch comes from pre-flight. Run `notes --version latest`. Any `ok: false` → `Stopped: 6: <code>: <message>; <fix>`.
-- Tag: the script returns the version; with `--tag` use it as the tag, else try `v<version>`, then `<version>` with `remote-tag`; neither found → `Stopped: 6: tag-missing: no tag for <version> on origin; push it first, then rerun` (`Next:` names `/cdk:publish-tag`).
+- Scratch comes from pre-flight. Run `notes --version <tag without a leading v>` with `--tag`, else `notes --version latest`. Any `ok: false` → `Stopped: 6: <code>: <message>; <fix>`.
+- Tag: with `--tag`, check that tag with `remote-tag`; else the script returns the version, so try `v<version>`, then `<version>` with `remote-tag`; none found → `Stopped: 6: tag-missing: no tag for <version> on origin; push it first, then rerun` (`Next:` names `/cdk:publish-tag`).
 - `release-view` of that tag: it exists (draft or published) → a draft goes back to `## Publish options` only when it was not already shown; a published one → `Result: nothing-to-do`, `Release: <url> (published)`.
 - `create-draft` (never `--target`); a failure → `Stopped: 6: draft-failed: <error>`.
 - Then ask `## Publish options` (notes question skipped), and `## Publish`.
