@@ -19,8 +19,8 @@ const unsafeState = (cwd, status = '') => {
   return status.split('\0').some((entry) => /^(U.|.U|AA|DD) /.test(entry));
 };
 
-// Runs `fn` only when this file is the entry script; an error it throws prints one line and sets `failCode`.
-const runIfMain = async (metaUrl, fn, { label, failCode = 1 }) => {
+// Runs `fn` only when this file is the entry script; an error it throws prints one line and sets exit code 1.
+const runIfMain = async (metaUrl, fn, { label }) => {
   if (!process.argv[1] || metaUrl !== pathToFileURL(realpathSync(process.argv[1])).href) return;
   try {
     const code = await fn();
@@ -31,7 +31,7 @@ const runIfMain = async (metaUrl, fn, { label, failCode = 1 }) => {
         .split('\n')[0]
         .slice(0, 300)}\n`
     );
-    process.exitCode = failCode;
+    process.exitCode = 1;
   }
 };
 
