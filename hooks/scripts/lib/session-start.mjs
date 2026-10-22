@@ -22,7 +22,7 @@ export function dateLine(now = new Date()) {
   return `Today is ${parts.weekday}, ${parts.month}, ${parts.day}, ${parts.year} and the current time is ${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
 }
 
-// The SessionStart hook's JSON output for a parsed input.
+// The SessionStart hook's JSON output; `_input` is unused, but the entry script still parses stdin with readJsonStdin on purpose so a non-object payload fails (`.claude/rules/es-modules.md`).
 export function sessionStart(_input, deps = realDeps) {
   return contextOutput('SessionStart', dateLine(deps.now()));
 }
