@@ -4,7 +4,7 @@ Claude Code plugin providing a development kit — skills, custom agents, and ho
 
 Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requests, reviews) plus skill, README, and CLAUDE.md authoring with scored rubrics, so Claude follows the same conventions in every repository.
 
-> **Status:** pre-1.0 (v0.2.0). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
+> **Status:** pre-1.0 (v0.3.0). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 - [Compatibility](#compatibility)
 - [Install](#install)
