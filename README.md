@@ -21,7 +21,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - [Claude Code](https://code.claude.com/docs) CLI (`claude`).
 - Git; commit, rebase, and review-address skills sign commits when signing is configured. `/cdk:setup-git` SSH signing needs Git 2.34+; OpenPGP needs GnuPG.
 - [`glab`](https://gitlab.com/gitlab-org/cli) CLI, authenticated, for `/cdk:ship-release` (GitLab) and the merge request skills.
-- [`gh`](https://cli.github.com/) CLI, authenticated, for `/cdk:ship-release` (GitHub), the pull request skills, and `/cdk:create-github-release`.
+- [`gh`](https://cli.github.com/) CLI, authenticated, for `/cdk:ship-release` (GitHub), the pull request skills, `/cdk:create-github-release`, and `/cdk:publish-github-release`.
 - [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
 - [`uv`](https://docs.astral.sh/uv/) or `pipx` (Python 3.10+) for `/cdk:setup-graphify` when `graphify` is not installed.
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
@@ -44,7 +44,7 @@ claude plugin install cdk@claude-dev-kit
 
 ### Skills
 
-Every skill that reports findings (failed or skipped checks, gaps, suspected bugs, blockers, open items) ends with a **Resolve findings** step, after any own fix loop: it analyzes each open item (impact, fix, alternatives, validation), fixes safe in-scope ones and revalidates, and asks with a recommended option for the rest. Ask-only skills (review, posting, rebase, orchestrators, print-only) only report and ask. Unattended runs (chains, `--auto`, `--yes`) ask nothing and report what is left. Only `switch-branch` has no step.
+A skill that reports findings (failed or skipped checks, gaps, open items) runs its own capped fix loop where it needs one and lists what is left under `Open:` before `Result:`. Unattended runs (chains, `--auto`, `--yes`) ask nothing and report what is left.
 
 | Skill                                | Purpose                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
