@@ -163,8 +163,9 @@ export function main(argv, deps = {}) {
   if (res.ok && rawOut) {
     const out = path.resolve(rawOut);
     const tmp = d.tmpdir();
-    const roots = [tmp, d.realpathSync(tmp), d.env.CLAUDE_JOB_DIR].filter(Boolean).map((r) => path.resolve(r));
-    if (!roots.some((r) => inside(r, out))) {
+    const job = d.env.CLAUDE_JOB_DIR;
+    const roots = [tmp, d.realpathSync(tmp), job].filter(Boolean).map((r) => path.resolve(r));
+    const reject = () => {
       d.log(
         JSON.stringify({
           ok: false,
@@ -178,9 +179,14 @@ export function main(argv, deps = {}) {
         })
       );
       return 1;
-    }
+    };
+    if (!roots.some((r) => inside(r, out))) return reject();
     d.mkdirSync(path.dirname(out), { recursive: true });
-    d.writeFileSync(out, res.notes);
+    // Re-check after resolving symlinks in the directory; a symlink at the file name itself is not covered.
+    const real = path.join(d.realpathSync(path.dirname(out)), path.basename(out));
+    const realRoots = [d.realpathSync(tmp), job && d.realpathSync(job)].filter(Boolean).map((r) => path.resolve(r));
+    if (!realRoots.some((r) => inside(r, real))) return reject();
+    d.writeFileSync(real, res.notes);
   }
   d.log(JSON.stringify(res));
   return res.ok ? 0 : 1;

@@ -218,12 +218,36 @@ describe('main', () => {
 
   test('writes under the real path of the temp directory', () => {
     // Arrange
-    const { out, deps } = stubs({ realpathSync: () => path.resolve('/private/stub-tmp') });
-    const target = path.resolve('/private/stub-tmp/notes.md');
+    const real = path.resolve('/private/stub-tmp');
+    const { out, deps } = stubs({ realpathSync: (p) => (p === TMP ? real : p) });
+    const target = path.join(real, 'notes.md');
     // Act
     const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
     // Assert
     assert.deepEqual([code, out.files[target]], [0, '### Added\n\n- a\n']);
+  });
+
+  test('rejects a directory that resolves outside the roots and writes nothing', () => {
+    // Arrange
+    const link = path.join(TMP, 'scratch');
+    const { out, deps } = stubs({ realpathSync: (p) => (p === link ? path.resolve('/elsewhere') : p) });
+    const target = path.join(link, 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, JSON.parse(out.logs[0]).errors[0].code, out.files], [1, 'notes-out-outside-scratch', {}]);
+  });
+
+  test('writes at the resolved path when the directory resolves under the real temp directory', () => {
+    // Arrange
+    const link = path.join(TMP, 'scratch');
+    const resolved = path.join(TMP, 'other');
+    const { out, deps } = stubs({ realpathSync: (p) => (p === link ? resolved : p) });
+    const target = path.join(link, 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, out.files], [0, { [path.join(resolved, 'notes.md')]: '### Added\n\n- a\n' }]);
   });
 
   test('writes under CLAUDE_JOB_DIR', () => {
