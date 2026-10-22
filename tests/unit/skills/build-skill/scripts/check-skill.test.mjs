@@ -271,6 +271,30 @@ describe('checkBody', () => {
     );
   });
 
+  test('does not warn spawn-builtin for a lowercase "explore"', () => {
+    // Arrange
+    const body = 'Spawn `cdk:task-worker` to explore the module.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin'),
+      []
+    );
+  });
+
+  test('warns spawn-builtin for a lowercase verb before Explore', () => {
+    // Arrange
+    const body = 'Then spawn an Explore agent.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1]
+    );
+  });
+
   test('warns output-next when a task Output has no Next line', () => {
     // Arrange
     const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
