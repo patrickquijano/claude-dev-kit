@@ -13,10 +13,8 @@ const oneLine = (err) =>
     .split('\n')[0]
     .slice(0, 300);
 
-// Runs `fn` only when the module is the process entry script (not when imported by tests). This is the one error
-// boundary of an entry script: an error `fn` throws prints `cdk <label>: <message>` to stderr and sets exit code
-// `failCode` (1 is the default). With `failCode: 0` it instead prints a `systemMessage`
-// JSON to stdout and sets no exit code, so the harness shows no hook error. A number `fn` returns becomes the exit code.
+// Entry-script error boundary: runs `fn` only when the module is the process entry, and a number it returns becomes the exit code.
+// On a throw it prints `cdk <label>: <message>` to stderr and exits `failCode` (default 1); `failCode: 0` is not a silent exit: it prints a stdout `systemMessage` JSON and sets no exit code (Stop hooks).
 export async function runIfMain(metaUrl, fn, { label = 'hook', failCode = 1 } = {}, argv = process.argv, io = {}) {
   if (!argv[1] || metaUrl !== pathToFileURL(argv[1]).href) return;
   const {
