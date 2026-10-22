@@ -6,7 +6,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction, and `/cdk:ship-release` chains skills to ship a GitHub PR or GitLab MR end to end. `build-skill` and `build-subagent` run their `scripts/check-*.mjs`, score with the `rubric-scorer` agent, and delegate fixes to the `rubric-improver` agent for up to 3 rounds. Rules `.claude/rules/skills.md`.
 - Subagents: `agents/` — read-only workers (analyzers, scorers, CR reviewers) spawned by skills (`topic-researcher` is also delegated to directly). Write exceptions and rules: `.claude/rules/agents.md`.
-- Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior, error policy, and end-of-task steps: `.claude/rules/hooks.md`.
+- Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`, each mirroring the source path. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
 - Evals: `evals/<case>/` — `prompt.md` + `graders/`, LLM-graded behavioral cases for `claude plugin eval .`; the user runs them by hand, never Claude or a hook (skill-creator evals are separate: `cdk:build-skill` drafts itself and offers optional `skill-creator` evals).
 - Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
@@ -20,7 +20,6 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/post-tool-use.mjs`
 - SessionStart hook smoke test: `echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/session-start.mjs` (JSON with a `Today is …` line)
 - Prompt hook smoke test: `echo '{"permission_mode":"default","prompt":"Implement X across multiple files\n- a\n- b\n- c"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/user-prompt-submit.mjs` (one JSON with the `AskUserQuestion` plan-mode ask; `echo garbage | …` exits 1 with one stderr line)
-- End-of-task smoke test: `echo '{"session_id":"s1","prompt":"x","permission_mode":"default"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/user-prompt-submit.mjs`, touch a scratch file, then `echo '{"session_id":"s1"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/stop.mjs` (JSON whose one-line `additionalContext` points at the steps file; a second run is silent; steps `.claude/rules/hooks.md`)
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/stop.mjs` (no output when no covered file changed since its last run)
 - Release check: `node skills/bump-version/scripts/release-check.mjs check --target main` (exit 1 until the changelog and version are updated and pushed)
 - Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/skills/build-skill/SKILL.md"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/post-tool-use.mjs` (exit 0 and a `systemMessage` JSON when valid)

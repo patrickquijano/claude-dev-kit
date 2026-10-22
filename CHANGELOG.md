@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
 ### Added
 
 - `/cdk:update-gitignore` explores the repo, through `cdk:repo-analyzer` (kind `gitignore`), for generated, local, and secret paths that should not be committed, reports each with its evidence and confidence, and appends the ones you approve to the root `.gitignore`. It skips paths already ignored, never reads `.env*` contents, and never untracks, commits, or pushes; tracked files that match are only reported.
@@ -36,7 +38,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/cdk:review-local-changes`, `/cdk:update-changelog`, `/cdk:build-dockerfile`, and `/cdk:draft-prompt` list leftovers on an `Open:` line before `Result:`; `/cdk:draft-prompt` renames `Open gaps:` to `Open:`. `/cdk:publish-github-release` and `/cdk:setup-testing` state their `--yes` behavior, and `/cdk:setup-testing`, `/cdk:scan-vulnerabilities`, and `/cdk:add-integration-tests` list `[--yes]` in `argument-hint`.
 - Context-heavy skill steps now run in subagents that return compact results, so the main conversation stays lean: `/cdk:debug-issue` (hypothesis probes and verification), `/cdk:review-local-changes` (fixes and checks), the direct review in `/cdk:prepare-change-request` and `/cdk:review-change-request` (checks), `/cdk:upgrade-dependencies` (migration research, baseline and validation checks, leftovers), `/cdk:rebase-onto` (one conflict analyzer per conflicted file), `/cdk:scan-vulnerabilities` (finding triage), the `/cdk:add-unit-tests`, `/cdk:add-integration-tests`, and `/cdk:add-e2e-tests` practices lookup, `/cdk:build-github-workflows` (docs check), `/cdk:commit-changes` (large changes skip the inline secret scan), and the context reads in `/cdk:implement-goal`, `/cdk:draft-prompt`, and `/cdk:build-subagent`.
 - `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
-- The end-of-task steps now fire once per turn that changed the working tree, compared with the tree `UserPromptSubmit` recorded at turn start, so Q&A turns and an already-dirty tree stay silent. They no longer include the commit-and-push step: run `/cdk:commit-changes` yourself, and `/cdk:commit-changes` no longer lists a hook as a trigger.
 - **Breaking:** the plugin hooks no longer block anything or mention `/cdk:commit-changes` or `/cdk:ship-release`. The `PreToolUse` hook is removed, so force pushes, `--no-verify`, `reset --hard` and the like are no longer blocked or asked about, and PR or MR creation is no longer gated by the release check (the `prepare-change-request` gate and CI still run it). A failed format or lint step after an edit now goes back to Claude as context instead of blocking. `release-check.mjs` loses its `hook` mode (`check` and `bump` remain), and `/cdk:ship-release` no longer writes a hold marker; `SessionStart` ignores a leftover one.
 - **Breaking:** `/cdk:setup-permissions` splits rules by scope: repo-specific rules go to the project `.claude/settings.local.json` and only repo-agnostic rules to the user file. git is allowed by read-only subcommand only, `jq` moves to ask, and a package manager's scoped rule wins over the build-tool allow. Re-run it to move existing rules.
 - `/cdk:setup-spec-kit` and `/cdk:setup-graphify` no longer install a tool globally without asking: they ask first, install a pinned version (Spec Kit v1.2.2, graphifyy 0.9.93), and an unattended run stops and lists it under `Open:`.
@@ -45,12 +46,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/cdk:build-skill`'s `check-skill` flags dotfiles other than `.DS_Store` inside a skill; the `setup-husky` asset is now `commitlintrc.json` and is copied to `.commitlintrc.json`.
 - `.commitlintrc.json` (and the `setup-husky` copy) now permits commit bodies and footers but still rejects any trailer starting with `Co-`.
 
+### Removed
+
+- The end-of-task steps are removed from the plugin hooks: `Stop` no longer prompts Claude to run the unit tests, refresh the Graphify graph, update docs, or add changelog entries, and `UserPromptSubmit` no longer records the working tree at turn start. `Stop` now only formats and lints changed file types, and `UserPromptSubmit` only prints the plan-mode context.
+- `SessionStart` no longer adds the Graphify rules pointer; it injects only the date and time. `/cdk:setup-graphify` and its rules file are unchanged.
+
 ### Fixed
 
 - Skills no longer pre-approve broad git patterns: `git symbolic-ref` is limited to `--short refs/remotes/origin/HEAD`, and `git ls-remote`, `git switch -c`, `git fetch *`, `git checkout --ours`/`--theirs`, and `specify extension add` stay permission-prompted.
 - `/cdk:commit-changes` and `/cdk:switch-branch` truncate a branch name so its `-N` suffix keeps it within 72 characters, and the secret scan in `/cdk:commit-changes` and `cdk:change-analyzer` also covers `github_pat_`, `gh[ousr]_`, `sk-ant-`, `sk-proj-`, and `AIza`.
 - `check-skill` no longer warns that a verb-first name such as `setup-devcontainer` ends in an actor suffix.
-- The Stop hook no longer shows a `Stop hook error` notice: the end-of-task steps and repo lint failures now reach Claude as `Stop hook feedback`, and a Stop hook crash prints a `cdk stop: …` message and exits 0 instead of exiting 1.
+- The Stop hook no longer shows a `Stop hook error` notice: repo lint failures now reach Claude as `Stop hook feedback`, and a Stop hook crash prints a `cdk stop: …` message and exits 0 instead of exiting 1.
 - Skills run cleanup for what they start (`docker compose down -v` with pinned images, the e2e app server, scan scratch and checkpoints), use shell-safe single-quoted PR and MR titles, a file or unique-delimiter MR description, and keep their `commands.md` tables complete, with `Open:` replacing `Gaps:` in build outputs.
 - `/cdk:ship-release` caps check polling at 10 minutes, and `/cdk:commit-changes` treats `git diff --no-index` exit 1 as success; `/cdk:create-github-release` and `/cdk:publish-tag` use the default branch instead of a hard-coded `main`.
 
