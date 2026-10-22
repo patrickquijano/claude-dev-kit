@@ -1,4 +1,4 @@
-// SessionStart hook: inject the date and time, plus Graphify rules when a graph is ready (logic in lib/session-start.mjs).
+// SessionStart hook: inject the date and time (logic in lib/session-start.mjs).
 import { readJsonStdin, runIfMain } from './lib/hook-io.mjs';
 import { sessionStart } from './lib/session-start.mjs';
 

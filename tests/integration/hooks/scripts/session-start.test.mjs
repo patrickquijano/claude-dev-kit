@@ -42,15 +42,6 @@ test('invalid stdin prints one stderr line, nothing on stdout, and exits 1', () 
   assert.match(result.stderr, /^cdk session-start: .+\n$/);
 });
 
-test('a project without Graphify gets no Graphify rules', () => {
-  // Arrange
-  const dir = project();
-  // Act
-  const result = run(dir, '{}');
-  // Assert
-  assert.doesNotMatch(result.stdout, /Graphify/);
-});
-
 test('a leftover marker file adds no marker text on startup', () => {
   // Arrange
   const dir = project();
