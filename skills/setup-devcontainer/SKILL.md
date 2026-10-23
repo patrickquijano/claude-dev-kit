@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion) and writes files, besides the chained `cdk:build-dockerfile`; `cdk:repo-analyzer` only reads.
 - Apply `${CLAUDE_SKILL_DIR}/references/practices.md`; each item says why. A skipped item gets a reason in the Output.
@@ -39,7 +39,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root, `<none>` → cwd. Update mode when `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists, else create; update → read each config and the files it references fully.
-2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: devcontainer` and the root only. Use its Return for every later step.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: devcontainer` and the root only (brief in `flow.md` `## Spawn briefs`). Use its Return for every later step.
 3. **Clarify.** Ask services and Claude Code first, then only the questions that apply (including the host extensions from the analyzer's `Host extensions`, filtered to the stacks and tools), then only the gaps left. Recommended option first; derivable facts are never asked (`flow.md` `## Clarify`).
 4. **Look up** the base image tag, feature majors, and each service's tag, port, data directory, env vars, and health command (practices.md). Failure → call 3; call 3 spent → step 10, then stop.
 5. **Draft.** devcontainer.json, Compose files, the `.gitattributes` LF rule, the firewall script, and the Dockerfile handoff arguments (`flow.md` `## Draft`).

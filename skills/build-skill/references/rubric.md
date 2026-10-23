@@ -44,12 +44,12 @@
 
 ## Quality (15)
 
-| ID  | Pts | Criterion                                                                                                                | Rule                 |
-| --- | --- | ------------------------------------------------------------------------------------------------------------------------ | -------------------- |
-| Q1  | 4   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A only if they define no output | B Structure per kind |
-| Q2  | 4   | Steps with side effects confirm first and name each effect; destructive commands are never pre-approved                  | B Style              |
-| Q3  | 4   | One job: the description and workflow serve a single action                                                              | decide.md One job    |
-| Q4  | 3   | Proactive: Task Output names the follow-up (`Next:`, S warning); independent subagent spawns run in parallel             | B Structure per kind |
+| ID  | Pts | Criterion                                                                                                                                    | Rule                 |
+| --- | --- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Q1  | 4   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A only if they define no output                     | B Structure per kind |
+| Q2  | 4   | Steps with side effects confirm first and name each effect; destructive commands are never pre-approved                                      | B Style              |
+| Q3  | 4   | One job: the description and workflow serve a single action                                                                                  | decide.md One job    |
+| Q4  | 3   | Proactive: Task Output names the follow-up (`Next:`, S warning); independent spawns run in parallel; each gives a complete brief per body.md | B Structure per kind |
 
 ## Scoring
 

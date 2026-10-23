@@ -48,7 +48,7 @@ Agents cost about 4× a chat's tokens and multi-agent about 15×; spawn only whe
 | No signal                                                                           | Project when cwd is a git repo, else Personal |                                                              |
 
 - Precedence for the same `name`: managed settings, then `--agents`, then project, personal, plugin. All are scanned recursively; a plugin subfolder joins the id (`<plugin>:sub:name`).
-- Personal and project edits load within seconds; a new `agents` directory needs a restart; plugin edits need `/reload-plugins`.
+- Personal and project edits load within seconds; a new `agents` directory needs a restart.
 - Plugin agents ignore `permissionMode`, `hooks`, `mcpServers`, `initialPrompt`; needing one → Personal or Project.
 
 ## Fields

@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Follow `${CLAUDE_SKILL_DIR}/references/conventions.md` (AAA, faker, coverage, unit, ES modules, safety); read it fully in step 1.
 - Never edit production code. Writes: test files (moved with `git-mv`), test setup files, runner globs. Tool installs and configs belong to `cdk:setup-testing`.
@@ -33,7 +33,7 @@ Input: $ARGUMENTS
 1. **Pre-flight.** Read `conventions.md`. Project dir = Context → Repo root, else cwd. Extract target (percent, default 90), metric (line, branch, statement, function; default line), scope (paths, symbols, feature; default `all`). Target outside 1–100 or empty scope → AskUserQuestion with the closest fits.
 2. **Packages.** `list-files` (outside git: Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output). Find packages and JS package managers per `${CLAUDE_SKILL_DIR}/references/stacks.md`; keep those the scope touches.
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package, test kind `unit`; use `Runner:`, `Coverage:`, `Faker:`, `Conventions:`. Ask `Questions:`, re-spawn per `flow.md`.
-4. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs; unavailable → bundled rules only.
+4. **Practices.** Spawn one `cdk:topic-researcher` (brief in `flow.md` `## Spawn briefs`; official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs; unavailable → bundled rules only.
 5. **Decide.** Take Recommended picks and report them. `Missing:` runner, coverage, or faker → chain `cdk:setup-testing unit <package>` per `flow.md`.
 6. **Baseline.** Measure existing coverage per `flow.md`. Target already met and nothing misplaced or non-conforming → `Result: nothing-to-do`.
 7. **Relocate and upgrade.** JS/TS ES modules only, before new tests; any `Misplaced:` or `Non-conforming:` test → first AskUserQuestion ("Move and rewrite them", "Skip them", "Stop"); unattended lists each under `Open:` and skips it. Then `git-mv` each `Misplaced:` test to `tests/unit/`, fix runner globs, upgrade each `Non-conforming:` test, hand I/O cases to `cdk:add-integration-tests`.

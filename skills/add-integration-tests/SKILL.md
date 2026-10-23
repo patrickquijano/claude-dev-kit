@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Follow `${CLAUDE_SKILL_DIR}/references/conventions.md` (shared rules, faker libraries, integration rules); each states why.
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are handled here.
@@ -36,7 +36,7 @@ Input: $ARGUMENTS
 2. **Packages.** `list-files` (outside git, Glob skipping `node_modules/`, `vendor/`, `.venv/`, build output); manifests per `${CLAUDE_SKILL_DIR}/references/stacks.md`. Monorepo → one package each, only those the scope touches. JS package manager per stacks.md; several lockfiles → ask.
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message (inputs in `flow.md` `## Analyze`); ask its `Questions:`, re-spawn once with answers.
 4. **Decide.** Take the Recommended pick per open choice and report it; `Missing:` tooling → chain `cdk:setup-testing integration <package>` (`flow.md` `## Decide`).
-5. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs (plus Testcontainers when a container is picked); unavailable → bundled rules only.
+5. **Practices.** Spawn one `cdk:topic-researcher` (brief in `flow.md` `## Spawn briefs`; official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the runner's official docs (plus Testcontainers when a container is picked); unavailable → bundled rules only.
 6. **Baseline.** Run the existing integration suite unless it targets a non-local host (`flow.md` `## Baseline`). Every boundary already covered → `Result: nothing-to-do`.
 7. **Plan.** Print a table per package: boundary `file:line`, dependency strategy, scenarios (success and failure), data setup and cleanup. Continue without asking.
 8. **Write.** Per boundary, in the project's style: AAA blocks, seeded faker data with unique keys, real wiring of the project's own components, the chosen dependency strategy, cleanup per test.

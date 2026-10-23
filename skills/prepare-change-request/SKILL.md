@@ -20,7 +20,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user; subagents cannot. Missing or ambiguous state, template, check result, or CR identity → stop with the reason. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn.
 - Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`).
@@ -55,7 +55,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 14. **Verify.** Host file `## Verify`; mismatch → report the field, `Stopped: 14: <field mismatch>`.
 15. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
-Step 6 spawns, in one message, five parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), with `model: opus` on `correctness` and `security`. Each gets `role:`, root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths.
+Step 6 spawns, in one message, five parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), with `model: opus` on `correctness` and `security`. Each gets `role:`, root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths. Briefs: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`.
 
 ## Files
 

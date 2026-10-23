@@ -20,7 +20,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Never commit, push, stash, or `reset --hard`; the user commits afterwards (`/cdk:commit-changes`).
 - Change only what the goals need; no adjacent refactors.
@@ -48,7 +48,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Files
 
 - For goals, acceptance criteria, and the approach ask (steps 2, 5–6), see `${CLAUDE_SKILL_DIR}/references/plan.md`.
-- For checks, evidence, and the iteration loop (steps 8–9), see `${CLAUDE_SKILL_DIR}/references/validate.md`.
+- For spawn briefs, checks, evidence, and the iteration loop (steps 3, 7–9), see `${CLAUDE_SKILL_DIR}/references/validate.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 
 ## Output

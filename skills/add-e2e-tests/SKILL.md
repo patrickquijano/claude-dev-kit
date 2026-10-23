@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Every test follows `${CLAUDE_SKILL_DIR}/references/conventions.md` (Shared rules, Faker libraries, End to end).
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
@@ -37,7 +37,7 @@ Input: $ARGUMENTS
 2. **Packages.** Find packages with `list-files` and manifests; detect the JS package manager (`flow.md` `## Packages`).
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `e2e` (`flow.md` `## Analyze`).
 4. **Decide.** Take Recommended picks; ask only the local-or-safe app URL; chain `cdk:setup-testing` for missing tools (`flow.md` `## Decide`).
-5. **Practices.** Spawn one `cdk:topic-researcher` (official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the picked framework's official docs; unavailable → bundled rules only.
+5. **Practices.** Spawn one `cdk:topic-researcher` (brief in `flow.md` `## Spawn briefs`; official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the picked framework's official docs; unavailable → bundled rules only.
 6. **Baseline.** Run the existing e2e suite with the app started; note failures and continue. Every journey covered → `Result: nothing-to-do` after step 10.
 7. **Plan.** Print one table per package (journey, entry `file:line`, steps, assertions, data setup), critical journeys first; continue without asking.
 8. **Write.** One test per journey in the project's style and the End to end rules: AAA, seeded faker data, user-facing locators, retrying assertions.

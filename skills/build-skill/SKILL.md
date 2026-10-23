@@ -14,7 +14,7 @@ This skill decides, writes, and enforces the rules; `skill-creator` is optional,
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files. `skill-creator` is optional, for evals only.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
 - Loops: clarify at most 3 rounds; improve rounds at most 3. Never loop past the cap; report what is left in `Open:`.
@@ -47,7 +47,7 @@ This skill decides, writes, and enforces the rules; `skill-creator` is optional,
 - For frontmatter fields and description writing, see `${CLAUDE_SKILL_DIR}/references/frontmatter.md`.
 - For body structure, lazy loading, and navigation, see `${CLAUDE_SKILL_DIR}/references/body.md`.
 - For skeletons per kind, see `${CLAUDE_SKILL_DIR}/assets/templates.md`.
-- For running the check, the report, the improve round, and `Open:`, see `${CLAUDE_SKILL_DIR}/references/score.md`.
+- For running the check, the report, the improve round, `Open:`, and spawn briefs (steps 6, 8), see `${CLAUDE_SKILL_DIR}/references/score.md`.
 - For the scoring criteria, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the mechanical checks, run `${CLAUDE_SKILL_DIR}/scripts/check-skill.mjs`; it is run, never read.

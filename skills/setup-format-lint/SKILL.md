@@ -15,7 +15,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Analysis in a subagent: spawn `cdk:format-lint-analyzer` with `mode=detect` (step 2) and `mode=check` (step 10), and `cdk:version-resolver` with `kind: packages` (step 6). They cannot ask or install; relay their `Gaps` and an `unknown` manager with AskUserQuestion.
 - Agent input: root, mode (analyzer), and answers to earlier `Gaps`. The resolver takes root, the packages to install, and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
@@ -50,7 +50,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the tool catalog, versions, and install channels (steps 3-7), see `${CLAUDE_SKILL_DIR}/references/tools.md`.
 - For configs, check commands, overlaps, and YAML alignment (steps 8-10), see `${CLAUDE_SKILL_DIR}/references/configs.md`.
-- For tool choice, installs, and the resolve pass (steps 4, 7, 11), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For tool choice, installs, the resolve pass (steps 4, 7, 11), and spawn briefs (steps 2, 6, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For package dir, manager detection, and exec forms (steps 5, 7, 10), see `${CLAUDE_SKILL_DIR}/references/package-manager.md`.
 - For ignore syntax and candidate paths (step 9), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 

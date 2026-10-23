@@ -15,7 +15,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
@@ -37,7 +37,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 4. **Hooks.**
    - Claude: `.claude/settings.json` contains `hook-guard` → skip. Else run `install-claude-hooks` (adds the `## graphify` section to `CLAUDE.md` and the PreToolUse hooks).
    - Git: `hook-status` reports post-commit, post-checkout, and the merge driver installed → skip. Else run `install-git-hooks` (also adds `graphify-out/graph.json merge=graphify` to `.gitattributes`).
-5. **Graph.** `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` all exist → skip. Unattended → skip the build and record `Graph: pending (run /graphify .)` under `Open:`. Else say docs and images spend session tokens (code is parsed free), then invoke the `graphify` skill via the Skill tool with `.`; a large repo makes it ask which folder to scan, let it. Skill unavailable → tell the user to run `/graphify .` after `/reload-plugins` or a restart; report the graph as pending.
+5. **Graph.** `graphify-out/graph.html`, `GRAPH_REPORT.md`, and `graph.json` all exist → skip. Unattended → skip the build and record `Graph: pending (run /graphify .)` under `Open:`. Else say docs and images spend session tokens (code is parsed free), then invoke the `graphify` skill via the Skill tool with `.`; a large repo makes it ask which folder to scan, let it. Skill unavailable → tell the user to run `/graphify .` after a restart; report the graph as pending.
 6. **Names.** Graph pending → skip. Grep `graphify-out/GRAPH_REPORT.md` for `^### Community [0-9]+ - "Community [0-9]+"`; no match → skip. Else run `label-missing` once and report how many remain. Detail: `${CLAUDE_SKILL_DIR}/references/details.md`.
 7. **Git ignore.** Ensure the root `.gitignore` (create it in a git repo) has the block below. An existing `graphify-out/` line needs a question: `${CLAUDE_SKILL_DIR}/references/details.md`.
 

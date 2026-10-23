@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user and writes; `cdk:repo-analyzer`, `cdk:version-resolver`, `cdk:topic-researcher`, and `cdk:practices-reviewer` are read-only.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer; never print finished files in place of a pending question.
@@ -50,7 +50,7 @@ Input: $ARGUMENTS
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For clarify questions, drafting, the verify loop, and open items, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For clarify questions, drafting, the verify loop, open items, and spawn briefs, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the practices to apply and the reviewer standard (contract, naming, shell, permissions, security, cleanup, pinning, composite actions, Dependabot), see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 - For orchestrator, gate, callee, and composite action skeletons, see `${CLAUDE_SKILL_DIR}/references/layout.md`.
 - For the exact-tag version, runner, and image resolution procedure, see `${CLAUDE_SKILL_DIR}/references/versions.md`.

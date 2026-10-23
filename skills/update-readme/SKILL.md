@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user; subagents cannot. AskUserQuestion or Write unavailable: see `flow.md` `## Fallback`.
 - License, URLs, versions, contacts, and badges not derivable → ask; user omits → leave out; never re-ask an omitted item.
@@ -46,7 +46,7 @@ Input: $ARGUMENTS
 
 ## Files
 
-- For score-only and non-`.md` pre-flight, the unattended fallback, the improve round, and leftovers, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For score-only and non-`.md` pre-flight, the unattended fallback, the improve round, leftovers, and spawn briefs, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the runnable commands (repo root, formatter), see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the scoring criteria, N/A rules, and required sections per archetype (steps 4 and 6), see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For the README skeleton of the chosen archetype (create mode, step 4), read one of:

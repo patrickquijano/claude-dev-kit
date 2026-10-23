@@ -15,7 +15,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Evidence only: every candidate cites a file on disk, a manifest, or a tool config that produces it; never add a path from the stack name alone.
 - Never read the contents of `.env*`, key, or credential files; their names are enough.
@@ -39,6 +39,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For signals, categories, and confidence levels (read by the analyzer), see `${CLAUDE_SKILL_DIR}/references/signals.md`.
+- For the analyzer spawn brief, see `${CLAUDE_SKILL_DIR}/references/spawns.md`.
 
 ## Output
 
