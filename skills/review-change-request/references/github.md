@@ -4,7 +4,7 @@ Host section of `cdk:review-change-request` (host = `origin` on `github.com`); t
 
 ## Contents
 
-- Pre-flight · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
+- Pre-flight · MCP tools · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
 
 ## Pre-flight
 
@@ -16,6 +16,26 @@ Run in order; any failure → report the exact error line and stop. A detached `
 4. `gh repo view --json viewerPermission`: error → stop; keep the value (`NONE`, `READ`, `TRIAGE`, `WRITE`, `MAINTAIN`, `ADMIN`) for `## Merge`.
 5. `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge`; keep them for `## Merge`.
 6. A `403`, or a `422` that is not a comment-position error, at publish stops there with its exact error (GitHub's docs do not say which permission each review event needs).
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                                                         | MCP tool                                                               |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `gh auth status`                                                  | —                                                                      |
+| `gh repo view` (Repo, `viewerPermission`, merge options)          | —                                                                      |
+| `gh api user`                                                     | `mcp__plugin_github_github__get_me`                                    |
+| `gh pr list`                                                      | `mcp__plugin_github_github__list_pull_requests`                        |
+| `gh pr view`                                                      | `mcp__plugin_github_github__pull_request_read`                         |
+| `gh pr diff`                                                      | `mcp__plugin_github_github__pull_request_read` (`get_diff`)            |
+| `gh pr diff --name-only`                                          | `mcp__plugin_github_github__pull_request_read` (`get_files`)           |
+| `gh pr checks`                                                    | —                                                                      |
+| `gh api graphql` threads query                                    | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
+| `gh api repos/<owner>/<repo>/pulls/<n>/reviews -X POST`           | — (one atomic POST)                                                    |
+| `gh api graphql` thread reply (`addPullRequestReviewThreadReply`) | `mcp__plugin_github_github__add_reply_to_pull_request_comment`         |
+| `gh api graphql` resolve (`resolveReviewThread`)                  | —                                                                      |
+| `gh pr merge`                                                     | — (no head-SHA guard)                                                  |
 
 ## Select
 
@@ -72,6 +92,6 @@ Approval is the `APPROVE` review event, set only when A1–A7 pass, the user pic
 
 ## API rules
 
-- Reads: `gh pr list`, `gh pr view`, `gh pr diff`, `gh pr checks`, `gh repo view`, `gh api user` and the threads query only; none of the `gh api` calls is pre-approved.
-- Writes (review POST, thread reply and resolve mutations, `gh pr merge`) stay out of `allowed-tools`, so each gets a permission prompt as a second confirmation.
+- Reads: `gh pr list`, `gh pr view`, `gh pr diff`, `gh pr checks`, `gh repo view`, `gh api user` and the threads query only (plus the MCP read tools in `## MCP tools`); none of the `gh api` calls is pre-approved.
+- Writes (review POST, thread reply and resolve mutations, `gh pr merge`, and their MCP write tools) stay out of `allowed-tools`, so each gets a permission prompt as a second confirmation.
 - JSON request bodies go to a scratch file and `--input <file>`; text parameters use `-F name=@<file>`. Never inline user or model text in shell args.

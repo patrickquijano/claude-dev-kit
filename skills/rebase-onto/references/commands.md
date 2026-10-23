@@ -1,34 +1,34 @@
 # Commands
 
-| Name               | Command                                                                                            | Purpose                                               |
-| ------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `current-branch`   | `git rev-parse --abbrev-ref HEAD`                                                                  | Branch name; `HEAD` = detached (preloaded in Context) |
-| `status`           | `git status`                                                                                       | Shows "rebase in progress"                            |
-| `dirty-tracked`    | `git status --porcelain=v1 --untracked-files=no`                                                   | Uncommitted tracked changes                           |
-| `fetch`            | `git fetch --prune origin`                                                                         | Refresh remote refs                                   |
-| `upstream`         | `git rev-parse --abbrev-ref @{u}`                                                                  | Upstream ref name                                     |
-| `behind-upstream`  | `git rev-list --count HEAD..@{u}`                                                                  | Commits on upstream missing locally                   |
-| `upstream-cherry`  | `git cherry HEAD @{u}`                                                                             | `-` = patch already local, `+` = missing              |
-| `remote-branches`  | `git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/remotes/origin`           | Target candidates                                     |
-| `default-branch`   | `git symbolic-ref --short refs/remotes/origin/HEAD`                                                | Default branch                                        |
-| `verify-ref`       | `git rev-parse --verify --quiet <ref>`                                                             | Ref exists                                            |
-| `divergence`       | `git rev-list --left-right --count <target>...HEAD`                                                | Behind and ahead counts                               |
-| `merge-commits`    | `git rev-list --merges <target>..HEAD`                                                             | Merges to preserve                                    |
-| `upstream-sha`     | `git rev-parse @{u}`                                                                               | Pre-rebase upstream sha (lease)                       |
-| `rebase`           | `git rebase -S [--rebase-merges] <target>`                                                         | Signed rebase                                         |
-| `rebase-abort`     | `git rebase --abort`                                                                               | Undo the rebase                                       |
-| `conflicted-files` | `git diff --name-only --diff-filter=U`                                                             | Unmerged files                                        |
-| `replayed-commit`  | `git log -1 --format='%h %s' REBASE_HEAD`                                                          | Commit being replayed                                 |
-| `merge-base`       | `git merge-base <target> REBASE_HEAD`                                                              | Common ancestor                                       |
-| `keep-target`      | `git checkout --ours -- <file>`                                                                    | Whole file from `HEAD`                                |
-| `keep-mine`        | `git checkout --theirs -- <file>`                                                                  | Whole file from the replayed commit                   |
-| `remove-file`      | `git rm -- <file>`                                                                                 | Resolve delete/modify by deleting                     |
-| `stage-file`       | `git add -- <file>`                                                                                | Mark resolved                                         |
-| `staged-empty`     | `git diff --cached --quiet`                                                                        | Exit 0 = commit now empty                             |
-| `skip`             | `git rebase --skip`                                                                                | Drop the empty commit                                 |
-| `continue`         | `git -c core.editor=true rebase --continue`                                                        | Next commit                                           |
-| `signatures`       | `git log --format='%h %G? %s' <target>..HEAD`                                                      | `%G?` per commit                                      |
-| `open-mr`          | `glab mr list --source-branch <current> -F json`                                                   | Open MR for the branch                                |
-| `open-pr`          | `gh pr list --head <current> --state open --json number,url`                                       | Open GitHub PR for the branch                         |
-| `push-lease`       | `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>` | Rewritten history                                     |
-| `push-upstream`    | `git push -u origin HEAD:<current>`                                                                | Set upstream, no force                                |
+| Name               | Command                                                                                            | Purpose                                               | MCP tool                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| `current-branch`   | `git rev-parse --abbrev-ref HEAD`                                                                  | Branch name; `HEAD` = detached (preloaded in Context) | —                                                |
+| `status`           | `git status`                                                                                       | Shows "rebase in progress"                            | —                                                |
+| `dirty-tracked`    | `git status --porcelain=v1 --untracked-files=no`                                                   | Uncommitted tracked changes                           | —                                                |
+| `fetch`            | `git fetch --prune origin`                                                                         | Refresh remote refs                                   | —                                                |
+| `upstream`         | `git rev-parse --abbrev-ref @{u}`                                                                  | Upstream ref name                                     | —                                                |
+| `behind-upstream`  | `git rev-list --count HEAD..@{u}`                                                                  | Commits on upstream missing locally                   | —                                                |
+| `upstream-cherry`  | `git cherry HEAD @{u}`                                                                             | `-` = patch already local, `+` = missing              | —                                                |
+| `remote-branches`  | `git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/remotes/origin`           | Target candidates                                     | —                                                |
+| `default-branch`   | `git symbolic-ref --short refs/remotes/origin/HEAD`                                                | Default branch                                        | —                                                |
+| `verify-ref`       | `git rev-parse --verify --quiet <ref>`                                                             | Ref exists                                            | —                                                |
+| `divergence`       | `git rev-list --left-right --count <target>...HEAD`                                                | Behind and ahead counts                               | —                                                |
+| `merge-commits`    | `git rev-list --merges <target>..HEAD`                                                             | Merges to preserve                                    | —                                                |
+| `upstream-sha`     | `git rev-parse @{u}`                                                                               | Pre-rebase upstream sha (lease)                       | —                                                |
+| `rebase`           | `git rebase -S [--rebase-merges] <target>`                                                         | Signed rebase                                         | —                                                |
+| `rebase-abort`     | `git rebase --abort`                                                                               | Undo the rebase                                       | —                                                |
+| `conflicted-files` | `git diff --name-only --diff-filter=U`                                                             | Unmerged files                                        | —                                                |
+| `replayed-commit`  | `git log -1 --format='%h %s' REBASE_HEAD`                                                          | Commit being replayed                                 | —                                                |
+| `merge-base`       | `git merge-base <target> REBASE_HEAD`                                                              | Common ancestor                                       | —                                                |
+| `keep-target`      | `git checkout --ours -- <file>`                                                                    | Whole file from `HEAD`                                | —                                                |
+| `keep-mine`        | `git checkout --theirs -- <file>`                                                                  | Whole file from the replayed commit                   | —                                                |
+| `remove-file`      | `git rm -- <file>`                                                                                 | Resolve delete/modify by deleting                     | —                                                |
+| `stage-file`       | `git add -- <file>`                                                                                | Mark resolved                                         | —                                                |
+| `staged-empty`     | `git diff --cached --quiet`                                                                        | Exit 0 = commit now empty                             | —                                                |
+| `skip`             | `git rebase --skip`                                                                                | Drop the empty commit                                 | —                                                |
+| `continue`         | `git -c core.editor=true rebase --continue`                                                        | Next commit                                           | —                                                |
+| `signatures`       | `git log --format='%h %G? %s' <target>..HEAD`                                                      | `%G?` per commit                                      | —                                                |
+| `open-mr`          | `glab mr list --source-branch <current> -F json`                                                   | Open MR for the branch                                | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
+| `open-pr`          | `gh pr list --head <current> --state open --json number,url`                                       | Open GitHub PR for the branch                         | `mcp__plugin_github_github__list_pull_requests`  |
+| `push-lease`       | `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>` | Rewritten history                                     | —                                                |
+| `push-upstream`    | `git push -u origin HEAD:<current>`                                                                | Set upstream, no force                                | —                                                |

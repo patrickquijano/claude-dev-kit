@@ -15,6 +15,30 @@ Run in order; any failure → report the exact error line and stop. A detached `
 3. `glab api projects/:id` fails (origin is not a GitLab project) → stop. Keep it as Project (`id`, `path_with_namespace`, `default_branch`).
 4. Self = `glab api user` (`id`, `username`). Scratch = `scratch`.
 
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                                                                      | MCP tool                                                                                        |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `glab auth status`                                                             | —                                                                                               |
+| `glab api projects/:id`                                                        | `mcp__plugin_gitlab_gitlab__get_project`                                                        |
+| `glab api user`                                                                | `mcp__plugin_gitlab_gitlab__get_user`                                                           |
+| `glab mr list`                                                                 | `mcp__plugin_gitlab_gitlab__list_merge_requests`                                                |
+| `glab api -X GET projects/:id/merge_requests/<iid>` (re-fetch)                 | `mcp__plugin_gitlab_gitlab__get_merge_request`                                                  |
+| `glab api -X GET projects/:id/merge_requests/<iid>/reviewers`                  | —                                                                                               |
+| `glab api -X GET projects/:id/merge_requests/<iid>/approvals`                  | —                                                                                               |
+| `glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions`     | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid> -X PUT` (add reviewer)             | `mcp__plugin_gitlab_gitlab__save_merge_request`                                                 |
+| `glab api -X GET projects/:id/merge_requests/<iid>/draft_notes`                | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/draft_notes -X POST`               | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/draft_notes/bulk_publish -X POST`  | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/draft_notes/<id> -X DELETE`        | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/approve -X POST`                   | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/unapprove -X POST`                 | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT` (resolve) | —                                                                                               |
+| `glab api projects/:id/merge_requests/<iid>/merge -X PUT`                      | `mcp__plugin_gitlab_gitlab__accept_merge_request` (same `sha` guard and fields as `merge.json`) |
+
 ## Select
 
 - Number argument (strip a leading `!`) → re-fetch; `state` not `opened` → report, stop.
@@ -69,4 +93,4 @@ Approval is `…/approve` with the head `sha` (`## Publish` step 4), set only wh
 
 - Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` (add `--paginate` for lists); none is pre-approved. A command starting `glab api -X GET` never carries a second `-X`/`--method` (the last one wins and would turn a read into a write).
 - Writes (POST, PUT, DELETE) start `glab api <endpoint> -X <METHOD>`, never the `-X GET` prefix. JSON bodies go to a scratch file and `--input <file>`; never inline user or model text in shell args; `-f`/`-F` only for API-sourced values (SHAs, ids) or fixed literals.
-- Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.
+- Writes (draft notes, approve, unapprove, resolve, reviewer PUT, merge, and their MCP write tools) stay out of `allowed-tools`, so each gets a permission prompt: the only confirmation for posting and the reviewer PUT, a second one for approve and merge.

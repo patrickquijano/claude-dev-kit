@@ -13,7 +13,25 @@ Run in order; any failure → report the exact error line and stop.
 5. Scratch = `mktemp -d`.
 6. `dirty-paths` non-empty → Dirty (see `flow.md`).
 
-MR API reads, other reads (`glab api projects/<source_project_id>`), and every write stay permission-prompted. Model text goes through scratch files and `--input <file>`.
+MR API reads, other reads (`glab api projects/<source_project_id>`), and every write stay permission-prompted; the MCP read tools below (`get_user`, `get_project`, `list_merge_requests`, `get_merge_request`) are pre-approved. Model text goes through scratch files and `--input <file>`.
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                                                                      | MCP tool                                         |
+| ------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `glab auth status`                                                             | —                                                |
+| `glab api projects/:id`, `glab api projects/<source_project_id>`               | `mcp__plugin_gitlab_gitlab__get_project`         |
+| `glab api user`                                                                | `mcp__plugin_gitlab_gitlab__get_user`            |
+| `glab mr list`                                                                 | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
+| `glab api -X GET projects/:id/merge_requests/<iid>` (re-fetch)                 | `mcp__plugin_gitlab_gitlab__get_merge_request`   |
+| `glab api -X GET projects/:id/merge_requests/<iid>/reviewers`                  | —                                                |
+| `glab api -X GET --paginate projects/:id/merge_requests/<iid>/discussions`     | —                                                |
+| `glab api projects/:id/merge_requests/<iid>/discussions/<id>/notes -X POST`    | —                                                |
+| `glab api projects/:id/merge_requests/<iid>/notes -X POST`                     | `mcp__plugin_gitlab_gitlab__save_note`           |
+| `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT` (resolve) | —                                                |
+| `glab api graphql -X POST` (`mergeRequestReviewerRereview`)                    | —                                                |
 
 ## Find
 

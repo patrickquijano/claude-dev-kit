@@ -2,7 +2,7 @@
 name: update-changelog
 description: Creates or updates CHANGELOG.md per Keep a Changelog from branch commits and local changes, or cuts a dated release with `release`. Use only when the user explicitly asks to update the changelog.
 argument-hint: '[release <version> [YYYY-MM-DD]] [base <branch>]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(git show *) Bash(gh pr list *) Bash(glab mr list *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(git show *) Bash(gh pr list *) Bash(glab mr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests
 ---
 
 # Write Changelog
@@ -21,6 +21,7 @@ Input: $ARGUMENTS
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Format, exclusions, bad practices, and the review checklist: `${CLAUDE_SKILL_DIR}/references/format.md`; read it fully in step 1.
 - Version, date, tag prefix, and URL come from the input or repo. Release without both version and date → ask; unknown link style → ask or omit links.
 - Non-release edits only `## [Unreleased]` (plus the `[unreleased]` link when verifiably wrong). Never alter a released section (one present in `base-changelog`); a needed fix there → ask first.

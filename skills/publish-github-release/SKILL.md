@@ -2,7 +2,7 @@
 name: publish-github-release
 description: Publishes a draft GitHub release, or drafts one from the latest CHANGELOG.md section and publishes it, after asking latest or pre-release. Use only when the user explicitly asks to publish a release.
 argument-hint: '[--tag <tag>] [--yes]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(git ls-remote origin *) Bash(git ls-files *) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *)
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(git ls-remote origin *) Bash(git ls-files *) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *) mcp__plugin_github_github__list_releases
 ---
 
 # Publish GitHub Release
@@ -21,6 +21,7 @@ Input: $ARGUMENTS
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Only drafts are published; a release that is already published is never edited, deleted, or recreated. Never `--force`, `release delete`, or `--target`; `--discussion-category` only with a category the user picked from `discussion-categories`.
 - Changelog parsing and notes rendering belong to `${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs`; never parse the changelog or build notes by hand.
 - Ask with AskUserQuestion, recommendation first with a one-line reason, a Stop option on every batch (Stop → `Result: cancelled`). The publish question is the confirmation; it names the tag, its commit state, and the effects (publish, notes change, tag creation).
