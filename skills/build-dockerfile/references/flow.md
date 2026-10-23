@@ -23,7 +23,7 @@ Devcontainer target → skip. Each missing or ambiguous fact → AskUserQuestion
 
 ## Draft
 
-Build the `Dockerfile` from practices.md in this order: syntax and check lines, image `ARG`s with tag and digest (resolve the tag, then run `image-digest` per practices.md; never guess; a failed lookup is asked once under the Clarify cap; devcontainer target: stop with `Stopped: 4: digest lookup needs docker`; review mode: report only), build stages, runtime stage, cache mounts for the package manager, unversioned installs with upgrades and same-layer cleanup, trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths, user and group from `ARG`s, heredoc and merged `RUN`s. Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
+Build the `Dockerfile` from practices.md in this order: syntax and check lines, image `ARG`s with tag, every `ARG` with a default (resolve the tag per practices.md; never guess; a failed lookup is asked once under the Clarify cap; review mode: report only), build stages, runtime stage, cache mounts for the package manager, unversioned installs with upgrades and same-layer cleanup (an unsure install → research the official method per practices.md Install approach), trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths, user and group from `ARG`s, heredoc and merged `RUN`s. Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
 
 ## Verify
 
@@ -31,5 +31,5 @@ Spawn `cdk:practices-reviewer` with: `kind: dockerfile`, Dockerfile path(s), `.d
 
 - Review mode → report findings; write nothing.
 - Create or update → each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
-- Full `docker build` only when the user asks (it downloads images and runs build commands).
-- Leftovers: unfixed findings, skipped practices, a failed or missing check (a tool `error` gets no fix loop; skipped hadolint for a heredoc is not a leftover). Review mode lists each with its recommended fix.
+- Create or update, default target, after the review is clean: run the Test check from practices.md `## Checks` (`image-build`, `image-inspect`, `image-remove`); a build failure is a finding → fix and re-run within the cap. Review mode and devcontainer target never build here.
+- Leftovers: unfixed findings, skipped practices, a failed or missing check (a tool `error` gets no fix loop; skipped hadolint for a heredoc parse error is not a leftover). Review mode lists each with its recommended fix.
