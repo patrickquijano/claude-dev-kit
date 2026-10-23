@@ -18,7 +18,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Detection is read-only; every write belongs to a chained skill, invoked through the Skill tool with no arguments.
-- Fixed order: `cdk:setup-git`, `cdk:setup-editorconfig`, `cdk:setup-format-lint`, `cdk:setup-husky`, `cdk:setup-testing`. Later skills need a git repo, Prettier and shfmt read `.editorconfig`, Husky adds its paths to existing formatter and linter configs, and testing goes last.
+- Fixed order: `cdk:setup-git`, `cdk:update-editorconfig`, `cdk:setup-format-lint`, `cdk:setup-husky`, `cdk:setup-testing`. Later skills need a git repo, Prettier and shfmt read `.editorconfig`, Husky adds its paths to existing formatter and linter configs, and testing goes last.
 - One selection call, never repeated: AskUserQuestion allows 4 options per question, so use two multiSelect questions in one call, "Repository" (git, EditorConfig) and "Tooling" (formatters and linters, Husky, test tooling). Missing or partial setups get "(Recommended)" with the reason.
 - Husky selected → git is also Recommended; `cdk:setup-husky` stops until signing and allowed signers are set.
 - No loops or retries: each skill runs at most once; a chained stop ends the run.
@@ -46,7 +46,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 Detected: git <configured | partial | missing>, editorconfig <…>, format-lint <…>, husky <…>, testing <…>
 Selected: <skills> | none
 setup-git: <done | nothing-to-do | stopped | cancelled | skipped (needs git) | not selected>
-setup-editorconfig: <…>
+update-editorconfig: <…>
 setup-format-lint: <…>
 setup-husky: <…>
 setup-testing: <…>

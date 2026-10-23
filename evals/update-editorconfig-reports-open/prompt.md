@@ -4,4 +4,4 @@ max_turns: 20
 allowed_tools: [Read, Glob, Grep, Bash, Skill, Agent, Write, Edit]
 ---
 
-/cdk:setup-editorconfig
+/cdk:update-editorconfig
