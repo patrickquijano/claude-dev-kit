@@ -1,12 +1,16 @@
 # GitHub Actions workflow practices
 
-Verified 2026-10-13 against docs.github.com, github.com/actions, github.com/rhysd/actionlint, and docs.zizmor.sh. Items marked **cdk** are plugin policy, not GitHub guidance. Items marked **Required** always apply; apply every other item that fits, and skip one only with a reason in the Output. Doc base: `https://docs.github.com/en/actions/`.
+Checked against docs.github.com, github.com/actions, github.com/rhysd/actionlint, and docs.zizmor.sh. Items marked **cdk** are plugin policy, not GitHub guidance. Items marked **Required** always apply; apply every other item that fits, and skip one only with a reason in the Output. Doc base: `https://docs.github.com/en/actions/`.
+
+## Contents
+
+- Reusable-workflow contract · Naming · Shell · Permissions and tokens · Untrusted input and secrets · Runs, timeouts, concurrency · Cleanup · Caching and artifacts · Containers and services · Pinning · Composite actions · Dependabot · Maintenance links
 
 ## Reusable-workflow contract
 
 - **Required** one orchestration workflow holds `on:` triggers and caller jobs; each job lives in its own `workflow_call` file. Calls sit directly in a job, never in steps. `reference/workflows-and-actions/reusing-workflow-configurations`, `how-tos/reuse-automations/reuse-workflows`
 - A caller job may use only `name`, `uses`, `with`, `secrets`, `strategy`, `needs`, `if`, `concurrency`, `permissions` (the doc's exhaustive list); `environment` is not allowed on it, so the environment goes in the callee. `runs-on`, `steps`, `timeout-minutes`, and `env` are not on that list. Put them in the callee.
-- `uses` takes no contexts or expressions. Local call: `./.github/workflows/<file>.yml`, no `@ref` suffix, so the callee is from the caller's commit. Remote call: `{owner}/{repo}/.github/workflows/<file>.yml@{ref}` with a SHA, tag, or branch; the SHA is safest.
+- `uses` takes no contexts or expressions. Local call: `./.github/workflows/<file>.yml`, no `@ref` suffix, so the callee is from the caller's commit. Remote call: `{owner}/{repo}/.github/workflows/<file>.yml@{ref}` with a tag (**cdk**: the exact tag).
 - `on.workflow_call.inputs.<id>.type` is required (`boolean`, `number`, `string`). Always write `required` and `default` explicitly: the docs state no default for `required`. Passing an undeclared input or secret is an error.
 - `on.workflow_call.secrets.<id>.required` is a boolean. **Required** pass secrets by name, never `secrets: inherit` (**cdk**: explicit lists show exactly what each job can read). Secrets reach only the directly called workflow, so nested calls pass them again. `GITHUB_TOKEN` is available to the callee without passing it.
 - `on.workflow_call.outputs.<id>.value` maps a callee job output (`${{ jobs.<job>.outputs.<name> }}`); the caller reads it as `needs.<job>.outputs.<id>`.
@@ -79,18 +83,23 @@ Names are derived, never chosen: the same request always yields the same names.
 
 ## Containers and services
 
-- `container:` and `services:` take a Docker Hub name or full registry path, with optional `credentials`, `env`, `ports`, `options`. GitHub's examples use floating tags. **Required** (**cdk**) exact stable tag, never `latest`, a bare major, or a floating alias; digest added when the repo requires SHA-style pinning. Registry credentials come from secrets, with logout in cleanup. `tutorials/use-containerized-services/use-docker-service-containers`
-- Tag and digest resolution: `versions.md`.
+- `container:` and `services:` take a Docker Hub name or full registry path, with optional `credentials`, `env`, `ports`, `options`. GitHub's examples use floating tags. **Required** (**cdk**) exact stable tag, never `latest`, a bare major, or a floating alias; never a digest. Registry credentials come from secrets, with logout in cleanup. `tutorials/use-containerized-services/use-docker-service-containers`
+- Tag resolution: `versions.md`.
 
 ## Pinning (**cdk** on top of GitHub guidance)
 
-- Full-length commit SHA is the only immutable reference for an action, and it must come from the action's own repository, not a fork. Tags can be moved or deleted. `reference/security/secure-use`
-- Pinning mode comes from `versions.md` `## Pinning mode`: SHA when the repo or org enforces it or existing `uses:` are SHA-pinned; otherwise the most specific exact release tag (`vX.Y.Z`), never a bare major. With a SHA, add a same-line comment `# vX.Y.Z` (Dependabot updates it).
-- The `sha_pinning_required` setting exempts reusable workflows, so they may use tags; **cdk** still pins them to the exact tag or SHA.
+- Every action, remote reusable workflow, and image is pinned by its exact release tag `vX.Y.Z`, never a bare major, a branch, a commit hash, or an image hash. Resolution: `versions.md` `## Pin form`.
+- A repo or org policy that requires hash pinning (the analyzer's `Pinning policy`) is not applied; it goes under `Open:` for the user to decide. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off. `reference/security/secure-use`
+
+## Composite actions (**cdk**)
+
+- Extract steps that repeat in 2 or more jobs or workflows into `.github/actions/<name>/action.yml`; call it as `uses: ./.github/actions/<name>` after checkout. Skeleton: `layout.md` `## Composite action`. `tutorials/create-actions/create-a-composite-action`
+- Every `run` step sets `shell: sh`; secrets arrive as inputs.
+- Dependabot `directory: /` scans the root `action.yml` only, and the docs confirm no `.github/actions/*` pattern: list a composite action's remote `uses:` under `Open:` as not covered by Dependabot.
 
 ## Dependabot (**cdk**)
 
-- Create or update `.github/dependabot.yml` with a `package-ecosystem: github-actions` entry: `directory: /` (Dependabot then scans `/.github/workflows` and the root `action.yml`), `schedule.interval: weekly`, and `cooldown.default-days: 3` (the only `cooldown` key this ecosystem supports; 3 is the documented default, written explicitly). Use the existing `.github/dependabot.yml` or `.yaml` if present: add the entry only when none exists, keep every other entry and any existing `cooldown`. Create the file only in create mode or when the analyzer reports `Dependabot: none`; in update mode touch it only then. In SHA mode Dependabot also updates the `# vX.Y.Z` comment. Options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference` (fetch it in step 4 before writing).
+- Create or update `.github/dependabot.yml` with a `package-ecosystem: github-actions` entry: `directory: /` (Dependabot then scans `/.github/workflows` and the root `action.yml`), `schedule.interval: weekly`, and `cooldown.default-days: 3` (the only `cooldown` key this ecosystem supports; 3 is the documented default, written explicitly). Use the existing `.github/dependabot.yml` or `.yaml` if present: add the entry only when none exists, keep every other entry and any existing `cooldown`. Create the file only in create mode or when the analyzer reports `Dependabot: none`; in update mode touch it only then. Options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference` (fetch it in step 4 before writing).
 
 ## Maintenance links
 

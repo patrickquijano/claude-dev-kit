@@ -4,13 +4,14 @@ Skeletons for the orchestrator and callee files. `<…>` is filled from the requ
 
 ## Contents
 
-- Files · Orchestrator · Gate · Callee
+- Files · Orchestrator · Gate · Callee · Composite action
 
 ## Files
 
 - `.github/workflows/<file>.yml`: orchestrator, one per trigger set; the file comes from the `practices.md` `## Naming` table (`ci.yml`, `release.yml`, `deploy.yml`, `scheduled.yml`, `manual.yml`).
 - `.github/workflows/_<job-id>.yml`: one callee per job, named from the job id (for example `_lint.yml`, `_test-unit.yml`, `_build-image.yml`).
 - Shared by several orchestrators → keep the one callee; never copy it. A job used once still gets its own file.
+- `.github/actions/<name>/action.yml`: a composite action for steps that repeat (see `## Composite action`).
 - Names follow `practices.md` `## Naming`; existing files and ids are kept unless the user approved a rename. Update mode adds callees beside the existing files.
 
 ## Orchestrator
@@ -114,10 +115,10 @@ jobs:
       contents: read
     environment: <name> # only when the job needs it
     container: # only when requested
-      image: <name>:<exact tag> # SHA mode: <name>:<exact tag>@sha256:<digest>
+      image: <name>:<exact tag>
     services: # only when requested
       <service-id>:
-        image: <name>:<exact tag> # SHA mode adds @sha256:<digest>
+        image: <name>:<exact tag>
     outputs:
       <output_name>: ${{ steps.<step-id>.outputs.<output_name> }}
     steps:
@@ -144,3 +145,38 @@ jobs:
 - Caching: the setup action's built-in cache when it has one; otherwise `actions/cache@<resolved ref>` keyed on `hashFiles('<lockfile>')` with `restore-keys`.
 - Cleanup steps (`if: ${{ always() }}`) only for what the job created: registry logout, temp credential and file removal under `$RUNNER_TEMP`, container and network removal. Omit the step when the job creates nothing.
 - Each callee declares only inputs and secrets it uses.
+
+## Composite action
+
+Extract steps into `.github/actions/<name>/action.yml` when the same steps repeat in 2 or more jobs or workflows; steps used once stay in the job. `<name>` is kebab-case from what the steps do (for example `setup-node-deps`).
+
+```yaml
+name: <Action name>
+description: <what>
+
+inputs:
+  <input_name>:
+    description: <what>
+    required: <true | false>
+    default: <value> # explicit when required is false
+
+outputs:
+  <output_name>:
+    description: <what>
+    value: ${{ steps.<step-id>.outputs.<output_name> }}
+
+runs:
+  using: composite
+  steps:
+    - name: <Verb phrase>
+      shell: sh # required on every run step; defaults.run does not apply
+      env:
+        <NAME>: ${{ inputs.<input_name> }} # untrusted or secret values only via env
+      run: |
+        set -eu
+        <posix sh>
+```
+
+- A job uses it after its checkout step: `uses: ./.github/actions/<name>`, with no `@ref`, so it is the caller's commit. The `.github/actions` directory exists only after checkout, so the checkout comes first.
+- Pass each secret to a composite action as an input from the calling step. Remote `uses:` inside the action pin to an exact tag like any other.
+- Declare only the inputs and outputs the steps use; `shell: sh` on every `run` step.
