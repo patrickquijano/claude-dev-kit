@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-24
+
 ### Changed
 
 - Skills that spawn subagents now give each one a complete brief, and a subagent with missing or ambiguous input returns `Question:` instead of guessing.
@@ -154,7 +156,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.1.0...v0.2.0
