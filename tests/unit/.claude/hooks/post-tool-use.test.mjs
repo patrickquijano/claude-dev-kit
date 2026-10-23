@@ -190,9 +190,19 @@ describe('validate', () => {
     assert.match(result, /failed \(exit 1\):\nbad frontmatter/);
   });
 
-  test('returns a report when exit is 0 but output has a warning', () => {
+  test('returns null when exit is 0 even if output mentions a warning', () => {
     // Arrange
-    const { deps } = makeDeps({ spawnResult: { status: 0, stdout: 'Warning: long description', stderr: '' } });
+    const stdout = '⚠ Found 1 plugin directory warning: ICON_MISSING\n✔ Validation passed';
+    const { deps } = makeDeps({ spawnResult: { status: 0, stdout, stderr: '' } });
+    // Act
+    const result = validate(CWD, deps);
+    // Assert
+    assert.equal(result, null);
+  });
+
+  test('returns a report when --strict exits 1 on a warning', () => {
+    // Arrange
+    const { deps } = makeDeps({ spawnResult: { status: 1, stdout: 'Warning: long description', stderr: '' } });
     // Act
     const result = validate(CWD, deps);
     // Assert
