@@ -49,11 +49,22 @@ test('cli: a task prompt prints plan-mode context', () => {
   assert.match(ctx, /whether to enter plan mode/);
 });
 
-test('cli: a slash-command prompt prints nothing', () => {
+test('cli: a namespaced plugin skill prompt prints plan-mode context', () => {
   // Arrange
   const d = repo();
   // Act
   const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/cdk:ship-release' }));
+  // Assert
+  assert.equal(r.status, 0);
+  const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /whether to enter plan mode/);
+});
+
+test('cli: a built-in slash command prints nothing', () => {
+  // Arrange
+  const d = repo();
+  // Act
+  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/compact' }));
   // Assert
   assert.equal(r.status, 0);
   assert.equal(r.stdout, '');

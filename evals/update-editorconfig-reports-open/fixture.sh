@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Seeds a git repo whose existing .editorconfig and files conflict (tabs vs spaces), a style problem setup-editorconfig never auto-fixes.
+# Seeds a git repo whose existing .editorconfig and files conflict (tabs vs spaces), a style problem update-editorconfig never auto-fixes.
 set -eu
 git init -q
 mkdir -p src

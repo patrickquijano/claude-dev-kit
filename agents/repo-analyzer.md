@@ -22,7 +22,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ### devcontainer
 
-- Bash: `git -C <root> ls-files …`, `git -C <root> remote get-url origin`, `command -v …`.
+- Bash: `git -C <root> ls-files …`, `git -C <root> remote get-url origin`, `command -v …`, `code --list-extensions`.
 - Required inputs: root. List tracked and untracked files: `git -C <root> ls-files --cached --others --exclude-standard` (not a git repo → Glob). No source files or manifests (only README, LICENSE, dotfiles) → `Empty: yes`.
 - Stacks: manifests `package.json`, `tsconfig.json`, `pyproject.toml`, `requirements*.txt`, `go.mod`, `pom.xml`, `build.gradle*`, `*.csproj`, `*.sln`, `global.json`, `composer.json`, `Cargo.toml`, `Gemfile`, `CMakeLists.txt`, workspace files (`pnpm-workspace.yaml`, `turbo.json`, `nx.json`, `go.work`). Per stack: runtime version and its source (`.nvmrc`, `engines`, `.python-version`, `requires-python`, `go` directive, `rust-toolchain*`, `global.json`, `composer.json` `require.php`, `.ruby-version`, `.tool-versions`), package manager + lockfile, lockfile install command, source file count (primary stack = most).
 - System packages: names from existing Dockerfiles' install lines, CI setup steps, and README install sections.
@@ -31,7 +31,8 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Env vars the app reads (Grep `process\.env`, `os\.environ`, `getenv`, `env\(`), names only, never values.
 - Existing: `.devcontainer/` contents and `.devcontainer.json` (read each fully), `Dockerfile*`, `compose*.y*ml` / `docker-compose*.y*ml`, `.gitattributes` `eol=` rule and `filter=lfs`, `.gitignore` entry for `.devcontainer/.env`, linter and formatter configs.
 - Tool evidence: git remote host (`git -C <root> remote get-url origin`), `*.tf`, Helm charts or Kubernetes manifests, AWS or Azure SDKs or config, Dockerfiles or Compose files the dev workflow builds.
-- Host CLIs: `command -v devcontainer docker`.
+- Host CLIs: `command -v devcontainer docker code`.
+- Host extensions: when `code` exists, the `code --list-extensions` output, as data only; the caller filters it.
 
 ### gitignore
 
@@ -72,12 +73,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### workflows
 
 - Bash: `git -C <root> rev-parse`, `git -C <root> remote get-url origin`, `git -C <root> ls-files`, `command -v`, `gh api` with GET and no `-X` or `-f`, no network writes. Never print secret values; list names only.
-- Required inputs: root, a one-paragraph summary of the request, versions file path `versions.md` (for the pinning-mode order), practices path `practices.md` (for the naming scheme).
+- Required inputs: root, a one-paragraph summary of the request, versions file path `versions.md` (for the pinning policy), practices path `practices.md` (for the naming scheme).
 - Read `.github/workflows/**`, `.github/actions/**`, any `action.yml`, `.github/dependabot.yml` or `.yaml`, `CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md`. Per workflow list: file, `name`, triggers, jobs (ID, `name`, `runs-on`, `uses`, `needs`), `permissions`, `concurrency`, `workflow_call` inputs/secrets/outputs, `uses:` refs with their ref form (SHA, exact tag, major, branch), `secrets.*`, `vars.*`, `environment` names.
 - Detect stacks, package managers, and the commands the request needs (lint, format, test, build, typecheck) from manifests, lockfiles, version files, `Makefile`, `scripts/`, task runners, and docs. Cite the file for each command; none found → say so, never invent.
 - Collect services and containers the code uses: Dockerfiles, `compose*.yaml`, `.devcontainer/`, database and cache drivers in manifests.
 - Naming conventions in use: file names, workflow and job names, step style, input and secret casing, concurrency groups. Per workflow file, conformance to the scheme in `practices.md` `## Naming` is `conforms` or `differs: <why>`. Required-check names: branch protection or rulesets only if `gh api repos/{owner}/{repo}/rulesets` or `.../branches/<default>/protection` (GET only) works; otherwise list job names that look like required checks and say it is unverified.
-- Pinning-mode signals in the order `versions.md` `## Pinning mode` gives: `gh api repos/{owner}/{repo}/actions/permissions --jq .sha_pinning_required` (GET only; 403, 404, no `gh`, or no auth → `unknown`), the owner's org endpoint, then the share of existing `uses:` that are 40-hex SHAs, then docs that require it. Return the signals only; the caller decides the mode.
+- Pinning policy (warning only): `SHA required (<signal>)` when `gh api repos/{owner}/{repo}/actions/permissions --jq .sha_pinning_required` (GET only) or the owner's org endpoint is true, all existing third-party `uses:` are 40-hex SHAs, or docs require SHAs; else `none`. 403, 404, no `gh`, or no auth → that signal is unknown, not true.
 
 ### instructions
 
@@ -131,7 +132,8 @@ Gitignore env: yes | no
 Formatters/linters: <tool — config path>, … | none
 Tools: <github-cli | git-lfs | terraform | kubectl-helm-minikube | aws-cli | azure-cli — evidence>, … | none
 Builds images: yes | no (<evidence>)
-CLIs: devcontainer <path | missing>, docker <path | missing>
+CLIs: devcontainer <path | missing>, docker <path | missing>, code <path | missing>
+Host extensions: <id>, … | none
 Gaps: <fact not derivable — why>, … | none
 ```
 
@@ -202,7 +204,7 @@ Vars: <NAME — files>, … | none
 Naming: <files, workflow and job names, inputs, secrets, concurrency groups; per file: conforms | differs: <why>> | none observed
 Dependabot: <path — ecosystems> | none
 Required checks: <name — source | unverified: names> | none
-Pinning signals: sha_pinning_required <true | false | unknown>, org <true | false | unknown>, sha-pinned third-party uses <n of m> (local `./` and `actions/*` first-party refs excluded from m), docs require <yes — file | no>
+Pinning policy: SHA required (<signal>) | none
 Questions: <question — options>, … | none
 ```
 

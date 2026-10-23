@@ -2,6 +2,10 @@
 
 Checked against containers.dev, code.visualstudio.com, github.com/devcontainers, docs.docker.com, docs.github.com, and code.claude.com. Apply every item that fits the repo; skip one only with a reason in the Output.
 
+## Contents
+
+- Location and format · Approach · Images · Features · Services (Compose) · Lifecycle and environment · Performance · Claude Code · Dockerfile handoff · Checks
+
 ## Location and format
 
 - Config at `.devcontainer/devcontainer.json`; tools search it first, then `.devcontainer.json`, then `.devcontainer/<folder>/devcontainer.json` (one level deep only). Codespaces opens the first two by default. <https://containers.dev/implementors/spec/>
@@ -12,6 +16,7 @@ Checked against containers.dev, code.visualstudio.com, github.com/devcontainers,
 
 - `image`: no extra system packages and no services; simplest. `build.dockerfile`: system packages or a custom build step; uses the Docker build cache. `dockerComposeFile` + `service`: one or more services. <https://code.visualstudio.com/docs/devcontainers/create-dev-container>
 - Dockerfile needed = system packages, the firewall, or a custom build step. Derive: services selected → Compose (plus Dockerfile when needed: the `app` service builds it); else Dockerfile needed → Dockerfile; else image. An approach that drops a selection (image with packages, no Compose with services) is never offered.
+- Workspace path, every approach: `"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"`, so the repo mounts at a named folder. Image and Dockerfile approaches also set `"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind"`; Compose mounts through the `app` volume instead. <https://containers.dev/implementors/json_reference/>
 - Repo already has a compose file → extend it, never edit it: `"dockerComposeFile": ["../compose.yaml", "compose.yaml"]`; the dev file only overrides and adds services. <https://code.visualstudio.com/docs/devcontainers/create-dev-container#_extend-your-docker-compose-file-for-development>
 - Compose resolves every path in every file relative to the base (first) file. Extending the repo file at the root → paths in `.devcontainer/compose.yaml` are relative to the root: workspace volume `..:/workspaces:cached`, `env_file: .devcontainer/.env`, `build.context: .devcontainer`. <https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/>
 
@@ -19,7 +24,7 @@ Checked against containers.dev, code.visualstudio.com, github.com/devcontainers,
 
 - Base image `mcr.microsoft.com/devcontainers/<image>`. Stack → image: Node with `tsconfig.json` → `typescript-node`, other Node → `javascript-node`, Python → `python`, Go → `go`, Java → `java`, .NET → `dotnet`, PHP → `php`, Rust → `rust`, Ruby → `ruby`, C/C++ → `cpp`, none or other → `base`. <https://github.com/devcontainers/images>
 - Tag `<image major>-<runtime version>-<debian codename>` (a numeric stable tag only, never `dev-*`, `latest`, or a prerelease): the image major tag keeps getting security patches, which only land on the latest non-breaking versions, and the codename pins the OS. Pick from `https://mcr.microsoft.com/v2/devcontainers/<image>/tags/list`: highest image major, the runtime version the repo pins, the newest Debian codename listed for it (Debian variants work on arm64). Never guess a tag. <https://github.com/devcontainers/images/tree/main/src/python>
-- Dockerfile base → the highest full semver tag of that line instead (`<X.Y.Z>-<runtime version>-<codename>`, stable only), since `cdk:build-dockerfile` pins an exact tag plus digest; say the digest needs scheduled refresh (Renovate or Dependabot).
+- Dockerfile base → the highest full semver tag of that line instead (`<X.Y.Z>-<runtime version>-<codename>`, stable only), since `cdk:build-dockerfile` pins an exact tag; say the tag needs scheduled refresh (Renovate or Dependabot).
 - Images set their non-root user (`vscode` in base images, `node` in `javascript-node` and `typescript-node`) through image metadata, so omit `remoteUser`; read the user from the image README at `https://raw.githubusercontent.com/devcontainers/images/main/src/<image>/README.md` when a path needs its home.
 - Monorepo with several stacks → one root config: base image of the primary stack (most source files), other runtimes as features.
 
@@ -67,7 +72,7 @@ Catalog, each image on Docker Hub (`library` = official image):
 
 - Bind mounts are slow on macOS and Windows. Node repo → named volume for `node_modules`: `"source=${localWorkspaceFolderBasename}-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"` in `mounts` (Compose: a named volume on `app`), and prefix `postCreateCommand` with `sudo chown <user> node_modules` so the non-root user can write it. <https://code.visualstudio.com/remote/advancedcontainers/improve-performance>
 - No `eol=` rule in `.gitattributes` → append `* text=auto eol=lf`, so Windows checkouts do not break scripts in the Linux container. <https://code.visualstudio.com/docs/devcontainers/tips-and-tricks#_resolving-git-line-ending-issues-in-containers-resulting-in-many-modified-files>
-- `customizations.vscode.extensions` only for linters and formatters the repo configures, each ID confirmed at `https://marketplace.visualstudio.com/items?itemName=<id>`; unconfirmed → omit.
+- `customizations.vscode.extensions` come from the host's installed extensions (the analyzer's `Host extensions`): keep only those that match a detected stack or a tool the repo configures, each ID confirmed at `https://marketplace.visualstudio.com/items?itemName=<id>`, and the user confirms the list (`flow.md` `## Clarify`). `code` not found, or no extension matches → no entry and an `Open:` line; never invent an ID.
 
 ## Claude Code
 
@@ -97,4 +102,5 @@ Run by name from `commands.md`.
 - `json-check` on each devcontainer.json without comments; a JSONC file with comments or trailing commas fails it by design → skip it and report `JSON: n/a (JSONC)`; `read-configuration` covers it.
 - `read-configuration` when `tool-probe` finds `devcontainer` (the `@devcontainers/cli` package, <https://github.com/devcontainers/cli>). Missing → report `not installed`; never install it.
 - Compose → `compose-config` on the dev compose files when `tool-probe` finds `docker`; missing → report `not installed`.
-- `devcontainer-up` pulls images and runs lifecycle commands → only when the user asks.
+- Lint: `shellcheck-firewall` on `init-firewall.sh` when this skill wrote it and `tool-probe` finds `shellcheck`; missing → `not installed`, never install. The Dockerfile is linted by the chained `cdk:build-dockerfile` (hadolint).
+- Test (`devcontainer-up`, then `devcontainer-exec`): when `tool-probe` finds both `docker` and `devcontainer`, with a run id (`cdk-<epoch seconds>`). `up` exits 0 with `"outcome":"success"` and `exec` exits 0 → pass; otherwise → fail with the first error line (a workspace path Docker does not share with the VM fails here: report it, never work around it). Always clean up afterwards, pass or fail: `test-containers` then `test-remove`; Compose approach → `compose-down` as well. Either tool missing → `not installed`. `up` pulls images and runs lifecycle commands, so these commands are permission-prompted. <https://containers.dev/implementors/reference/> and `devcontainer up --help`.

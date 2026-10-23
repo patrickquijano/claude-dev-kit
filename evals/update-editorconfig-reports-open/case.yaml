@@ -1,5 +1,5 @@
 ---
 schema_version: '1.1'
-name: setup-editorconfig-reports-open
+name: update-editorconfig-reports-open
 context:
   scaffold_script: fixture.sh

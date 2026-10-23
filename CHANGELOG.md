@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-24
+
+### Added
+
+- `/cdk:build-docker-compose` writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack: `compose.yaml` or `compose.<scope>.yaml`, long syntax, exact-tag images found on Docker Hub, no secret values. It validates with `docker compose config` or `docker stack config` and lints with `dclint`, and never starts containers.
+- `/cdk:scan-sonarqube [max-iterations=<n>] [--yes]` sets up SonarQube Community Build and its scanner in Docker, scans the repo (Maven, Gradle, or the CLI scanner), fixes issues through `cdk:plan-implementer` and `cdk:change-verifier`, and rescans until clean (default 3 iterations, range 1–5). The repo is mounted read-only, no `NOSONAR` suppressions are added, nothing is committed, and the container, network, and volumes are removed at the end.
+
+### Changed
+
+- **Breaking:** `/cdk:setup-editorconfig` is renamed `/cdk:update-editorconfig`. Use the new name; the old one no longer exists. It now writes only the properties that differ from `[*]` per file type, groups types with identical properties, removes a stale section and its comment, and reports removals on a new `Removed:` line.
+- **Breaking:** `/cdk:update-project-instructions` is renamed `/cdk:update-rules`. Use the new name; the old one no longer exists. Arguments and output are unchanged.
+- `/cdk:build-dockerfile` pins base images by exact tag only (no digests), requires a default on every `ARG`, researches the vendor's official install method, and test-builds the default target to a throwaway tag to compare the image's user and exposed ports with the plan before removing it. hadolint runs on every Dockerfile when installed.
+- `/cdk:build-github-workflows` pins actions by exact `vX.Y.Z` tag only; hash pinning required by a repo or org is reported under `Open:` instead of applied. Steps repeated in two or more jobs move to composite actions under `.github/actions/<name>/`, and `act -n` validates the result when `act` and Docker exist.
+- `/cdk:setup-devcontainer` now smoke-tests the config with `devcontainer up` and `devcontainer exec true` (the labelled container is always removed), runs `shellcheck` on `init-firewall.sh`, always sets `workspaceFolder` to `/workspaces/${localWorkspaceFolderBasename}`, and asks which host VS Code extensions to include.
+- `/cdk:setup-format-lint` writes only non-default config keys, uses markdownlint-cli2 alone for Markdown (no Prettier), and adds `*.md` and `*.markdown` to `.prettierignore` when Prettier runs beside it.
+- `cdk:version-resolver` returns exact tags (`ref | tag | source | note`) with no SHA or digest, `cdk:repo-analyzer` reports a required SHA-pinning policy as a warning only, and `cdk:practices-reviewer` flags an `ARG` without a default and also checks composite actions.
+- Skill rubric B3 now exempts cited facts and **Required** items, and each deduction must quote the `file:line` it names, so rescoring a skill no longer picks a new target each time.
+
+### Fixed
+
+- The plan-mode prompt hook now also gates namespaced plugin skills such as `/cdk:build-skill`; built-in slash commands (`/compact`) and `!` shell prompts are still skipped.
+
 ## [0.3.0] - 2026-10-23
 
 ### Added

@@ -147,6 +147,15 @@ for (const prompt of ['/compact', '!ls']) {
   });
 }
 
+test('decide: enters plan mode for a namespaced plugin skill', () => {
+  // Arrange
+  const event = { permission_mode: 'default', prompt: '/cdk:build-skill x' };
+  // Act
+  const result = decide(event);
+  // Assert
+  assert.deepEqual(result, { action: 'enter', rule: 'context' });
+});
+
 test('decide: ignores an event with no prompt', () => {
   // Arrange
   const event = { permission_mode: 'default' };

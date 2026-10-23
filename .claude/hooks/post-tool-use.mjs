@@ -1,5 +1,5 @@
 // PostToolUse hook: structural plugin check after Claude edits a plugin file; never runs the LLM-graded eval.
-// On any error or warning from `claude plugin validate --strict .`, prints it to stderr and exits 2 so Claude fixes it.
+// On a nonzero exit (`--strict` turns warnings into errors), prints it to stderr and exits 2 so Claude fixes it.
 // Hooks cannot run slash commands, so each valid plugin or project component edit prints a reload notice instead.
 import { spawnSync } from 'node:child_process';
 import { isAbsolute, relative, resolve } from 'node:path';
@@ -62,7 +62,7 @@ export function plan(file, cwd) {
   return { rel, validate, notice };
 }
 
-// Runs the strict plugin validation; returns the report to show when it found any error or warning, else null.
+// Runs the strict plugin validation; returns the report when it exits nonzero, else null.
 export function validate(cwd, deps = defaults) {
   // claude is a .cmd shim on Windows, which needs a shell; args are fixed literals.
   const res = deps.spawn('claude', ['plugin', 'validate', '--strict', '.'], {
@@ -74,7 +74,7 @@ export function validate(cwd, deps = defaults) {
     windowsHide: true
   });
   const out = [res.stdout, res.stderr, res.error?.message].filter(Boolean).join('\n').trim();
-  if (res.status === 0 && !/warn/i.test(out)) return null;
+  if (res.status === 0) return null;
   return (
     `claude plugin validate --strict . failed (exit ${res.status ?? res.signal}):\n${out.slice(-MAX)}\n` +
     'Fix every error and warning; validation re-runs after the next plugin file edit.'

@@ -23,7 +23,8 @@ Step 6. Per `layout.md` and `practices.md`:
 
 - The orchestrator and one callee per job, every name derived per `practices.md` `## Naming`.
 - `.github/dependabot.yml` with a `github-actions` entry per `practices.md` `## Dependabot`.
-- `runs-on` is the resolved label; every `uses:` and `image:` comes from the resolver table in its pinning mode (SHA mode keeps `# vX.Y.Z` comments).
+- `runs-on` is the resolved label; every `uses:` and `image:` comes from the resolver table, as the exact tag.
+- Steps that repeat in 2 or more jobs or workflows → a composite action per `layout.md` `## Composite action`; list it in `Files:`.
 - Explicit `permissions` per job, `timeout-minutes`, step-level `env`, cache and artifacts with `retention-days`, and `if: ${{ always() }}` cleanup for each credential, temp file, login, or container the job creates.
 - A touched job with a required check (analyzer `Required checks`) gets the `_gate.yml` callee per `layout.md` as the single stable check; build the `Check-name map`.
 - Fill `Policy applied` with each **cdk**-marked practice used and `Retained constraints` with each check rename and skipped signal.
@@ -34,13 +35,13 @@ Step 6. Per `layout.md` and `practices.md`:
 Step 9. Spawn `cdk:practices-reviewer` with `kind: workflow` and use its `Findings`, `Checks`, and `Tool output`.
 
 - Each `error` or `warning` finding: fix it in a file this run wrote, print the diff, write, and re-run the reviewer. Max 3 attempts. `info` is listed only.
-- A tool `error` (actionlint or zizmor failed to run) is reported with no fix loop.
+- A tool `error` (actionlint, zizmor, or act failed to run) is reported with no fix loop.
 - Cap hit: stop looping and list what is left under `Open:`.
 
 ## Open items
 
 Step 10. Itemize under `Open:` each leftover as `<item: impact; recommended fix>`:
 
-- `Unresolved:` entries, `Skipped practices:`, and `Retained constraints:` that still need the user.
-- Each `Checks:` entry that is `fail`, `n findings`, `unverified`, `error (...)`, or `not installed` (including `naming` and `zizmor`).
+- The analyzer's `Pinning policy: SHA required (…)`, `Unresolved:` entries, `Skipped practices:`, and `Retained constraints:` that still need the user.
+- Each `Checks:` entry that is `fail`, `n findings`, `unverified`, `error (...)`, or `not installed` (including `naming`, `zizmor`, and `act`; `act: skipped` is listed only).
 - Edit only the files this run wrote; never fix an open item silently outside the loop.

@@ -1,0 +1,54 @@
+# Flow
+
+## Contents
+
+- Pre-flight · Analyze · Mode · Clarify · Draft · Write · Verify
+
+## Pre-flight
+
+Root = `repo-root`, else cwd. Read the input (text, paths, pasted compose file). Find existing compose files at the root, and in a directory only when the input names it: `compose.yaml`, `compose.*.yaml`, `docker-compose.yml`, `docker-compose.yaml`. Read no other path. Mode: input asks only to review, score, or audit → review (writes nothing); a target compose file exists → update; else create. Review mode with no compose file → report it, suggest create mode, `Result: nothing-to-do`.
+
+An existing `docker-compose.yml`, `docker-compose.yaml`, or `*.yml` compose file → AskUserQuestion: Rename to `compose.yaml` with `git mv` (Recommended: the Compose Specification's preferred name) | Keep the name and update in place. Keep → list it under `Skipped practices:`. Review mode asks nothing and lists it as a finding.
+
+## Analyze
+
+Collect only what the input or an existing compose file states: services, images, ports, env var names, volumes, secrets, configs, healthchecks, and build contexts. A value neither source states stays unset and goes to Clarify; never read source, CI, scripts, Dockerfiles, or `.env*` files to fill it. Collect the Swarm signals from `practices.md` `## Mode signals` that the input or compose files show; run `swarm-state` only when `docker-check` finds docker.
+
+## Mode
+
+Decide per `practices.md` `## Mode signals`:
+
+- One or more strong signals (`docker stack` in the input; an active swarm from `swarm-state`; `deploy:` with `replicas`, `placement`, `update_config`, or `rollback_config`; external secrets or configs; an `overlay` network) → recommend Swarm stack.
+- Only `deploy:` with resource limits, or no signal → recommend plain Compose.
+- Mixed or no clear signal → AskUserQuestion: Plain Compose | Swarm stack, recommended first with the signal as the reason.
+- Update or review mode → keep the existing mode unless the file contradicts it.
+
+Print the chosen mode with its signal or answer.
+
+## Clarify
+
+Skip questions the input or repo already answers. Each remaining choice → AskUserQuestion (max 4 per call, 3 calls), recommended option first, one-line reason. Choices, in order:
+
+- Scoped file: the base file is `compose.yaml`. Swarm mode or an environment-specific file → ask the name from `compose.swarm.yaml`, `compose.prod.yaml`, `compose.<other>.yaml`, listing the one that fits first as the recommendation (Swarm → `compose.swarm.yaml`, our convention, not an official one; a plain environment file → `compose.<environment>.yaml`).
+- Services and images to include; ports to publish; volumes for persistent data; secrets vs env vars; configs; resource limits; restart policy (plain) or `deploy` update and rollback policy (Swarm); profiles for optional services (plain). Ask a value only when the input and compose files leave it unstated; never offer a default as a choice.
+- Unattended → write only stated values, list each unanswered choice under `Open:`.
+
+## Draft
+
+Build the file from `practices.md` in this order: top-level `name` (plain only) → `services` (keys per service in this order: image, build, ports, environment, secrets, configs, volumes, networks, healthcheck, restart or deploy) → `networks` → `volumes` → `secrets` → `configs`.
+
+- Resolve each image tag per `practices.md` `## Image tags`; a failed lookup is asked once under the Clarify cap; review mode only reports it.
+- Update mode → keep intent (service names, volumes, networks, ports) and fix only what breaks a practice, a short-syntax entry, or a redundant default; list each change with its reason.
+- Print the file (a diff when existing) and the change list.
+
+## Write
+
+Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Existing file → edit in place and print the diff. Write no other file.
+
+## Verify
+
+1. Run `docker-check`; no docker → `Checks: config skipped (no docker)` and go to the lint.
+2. Plain: run `compose-validate`. Swarm: run `stack-validate`. A `required variable … is missing` error that comes only from `${VAR:?err}` is not a file fault: re-run `compose-validate-raw` and note it. Never print the output.
+3. Lint: run `dclint-version`, then `dclint`, with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` in Swarm mode. Run `node-check`; a Node version below the minimum the pinned `dclint` release states (its package `engines` field or README) → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`.
+4. Each `error` or `warning` → fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
+5. Leftovers: unfixed findings, skipped practices, a failed or missing check. Review mode lists each with its recommended fix.

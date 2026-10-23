@@ -62,7 +62,7 @@ An invoked skill stays in context but is not re-read later. After compaction onl
 
 ## Style
 
-- Add only what Claude does not already know; each paragraph must earn its tokens.
+- Add only what Claude does not already know; each paragraph must earn its tokens. A sourced fact a rule depends on (cited doc, `verified locally`) earns them; a restatement of another bundled file does not, except a `SKILL.md` Rules bullet kept for compaction.
 - Match freedom to fragility: heuristics for context-dependent steps, exact commands ("do not alter flags") for fragile ones.
 - Short imperative steps, one default plus one escape hatch rather than many options.
 - One term per concept throughout; a concrete example beats a paragraph.

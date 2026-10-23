@@ -1,11 +1,11 @@
 ---
-name: update-project-instructions
+name: update-rules
 description: Creates, updates, or scores a project's CLAUDE.md and .claude/rules against a 100-point rubric, merging input guidelines. Use only when the user explicitly asks to write, improve, or score them.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *)
 ---
 
-# Update Project Instructions
+# Update Rules
 
 Input: $ARGUMENTS
 
