@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills that spawn subagents now give each one a complete brief, and a subagent with missing or ambiguous input returns `Question:` instead of guessing.
 - Skills call the GitHub and GitLab MCP tools before the `gh` and `glab` commands, and fall back to the commands when the server is unavailable.
 - `cdk:version-resolver` looks up GitHub releases and tags through MCP first, then falls back to `gh api`.
-- `/cdk:review-change-request` resolves any open thread, whatever its author, once a later commit fully fixes it, and replies to it.
+- `/cdk:review-change-request` resolves any open thread, whatever its author, once a later commit fully fixes it, and replies to it (own threads only under `--yes`).
 - `/cdk:review-change-request` now counts others' threads on its `Threads resolved` line and lists unresolved threads as a merge blocker.
 - `/cdk:update-changelog` enforces the strict Keep a Changelog format: exact header, SemVer line, link references, and no bold prefixes.
 
