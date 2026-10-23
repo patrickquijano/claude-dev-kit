@@ -9,5 +9,5 @@
 - Fix a failure with `cdk:bump-version` (it chains `cdk:update-changelog` when a changelog exists; otherwise run `cdk:update-changelog`). Never hand-edit the version to satisfy the check.
 - Exceptions exist only as `exempt` entries in the policy, each with a reason; a policy change is a reviewed diff. Never bypass the gate, never edit the policy only to make a check pass.
 - `release-check` must stay a required status check on `main`; local checks can be bypassed, CI cannot.
-- GitLab MRs are covered by the skill gate only; no GitLab CI (removed on purpose).
+- Never add GitLab CI; GitLab MRs rely on the skill gate only.
 - Verify: `npm test`, then `node skills/bump-version/scripts/release-check.mjs check --target main`.

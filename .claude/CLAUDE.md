@@ -16,7 +16,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Commands
 
 - Validate plugin: `claude plugin validate --strict .`
-- Test local: `claude --plugin-dir .`, then `/reload-plugins` after edits
+- Test local: `claude --plugin-dir .`
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/post-tool-use.mjs`
 - SessionStart hook smoke test: `echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/session-start.mjs` (JSON with a `Today is …` line)
 - Prompt hook smoke test: `echo '{"permission_mode":"default","prompt":"Implement X across multiple files\n- a\n- b\n- c"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/user-prompt-submit.mjs` (one JSON with the `AskUserQuestion` plan-mode ask; `echo garbage | …` exits 1 with one stderr line)
@@ -43,6 +43,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Changes
 
 - Change only what the task needs; no unrelated edits or refactors; one logical change per commit.
+- After a skill, subagent, or hook is created, updated, or removed, run `/reload-plugins` so the change takes effect.
 
 ## Definition of done
 
