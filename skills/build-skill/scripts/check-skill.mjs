@@ -240,7 +240,7 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
     if (
       i >= bodyStart &&
       !/\bnever\b/i.test(l) &&
-      /\b(?:[Ss]pawn(?:s|ing)?|[Dd]elegate)\b[^\n]*(\bExplore\b|general-purpose)/.test(l)
+      /\b(?:[Ss]pawn(?:s|ed|ing)?|[Dd]elegat(?:e|es|ed|ing))\b[^\n]*(\bExplore\b|general-purpose)/.test(l)
     ) {
       found.push(
         warning(

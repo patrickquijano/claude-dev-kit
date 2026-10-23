@@ -295,6 +295,19 @@ describe('checkBody', () => {
     );
   });
 
+  test('warns spawn-builtin for spawned, delegates, delegated, delegating', () => {
+    // Arrange
+    const body =
+      'Spawned an Explore agent.\nDelegates to general-purpose.\nDelegated to Explore.\nDelegating to general-purpose.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1, 2, 3, 4]
+    );
+  });
+
   test('warns output-next when a task Output has no Next line', () => {
     // Arrange
     const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
@@ -364,6 +377,16 @@ describe('checkLayout', () => {
     // Assert
     assert.deepEqual(ids(found), ['dotfile']);
     assert.equal(found[0].file, '.env');
+  });
+
+  test('errors on a dot-directory', () => {
+    // Arrange
+    const files = ['SKILL.md', '.git/config'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(ids(found), ['dotfile']);
+    assert.equal(found[0].file, '.git/config');
   });
 
   test('errors on a dotfile nested in references', () => {
