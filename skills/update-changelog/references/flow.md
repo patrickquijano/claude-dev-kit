@@ -2,7 +2,7 @@
 
 ## Contents
 
-- Base · Release mode · Review loop · Fallback
+- Base · Release mode · Format drift · Review loop · Fallback
 
 ## Base
 
@@ -16,10 +16,14 @@ Format and workflow: `format.md` `## Workflows`.
 - Date missing → AskUserQuestion: Today (Recommended; the SessionStart date) | Enter another | Stop.
 - Version already in the file and also in `base-changelog` → `Stopped: 5: version exists`. Only in this branch's file → update that unmerged section in place.
 
+## Format drift
+
+Format-only drift in a released section (headings, dates, header, link refs, markers, bullet style): list each fix, then AskUserQuestion: Apply format fixes to released sections (Recommended; keeps the file spec-conformant) | Unreleased only | Stop. Content changes to released entries need their own ask.
+
 ## Review loop
 
 Run the `format.md` `## Review checklist` against the file, the diffs, and `tags`. A failing item that has a safe fix → apply it and re-run the whole checklist. A failing item that needs unavailable information, touches a released section, or is ambiguous → AskUserQuestion (≤4 options, recommended first with a reason, Stop). Last check: re-derive the entries from the same inputs; any resulting edit → fix and re-run. One full run = 1 round; the cap is checked after each. Cap hit → list the open items in `Blocked:` and `Result: stopped`.
 
 ## Fallback
 
-AskUserQuestion or Write unavailable (unattended run) → ask nothing: an existing changelog that needs restructuring → `Stopped: 1: changelog not Keep a Changelog shaped`. Version or date missing in release mode → `Stopped: 5: version or date missing`. Otherwise write non-release entries, and list every item that needed a decision in `Blocked:`.
+AskUserQuestion or Write unavailable (unattended run) → ask nothing: an existing changelog that needs restructuring → `Stopped: 1: changelog not Keep a Changelog shaped`. Version or date missing in release mode → `Stopped: 5: version or date missing`. Format drift in released sections → list each fix under `Open:`, change nothing there. Missing link URL → `Open:`. Otherwise write non-release entries, and list every item that needed a decision in `Blocked:`.
