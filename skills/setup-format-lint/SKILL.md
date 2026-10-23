@@ -21,6 +21,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 - Agent input: root, mode (analyzer), and answers to earlier `Gaps`. The resolver takes root, the packages to install, and the package dir; `check` adds the tools, package dir, manager, check-command overrides, and the Dockerfile, shell, and XML file lists.
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Idempotent: installed tool → skip install; configured tool → keep its config; ignore entry present → skip; ignores are explicit, never left to a tool's `.gitignore` or default skips. Never overwrite a user file; edits append only missing keys or entries.
+- Write only non-default keys: a config key that restates the tool's default is never written; each key is checked against the tool's docs (`configs.md`).
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
 - Native tools change the machine: never install one unasked.
 - AskUserQuestion: at most 4 questions per call, 2-4 options each, recommended first with its reason. Unavailable (or Write unavailable) → ask the pending question as plain text and end the turn.
@@ -38,7 +39,7 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *)
 5. **Package manager.** Only when an npm tool is installed or checked; ask on `unknown`, create a missing `package.json` (`package-manager.md`).
 6. **Versions.** Only for tools to install or version-dependent configs; spawn `cdk:version-resolver` (`kind: packages`); `Unverified` → skip that tool.
 7. **Install.** Missing tools only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools after a per-tool question (`references/flow.md` `## Install`).
-8. **Configure.** Write each missing config with the catalog defaults, no question; existing config → keep (`configs.md` `## Config files and defaults`, `## YAML alignment`).
+8. **Configure.** Write each missing config with the catalog's non-default keys, no question; existing config → keep (`configs.md` `## Config files and defaults`, `## YAML alignment`).
 9. **Overlaps and ignores.** Apply the catalog overlaps (`configs.md` `## Overlaps`), then add every ignore candidate that exists in each tool's syntax, never skipping one a tool already inherits or skips (`ignores.md`).
 10. **Check.** Spawn the analyzer (`mode=check`) for the installed and kept tools; report counts and first `Problems` lines; never auto-fix user code.
 11. **Resolve.** One pass, capped: fix a config this run wrote only when itself invalid; re-run `mode=check` once; list leftovers in `Open:`.

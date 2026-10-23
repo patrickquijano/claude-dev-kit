@@ -4,7 +4,7 @@
 
 - Candidates by file type · Versions · Install
 
-Catalog for `setup-format-lint`; configs and overlaps are in `configs.md`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML, Markdown); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits.
+Catalog for `setup-format-lint`; configs and overlaps are in `configs.md`. The first candidate is the recommended one: the type's dedicated tool, else the most widely used option. Prettier is the dedicated formatter for web types (JS/TS, JSON, CSS, SCSS, Less, HTML); for YAML, XML, and PHP it is the last formatter, a fallback when no dedicated one fits.
 
 ## Candidates by file type
 
@@ -16,7 +16,7 @@ Format: file type (keys) — formatters — linters. `—` = no candidate; skip 
 - SCSS (`scss`) — Prettier — Stylelint (SCSS config).
 - Less (`less`) — Prettier — Stylelint (`postcss-less` syntax).
 - HTML (`html htm`) — Prettier — HTMLHint.
-- Markdown (`md markdown`) — Prettier — markdownlint-cli2.
+- Markdown (`md markdown`) — no formatter — markdownlint-cli2 (also fixes with `--fix`; Prettier does not format Markdown, so files can end without a final newline).
 - YAML (`yaml yml`) — yamlfmt | Prettier — yamllint.
 - Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`) — no formatter — hadolint.
 - Shell (`sh bash`, and extensionless files whose first line is a `#!` line ending in `sh` or `bash`) — shfmt — ShellCheck.
