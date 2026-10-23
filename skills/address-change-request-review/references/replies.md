@@ -40,10 +40,10 @@ Every `blocking` thread MUST get Fix, Clarify, or Decline; a blocking `question`
 
 ## Reply templates
 
-Fix:
+Fix (two sentences at most; say only what changed):
 
 ```markdown
-Fixed in <short SHA>. <One or two sentences: what changed and how it meets the expected outcome.>
+Fixed in <short SHA>: <what changed> at <path:line>.
 ```
 
 Clarify:
