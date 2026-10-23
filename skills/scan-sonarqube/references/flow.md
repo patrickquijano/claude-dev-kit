@@ -18,20 +18,20 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 - `docker-info` fails → stop (`Docker unavailable`).
 - Parse arguments; a bad `max-iterations` (default 3, range 1–5) → use the default and note it in `Arguments:`.
-- Run `detect` with `--root <root>`: it returns the project key (`sonar.projectKey` from `sonar-project.properties`, else the sanitized repo directory name), the stack, and the rest used below. Then run `leftover-remove` to clear objects of a crashed run.
+- Run `detect` with `--root <root>`: it returns the project key (`sonar.projectKey` from `sonar-project.properties`, else the sanitized repo directory name), `name` (the Docker object name `<name>`), the stack, and the rest used below. `stop` set → stop with that reason before `leftover-remove`. Then run `leftover-remove` to clear objects of a crashed run.
 - Port: start at 9000; `port-check` exit 0 → try 9001 to 9010. Attended: tell the user which port is used. None free → stop (`no free port 9000-9010`).
 
 ## Stack
 
 - `detect` returns `stack` (`cli`, `maven`, or `gradle`), `scanCommand` (`scan-cli`, `scan-maven`, or `scan-gradle`), and `jdk`; the scan runs that stack's scanner image. Record the stack for `Stack:` in the output.
 - `stop` set → stop with that reason.
-- `ask` = `["maven","gradle"]` (two build tools at the same depth) → attended: AskUserQuestion between them, `maven` first (Recommended); unattended: `maven`. Then use that choice as the stack for the rest of the run.
+- `ask` = `["maven","gradle"]` (two build tools at the same depth) → attended: AskUserQuestion between them, `maven` first (Recommended); unattended: `maven`. Then re-run `detect` with `--stack <choice>` and use its result for the rest of the run.
 - `detect` picks the JDK; a compile failure names `jdk` (see Scan).
 
 ## Containers
 
 - Tags: run `tags` with `--stack <stack>` and `--jdk <jdk>` (Maven and Gradle); it looks each tag up at most once per day (`source` = `cached` or `looked-up`, for `tags:` in the output). `image tag unresolved` → stop (`image tag unresolved`).
-- Run `env-create` (`<envfile>`, mode 600, with `SONAR_PORT`, a generated `SONAR_ADMIN_PASSWORD`, and an empty `SONAR_TOKEN`), then `network-create`.
+- Run `env-create` (it prints the path of `<envfile>`: mode 600, with `SONAR_PORT`, a generated `SONAR_ADMIN_PASSWORD`, and an empty `SONAR_TOKEN`); record that path as `<envfile>`, then `network-create`.
 - Nothing is written under the repo root: the repo is mounted read-only into the scanner, and the secrets live only in `<envfile>`.
 
 ## Server setup
@@ -41,7 +41,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 ## Exclusions
 
-Use `exclusions` from `detect` as `<exclusions>`, and record `excluded` for `Excluded:`; never add a pattern to hide an issue.
+Use `exclusions` from `detect` as `<exclusions>`, and record `excluded` for `Excluded:`; never add a pattern to hide an issue. Each pattern in `dropped` has unsafe characters and is not scanned: list it under `Open:` as `exclusion <pattern>: unsafe characters, dropped`.
 
 The scanner already skips git-ignored files. Tests are never excluded.
 

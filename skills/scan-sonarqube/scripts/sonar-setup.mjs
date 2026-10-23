@@ -1,5 +1,5 @@
 // Setup helper for cdk:scan-sonarqube: stack detection, and image tag lookup with a daily cache.
-// CLI: `detect --root <dir>`, `tags --stack <cli|maven|gradle> [--jdk <n>]`; JSON on stdout.
+// CLI: `detect --root <dir> [--stack <maven|gradle>]`, `tags --stack <cli|maven|gradle> [--jdk <n>]`; JSON on stdout.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -119,11 +119,12 @@ function classify(file) {
   return null;
 }
 
-// Root markers win, then the shallowest; a build tool wins over the other markers.
-function pickStack(files) {
+// Root markers win, then the shallowest; a build tool wins over the other markers; `only` keeps one build tool.
+function pickStack(files, only) {
   const found = files.map((file) => ({ file, kind: classify(file), depth: depthOf(file) })).filter((m) => m.kind);
   const shallowest = (list) => list.filter((m) => m.depth === Math.min(...list.map((x) => x.depth)));
-  const build = found.filter((m) => m.kind === 'maven' || m.kind === 'gradle');
+  const build = found.filter((m) => (only ? m.kind === only : m.kind === 'maven' || m.kind === 'gradle'));
+  if (only && !build.length) return { stop: `no ${only} build found` };
   if (build.length) {
     const top = shallowest(build);
     const kinds = [...new Set(top.map((m) => m.kind))];
@@ -164,23 +165,40 @@ const splitList = (value) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+const MAX_KEY_LENGTH = 400;
+const SAFE_EXCLUSION = /^[A-Za-z0-9_./*?{}-]+$/;
+
+// Why `key` cannot be used in a Sonar project key or a shell command; null when it is valid.
+function keyProblem(key, fromProps) {
+  if (!/^[A-Za-z0-9_.:-]+$/.test(key)) return 'unsafe or empty characters';
+  if (key.length > MAX_KEY_LENGTH) return `longer than ${MAX_KEY_LENGTH} characters`;
+  if (!/\D/.test(key)) return fromProps ? 'all digits' : 'directory name is all digits, set sonar.projectKey';
+  return null;
+}
+
 // Detects key, stack, scanner, JDK, and exclusions from the tracked files of `root`; makes no network call.
-export function detect({ root } = {}, deps = {}) {
+export function detect({ root, stack: wanted } = {}, deps = {}) {
   if (!root) throw new Error('--root is required');
+  if (wanted !== undefined && wanted !== 'maven' && wanted !== 'gradle')
+    throw new Error('--stack must be maven or gradle');
   const d = { ...realDeps, ...deps };
   const dir = path.resolve(root);
   const files = d.git(['ls-files', '-z'], dir).split('\0').filter(Boolean);
   const props = parseProperties(d.readText(path.join(dir, 'sonar-project.properties')));
-  const key =
-    props.get('sonar.projectKey') ||
+  const propKey = props.get('sonar.projectKey');
+  const rawKey =
+    propKey ||
     path
       .basename(dir)
       .toLowerCase()
       .replace(/[^a-z0-9_-]/g, '-');
-  const pick = pickStack(files);
+  const problem = keyProblem(rawKey, Boolean(propKey));
+  const key = problem ? null : rawKey;
+  const name = key ? `cdk-sonar-${key.replace(/[^A-Za-z0-9_.-]/g, '-')}` : null;
+  const pick = pickStack(files, wanted);
   const read = (file) => d.readText(path.join(dir, file));
-  let stop = pick.stop;
-  if (pick.stack === 'gradle') {
+  let stop = problem ? `invalid sonar.projectKey: ${problem}` : pick.stop;
+  if (!stop && pick.stack === 'gradle') {
     const carriers = files.filter(
       (f) => /^(?:build|settings)\.gradle/.test(path.posix.basename(f)) || f.endsWith('.toml')
     );
@@ -202,7 +220,7 @@ export function detect({ root } = {}, deps = {}) {
   if (stack === 'maven' || stack === 'gradle') jdk = jdk >= MIN_JDK ? jdk : DEFAULT_JDK;
   const bases = [...new Set([dir, path.join(dir, where)])];
   const excluded = stack ? STACK_DIRS[stack].filter((n) => bases.some((b) => d.existsSync(path.join(b, n)))) : [];
-  const exclusions = [
+  const patterns = [
     ...new Set([
       ...splitList(props.get('sonar.exclusions')),
       '**/.scannerwork/**',
@@ -210,8 +228,10 @@ export function detect({ root } = {}, deps = {}) {
       ...excluded.map((n) => `**/${n}/**`),
       ...generatedPaths(read('.gitattributes'))
     ])
-  ].join(',');
-  const result = { key, stack, scanner: null, scanCommand: null, jdk, exclusions, excluded };
+  ];
+  const exclusions = patterns.filter((p) => SAFE_EXCLUSION.test(p)).join(',');
+  const dropped = patterns.filter((p) => !SAFE_EXCLUSION.test(p));
+  const result = { key, name, stack, scanner: null, scanCommand: null, jdk, exclusions, excluded, dropped };
   if (stack) Object.assign(result, SCANNERS[stack]);
   if (stop) result.stop = stop;
   if (pick.ask) result.ask = pick.ask;
@@ -363,10 +383,11 @@ const realDeps = {
 // CLI body; returns the exit code.
 export async function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
-  const usage = 'usage: sonar-setup.mjs detect --root <dir> | tags --stack <cli|maven|gradle> [--jdk <n>]';
+  const usage =
+    'usage: sonar-setup.mjs detect --root <dir> [--stack <maven|gradle>] | tags --stack <cli|maven|gradle> [--jdk <n>]';
   const sub = argv[0];
   if (sub === 'detect') {
-    d.log(JSON.stringify(detect({ root: arg(argv, '--root') }, d)));
+    d.log(JSON.stringify(detect({ root: arg(argv, '--root'), stack: arg(argv, '--stack') }, d)));
     return 0;
   }
   if (sub === 'tags') {

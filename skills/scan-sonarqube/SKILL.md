@@ -66,7 +66,7 @@ Iterations: <k> fix rounds of <max>
 Checks: <command: pass | fail | unavailable>, … | none
 Teardown: container and network removed | not started
 Cleanup: <removed items> | nothing created
-Open: <issue key: rule path:line, reason> | none
+Open: <issue key: rule path:line, reason> | exclusion <pattern>: unsafe characters, dropped | none
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

