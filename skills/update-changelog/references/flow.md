@@ -12,9 +12,9 @@ Base: input `base`; else the open PR or MR base for the current branch by origin
 
 Format and workflow: `format.md` `## Workflows`.
 
-- Version missing → AskUserQuestion with candidates computed from the latest released version (none → 0.1.0 or 1.0.0): Removed or breaking → major, Added → minor, else patch, each with its reason, plus Stop.
+- Version missing → AskUserQuestion with candidates computed from the latest released version (none → 0.1.0 or 1.0.0): Removed or breaking → major, Added → minor, else patch, each with its reason, plus Stop. While the latest major is 0, shift down one level (breaking → minor, anything else → patch). A `.claude/release-policy.json` present → its rules win (`versionReset`, required level); never suggest a version the policy would reject.
 - Date missing → AskUserQuestion: Today (Recommended; the SessionStart date) | Enter another | Stop.
-- Version already in the file and also in the base branch's `CHANGELOG.md` → `Stopped: 5: version exists`. Only in this branch's file → update that unmerged section in place.
+- Version already in the file and also in `base-changelog` → `Stopped: 5: version exists`. Only in this branch's file → update that unmerged section in place.
 
 ## Review loop
 
@@ -22,4 +22,4 @@ Run the `format.md` `## Review checklist` against the file, the diffs, and `tags
 
 ## Fallback
 
-AskUserQuestion or Write unavailable (unattended run) → ask nothing: Version or date missing in release mode → `Stopped: 5: version or date missing`. Otherwise write non-release entries, and list every item that needed a decision in `Blocked:`.
+AskUserQuestion or Write unavailable (unattended run) → ask nothing: an existing changelog that needs restructuring → `Stopped: 1: changelog not Keep a Changelog shaped`. Version or date missing in release mode → `Stopped: 5: version or date missing`. Otherwise write non-release entries, and list every item that needed a decision in `Blocked:`.

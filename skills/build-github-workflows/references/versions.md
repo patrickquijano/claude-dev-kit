@@ -1,6 +1,6 @@
 # Version resolution
 
-Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. Verified 2026-10-10.
+Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. The `gh api`, `git ls-remote`, and `docker buildx imagetools inspect` commands below run in `cdk:version-resolver`, which owns them, so they have no `commands.md` row. Verified 2026-10-10.
 
 ## Pinning mode
 
@@ -37,7 +37,7 @@ Source for pin guidance: <https://docs.github.com/en/actions/reference/security/
 
 ## Container and service images
 
-1. Docker Hub image: list `https://hub.docker.com/v2/namespaces/<namespace, library for official>/repositories/<repo>/tags?page_size=100&name=<major.minor>` (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>), page through `next` until exhausted, keep tags matching the allowlist `^<digits>(\.<digits>)+-<variant>$` (the allowlist excludes `-rc`, `-alpha`, `-beta`, `-nightly`, `-preview`, `-dev`; no variant requested: `^<digits>(\.<digits>)+$`), and take the highest by numeric semver comparison, never by update time. The variant is the one the request or the repo already uses.
+1. Docker Hub image: list `https://hub.docker.com/v2/namespaces/<namespace, library for official>/repositories/<repo>/tags?page_size=100&name=<major.minor>` (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>), page through `next` until exhausted, at most 10 pages (cap reached with no match → `Unresolved`), keep tags matching the allowlist `^<digits>(\.<digits>)+-<variant>$` (the allowlist excludes `-rc`, `-alpha`, `-beta`, `-nightly`, `-preview`, `-dev`; no variant requested: `^<digits>(\.<digits>)+$`), and take the highest by numeric semver comparison, never by update time. The variant is the one the request or the repo already uses.
 2. Other registries (`ghcr.io`, `mcr.microsoft.com`, …): the tag cannot be listed here → ask the user for the tag or the registry's tag page; never guess.
 3. Digest (SHA mode only, or when asked): `docker buildx imagetools inspect <image>:<tag> --format '{{json .Manifest}}'` and read its `digest` (the documented form; the top-level manifest or index digest). Use the documented form, not `.Manifest.Digest`. No docker → `Unresolved`. Source: <https://docs.docker.com/reference/cli/docker/buildx/imagetools/inspect/>.
 4. Written form: tag mode `image: <name>:<tag>`; SHA mode `image: <name>:<tag>@sha256:<digest>`.

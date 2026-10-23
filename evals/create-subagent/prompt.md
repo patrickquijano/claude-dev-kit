@@ -1,5 +1,5 @@
 ---
-description: Subagent request triggers build-agent or build-skill and gets clarifying questions before any file is written.
+description: Subagent request triggers build-subagent or build-skill and gets clarifying questions before any file is written.
 max_turns: 15
 allowed_tools: [Read, Glob, Grep, Skill]
 ---

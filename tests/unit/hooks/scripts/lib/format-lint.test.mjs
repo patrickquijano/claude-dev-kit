@@ -64,7 +64,7 @@ test('formatLint: runs the formatter through npx with the relative target', () =
   assert.deepEqual(calls[0], ['npx', ['--no-install', 'prettier', '-w', '--ignore-unknown', 'docs/a.md'], '/p']);
 });
 
-test('formatLint: blocks with the tool output when a step fails', () => {
+test('formatLint: reports the tool output as additionalContext when a step fails', () => {
   // Arrange
   const deps = base({
     run: (cmd, argv) => (argv.includes('markdownlint-cli2') ? { status: 1, stdout: 'MD001', stderr: '' } : ok)
@@ -72,10 +72,11 @@ test('formatLint: blocks with the tool output when a step fails', () => {
   // Act
   const result = formatLint(event('/p/a.md'), deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.decision, undefined);
   assert.match(result.systemMessage, /❌ Lint: a\.md/);
-  assert.match(result.reason, /Format\/lint issues in a\.md/);
-  assert.match(result.reason, /MD001/);
+  assert.equal(result.hookSpecificOutput.hookEventName, 'PostToolUse');
+  assert.match(result.hookSpecificOutput.additionalContext, /Format\/lint issues in a\.md/);
+  assert.match(result.hookSpecificOutput.additionalContext, /MD001/);
 });
 
 test('formatLint: writes stdout back to the file for stdout-based formatters', () => {
@@ -156,7 +157,8 @@ test('formatLint: skips the linter when the formatter fails', () => {
   // Act
   const result = formatLint(event('/p/a.md'), deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.decision, undefined);
+  assert.ok(result.hookSpecificOutput.additionalContext);
   assert.equal(calls.length, 1);
 });
 

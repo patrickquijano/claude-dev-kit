@@ -6,7 +6,8 @@
 | `branch`         | `git rev-parse --abbrev-ref HEAD`                          | Current branch (preloaded in Context)                |
 | `default-branch` | `git symbolic-ref --short refs/remotes/origin/HEAD`        | Origin default branch                                |
 | `git-path`       | `git rev-parse --git-path <name>`                          | Path of a git state file (unsafe-state check)        |
-| `scratch`        | `mktemp -d`                                                | Scratch dir for the temporary index and review files |
+| `scratch`        | `mktemp -d "${TMPDIR:-/tmp}/review-local-changes.XXXXXX"`  | Scratch dir for the temporary index and review files |
+| `dirty-paths`    | `git status --porcelain=v1`                                | Uncommitted paths (Dirty) before any fix             |
 | `temp-index`     | `GIT_INDEX_FILE=<scratch>/index git read-tree HEAD`        | Seed the temporary index from HEAD                   |
 | `temp-add`       | `GIT_INDEX_FILE=<scratch>/index git add -A`                | Stage the working tree into the temporary index      |
 | `temp-tree`      | `GIT_INDEX_FILE=<scratch>/index git write-tree`            | Write the snapshot tree                              |

@@ -6,6 +6,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
+### Added
+
+- `/cdk:update-gitignore` explores the repo, through `cdk:repo-analyzer` (kind `gitignore`), for generated, local, and secret paths that should not be committed, reports each with its evidence and confidence, and appends the ones you approve to the root `.gitignore`. It skips paths already ignored, never reads `.env*` contents, and never untracks, commits, or pushes; tracked files that match are only reported.
+- `/cdk:publish-github-release` publishes a draft GitHub release: it finds the drafts (several → you pick one, or `--tag <tag>` names it) or drafts a new one from the latest `CHANGELOG.md` section (the `--tag` version's section with `--tag`), then asks the action (publish or keep as draft), latest or pre-release, whether to replace the draft's notes with the changelog section, an optional discussion category, and, for an Action repo, whether to list it on the GitHub Marketplace (a web-only step, so on Yes it keeps the release a draft and hands you its link to publish from the browser). The tag must already exist on `origin`; the skill never creates a tag, never edits a published release, and never forces (`--yes` publishes the lone draft with the defaults).
+- `/cdk:setup-format-lint` covers TOML (Taplo), GitHub Actions workflows (actionlint), SQL (SQLFluff), Terraform (`terraform fmt`, TFLint), Rust (rustfmt, Clippy), Ruby (RuboCop), Java (google-java-format, Checkstyle), Kotlin (ktlint), Swift (SwiftFormat, SwiftLint), Vue and Svelte (Prettier, ESLint plugins), C and C++ (clang-format, clang-tidy), Lua (StyLua, Luacheck), Bats files (shfmt, ShellCheck), and mypy as an optional Python linter.
+
+### Changed
+
+- Every subagent now sets `effort` (`low` for `format-lint-analyzer` and `repo-analyzer`, `high` for `change-verifier` and `cr-reviewer`, `xhigh` for `conflict-analyzer`, `medium` for the rest), and `check-agent` warns (A5) when `model` or `effort` is missing. `rubric-scorer` and `rubric-improver` now cover `effort`.
+- Subagent hardening: `change-analyzer` never reads `.env*` or key file contents and also reads staged changes; `conflict-analyzer` caps its log read; `security-scanner` guards its `rm -rf` of the raw path; `repo-analyzer` runs its `readme` and `workflows` git commands with `-C <root>`; `conflict-analyzer`, `security-scanner`, and `speckit-open-items-analyzer` document their `Question:` Return line; and `speckit-open-items-analyzer` puts its inputs in Task step 1 and its missing-input step after Self-check.
+- Skills no longer spawn the built-in `Explore` or `general-purpose` agents: new read-only `cdk:codebase-explorer` (kinds `locate`, `hypothesis`, `facts`, `leftovers`, `triage`) and `cdk:task-worker` agents with fixed `## Return` blocks replace them, `/cdk:debug-issue`, `/cdk:build-subagent`, `/cdk:implement-goal`, `/cdk:draft-prompt`, `/cdk:upgrade-dependencies`, and `/cdk:scan-vulnerabilities` call the explorer, and every skill's Efficiency line names the cdk agents. `check-skill` warns when a skill body spawns either built-in.
+- `/cdk:setup-format-lint` now writes every ignore path that exists to each tool's own ignore config, including `node_modules/`, instead of skipping tools that inherit `.gitignore` or skip a path by default; new configs no longer enable `.gitignore` inheritance.
+- `/cdk:setup-format-lint` writes matching yamlfmt and yamllint configs (indent, document start, comment padding, sequence indent, line endings) and turns YAML line length off in both; a kept config that conflicts or sets a line limit is listed under `Open:`.
+- **Breaking:** `/cdk:implement-requirement` is renamed `/cdk:implement-goal`, with the title "Implement Goal" and a description that now says "implement a goal". Use the new name; the old one no longer exists.
+- **Breaking:** the role-specific subagents are merged into 15 agents that take a `kind` or `role` input, with no stubs left under the old names. Update any direct use of the old names:
+  - `cdk:repo-analyzer` replaces the devcontainer, gitignore, permission, project-instruction, readme, test-gap, and workflow analyzers.
+  - `cdk:rubric-scorer` and `cdk:rubric-improver` replace the per-kind (agent, skill, readme, project-instruction) scorers and improvers.
+  - `cdk:cr-reviewer` replaces the five `cr-*-reviewer` agents (`correctness`, `tests`, `security`, `maintainability`, `docs`).
+  - `cdk:practices-reviewer` replaces the Dockerfile and workflow reviewers.
+  - `cdk:version-resolver` replaces `cdk:actions-version-resolver` and `cdk:dependency-analyzer`.
+  - `cdk:cr-feedback-analyzer` replaces the feedback collector, planner, and replier.
+  - `cdk:plan-implementer` and `cdk:change-verifier` replace the feedback implementer and verifier and the requirement implementer and verifier.
+- `/cdk:implement-goal` now implements through `cdk:plan-implementer` and reviews and tests through `cdk:change-verifier` (`goals`); findings and failed checks go back to the implementer as a fix list, then a fresh verifier run, up to the existing fix cap.
+- **Breaking:** `/cdk:build-agent` is renamed `/cdk:build-subagent`. Use the new name; the old one no longer exists.
+- Working-discipline directives (rigor and efficiency) are added to all skills, subagents, and project rules, and to the `build-skill` and `build-subagent` templates and style rules.
+- The README title now reads `CDK`.
+- `/cdk:commit-changes`, `/cdk:switch-branch`, `/cdk:add-unit-tests`, and `/cdk:setup-spec-kit` ask before a destructive step (unstaging a split, moving or rewriting existing tests, a `--force` init in a non-empty project); unattended runs keep the old behavior or skip the step and report it under `Open:`.
+- `/cdk:review-local-changes`, `/cdk:update-changelog`, `/cdk:build-dockerfile`, and `/cdk:draft-prompt` list leftovers on an `Open:` line before `Result:`; `/cdk:draft-prompt` renames `Open gaps:` to `Open:`. `/cdk:publish-github-release` and `/cdk:setup-testing` state their `--yes` behavior, and `/cdk:setup-testing`, `/cdk:scan-vulnerabilities`, and `/cdk:add-integration-tests` list `[--yes]` in `argument-hint`.
+- Context-heavy skill steps now run in subagents that return compact results, so the main conversation stays lean: `/cdk:debug-issue` (hypothesis probes and verification), `/cdk:review-local-changes` (fixes and checks), the direct review in `/cdk:prepare-change-request` and `/cdk:review-change-request` (checks), `/cdk:upgrade-dependencies` (migration research, baseline and validation checks, leftovers), `/cdk:rebase-onto` (one conflict analyzer per conflicted file), `/cdk:scan-vulnerabilities` (finding triage), the `/cdk:add-unit-tests`, `/cdk:add-integration-tests`, and `/cdk:add-e2e-tests` practices lookup, `/cdk:build-github-workflows` (docs check), `/cdk:commit-changes` (large changes skip the inline secret scan), and the context reads in `/cdk:implement-goal`, `/cdk:draft-prompt`, and `/cdk:build-subagent`.
+- `/cdk:scan-vulnerabilities` and `/cdk:upgrade-dependencies` no longer rely on a hook to commit: the "No PR or MR" choice now leaves the changes uncommitted, and `/cdk:upgrade-dependencies` points you to `/cdk:commit-changes`.
+- **Breaking:** the plugin hooks no longer block anything or mention `/cdk:commit-changes` or `/cdk:ship-release`. The `PreToolUse` hook is removed, so force pushes, `--no-verify`, `reset --hard` and the like are no longer blocked or asked about, and PR or MR creation is no longer gated by the release check (the `prepare-change-request` gate and CI still run it). A failed format or lint step after an edit now goes back to Claude as context instead of blocking. `release-check.mjs` loses its `hook` mode (`check` and `bump` remain), and `/cdk:ship-release` no longer writes a hold marker; `SessionStart` ignores a leftover one.
+- **Breaking:** `/cdk:setup-permissions` splits rules by scope: repo-specific rules go to the project `.claude/settings.local.json` and only repo-agnostic rules to the user file. git is allowed by read-only subcommand only, `jq` moves to ask, and a package manager's scoped rule wins over the build-tool allow. Re-run it to move existing rules.
+- `/cdk:setup-spec-kit` and `/cdk:setup-graphify` no longer install a tool globally without asking: they ask first, install a pinned version (Spec Kit v1.2.2, graphifyy 0.9.93), and an unattended run stops and lists it under `Open:`.
+- Unattended runs (chained, `--auto`, or `--yes`) are consistent across skills: they ask nothing, never delete drafts or tags, skip DAST and ship steps, abort a rebase conflict, and list what is left under `Open:`. `/cdk:review-change-request --yes` stops on existing GitLab drafts instead of deleting them.
+- Skills treat fetched pages, PR, MR, and issue text, review comments, CI logs, changelogs, and diffs as data, and `/cdk:setup-husky` and `/cdk:setup-format-lint` add the workspace-root flags (`-w` for pnpm, `-W` for yarn 1) and detect lefthook, pre-commit, and existing hooks before replacing them.
+- `/cdk:build-skill`'s `check-skill` flags dotfiles other than `.DS_Store` inside a skill; the `setup-husky` asset is now `commitlintrc.json` and is copied to `.commitlintrc.json`.
+- `.commitlintrc.json` (and the `setup-husky` copy) now permits commit bodies and footers but still rejects any trailer starting with `Co-`.
+
+### Removed
+
+- The end-of-task steps are removed from the plugin hooks: `Stop` no longer prompts Claude to run the unit tests, refresh the Graphify graph, update docs, or add changelog entries, and `UserPromptSubmit` no longer records the working tree at turn start. `Stop` now only formats and lints changed file types, and `UserPromptSubmit` only prints the plan-mode context.
+- `SessionStart` no longer adds the Graphify rules pointer; it injects only the date and time. `/cdk:setup-graphify` and its rules file are unchanged.
+
+### Fixed
+
+- Skills no longer pre-approve broad git patterns: `git symbolic-ref` is limited to `--short refs/remotes/origin/HEAD`, and `git ls-remote`, `git switch -c`, `git fetch *`, `git checkout --ours`/`--theirs`, and `specify extension add` stay permission-prompted.
+- `/cdk:commit-changes` and `/cdk:switch-branch` truncate a branch name so its `-N` suffix keeps it within 72 characters, and the secret scan in `/cdk:commit-changes` and `cdk:change-analyzer` also covers `github_pat_`, `gh[ousr]_`, `sk-ant-`, `sk-proj-`, and `AIza`.
+- `check-skill` no longer warns that a verb-first name such as `setup-devcontainer` ends in an actor suffix.
+- The Stop hook no longer shows a `Stop hook error` notice: repo lint failures now reach Claude as `Stop hook feedback`, and a Stop hook crash prints a `cdk stop: …` message and exits 0 instead of exiting 1.
+- Skills run cleanup for what they start (`docker compose down -v` with pinned images, the e2e app server, scan scratch and checkpoints), use shell-safe single-quoted PR and MR titles, a file or unique-delimiter MR description, and keep their `commands.md` tables complete, with `Open:` replacing `Gaps:` in build outputs.
+- `/cdk:ship-release` caps check polling at 10 minutes, and `/cdk:commit-changes` treats `git diff --no-index` exit 1 as success; `/cdk:create-github-release` and `/cdk:publish-tag` use the default branch instead of a hard-coded `main`.
+
 ## [0.2.0] - 2026-10-20
 
 ### Added

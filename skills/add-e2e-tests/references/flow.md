@@ -20,9 +20,9 @@ Step detail for `add-e2e-tests`. Read the section a step links.
 
 ## Analyze
 
-Spawn one `cdk:test-gap-analyzer` per package, all in one message. Each receives:
+Spawn one `cdk:repo-analyzer` with `kind: tests` and `model: sonnet` per package, all in one message. Each receives:
 
-- package path, kind `e2e`, scope, package manager (`n/a` for non-JS);
+- package path, test kind `e2e`, scope, package manager (`n/a` for non-JS);
 - the paths `${CLAUDE_SKILL_DIR}/references/stacks.md` and `${CLAUDE_SKILL_DIR}/references/conventions.md`.
 
 Use its `Runner:`, `Faker:`, `Conventions:`, `Style sample:`, `App start:`, and `Targets:` fields. Ask each returned `Questions:` once, then re-spawn only those analyzers with the same input plus the answers. Still open after that → stop (`Stopped: 3: analyzer questions unresolved`) with `Open:` none.
@@ -37,11 +37,13 @@ For every `Missing:` line and every decision with several fitting answers, take 
 
 Ask only when `App start:` is `unknown` or the app is an already running URL: is it local or safe? Never assume a URL or port.
 
+Test database: detect a dedicated one from the analyzer's findings or test config (a test-only database name, URL, or container). None found → ask which to use; none given, or unattended → `Stopped: 4: no test database`. Never use the dev database.
+
 A `Missing:` framework, browsers, or faker line → run `cdk:setup-testing e2e <package>` through the Skill tool in this thread (it asks, installs, and configures). Then re-spawn that package's analyzer once; still missing → `Stopped: 4: setup-testing: tester still missing`. The chain returning `stopped` or `cancelled` → stop, relaying its `Stopped:` reason as `Stopped: 4: setup-testing: <reason>`.
 
 ## Run
 
-- Start the app per the step 4 decision; run the suite with the runner command and targeted-run form from `stacks.md`.
+- Start the app per the step 4 decision (the `App start:` command or framework `webServer`, as detected) and note its PID; stop it with `app-stop` when the run ends; run the suite with the runner command and targeted-run form from `stacks.md`.
 - A failure in a new test is a test, locator, or setup bug: fix it and rerun until every new test passes, at most 3 rounds (`Rounds: <n>/3`).
 - A failure that points at wrong app behavior: keep the test failing, record input, expected, actual, and `file:line` as a suspected bug in `Open:`, and leave it out of later rounds.
 - Rounds exhausted → `Stopped: 9: tests still failing after 3 rounds`.

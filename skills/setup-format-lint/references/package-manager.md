@@ -30,6 +30,8 @@ Order, first match wins:
 
 Use the "binary must be installed" form in checks, so a missing tool fails instead of downloading.
 
+Workspace root (Package dir resolved to a git root with `workspaces` or `pnpm-workspace.yaml`): pnpm needs `-w` and yarn 1 needs `-W` after the add command, or it refuses to add to the root. Yarn 1 = no `.yarnrc.yml` and `packageManager` absent or `yarn@1.x`. npm, bun, and yarn berry need no flag.
+
 ## Missing package.json
 
 - Create `{ "name": "<name>", "private": true }` in the package dir, no question (npm tools need it).

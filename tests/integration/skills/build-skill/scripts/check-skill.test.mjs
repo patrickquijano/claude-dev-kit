@@ -35,8 +35,34 @@ describe('check-skill CLI', () => {
       join(linker, 'SKILL.md'),
       '---\nname: link-other\ndescription: Links out. Use when asked.\n---\n\n## Files\n\n- See `${CLAUDE_SKILL_DIR}/../other/x.md`.\n\n## Output\n\n```text\nResult: done\n```\n'
     );
+    const dots = join(root, 'dot-files');
+    mkdirSync(dots);
+    writeFileSync(
+      join(dots, 'SKILL.md'),
+      '---\nname: dot-files\ndescription: Checks dotfiles. Use when asked.\n---\n\n## Output\n\n```text\nResult: done\n```\n'
+    );
+    writeFileSync(join(dots, '.DS_Store'), 'x\n');
+    writeFileSync(join(dots, '.env'), 'x\n');
   });
   after(() => rmSync(root, { recursive: true, force: true }));
+
+  test('flags .env but ignores .DS_Store', () => {
+    // Arrange
+    const dir = join(root, 'dot-files');
+    // Act
+    const result = run(dir, '--kind', 'task');
+    const report = JSON.parse(result.stdout);
+    // Assert
+    assert.equal(result.status, 1);
+    assert.deepEqual(
+      report.errors.filter((e) => e.id === 'dotfile').map((e) => e.file),
+      ['.env']
+    );
+    assert.equal(
+      [...report.errors, ...report.warnings].some((f) => f.file === '.DS_Store'),
+      false
+    );
+  });
 
   test('exits 0 with ok:true for a valid skill', () => {
     // Arrange

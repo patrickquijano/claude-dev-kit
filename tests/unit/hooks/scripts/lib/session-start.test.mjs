@@ -2,16 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { dateLine, sessionStart } from '../../../../../hooks/scripts/lib/session-start.mjs';
 
-function make({ configured = false, present = false } = {}) {
-  const deps = {
-    env: { CLAUDE_PROJECT_DIR: '/repo', CLAUDE_PLUGIN_ROOT: '/plugin' },
-    cwd: () => '/cwd',
-    now: () => new Date(2026, 9, 13, 15, 5),
-    defaultRoot: () => '/default',
-    realpathSync: (p) => p,
-    graphifyConfigured: () => configured,
-    graphifyFilesExist: () => present
-  };
+function make() {
+  const deps = { now: () => new Date(2026, 9, 13, 15, 5) };
   return { deps };
 }
 
@@ -59,99 +51,4 @@ test('sessionStart returns the date line as additional context', () => {
   // Assert
   assert.equal(result.hookSpecificOutput.hookEventName, 'SessionStart');
   assert.match(result.hookSpecificOutput.additionalContext, /^Today is Tuesday, October, 13, 2026/);
-});
-
-test('sessionStart points at the Graphify rules file when a graph is ready', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(
-    result.hookSpecificOutput.additionalContext,
-    /Graphify is set up; read \/plugin\/skills\/setup-graphify\/assets\/graphify-rules\.md before navigating code\./
-  );
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /RULES/);
-});
-
-test('sessionStart falls back to the default plugin root', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: true });
-  delete deps.env.CLAUDE_PLUGIN_ROOT;
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.match(result.hookSpecificOutput.additionalContext, /\/default\/skills\/setup-graphify/);
-});
-
-test('sessionStart omits Graphify rules when Graphify is not configured', () => {
-  // Arrange
-  const { deps } = make({ configured: false, present: true });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart omits Graphify rules when the graph files are missing', () => {
-  // Arrange
-  const { deps } = make({ configured: true, present: false });
-  // Act
-  const result = sessionStart({}, deps);
-  // Assert
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /Graphify/);
-});
-
-test('sessionStart lets a missing project directory bubble', () => {
-  // Arrange
-  const { deps } = make();
-  deps.realpathSync = () => {
-    throw new Error('ENOENT');
-  };
-  // Act
-  const act = () => sessionStart({}, deps);
-  // Assert
-  assert.throws(act, /ENOENT/);
-});
-
-const withMarker = (deps, present) => {
-  deps.git = () => ({ status: 0, stdout: Buffer.from('.git/cdk-ship-release\n') });
-  deps.existsSync = () => present;
-  deps.statSync = () => ({ mtime: new Date(Date.UTC(2026, 9, 13, 1, 2, 3)) });
-  return deps;
-};
-
-for (const source of ['startup', 'clear', 'fork']) {
-  test(`sessionStart warns about a stale ship-release marker on ${source}`, () => {
-    // Arrange
-    const deps = withMarker(make().deps, true);
-    // Act
-    const result = sessionStart({ source }, deps);
-    // Assert
-    assert.match(
-      result.hookSpecificOutput.additionalContext,
-      /ship-release marker exists \(\/repo\/\.git\/cdk-ship-release/
-    );
-    assert.match(result.hookSpecificOutput.additionalContext, /2026-10-13T01:02:03/);
-  });
-}
-
-for (const source of ['resume', 'compact', undefined]) {
-  test(`sessionStart skips the marker warning on ${source}`, () => {
-    // Arrange
-    const deps = withMarker(make().deps, true);
-    // Act
-    const result = sessionStart({ source }, deps);
-    // Assert
-    assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /ship-release/);
-  });
-}
-
-test('sessionStart omits the marker warning when the marker is absent', () => {
-  // Arrange
-  const deps = withMarker(make().deps, false);
-  // Act
-  const result = sessionStart({ source: 'startup' }, deps);
-  // Assert
-  assert.doesNotMatch(result.hookSpecificOutput.additionalContext, /ship-release/);
 });

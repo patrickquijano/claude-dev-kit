@@ -55,7 +55,7 @@ Implementation detail: <the verified fix, e.g. "bump <pkg> <from> → <to> in <m
 
 ## Branch
 
-A Spec Kit git hook may create and switch to a feature branch during `speckit-specify`. After each attempt, compare `git rev-parse --abbrev-ref HEAD` with `$CK.branch`. If it differs, log the new branch in `remediation-log.md` and `manifest.json`, and keep working on it: the uncommitted changes moved with it. Never switch back, merge, or delete branches. The Output lists every branch created, and step 10 ships the current one.
+A Spec Kit git hook may create and switch to a feature branch during `speckit-specify`. After each attempt, compare `git rev-parse --abbrev-ref HEAD` with the contents of `<run dir>/iteration-<n>/checkpoints/R<i>.<k>.branch`. If it differs, log the new branch in `remediation-log.md` and `manifest.json`, and keep working on it: the uncommitted changes moved with it. Never switch back, merge, or delete branches. The Output lists every branch created, and step 10 ships the current one.
 
 ## Fix rules by category
 
@@ -77,7 +77,7 @@ comm -13 <(sort "$CK.untracked") <(git ls-files --others --exclude-standard | so
   grep -v -e '^\.vulnerability-reports/' -e '^\.specify/memory/' | while IFS= read -r f; do rm -- "$f"; done   # only files this attempt created
 ```
 
-Then check that `git diff --quiet "$CP" -- <changed files>` succeeds. When a lockfile was restored, re-run the frozen install so ignored install output (e.g. `node_modules/`) matches it again. Re-run the failed command to confirm it is back at its baseline result. Never use `git reset --hard`, `git checkout -- .`, `git clean`, `git stash drop`, or any history rewrite. A branch that run-spec-kit created stays; record it and never delete it.
+Then, in a new call, check that `git diff --quiet "$(cat <run dir>/iteration-<n>/checkpoints/R<i>.<k>.sha)" -- <changed files>` succeeds. When a lockfile was restored, re-run the frozen install so ignored install output (e.g. `node_modules/`) matches it again. Re-run the failed command to confirm it is back at its baseline result. Never use `git reset --hard`, `git checkout -- .`, `git clean`, `git stash drop`, or any history rewrite. A branch that run-spec-kit created stays; record it and never delete it.
 
 ## Attempts
 

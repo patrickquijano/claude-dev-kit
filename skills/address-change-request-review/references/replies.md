@@ -117,6 +117,8 @@ Leave open for the reviewer: `issue`, `question`, Clarify, Decline, Answer, assu
 - <path:line> — <why it is open: awaiting answer, declined, needs your confirmation>
 
 **Checks:** <commands run and result>
+
+<!-- address-change-request-review:summary:<head short SHA> -->
 ```
 
-Omit empty sections except Threads.
+Omit empty sections except Threads; always keep the marker.

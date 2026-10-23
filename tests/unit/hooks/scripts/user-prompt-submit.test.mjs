@@ -21,7 +21,6 @@ test('main prints only plan-mode context for a task prompt', async () => {
   // Assert
   const ctx = JSON.parse(written[0]).hookSpecificOutput.additionalContext;
   assert.match(ctx, /whether to enter plan mode/);
-  assert.doesNotMatch(ctx, /end-of-task|cdk:commit-changes|update-changelog/);
 });
 
 test('main prints nothing for a machine prompt', async () => {

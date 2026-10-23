@@ -95,6 +95,42 @@ describe('checkFrontmatter', () => {
     );
   });
 
+  test('skips the actor warning for a verb-first name', () => {
+    // Arrange
+    const fields = { name: 'setup-devcontainer', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'setup-devcontainer');
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('skips the actor warning for another verb-first name', () => {
+    // Arrange
+    const fields = { name: 'review-change-reviewer', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'review-change-reviewer');
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('still warns on an actor name whose first part is not a verb', () => {
+    // Arrange
+    const fields = { name: 'demo-runner', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo-runner');
+    // Assert
+    assert.deepEqual(ids(found), ['name-actor']);
+  });
+
+  test('still warns on a single-word actor name', () => {
+    // Arrange
+    const fields = { name: 'scanner', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'scanner');
+    // Assert
+    assert.deepEqual(ids(found), ['name-actor']);
+  });
+
   test('errors on an unknown field', () => {
     // Arrange
     const fields = { name: 'demo', description: 'x', colour: 'red' };
@@ -222,6 +258,56 @@ describe('checkBody', () => {
     assert.deepEqual(ids(found), ['output-result']);
   });
 
+  test('warns spawn-builtin when a body spawns Explore or general-purpose', () => {
+    // Arrange
+    const bad = 'Spawn one Explore agent.\nDelegate to general-purpose.\n';
+    const ok = 'Spawn `cdk:task-worker`, never `Explore` or `general-purpose`.\nExplored 3 files.\n';
+    // Act
+    const found = [...checkBody(bad, { kind: 'task' }), ...checkBody(ok, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1, 2]
+    );
+  });
+
+  test('does not warn spawn-builtin for a lowercase "explore"', () => {
+    // Arrange
+    const body = 'Spawn `cdk:task-worker` to explore the module.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin'),
+      []
+    );
+  });
+
+  test('warns spawn-builtin for a lowercase verb before Explore', () => {
+    // Arrange
+    const body = 'Then spawn an Explore agent.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1]
+    );
+  });
+
+  test('warns spawn-builtin for spawned, delegates, delegated, delegating', () => {
+    // Arrange
+    const body =
+      'Spawned an Explore agent.\nDelegates to general-purpose.\nDelegated to Explore.\nDelegating to general-purpose.\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.filter((f) => f.id === 'spawn-builtin').map((f) => f.line),
+      [1, 2, 3, 4]
+    );
+  });
+
   test('warns output-next when a task Output has no Next line', () => {
     // Arrange
     const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
@@ -280,6 +366,38 @@ describe('checkLayout', () => {
     assert.deepEqual(
       found.map((f) => f.file),
       ['README.md', 'docs/a.md']
+    );
+  });
+
+  test('errors on a top-level dotfile', () => {
+    // Arrange
+    const files = ['SKILL.md', '.env'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(ids(found), ['dotfile']);
+    assert.equal(found[0].file, '.env');
+  });
+
+  test('errors on a dot-directory', () => {
+    // Arrange
+    const files = ['SKILL.md', '.git/config'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(ids(found), ['dotfile']);
+    assert.equal(found[0].file, '.git/config');
+  });
+
+  test('errors on a dotfile nested in references', () => {
+    // Arrange
+    const files = ['SKILL.md', 'references/.secret.md', 'references/r.md'];
+    // Act
+    const found = checkLayout(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.file),
+      ['references/.secret.md']
     );
   });
 

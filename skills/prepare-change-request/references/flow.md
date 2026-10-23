@@ -10,7 +10,7 @@ Detect the host (Rules), then run the host file `## Pre-flight`; keep Repo or Pr
 
 ## Target
 
-`--target <b>` → the remote-branch list must hold exactly one ref whose branch part is `<b>` (several remotes → stop, name them; none → stop). Else Target = the default, no ask. No default found → print the list and ask with the four most recent branches plus Other (a typed value must be in the list, else re-ask within the cap). GitHub: the selected ref's remote must match Repo (`github.md` `## Remote branches`). Target = its branch part; the target ref is `<remote>/<branch>`.
+`--target <b>` → the remote-branch list must hold exactly one ref whose branch part is `<b>` (several remotes → stop, name them; none → stop). Else Target = the default, no ask. No default found → unattended: `Stopped: 4: no target`; else print the list and ask with the four most recent branches plus Other (a typed value must be in the list, else re-ask within the cap). GitHub: the selected ref's remote must match Repo (`github.md` `## Remote branches`). Target = its branch part; the target ref is `<remote>/<branch>`.
 
 ## Range
 
@@ -22,7 +22,7 @@ Detect the host (Rules), then run the host file `## Pre-flight`; keep Repo or Pr
 
 ## Draft
 
-Create path, or an update whose title fails the title rules: spawn `cdk:change-analyzer` with root, `mode=cr-summary`, head (current branch), `<target ref>`, the template body, and input hints. Take `Title` and, on create, `Description` (template filled from commits and diff; quick actions stripped). `Empty: yes` → as the Range nothing-to-do exit. `Questions` non-empty → AskUserQuestion, respawn once with the answers. Run `commitlint` on `Title`; fail → respawn with the error lines (cap in Rules). Update with a passing title → keep it, no spawn.
+Create path, or an update whose title fails the title rules: spawn `cdk:change-analyzer` with root, `mode=cr-summary`, head (current branch), `<target ref>`, the template body, and input hints. Take `Title` and, on create, `Description` (template filled from commits and diff; quick actions stripped). `Empty: yes` → as the Range nothing-to-do exit. `Questions` non-empty → AskUserQuestion, respawn once with the answers; unattended → take the analyzer's best guess and record it under `Open:`. Run `commitlint` on `Title`; fail → respawn with the error lines (cap in Rules). Update with a passing title → keep it, no spawn.
 
 Then the managed block: summary from each reviewer `Summary`, per-role status and counts, commands with exit codes, medium and low findings, gating findings reported under `--gate report` (labeled open), and limitations, including any reviewer with `Status: incomplete`. Create body: filled template plus the block appended; update body: only the block replaced (appended when absent), per the host file `## Managed section`. Write `<scratch>/title` and `<scratch>/body.md`.
 

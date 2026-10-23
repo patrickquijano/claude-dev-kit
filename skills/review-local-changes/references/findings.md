@@ -1,6 +1,6 @@
 # Findings contract
 
-Used by the four reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-maintainability-reviewer`) and by the direct review. The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly.
+Used by the four reviewers (`cdk:cr-reviewer` with `role:` `correctness`, `security`, `tests`, `maintainability`) and by the direct review. The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly.
 
 ## Contents
 
@@ -8,7 +8,7 @@ Used by the four reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-security-revi
 
 ## Reviewer input
 
-Spawn all four in one message. Each prompt carries only: root, base ref (`HEAD` or `origin/<default>`), merge-base SHA (the base SHA), the snapshot SHA as head, the paths to `diff.patch`, `name-status.txt`, `log.txt`. `cdk:cr-test-reviewer` gets no `checks:` line.
+Spawn all four in one message. Each prompt carries only: `role:`, root, base ref (`HEAD` or `origin/<default>`), merge-base SHA (the base SHA), the snapshot SHA as head, the paths to `diff.patch`, `name-status.txt`, `log.txt`. Role `tests` gets no `checks:` line.
 
 ## Block
 
@@ -65,8 +65,8 @@ Summary: <two sentences, facts only>
 
 ## Direct review
 
-A small, low-risk change is reviewed by the parent with no subagent.
+A small, low-risk change is reviewed by the parent with no reviewer subagent.
 
 - Applies only when every item holds, counted from `name-status.txt` and `diff-numstat`: at most 5 changed files; at most 200 added plus deleted lines; no sensitive path (auth or permissions code, secrets or `.env*`, CI config, dependency manifests or lockfiles, migrations, hook scripts). Any doubt → spawn.
 - The parent covers all four roles and emits the same block per role under the same rules. It reads each changed file in the working tree, not only the diff.
-- The test role still runs the repository's documented lint, typecheck, test, and build commands (read-only) as `[required]`. A skipped required check leaves it `incomplete`.
+- The test role's documented lint, typecheck, test, and build commands (read-only) run as `[required]` in a subagent. Spawn `cdk:change-verifier` kind `checks` (inputs: root, changed file paths, repo instruction summary) and map its `Checks:` to the test role's `Commands:`: each `[required]` fail → `check-failed`, each skipped required → `incomplete`. The parent keeps the small-diff judgement and reads the changed files itself.

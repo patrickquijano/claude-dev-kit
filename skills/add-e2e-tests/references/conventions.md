@@ -1,6 +1,6 @@
 # Conventions
 
-Test rules for `add-e2e-tests` and its `cdk:test-gap-analyzer`. `<x>` follows `stacks.md`.
+Test rules for `add-e2e-tests` and its `cdk:repo-analyzer` kind `tests`. `<x>` follows `stacks.md`.
 
 ## Contents
 
@@ -18,7 +18,7 @@ Test rules for `add-e2e-tests` and its `cdk:test-gap-analyzer`. `<x>` follows `s
 - Names state behavior and condition (`shows an error when the password is wrong`), not the page name alone.
 - No fixed sleeps; wait on a condition.
 - No secrets in tests; read real credentials from env vars and keep them out of fixtures and snapshots.
-- Best practices: apply End to end below, then WebFetch the picked framework's official docs (Official docs list, else the site named in its manifest `homepage`). WebFetch unavailable → bundled rules only; say so in the Output.
+- Best practices: apply End to end below, then use the practices researcher's cited rules from the picked framework's official docs (Official docs list, else the site named in its manifest `homepage`). Researcher unavailable → bundled rules only; say so in the Output.
 
 ## Faker libraries
 

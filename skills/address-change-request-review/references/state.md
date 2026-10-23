@@ -1,6 +1,6 @@
 # Feedback state
 
-Used by `cdk:address-change-request-review` and its `cr-feedback-*` agents (GitHub pull requests and GitLab merge requests; "CR" below). The orchestrator alone writes the state file.
+Used by `cdk:address-change-request-review` and its `cr-feedback-analyzer` agent (GitHub pull requests and GitLab merge requests; "CR" below). The orchestrator alone writes the state file.
 
 ## State file
 
@@ -39,8 +39,9 @@ Terminal: `no-change` (reply only), `needs-decision`, `blocked`, `failed`. State
 
 ## Idempotency
 
-- Every external operation is keyed `<item id>:<op>` (`reply`, `resolve`) or `cr:<n>:push`, `cr:<n>:rerequest:<login>`. A key in `ops[]` is skipped on resume.
+- Every external operation is keyed `<item id>:<op>` (`reply`, `resolve`) or `cr:<n>:push`, `cr:<n>:summary`, `cr:<n>:rerequest:<login>`. A key in `ops[]` is skipped on resume.
 - Every reply body ends with the marker `<!-- address-change-request-review:<item id>:<head short SHA> -->`. Before posting, the thread or comment list is re-read; a reply by Self containing the prefix `address-change-request-review:<item id>:` or the legacy `address-pull-request-review:<item id>:` (any SHA, since the head changes after a push) → record it as posted and skip.
+- The revision summary ends with the marker `<!-- address-change-request-review:summary:<head short SHA> -->`; before posting it, a key `cr:<n>:summary` in `ops[]` or a Self comment containing the prefix `address-change-request-review:summary:` → record it as posted and skip.
 - Record an operation in `ops[]` immediately after it succeeds, with the response id.
 
 ## Resume

@@ -13,28 +13,28 @@ Step 1. Run the host `## Pre-flight` in `github.md` or `gitlab.md`; a failure st
 - Keep the `dirty-paths` paths as Dirty (recorded, not just noted).
 - Stop if any of `MERGE_HEAD`, `rebase-merge`, `rebase-apply`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `BISECT_LOG` exists under `git-path` for that name.
 - Read repo instructions (CLAUDE.md, `.claude/rules/`, CONTRIBUTING, commitlint config) and follow them.
-- Signing: `git config --get user.signingkey` set; `gpg.format` = `ssh` → `gpg.ssh.allowedSignersFile` set and the file exists; `.husky/` present → `commit.gpgsign` = `true`. Missing → stop and say what to set. Never edit signing config or retry unsigned.
+- Signing is enforced when `commit.gpgsign` = `true`, `.husky/` is present, or the repo instructions require signed commits. Enforced → `git config --get user.signingkey` set; `gpg.format` = `ssh` → `gpg.ssh.allowedSignersFile` set and the file exists; missing → stop and say what to set. Never edit signing config or retry unsigned. Not enforced → the commit step uses `commit` (unsigned) and skips `signatures`.
 
 ## Find CR
 
 Step 2. `$ARGUMENTS`: an optional number (strip `#` or `!`), `--self-review`, `--yes`; anything else → stop.
 
-- Per the host `## Find`: the CR must be open. Another author's CR → AskUserQuestion `Continue (co-author)` | `Cancel` (`--yes` continues; `--yes` with no number and no branch match → stop).
-- Else the host `## Candidates`: spawn `cdk:cr-feedback-collector` with host, mode `discover`, Self, `${CLAUDE_SKILL_DIR}/references/state.md`, and the scratch paths of the candidate data. None → `Result: nothing-to-do`.
+- Per the host `## Find`: the CR must be open. Another author's CR → AskUserQuestion `Continue (co-author)` | `Cancel`; under `--yes` → stop (`Stopped: 2: another author's CR`). `--yes` with no number and no branch match → stop.
+- Else the host `## Candidates`: spawn `cdk:cr-feedback-analyzer` with `model: haiku`, host, mode `discover`, Self, `${CLAUDE_SKILL_DIR}/references/state.md`, and the scratch paths of the candidate data. None → `Result: nothing-to-do`.
 - Else ask: up to 4 CRs by `updated` desc (label `#<n> <title>`, description `<head> → <base>, <reason>`), none marked recommended; a typed number must be in the list.
 
 ## Branch guard
 
 Step 3. Read the state file (`state.md` `## State file`) first. Per the host `## Branch` get remote, head ref, expected head SHA, fork handling. Then `fetch-head`.
 
-- Current ≠ head branch → switch only when no Dirty path differs between them (`head-diff-names` ∩ Dirty = ∅), else stop. Head branch not yet local → `switch-track`.
+- Current ≠ head branch → `switch-local` only when no Dirty path differs between them (`head-diff-names` ∩ Dirty = ∅), else stop. Head branch not yet local → `switch-track`.
 - Behind → `pull-ff`; diverged → stop.
 - Ahead of `<remote>/<head>` only when every commit in `<remote>/<head>..HEAD` is recorded in the state file's `commits[]`; else stop.
 - Keep `headSha = remote-head-sha`; it must equal the host's head SHA re-read after the fetch, else stop ("push or pull first").
 
 ## Plan
 
-Step 7. Spawn `cdk:cr-feedback-planner` with: the items file path, root, base and head SHAs, Dirty, the repo instruction summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md` (also its guidelines input: `## Labels`), `--self-review` yes/no, and whether a reviewer is outstanding.
+Step 7. Spawn `cdk:cr-feedback-analyzer` with `model: opus`, mode `plan`, and: the items file path, root, base and head SHAs, Dirty, the repo instruction summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md` (also its guidelines input: `## Labels`), `--self-review` yes/no, and whether a reviewer is outstanding.
 
 - Table columns: id (short), reviewer, `path:line`, label (decoration), blocking, classification, disposition, group, one-line plan. Under it list each group's `sites`, `tests`, and `checks`.
 - Its `Question:` lines → AskUserQuestion (header `Decision`, or `Clarify` for a `needs-clarification` item under `--self-review`; 2–4 options, recommended first), then respawn once with the answers.
@@ -43,7 +43,7 @@ Step 7. Spawn `cdk:cr-feedback-planner` with: the items file path, root, base an
 
 ## Implement
 
-Step 8. Per group, spawn `cdk:cr-feedback-implementer` with root, group id, the group plan and file list, its `sites`, `tests`, `ripple`, and `checks`, the items' reviewer text, and the repo instruction summary (parallel in one message only for `parallel-safe` groups). Any agent `Question:` line → AskUserQuestion, or stop with that reason.
+Step 8. Per group, spawn `cdk:plan-implementer` with `kind: review-group`, root, group id, the group plan and file list, its `sites`, `tests`, `ripple`, and `checks`, the items' reviewer text, and the repo instruction summary (parallel in one message only for `parallel-safe` groups). Any agent `Question:` line → AskUserQuestion, or stop with that reason.
 
 - `Blocked` entries → the item becomes `blocked` or `needs-decision`; `Deviations` go to Gate A and the verifier. `Map` feeds the item → commit map. A `Self-check: unmet` line counts as a failed attempt for that group (existing per-group fix cap). Record `Follow-ups` for step 16.
 - Then `dirty-paths`: changed paths must be within the plan and disjoint from Dirty; otherwise restore that group's tracked files from `show-head-file`, report, and stop.
@@ -51,20 +51,20 @@ Step 8. Per group, spawn `cdk:cr-feedback-implementer` with root, group id, the 
 
 ## Validate and verify
 
-- Step 9: the implementer cannot run commands, so run the repo's write formatter on changed files yourself (permission-prompted), then spawn `cdk:cr-feedback-validator` with root, changed files, and the repo instruction summary. Record every command and result, including skipped and `Not run` kinds. A required check still failing after the cap → stop.
-- Step 10: spawn `cdk:cr-feedback-verifier` with root, Dirty, the items, the plan, the implementer `Deviations`, the `<scratch>/final.diff` path, and the validation results. Its `Dirty paths touched` or `Validation concerns` block Gate A until resolved.
+- Step 9: the implementer cannot run commands, so run the repo's write formatter on changed files yourself (permission-prompted), then spawn `cdk:change-verifier` with `kind: checks`, root, changed files, and the repo instruction summary. Record every command and result, including skipped and `Not run` kinds. A required check still failing after the cap → stop.
+- Step 10: spawn `cdk:change-verifier` with `kind: feedback`, `model: opus`, root, Dirty, the items, the plan, the implementer `Deviations`, the `<scratch>/final.diff` path, and the validation results. Its `Dirty paths touched` or `Validation concerns` block Gate A until resolved.
 
 ## Commit and push
 
 Step 12. Subjects: `<type>(<optional scope>): <subject>`, max 72 chars, imperative, lowercase, no trailing period, no body, footer, or attribution; types feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert. A repo commitlint config wins.
 
-- Per coherent group: subject to `<scratch>/msg`, `commitlint` when configured (fail → redraft, cap in Rules; not installed → note it), `stage-files`, `commit`, then `signatures`: every flag `G`, else stop. A signing failure → stop with the exact line.
+- Per coherent group: subject to `<scratch>/msg`, `commitlint` when configured (fail → redraft, cap in Rules; not installed → note it), `stage-files`, `commit-signed` (enforced signing) or `commit`, then, when signed, `signatures`: every flag `G`, else stop. A signing failure → stop with the exact line.
 - Push: re-fetch the CR per the host `## Re-fetch before a mutation`; head ≠ `headSha` or CR not open → retry only for a lagging read (3 × 5 s), then stop ("new commits on the CR"). Then `push`; rejected → report the exact line, stop.
 - Record commits, `pushedSha`, and `cr:<n>:push`; items go `committed`, then `pushed`. No changed files → items stay `no-change` or `needs-decision`; skip to step 13.
 
 ## Replies
 
-Step 13. Spawn `cdk:cr-feedback-replier` with the updated items file path (classifications, `related` and `reason` per item, verifier results), the commit map, the validation summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md`, the head short SHA, and whether anything was pushed.
+Step 13. Spawn `cdk:cr-feedback-analyzer` with mode `reply` and the updated items file path (classifications, `related` and `reason` per item, verifier results), the commit map, the validation summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md`, the head short SHA, and whether anything was pushed.
 
 - It returns one body per item with its marker. `no reply` items post nothing; `target` picks a thread reply or a CR comment; `duplicate` and `outdated` replies are short plain explanations.
 - Draft the revision summary per `replies.md` `## Revision summary template` when any commit was pushed this run.

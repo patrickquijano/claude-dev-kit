@@ -15,11 +15,11 @@ Host-neutral rules for `cdk:review-change-request`; host commands live in `githu
 
 - `--reuse-findings <file>` present and its first line `Head: <sha>` equals the CR head SHA → use its blocks for the four roles (ignore `docs`) as the reviewers' output and mark them `reused`. A different SHA or an unreadable file → say so and run the full review.
 - Else the Direct review criteria from `findings.md` met → review directly, mark `direct`.
-- Else one message, four parallel Agent calls. Each gets only: root, base, merge-base, head, and the three scratch file paths (`diff.patch`, `name-status.txt`, `log.txt`). Add `checks: skip <reason>` for `cdk:cr-test-reviewer` when skipping, and the own-threads digest for `cdk:cr-correctness-reviewer`.
+- Else one message, four parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`), with `model: opus` on `correctness` and `security`. Each gets only: `role:`, root, base, merge-base, head, and the three scratch file paths (`diff.patch`, `name-status.txt`, `log.txt`). Add `checks: skip <reason>` for role `tests` when skipping, and the own-threads digest for role `correctness`.
 
 ## Local checks
 
-Run only when `head-sha` equals the CR head SHA and `tree-status` is empty. Otherwise pass `checks: skip <reason>` to the tests reviewer: the working tree would not be the code under review, and a checkout would modify the user's tree.
+Run when all conditions hold: `head-sha` equals the CR head SHA, `tree-status` is empty, and the CR is Self's own and not from a fork (GitHub `isCrossRepository` false; GitLab `source_project_id` = `target_project_id`). Otherwise ask once `Run local checks` | `Skip local checks` (none recommended; `--yes` skips): another author's or a fork's code would run its scripts on this machine. Skipping passes `checks: skip <reason>` to the tests reviewer, since the working tree would not be the code under review and a checkout would modify the user's tree. A skip is a stated limitation, not `incomplete`: CI (A4) covers A3 when it passes.
 
 ## Prior discussion
 
@@ -50,7 +50,7 @@ Applied after validation, so the review adds only what the existing discussion l
 
 `guidelines.md` `## Approval criteria`, judged after consolidation. A criterion no reviewer covered (incomplete reviewer, or none judged) fails as `not assessed`.
 
-- A1, A3, A5, A6: the parent judges each from the kept findings and reviewer `Summary` lines, never from a reviewer's own verdict. A1 fails on a kept finding that the change misses or contradicts what the title or description states. A3 fails on a kept `tests` finding of `medium` or above for changed behavior (docs-only or config-only changes pass with a stated reason) or an `incomplete` tests reviewer. A5 fails on a kept `maintainability` finding of `medium` or above, or any blocking one. A6 fails on a kept finding about an uncalled-out breaking change, migration, config or flag change, or missing rollback path.
+- A1, A3, A5, A6: the parent judges each from the kept findings and reviewer `Summary` lines, never from a reviewer's own verdict. A1 fails on a kept finding that the change misses or contradicts what the title or description states. A3 fails on a kept `tests` finding of `medium` or above for changed behavior (docs-only or config-only changes pass with a stated reason) or an `incomplete` tests reviewer (a trust-based local-check skip is not `incomplete` when CI passes: record it as a limitation and let A4 cover A3). A5 fails on a kept `maintainability` finding of `medium` or above, or any blocking one. A6 fails on a kept finding about an uncalled-out breaking change, migration, config or flag change, or missing rollback path.
 - A2: pass only when no kept finding is `blocking`, inline or General.
 - A4, A7: host `## Criteria`.
 - Self already approved the CR → approval is skipped (noted); `skipped` wins over failed criteria in the Output.
@@ -60,7 +60,7 @@ Applied after validation, so the review adds only what the existing discussion l
 1. Any kept `blocking` finding → request changes (GitHub `REQUEST_CHANGES`, GitLab `requested_changes`).
 2. Draft CR, or any other case → plain review (`COMMENT` / `reviewed`), with the reason (pending checks, skipped validation, incomplete reviewer) in the summary.
 3. Approve only when A1–A7 all pass and the user picks it (`--yes` takes it whenever offered). A review state never records an approval; the host `## Approve` says how it is made and when it is unavailable (an own PR on GitHub).
-4. Never override branch protection or repository policy.
+4. Never override branch protection or repository policy. Named exception: the own-PR `--admin` merge in the GitHub `## Merge` (never under `--yes`).
 5. Merge is offered only when A1–A7 pass, the CR is not a draft, no other reviewer's latest review requests changes, no unresolved thread other than a kept one remains, and the host `## Merge` offer rules hold. Each blocker is listed in `Merged: not offered`.
 
 ## Summary body
@@ -77,7 +77,7 @@ Use the overall template in `guidelines.md`: verdict line, per-role status, coun
 
 Set by `cdk:ship-release` with `--yes --squash yes|no --delete-branch yes|no`; invoking it is the consent. Needs a CR number.
 
-- Step 9 asks nothing: step 10 posts the verdict (approving when A1–A7 pass, deleting your old GitLab drafts), then step 12 merges when the host `## Merge` offers it with the preset Squash and Delete choices (absent → the CR's own settings on GitLab, repository settings on GitHub).
+- Step 9 asks nothing: step 10 posts the verdict (approving when A1–A7 pass; existing GitLab drafts of yours → stop, never deleted), then step 12 merges when the host `## Merge` offers it with the preset Squash and Delete choices (absent → the CR's own settings on GitLab, repository settings on GitHub).
 - Every stop, cap, and gate still applies (head re-fetch, verify, `sha` / `--match-head-commit` pin). Never admin-merge. Merge only a clean CR; otherwise list every blocker in `Merged:`.
 
 ## Open items

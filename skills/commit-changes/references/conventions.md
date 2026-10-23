@@ -12,20 +12,20 @@ A repo commitlint config wins over these rules.
 
 - Format: `<type>/<short-description>`, types as above.
 - Whole name (incl. `<type>/`) max 72 chars. Imperative verb first in description ("add-", not "added-"). Lowercase, hyphen-separated, `[a-z0-9-]` only.
-- Exists locally or on the remote → append `-2`, `-3`, ….
+- Exists locally or on the remote → append `-2`, `-3`, …, truncating the base so base + suffix stays at most 72 chars.
 
 ## Protected branch
 
-Host from `git remote get-url origin`; run commands verbatim:
+Host from `origin-url`; run the `commands.md` rows verbatim:
 
-- gitlab → `glab api --paginate projects/:id/protected_branches`; match `.[].name`, names may be globs (`release/*`).
-- github → `gh api repos/{owner}/{repo}/branches/{branch} --jq .protected` = `true`.
+- gitlab → `protected-gitlab`; match `.[].name`, names may be globs (`release/*`).
+- github → `protected-github` = `true`.
 - CLI missing, any API error (401/403/404), or other host → protected = `main`, `master`, `develop`, `release/*`.
 - Default branch and detached `HEAD` count as protected.
 
 ## Signing
 
-- `git config --get user.signingkey` set.
-- `git config --get gpg.format` = `ssh` → `git config --get gpg.ssh.allowedSignersFile` set, that file exists (`~` expanded), and it contains the signing public key: `user.signingkey` itself when it starts `ssh-`/`ecdsa-`/`sk-` (strip `key::`), else the first two fields of `<key>.pub` (or the key file when it ends `.pub`).
-- `.husky/` exists → also `git config --get commit.gpgsign` = `true` (hook enforces it).
+- `signing-key` set.
+- `signing-format` = `ssh` → `signing-signers-file` set, that file exists (`~` expanded), and it contains the signing public key: `user.signingkey` itself when it starts `ssh-`/`ecdsa-`/`sk-` (strip `key::`), else the first two fields of `<key>.pub` (or the key file when it ends `.pub`).
+- `.husky/` exists → also `signing-gpgsign` = `true` (hook enforces it).
 - Missing or mismatch → stop, tell user what to set. Commit, rebase, or hook fails on signing → stop, tell user the exact error line. Never edit signing config (git config, keys, allowed signers file) or retry unsigned.

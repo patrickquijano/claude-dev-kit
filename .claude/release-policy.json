@@ -1,5 +1,5 @@
 {
-  "$comment": "Opt-in release policy read by skills/bump-version/scripts/release-check.mjs (PR/MR skills, PreToolUse hook, CI). Paths outside userFacing (README, CLAUDE.md, .claude, .github, .husky, .vscode, evals, package files) never require a changelog entry or version bump. Add an exempt entry, with a reason, for anything inside userFacing that does not ship to users. versionReset ({version, reason}) lets the check accept one deliberate downgrade to a lower major than the target version; it does nothing once merged (the majors then match).",
+  "$comment": "Opt-in release policy read by skills/bump-version/scripts/release-check.mjs (PR/MR skills, CI). Paths outside userFacing (README, CLAUDE.md, .claude, .github, .husky, .vscode, evals, package files) never require a changelog entry or version bump. Add an exempt entry, with a reason, for anything inside userFacing that does not ship to users. versionReset ({version, reason}) lets the check accept one deliberate downgrade to a lower major than the target version; it does nothing once merged (the majors then match).",
   "changelog": "CHANGELOG.md",
   "defaultBranch": "main",
   "remote": "origin",

@@ -1,7 +1,7 @@
 ---
 name: setup-testing
 description: Sets up unit, integration, and end-to-end test tooling per package, with a recommended tester per kind and run scripts. Use only when the user explicitly asks to set up testing, or when chained.
-argument-hint: '[unit|integration|e2e …] [package paths]'
+argument-hint: '[unit|integration|e2e …] [package paths] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(docker info *)
 ---
 
@@ -17,12 +17,14 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Only this skill asks and writes; `cdk:test-gap-analyzer` cannot ask.
-- Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `write-*-tests` skills chain this with one kind and one package.
+- Only this skill asks and writes; `cdk:repo-analyzer` cannot ask.
+- Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `add-*-tests` skills chain this with one kind and one package.
 - Idempotent: a re-run with everything configured changes nothing. Never overwrite an existing config, script, or tester; an existing tester of a kind wins over the recommendation.
 - Writes: test config, dev-dependency and browser installs per a user pick, run scripts in the manifest, and the context note; never test files beyond an empty-suite placeholder a runner needs, never production code.
-- Never install unasked: one AskUserQuestion per missing tool, each option naming its effect, Recommended first with its reason, Stop last, at most 4 questions per call. Unattended run (chained with a kind, `--yes`, or auto) → take the Recommended pick and report it.
+- Never install unasked, except in an unattended run (below): one AskUserQuestion per missing tool, each option naming its effect, Recommended first with its reason, Stop last, at most 4 questions per call. Unattended run (chained with a kind, `--yes`, or auto) → take the Recommended pick and report it.
 - Layout: stack-native first, `tests/{unit,integration,e2e}` fallback; integration is always a separate suite.
 - Caps: step 2 re-spawns an analyzer at most once; the fix pass in step 9 runs once; install and smoke failures stop the skill with no retry.
 - Stop answer → `Result: cancelled`. Any later failure → step 9, then `Result: stopped` with `Stopped: <step>: <reason>`.
@@ -31,7 +33,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Project dir = Context Repo root, else cwd. Stop on a rebase or merge in progress (`Stopped: 1: git operation in progress`); find packages, package manager, Docker (`flow.md` `## Pre-flight`).
-2. **Analyze.** Spawn one `cdk:test-gap-analyzer` per package in one message, kind `setup` (`flow.md` `## Analyze`).
+2. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `setup` (`flow.md` `## Analyze`).
 3. **Decide.** Print the per-package table. All selected kinds configured and faker present → `Result: nothing-to-do`. Else ask per missing tool (`flow.md` `## Decide`).
 4. **Install.** Picked testers, the faker library, and e2e browsers as dev dependencies; a failed install stops the skill.
 5. **Configure.** Missing configs only, in the native layout (`flow.md` `## Configure and scripts`).

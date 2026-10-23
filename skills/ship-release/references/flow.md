@@ -12,8 +12,7 @@ Context → Git, Node, and npx version present (not `<none>`), plus `gh-version`
 
 - Signing: `signing-key` set; `signing-format` = `ssh` also needs `signers-file` set and existing. Missing → blocker `signing` (not a stop); never edit the signing config.
 - Target: `--target`, else `.claude/release-policy.json` `defaultBranch`, else `default-branch` without `origin/`. Then `fetch`.
-- Any failure so far → blocker. A pre-flight stop prints `Open: pre-flight: <reason>` and ends the run with no marker.
-- Otherwise write the hold marker last: Write tool, absolute path from `marker-path`, any short content. The plugin's end-of-task hook skips its commit step while it exists; step 10 deletes it.
+- Any failure so far → blocker. A pre-flight stop prints `Open: pre-flight: <reason>` and ends the run.
 
 ## Resume detection
 
@@ -37,7 +36,7 @@ Up to 3 rounds. A round = one review plus its fix cycle, so the third round ends
 
 1. **Review.** Invoke `cdk:review-change-request <n> --yes --squash <yes|no> --delete-branch <yes|no>`. Round 1 adds `--reuse-findings <Findings file from step 7>` (reused only when its head SHA equals the PR or MR head); later rounds never pass it. It posts one review with labeled inline comments and merges a clean PR or MR; read `Merged:` from its Output.
 2. **Merged** → step 9.
-3. **Pending required checks** → GitHub `checks-watch` (30-minute cap), GitLab re-read `head_pipeline` until done (30-minute cap); at most 2 waits, then repeat 1 once. Still pending → blocker `checks pending`, leave the loop. A wait does not use a round.
+3. **Pending required checks** → GitHub `checks-poll` (exit 8 = pending), GitLab `glab-mr-view` and read `head_pipeline`; `poll-wait` then repeat until done, bounded by elapsed time (10-minute cap per wait, never `--watch`); `checks-poll` exiting non-zero with "no required checks" means none are required, not failure; at most 2 waits, then repeat 1 once. Still pending → blocker `checks pending`, leave the loop. A wait does not use a round.
 4. **Blockers or open items** (a `(blocking)` comment, failing checks, other open findings) → invoke `cdk:address-change-request-review <n> --self-review --yes`, then step 5 again, then the next round. Needs a person (approval from someone else, conflicts, draft, branch policy) → blocker, leave the loop.
 5. Third review with items left → blocker `review rounds`, leave the loop.
 

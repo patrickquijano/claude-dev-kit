@@ -16,7 +16,7 @@ Switching → name the branch from `Branch` (analyzed) or the small-path name; e
 
 ## Commit failures
 
-- `switch-branch` fails → report the exact error line, then stop.
+- `switch-new` fails → report the exact error line, then stop.
 - Signing fails → stop per `conventions.md` `## Signing`; never retry unsigned.
 - Other hook failure → diagnose the root cause, fix it, re-stage, commit again (cap 3 per commit); cap hit → stop.
 

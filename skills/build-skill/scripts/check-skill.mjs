@@ -9,7 +9,7 @@ function listFiles(dir, prefix = '') {
   const out = [];
   for (const entry of readdirSync(join(dir, prefix), { withFileTypes: true })) {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
-    if (entry.name.startsWith('.')) continue; // .DS_Store and other dotfiles are not skill files
+    if (entry.name === '.DS_Store') continue; // macOS metadata; any other dotfile is listed and flagged by checkLayout
     if (entry.isDirectory()) out.push(...listFiles(dir, rel));
     else if (entry.isFile()) out.push(rel);
   }
@@ -51,6 +51,39 @@ const KNOWN_FIELDS = new Set([
 ]);
 const ALLOWED_TOP = new Set(['SKILL.md', 'references', 'assets', 'scripts']);
 const ACTOR_SUFFIX = /(er|or|ist|ant)$/;
+// A verb-first name (`setup-devcontainer`) names an action, so its object may end like an actor.
+const LEADING_VERB = new Set([
+  'add',
+  'address',
+  'assess',
+  'build',
+  'bump',
+  'check',
+  'commit',
+  'create',
+  'debug',
+  'deploy',
+  'draft',
+  'fix',
+  'format',
+  'generate',
+  'implement',
+  'lint',
+  'make',
+  'prepare',
+  'publish',
+  'rebase',
+  'review',
+  'run',
+  'scan',
+  'set',
+  'setup',
+  'switch',
+  'test',
+  'update',
+  'upgrade',
+  'write'
+]);
 const FENCE = /^\s*```/;
 
 export class FrontmatterError extends Error {}
@@ -127,8 +160,9 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
       found.push(error('name-dir', 'F1', 'SKILL.md', line, `name "${name}" must equal directory "${dirName}"`));
     if (/anthropic|claude/.test(name))
       found.push(error('name-reserved', 'F1', 'SKILL.md', line, 'name contains a reserved word'));
-    const last = name.split('-').pop();
-    if (ACTOR_SUFFIX.test(last)) {
+    const parts = name.split('-');
+    const last = parts[parts.length - 1];
+    if (!LEADING_VERB.has(parts[0]) && ACTOR_SUFFIX.test(last)) {
       found.push(
         warning(
           'name-actor',
@@ -202,6 +236,24 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
     found.push(error('injection-fallback', 'B6', 'SKILL.md', line, `${what} has no || fallback`));
   }
 
+  lines.forEach((l, i) => {
+    if (
+      i >= bodyStart &&
+      !/\bnever\b/i.test(l) &&
+      /\b(?:[Ss]pawn(?:s|ed|ing)?|[Dd]elegat(?:e|es|ed|ing))\b[^\n]*(\bExplore\b|general-purpose)/.test(l)
+    ) {
+      found.push(
+        warning(
+          'spawn-builtin',
+          'B8',
+          'SKILL.md',
+          i + 1,
+          'spawns Explore or general-purpose: name a cdk: agent instead'
+        )
+      );
+    }
+  });
+
   if (hasBundled && !lines.slice(bodyStart).some((l) => /^##\s+(Files|Navigation)\b/i.test(l))) {
     found.push(
       error(
@@ -232,11 +284,17 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
   return found;
 }
 
-// L2: only SKILL.md, references/, assets/, scripts/ beside the skill.
+// L2: only SKILL.md, references/, assets/, scripts/ beside the skill, and no dotfile or dot-directory (`.env`, `.git/`).
 export function checkLayout(files) {
   const found = [];
   if (!files.includes('SKILL.md')) found.push(error('skill-missing', 'L2', 'SKILL.md', 1, 'SKILL.md not found'));
   for (const file of files) {
+    if (file.split('/').some((part) => part.startsWith('.'))) {
+      found.push(
+        error('dotfile', 'L2', file, 1, `"${file}" is a dotfile; a skill ships none (only .DS_Store is ignored)`)
+      );
+      continue;
+    }
     const top = file.split('/')[0];
     const nested = file.includes('/');
     if (!ALLOWED_TOP.has(top) || (!nested && top !== 'SKILL.md')) {

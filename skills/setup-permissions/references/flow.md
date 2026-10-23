@@ -9,11 +9,11 @@ Detail for the Workflow steps in `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/refe
 ## Pre-flight
 
 - Platform: Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` = macOS, `Linux` = Linux).
-- Settings dir: `config-dir` output when it prints a path (a failed command = unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). Target = `<dir>/settings.json`. Managed settings, if any, still outrank it.
+- Settings dir: `config-dir` output when it prints a path (a failed command = unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). User target = `<dir>/settings.json`; project target = `<repo root>/.claude/settings.local.json`. Managed settings, if any, still outrank both.
 
 ## Analyze
 
-Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Ignore its `Known issue:` lines. Its `Gaps:` become `skipped` notes.
+Spawn `cdk:repo-analyzer` with `kind: permissions`, the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Ignore its `Known issue:` lines. Its `Gaps:` become `skipped` notes.
 
 ## MCP inventory
 
@@ -25,13 +25,14 @@ Spawn `cdk:permission-analyzer` with the repo root and `$ARGUMENTS` as extra not
 
 - Apply `${CLAUDE_SKILL_DIR}/references/catalog.md` to the analyzer's commands plus the baseline for the platform, and its `## MCP` section to each listed MCP tool.
 - Use `Package managers` to scope the read-only package-manager allows and `Installed` to skip missing programs.
+- Tag each candidate user or project scope per `catalog.md` `## Scope`.
 - Candidates per list, each with its reason: `Bash` and `PowerShell` commands as exact + wildcard pairs, each MCP tool as one exact rule.
 - `Destructive`, `Interpreter/exec`, `Privileged` entries and anything unclassifiable go to ask or deny per the catalog.
 - `reclassified` = a command that looks allowable but the catalog moved to ask or deny, with the reason.
 
 ## Merge
 
-Read the target (missing = `{}`; comments, invalid JSON, or a non-object `permissions` = stop). Compare candidates with existing `permissions.allow|ask|deny`, treating `Bash(x:*)` as `Bash(x *)`:
+Do this per target (user, project). Read the target (missing = `{}`; comments, invalid JSON, or a non-object `permissions` = stop). Compare its candidates with existing `permissions.allow|ask|deny` in that file and, for an allow, the other file's deny and ask lists (a deny in either file wins), treating `Bash(x:*)` as `Bash(x *)`:
 
 - already present: `retained`; skipped as a duplicate.
 - same rule in a different list: `conflicting`; keep the existing, add nothing.
@@ -45,7 +46,7 @@ Build the merged object in memory: append new rules at each list's end, keep eve
 
 ## Validate
 
-Write the merged JSON to the scratchpad and run `validate-json` (`jq` missing = ask the user to install it, or approve a one-off `node -e` JSON parse). Then check:
+Write each merged JSON to the scratchpad and run `validate-json` on each (`jq` missing = ask the user to install it, or approve a one-off `node -e` JSON parse; unattended: skip `validate-json`, do the checks below by reading, and list `Validation: jq missing` under `Open:`). Then check:
 
 - top-level object; the three lists are arrays of strings.
 - each rule is `Tool(specifier)` with a known tool name (`Bash`, `PowerShell`, `Edit`, `Read`, ...); no bare tool name, no leading `*`; `mcp__` rules follow the MCP bullet.
@@ -55,7 +56,7 @@ Write the merged JSON to the scratchpad and run `validate-json` (`jq` missing = 
 
 ## Write
 
-Write the validated JSON to the target, creating the directory if missing; the path is protected, so Claude Code prompts. Re-read the file and repeat the Validate checks on it.
+Write each validated JSON to its target (skip an unchanged one), creating the directory if missing; the paths are protected, so Claude Code prompts. Re-read each file and repeat the Validate checks on it.
 
 ## Fix loop
 

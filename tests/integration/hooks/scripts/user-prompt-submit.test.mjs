@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
@@ -24,13 +24,10 @@ function repo() {
   sh(d, '-c', 'commit.gpgsign=false', 'commit', '-q', '-m', 'chore: init');
   return d;
 }
-// PATH holds only git, so Graphify is never configured.
-const emptyBin = dir('te-bin-');
-symlinkSync(execFileSync('which', ['git'], { encoding: 'utf8' }).trim(), path.join(emptyBin, 'git'));
 const run = (cwd, input) =>
   spawnSync(process.execPath, [SCRIPT], {
     input,
-    env: { ...process.env, CLAUDE_PROJECT_DIR: cwd, PATH: emptyBin },
+    env: { ...process.env, CLAUDE_PROJECT_DIR: cwd },
     encoding: 'utf8',
     timeout: 15_000
   });
@@ -41,7 +38,7 @@ after(() => {
   for (const d of dirs) rmSync(d, { recursive: true, force: true });
 });
 
-test('cli: a task prompt prints plan-mode context and no end-of-task steps', () => {
+test('cli: a task prompt prints plan-mode context', () => {
   // Arrange
   const d = repo();
   // Act
@@ -50,17 +47,6 @@ test('cli: a task prompt prints plan-mode context and no end-of-task steps', () 
   assert.equal(r.status, 0);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
   assert.match(ctx, /whether to enter plan mode/);
-  assert.doesNotMatch(ctx, /cdk:commit-changes|cdk:update-changelog|README\.md or related docs/);
-});
-
-test('cli: a non-git directory prints no end-of-task steps', () => {
-  // Arrange
-  const d = dir('te-none-');
-  // Act
-  const r = run(d, prompt);
-  // Assert
-  assert.equal(r.status, 0);
-  assert.doesNotMatch(r.stdout, /README\.md or related docs|cdk:commit-changes/);
 });
 
 test('cli: a slash-command prompt prints nothing', () => {

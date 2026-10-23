@@ -1,6 +1,6 @@
 # Integration test conventions
 
-Read by this skill and its `cdk:test-gap-analyzer`. `<x>`, `<py>`, `<mvn>`, `<gradle>` follow `stacks.md`.
+Read by this skill and its `cdk:repo-analyzer` kind `tests`. `<x>`, `<py>`, `<mvn>`, `<gradle>` follow `stacks.md`.
 
 ## Contents
 
@@ -48,7 +48,7 @@ JS/TS ES modules: integration tests go in `tests/integration/` at the mirrored s
 
 ## Best practices
 
-Apply the Integration section, then WebFetch the detected runner's official docs (list below, else the runner's `homepage` from its manifest) for runner-specific rules; add Testcontainers when a container is picked. WebFetch unavailable or failing → bundled rules only, and say so in the Output.
+Apply the Integration section, then use the practices researcher's cited rules from the detected runner's official docs (list below, else the runner's `homepage` from its manifest) for runner-specific rules; add Testcontainers when a container is picked. Researcher unavailable or failing → bundled rules only, and say so in the Output.
 
 ## Official docs
 

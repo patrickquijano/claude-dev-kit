@@ -9,6 +9,7 @@ Read Status in `fix.md`:
 - `applied` → step 5.
 - `not-applied` or `partial`, Deviations say the assessment is wrong → step 6 (re-assess).
 - `partial`, other reason → step 5; the test shows what the applied part fixes.
+- `not-applied`, other reason, unattended → `Test: not run`, `Result: stopped`, `Stopped: Fix: not-applied, input needed`; list the blockers in `Open:`, print the Output.
 - `not-applied`, other reason → blockers: AskUserQuestion with one option per blocker (option text = how to resolve it), plus Stop, free text via Other. An answer → step 6 (retry) with it as `<user input>`. Stop → `Test: not run`, `Result: stopped`, `Stopped: Fix: not-applied, user stopped`; list the blockers in `Open:`, print the Output.
 
 ## Test result
@@ -17,7 +18,7 @@ Read Result in `test.md`:
 
 - `verified` → `Result: done`, `Open: none`.
 - `failed`, or `partial` with a failing check or regression → step 6 (failing checks).
-- `partial` with only `skipped` or `not-run` checks → list them, re-run `speckit-bug-test slug=<slug>` with consent to run them, no ask, then read Result again. Max 3 re-runs per pass; after the third → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, list them in `Open:`.
+- `partial` with only `skipped` or `not-run` checks → list them, re-run `speckit-bug-test slug=<slug>` with consent to run only the local, safe ones (tests, lint, type-check on local code), no ask; a check reaching the network, a shared or production environment, or deleting data stays not-run in `Open:` (attended: ask first); then read Result again. Max 3 re-runs per pass; after the third → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, list them in `Open:`.
 
 ## Iterate
 

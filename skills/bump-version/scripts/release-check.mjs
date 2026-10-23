@@ -1,17 +1,13 @@
-// Release gate shared by the PR/MR skills, the plugin PreToolUse hook, and CI: changelog and version checks.
-// Modes: `check` (validate), `bump` (write the required version), `hook` (PreToolUse stdin JSON; exit 2 blocks).
+// Release gate shared by the PR/MR skills and CI: changelog and version checks.
+// Modes: `check` (validate) and `bump` (write the required version).
 import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-// Standalone helpers (git runner, state files, stdin, entry guard); the script imports nothing from the plugin.
-const sha = (s) => createHash('sha256').update(String(s)).digest('hex').slice(0, 16);
+// Standalone helpers (git runner, entry guard); the script imports nothing from the plugin.
 const git = (cwd, args, timeout = 15_000) =>
   spawnSync('git', args, { cwd, maxBuffer: 1 << 28, timeout, windowsHide: true });
-const expected = (err, ...codes) => codes.includes(err?.code);
 
 // True mid-merge, rebase, cherry-pick, revert, bisect, on a detached HEAD, or with unmerged paths.
 const unsafeState = (cwd, status = '') => {
@@ -23,36 +19,8 @@ const unsafeState = (cwd, status = '') => {
   return status.split('\0').some((entry) => /^(U.|.U|AA|DD) /.test(entry));
 };
 
-const statePath = (name, cwd) => path.join(tmpdir(), `cdk-${name}-${sha(cwd)}-${sha('')}.json`);
-const readState = (file) => {
-  try {
-    const s = JSON.parse(readFileSync(file, 'utf8'));
-    return s && typeof s === 'object' ? s : {};
-  } catch (e) {
-    if (expected(e, 'ENOENT', 'ENOTDIR') || e instanceof SyntaxError) return {};
-    throw e;
-  }
-};
-const writeState = (file, state) => {
-  try {
-    writeFileSync(file, JSON.stringify(state));
-  } catch (e) {
-    // Unwritable temp dir; at worst the next run repeats.
-    if (!expected(e, 'EACCES', 'EPERM', 'EROFS', 'ENOENT', 'ENOSPC')) throw e;
-  }
-};
-
-const readJsonStdin = async (stream = process.stdin) => {
-  let data = '';
-  for await (const chunk of stream) data += chunk;
-  const parsed = JSON.parse(data);
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-    throw new TypeError('hook input is not a JSON object');
-  return parsed;
-};
-
-// Runs `fn` only when this file is the entry script; an error it throws prints one line and sets `failCode`.
-const runIfMain = async (metaUrl, fn, { label, failCode = 1 }) => {
+// Runs `fn` only when this file is the entry script; an error it throws prints one line and sets exit code 1.
+const runIfMain = async (metaUrl, fn, { label }) => {
   if (!process.argv[1] || metaUrl !== pathToFileURL(realpathSync(process.argv[1])).href) return;
   try {
     const code = await fn();
@@ -63,12 +31,11 @@ const runIfMain = async (metaUrl, fn, { label, failCode = 1 }) => {
         .split('\n')[0]
         .slice(0, 300)}\n`
     );
-    process.exitCode = failCode;
+    process.exitCode = 1;
   }
 };
 
 export const POLICY_FILE = '.claude/release-policy.json';
-const MCP_CREATE = 'mcp__plugin_gitlab_gitlab__save_merge_request';
 const LEVELS = ['patch', 'minor', 'major'];
 
 // Side effects the logic needs; tests pass stubs, everything else uses the real ones.
@@ -78,11 +45,6 @@ const realDeps = {
   existsSync,
   readFileSync,
   writeFileSync,
-  readState,
-  writeState,
-  statePath,
-  readJsonStdin,
-  stderr: (text) => process.stderr.write(text),
   log: (text) => console.log(text),
   error: (text) => console.error(text),
   env: process.env,
@@ -142,7 +104,6 @@ export function loadPolicy(cwd, deps = {}) {
   if (!p || typeof p !== 'object' || Array.isArray(p)) throw new Error('policy must be a JSON object');
   return {
     root,
-    hash: sha(raw),
     policy: {
       changelog: 'CHANGELOG.md',
       defaultBranch: 'main',
@@ -421,127 +382,10 @@ export function bump(cwd, { target, pendingSubject = '' } = {}, deps = {}) {
   return { ...r, changed };
 }
 
-// Minimal shell tokenizer: quotes honored; `&&`, `||`, `;`, `|` split segments.
-export function segments(command) {
-  const segs = [[]];
-  let tok = '';
-  let q = '';
-  let has = false;
-  const push = () => {
-    if (has) segs.at(-1).push(tok);
-    tok = '';
-    has = false;
-  };
-  for (let i = 0; i < command.length; i++) {
-    const c = command[i];
-    if (q) {
-      if (c === q) q = '';
-      else if (c === '\\' && q === '"' && i + 1 < command.length) tok += command[++i];
-      else tok += c;
-    } else if (c === '"' || c === "'") {
-      q = c;
-      has = true;
-    } else if (/\s/.test(c)) push();
-    else if (c === ';' || c === '|' || c === '&') {
-      push();
-      if (c !== '&' || command[i + 1] === '&') {
-        if (command[i + 1] === c && c !== ';') i++;
-        segs.push([]);
-      }
-    } else {
-      tok += c;
-      has = true;
-    }
-  }
-  push();
-  return segs.filter((s) => s.length);
-}
-
-const flag = (t, names) => {
-  for (let i = 0; i < t.length; i++) {
-    for (const n of names) {
-      if (t[i] === n) return t[i + 1];
-      if (t[i].startsWith(`${n}=`)) return t[i].slice(n.length + 1);
-    }
-  }
-  return undefined;
-};
-const field = (t, key) => {
-  for (let i = 0; i < t.length; i++) {
-    if (/^(-f|-F|--field|--raw-field)$/.test(t[i]) && t[i + 1]?.startsWith(`${key}=`))
-      return t[i + 1].slice(key.length + 1);
-  }
-  return undefined;
-};
-const apiPost = (t) => {
-  const m = flag(t, ['-X', '--method']);
-  if (m) return m.toUpperCase() === 'POST';
-  return t.some((x) => /^(-f|-F|--field|--raw-field|--input)$/.test(x));
-};
-
-// Target branch (or null) when the tool call creates a PR/MR; undefined when it does not.
-export function createTarget(event, defaultBranch) {
-  if (event.tool_name === MCP_CREATE) {
-    const i = event.tool_input ?? {};
-    return i.merge_request_iid ? undefined : i.target_branch || defaultBranch;
-  }
-  if (event.tool_name !== 'Bash') return undefined;
-  for (const raw of segments(String(event.tool_input?.command ?? ''))) {
-    const t = [...raw];
-    while (t.length && /^[A-Za-z_]\w*=/.test(t[0])) t.shift();
-    const [bin, ...rest] = t;
-    const next = (w) => rest.indexOf(w) >= 0 && rest[rest.indexOf(w) + 1];
-    if (bin === 'gh') {
-      if (next('pr') === 'create') return flag(rest, ['-B', '--base']) || defaultBranch;
-      if (rest[0] === 'api' && rest.some((x) => /\/pulls$/.test(x)) && apiPost(rest))
-        return field(rest, 'base') || defaultBranch;
-    } else if (bin === 'glab') {
-      if (['create', 'new'].includes(next('mr'))) return flag(rest, ['-b', '--target-branch']) || defaultBranch;
-      if (rest[0] === 'api' && rest.some((x) => /merge_requests$/.test(x)) && apiPost(rest))
-        return field(rest, 'target_branch') || defaultBranch;
-    }
-  }
-  return undefined;
-}
-
 export function report(r) {
   if (r.skipped) return r.notes.join('\n');
   const lines = r.failures.map((f) => `release-check: ${f.code}: ${f.message}\n  fix: ${f.fix}`);
   return lines.join('\n');
-}
-
-// PreToolUse hook body; resolves to the exit code (2 blocks). The dispatcher passes the event it already parsed.
-export async function runHook(deps = {}, parsed) {
-  const d = withDeps(deps);
-  const event = parsed ?? (await d.readJsonStdin());
-  const cwd = (typeof event.cwd === 'string' && event.cwd) || d.env.CLAUDE_PROJECT_DIR || d.cwd();
-  let loaded;
-  try {
-    loaded = loadPolicy(cwd, deps);
-  } catch (e) {
-    d.stderr(`release-check: invalid ${POLICY_FILE}: ${e.message}\n`);
-    return 2;
-  }
-  if (!loaded.policy) return 0;
-  const target = createTarget(event, loaded.policy.defaultBranch);
-  if (!target) return 0;
-
-  const rel = [loaded.policy.changelog, ...loaded.policy.versionFiles.map((v) => v.path)];
-  const head = out(d.git(loaded.root, ['rev-parse', 'HEAD']));
-  const relStatus = out(d.git(loaded.root, ['status', '--porcelain=v1', '--', ...rel]));
-  const key = sha(`${head}|${target}|${loaded.hash}|${relStatus}`);
-  const file = d.statePath('release-check', loaded.root);
-  if (d.readState(file).pass === key) return 0;
-
-  const r = evaluate(cwd, { target }, deps);
-  if (r.ok) {
-    d.writeState(file, { pass: key });
-    return 0;
-  }
-  d.stderr(
-    `${report(r)}\nBlocked PR/MR creation. Fix, commit, push, then retry. No bypass: exceptions live in ${POLICY_FILE} (exempt, with a reason).\n`
-  );
-  return 2;
 }
 
 // CLI body; resolves to the exit code.
@@ -550,7 +394,6 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   const [mode = 'check', ...args] = argv;
   const opt = (n) => args[args.indexOf(n) + 1];
   const cwd = d.cwd();
-  if (mode === 'hook') return runHook(deps);
   const target = args.includes('--target') ? opt('--target') : undefined;
   try {
     const subjectFile = args.includes('--subject') ? opt('--subject') : undefined;
@@ -592,5 +435,4 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
   }
 }
 
-// `hook` is a gate (exit 2 on an unexpected error); the CLI modes exit 1.
-await runIfMain(import.meta.url, main, { label: 'release-check', failCode: process.argv[2] === 'hook' ? 2 : 1 });
+await runIfMain(import.meta.url, main, { label: 'release-check' });

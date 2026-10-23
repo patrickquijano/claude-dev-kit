@@ -45,7 +45,7 @@ Re-fetch and re-read the discussions. Require: `state` `opened`; `diff_refs.head
 Orchestrator only, after the Gate B approval and the re-fetch, one item at a time, each recorded in `ops[]` straight after success:
 
 - Thread reply: write `{"body":…}` to scratch; `glab api projects/:id/merge_requests/<iid>/discussions/<id>/notes -X POST -H 'Content-Type: application/json' --input <file>`; record the returned note `id` as `replyId`.
-- General comment (reply to a non-thread note, or the revision summary): write `{"body":…}`; `glab api projects/:id/merge_requests/<iid>/notes -X POST -H 'Content-Type: application/json' --input <file>`; open a reply body with a quote of the item's first line and its link.
+- General comment (reply to a non-thread note, or the revision summary): write `{"body":…}`; `glab api projects/:id/merge_requests/<iid>/notes -X POST -H 'Content-Type: application/json' --input <file>`; open a reply body with a quote of the item's first line and its link. The revision summary is skipped when `cr:<n>:summary` is in `ops[]`, else that key is recorded after success (`state.md` `## Idempotency`).
 - Resolve: write `{"resolved":true}`; `glab api projects/:id/merge_requests/<iid>/discussions/<id> -X PUT -H 'Content-Type: application/json' --input <file>`; only per the state.md resolve rule.
 - Never call: merge, approve, unapprove, delete a note, or reopen a discussion.
 

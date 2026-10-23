@@ -42,38 +42,14 @@ test('invalid stdin prints one stderr line, nothing on stdout, and exits 1', () 
   assert.match(result.stderr, /^cdk session-start: .+\n$/);
 });
 
-test('a project without Graphify gets no Graphify rules', () => {
+test('a leftover marker file adds no marker text on startup', () => {
   // Arrange
-  const dir = project();
-  // Act
-  const result = run(dir, '{}');
-  // Assert
-  assert.doesNotMatch(result.stdout, /Graphify/);
-});
-
-const markerRepo = () => {
   const dir = project();
   spawnSync('git', ['init', '-q'], { cwd: dir });
   writeFileSync(path.join(dir, '.git', 'cdk-ship-release'), '');
-  return dir;
-};
-
-test('a stale ship-release marker is reported on startup', () => {
-  // Arrange
-  const dir = markerRepo();
   // Act
   const result = run(dir, JSON.stringify({ source: 'startup' }));
   // Assert
   const text = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.match(text, /ship-release marker exists/);
-});
-
-test('the ship-release marker is not reported on compact', () => {
-  // Arrange
-  const dir = markerRepo();
-  // Act
-  const result = run(dir, JSON.stringify({ source: 'compact' }));
-  // Assert
-  const text = JSON.parse(result.stdout).hookSpecificOutput.additionalContext;
-  assert.doesNotMatch(text, /ship-release/);
+  assert.doesNotMatch(text, /marker/);
 });

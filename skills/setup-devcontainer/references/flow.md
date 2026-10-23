@@ -18,6 +18,7 @@ AskUserQuestion, recommended option first with the reason; derivable facts and f
   - Docker access, when the analyzer says `Builds images: yes`: None (Recommended; least access) | docker-outside-of-docker (host daemon) | docker-in-docker (privileged).
   - Stack and runtime version, when `Empty: yes` or the version is not derivable.
   - Config to update, when update mode found more than one config.
+- Unattended: ask nothing; take each Recommended option and list the gaps under `Open:`.
 - Call 3: only for gaps left after call 2 and failed step 4 lookups (step 4 re-runs for the answers).
 
 ## Draft (step 5)
@@ -25,7 +26,8 @@ AskUserQuestion, recommended option first with the reason; derivable facts and f
 Per practices.md:
 
 - devcontainer.json: `name` (repo dir name), `image`, `build`, or `dockerComposeFile` + `service` + `workspaceFolder`, `features`, `forwardPorts`, `mounts`, `containerEnv`, `remoteEnv`, `postCreateCommand`, `secrets`, `customizations.vscode.extensions`, plus `capAdd`, `postStartCommand`, and `waitFor` for the firewall.
-- Compose: `.devcontainer/compose.yaml` (extending the repo's compose file when one exists), `.devcontainer/.env.example`, `.devcontainer/.env`, `.gitignore` entry.
+- Create mode: an existing `compose.yaml`, `Dockerfile` (via the chain), `init-firewall.sh`, or `.env.example` is handled as update (diff, then Write | Stop at step 6; unattended: keep it, list under `Open:`).
+- Compose: `.devcontainer/compose.yaml` (extending the repo's compose file when one exists), `.devcontainer/.env.example`, `.devcontainer/.env` (only when missing), `.devcontainer/.dockerignore` (with `.env`; missing → create, else add the missing line), `.gitignore` entry.
 - `.gitattributes` LF rule when missing; firewall → `.devcontainer/init-firewall.sh` from the reference.
 - Dockerfile needed → the `cdk:build-dockerfile` arguments per practices.md `## Dockerfile handoff`.
 - Update mode → keep the existing config's intent (approach, features, customizations, commands), add only what step 3 chose, fix what breaks a practice (`appPort`, Compose `ports`, `latest` tags, mounted host secrets); list each change with its reason.

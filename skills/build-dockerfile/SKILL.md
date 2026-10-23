@@ -17,15 +17,17 @@ Input: $ARGUMENTS
 
 ## Rules
 
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Apply every **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md` and every other item that fits; a skipped item gets a reason in the Output. Input `target=devcontainer` → its `## Devcontainer target` replaces the items it names.
-- No invented facts: runtime version, build and start commands, port, env vars, and system packages come from the input or the repo. Not derivable → ask (default target only).
+- Facts: runtime version, build and start commands, port, env vars, and system packages come from the input or the repo. Not derivable → ask (default target only).
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
 - `docker build --check` is the primary check; hadolint only on a heredoc-free file, so it usually reports `skipped (heredoc)`.
-- Writes and AskUserQuestion happen here only; `cdk:dockerfile-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
+- Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Resolution:` and stop.
+- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts; tag listing 10 pages. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
 - Chained by `cdk:setup-devcontainer` (devcontainer target): unattended, ask nothing, report leftovers.
 
 ## Workflow
@@ -35,8 +37,8 @@ Input: $ARGUMENTS
 3. **Clarify.** Ask only missing facts; apply the defaults without asking. Devcontainer → skip (`flow.md` `## Clarify`).
 4. **Draft and plan.** Build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
 5. **Write** `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
-6. **Verify.** Spawn `cdk:dockerfile-reviewer`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
-7. **Report** leftovers under `Resolution:`, then print the Output.
+6. **Verify.** Spawn `cdk:practices-reviewer` with `kind: dockerfile`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
+7. **Report** leftovers under `Open:`, then print the Output.
 
 ## Files
 
@@ -59,7 +61,8 @@ Distro: <debian | ubuntu | alpine> (<reason when not Debian slim>)
 Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>
 Findings: <path:line practice id — fix>, … | none
 Build: docker build -t <name> -f <Dockerfile> <context>
-Resolution: <n> resolved, <m> open (<id: severity, reason; recommended fix>, …) | none | not run
+Resolution: <n> resolved, <m> open (see Open) | none | not run
+Open: <id: severity, reason; recommended fix>, … | none
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

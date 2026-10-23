@@ -17,12 +17,12 @@
 
 ## Target
 
-No question. Input names a branch → use it when listed or `verify-ref` passes, else report and stop. No input → the default; not listed → stop and tell the user to name a target. Report `divergence` as "<behind> behind, <ahead> ahead".
+No question. Input names a branch → try `origin/<input>` first (listed or `verify-ref` passes), then the local `<input>` (`verify-ref`), else report and stop. No input → the default; not listed → stop and tell the user to name a target. Report `divergence` as "<behind> behind, <ahead> ahead".
 
 ## Conflict loop
 
 - Files: `conflicted-files`; commit: `replayed-commit`; ancestor: `merge-base`.
-- Analysis: ≥3 files → one `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, and merge-base (≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block. Fewer → inline: read the hunks, mine = `theirs-diff`, ours = `ours-log`.
+- Analysis: always one `cdk:conflict-analyzer` per file with root, file, `REBASE_HEAD` sha, target, and merge-base (≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block.
 - AskUserQuestion per file (≤4 per batch), recommendation from the analysis with its justification (default Merge both unless one side clearly supersedes):
   - Merge both: combine the hunks (analyzer `combined` text or by hand); show the proposed hunk in the question; choosing it writes it and continues to `stage-file`. A Revise option (max 5 rounds) lets the user edit it, then re-asks.
   - Keep target: `keep-target`; discards all your changes to the file from this commit.
@@ -34,7 +34,7 @@ No question. Input names a branch → use it when listed or `verify-ref` passes,
 
 ## Push
 
-- `open-mr` returns an open MR (glab missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
+- `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
 - Upstream = `origin/<current>` → ask: Push with lease (Recommended; the remote holds the pre-rebase history) | Skip. Lease → `push-lease`.
 - Upstream is another branch (e.g. `origin/main`) → never force; ask: Skip (Recommended) | Push -u to `origin/<current>` (no force; rejected if it holds other history) → `push-upstream`.
 - No upstream → ask: Push -u (Recommended) | Skip → `push-upstream`.
@@ -42,4 +42,4 @@ No question. Input names a branch → use it when listed or `verify-ref` passes,
 
 ## Open items
 
-Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).
+Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: an unattended conflict abort (the files that conflicted), `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).

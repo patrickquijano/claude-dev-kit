@@ -45,10 +45,10 @@ Ask only for what the table cannot derive from the extracted facts.
 A skill does exactly one job. Signals of several: "and" between unrelated actions, separate triggers or outputs, steps with no shared input.
 
 - Recommend **Split** when the jobs are independent: one skill per job, each built in turn through workflow steps 2–8.
-- Recommend **Pick one** when one job dominates: the rest go to `Gaps:`.
+- Recommend **Pick one** when one job dominates: the rest go to `Open:`.
 - Update that adds a second job → same question.
 
 ## Name
 
 - Verb-first and the action, not the actor: `review-code`, `update-changelog`, not `code-reviewer`, `changelog-writer`.
-- Update of an existing skill with an actor name → ask "Rename (Recommended) | Keep, report in Gaps".
+- Update of an existing skill with an actor name → ask "Rename (Recommended) | Keep, report in Open".

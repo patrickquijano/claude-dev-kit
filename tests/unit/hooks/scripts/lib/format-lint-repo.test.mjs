@@ -386,9 +386,10 @@ test('formatLintRepo: blocks with the failure output', () => {
   // Act
   const result = formatLintRepo({}, deps);
   // Assert
-  assert.equal(result.decision, 'block');
-  assert.match(result.reason, /Repository format\/lint issues/);
-  assert.match(result.reason, /line too long/);
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
+  assert.match(result.hookSpecificOutput.additionalContext, /Repository format\/lint issues/);
+  assert.match(result.hookSpecificOutput.additionalContext, /line too long/);
 });
 
 test('formatLintRepo: records fingerprints in the state file after a run', () => {
@@ -476,7 +477,8 @@ test('formatLintRepo: skips the group linter when its formatter fails', () => {
   // Act
   const result = formatLintRepo({}, deps);
   // Assert
-  assert.equal(result.decision, 'block');
+  assert.equal(result.hookSpecificOutput.hookEventName, 'Stop');
+  assert.equal(result.decision, undefined);
   assert.deepEqual(calls, ['yamlfmt']);
 });
 

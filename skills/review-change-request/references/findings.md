@@ -1,6 +1,6 @@
 # Findings contract
 
-Used by `cdk:review-change-request`, its direct-review path, and its reviewers (`cdk:cr-correctness-reviewer`, `cdk:cr-test-reviewer`, `cdk:cr-security-reviewer`, `cdk:cr-maintainability-reviewer`). The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes.
+Used by `cdk:review-change-request`, its direct-review path, and its reviewers (`cdk:cr-reviewer` with `role:` `correctness`, `tests`, `security`, `maintainability`). The reviewers own the return block in their `## Return`; this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes.
 
 ## Contents
 
@@ -31,7 +31,7 @@ Limitations: <list | none>
 Summary: <two sentences, facts only>
 ```
 
-- Own threads (`cdk:cr-correctness-reviewer` only, when the parent passes an own-threads digest): after `Summary`, one more block. `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`. No digest → omit it.
+- Own threads (`cdk:cr-reviewer` role `correctness` only, when the parent passes an own-threads digest): after `Summary`, one more block. `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`. No digest → omit it.
 
   ```text
   Threads:
@@ -45,7 +45,7 @@ Summary: <two sentences, facts only>
 - `Status`: `pass` = no finding above `info`; `issues` = at least one finding above `info`; `check-failed` = a command marked `[required]` exited non-zero; `incomplete` = the review could not finish (missing input, command unavailable, timeout); say why in `Limitations`.
 - `side` says which side `line` is on: `new` (added or unchanged line at head, the default), `old` (removed line; `line` is its number in the base), `both` (unchanged line; `line` is the new number, `old_line` the old one). `old_line` is `none` unless `side: both`. Use `old` only for a removed line, and only when the finding is about the removal.
 - `label` and `decoration` are Conventional Comments: `critical` or `high` → `issue` (or `todo` / `chore`), `blocking`; `medium` → `suggestion` or `issue`, `non-blocking`; `low` → `suggestion` or `nitpick`; unclear intent → `question`; `info` → `praise` (decoration `none`) or `note`. The parent sets `decoration: blocking` exactly when `blocking: yes`, and `non-blocking` for any other finding that says `blocking`.
-- `[required]` is set only by `cdk:cr-test-reviewer`, on lint, typecheck, test, and build commands the repository documents.
+- `[required]` is set only by `cdk:cr-reviewer` role `tests`, on lint, typecheck, test, and build commands the repository documents.
 - Reviewers never run `--fix`, install, format-write, or any command that writes outside the system temp directory.
 
 ## Severity
@@ -76,5 +76,5 @@ A small, low-risk change → the parent reviews the diff itself and spawns no re
 
 - Applies only when every item holds, counted from `name-status.txt` and `diff-numstat`: at most 5 changed files; at most 200 added plus deleted lines; no changed path that is sensitive (auth or permissions code, secrets or `.env*`, CI config, dependency manifests or lockfiles, migrations, hook scripts). Any doubt → spawn.
 - The parent covers all four roles and emits the same block per role, under the same Evidence rules and Severity. It reads each changed file at head rather than judging from the diff alone.
-- The tests role still runs the repository's documented lint, typecheck, test, and build commands (read-only; `checks: skip <reason>` only per the local-checks rule in `flow.md`), reported as `[required]` commands. A skipped required check leaves the tests role `incomplete`, so the verdict cannot be `APPROVE` and no merge is offered.
+- The tests role's documented lint, typecheck, test, and build commands (read-only; `checks: skip <reason>` only per the local-checks rule in `flow.md`) run as `[required]` in a subagent. Spawn `cdk:change-verifier` kind `checks` (inputs: root, changed file paths, repo instruction summary) and map its `Checks:` to the test role's `Commands:`: each `[required]` fail → `check-failed`, each skipped required → `incomplete`. The parent keeps the small-diff judgement and reads the changed files itself. A required check skipped for lack of a tool or a failure leaves the tests role `incomplete`, so the verdict cannot be `APPROVE` and no merge is offered.
 - The Output marks the reviewers `direct`.
