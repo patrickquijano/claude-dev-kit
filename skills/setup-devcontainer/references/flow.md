@@ -18,6 +18,7 @@ AskUserQuestion, recommended option first with the reason; derivable facts and f
   - Docker access, when the analyzer says `Builds images: yes`: None (Recommended; least access) | docker-outside-of-docker (host daemon) | docker-in-docker (privileged).
   - Stack and runtime version, when `Empty: yes` or the version is not derivable.
   - Config to update, when update mode found more than one config.
+  - Extensions, when the analyzer's `Host extensions` lists any: keep only IDs matching the analyzer's stacks and configured tools, and ask a multiSelect of that filtered list, all preselected as Recommended (they match this repo). `code` missing in `CLIs` → skip and note it in `Open:`.
 - Unattended: ask nothing; take each Recommended option and list the gaps under `Open:`.
 - Call 3: only for gaps left after call 2 and failed step 4 lookups (step 4 re-runs for the answers).
 
@@ -25,7 +26,7 @@ AskUserQuestion, recommended option first with the reason; derivable facts and f
 
 Per practices.md:
 
-- devcontainer.json: `name` (repo dir name), `image`, `build`, or `dockerComposeFile` + `service` + `workspaceFolder`, `features`, `forwardPorts`, `mounts`, `containerEnv`, `remoteEnv`, `postCreateCommand`, `secrets`, `customizations.vscode.extensions`, plus `capAdd`, `postStartCommand`, and `waitFor` for the firewall.
+- devcontainer.json: `name` (repo dir name), `image`, `build`, or `dockerComposeFile` + `service`, `workspaceFolder` (always) + `workspaceMount` (image and Dockerfile), `features`, `forwardPorts`, `mounts`, `containerEnv`, `remoteEnv`, `postCreateCommand`, `secrets`, `customizations.vscode.extensions` (the confirmed host extensions), plus `capAdd`, `postStartCommand`, and `waitFor` for the firewall.
 - Create mode: an existing `compose.yaml`, `Dockerfile` (via the chain), `init-firewall.sh`, or `.env.example` is handled as update (diff, then Write | Stop at step 6; unattended: keep it, list under `Open:`).
 - Compose: `.devcontainer/compose.yaml` (extending the repo's compose file when one exists), `.devcontainer/.env.example`, `.devcontainer/.env` (only when missing), `.devcontainer/.dockerignore` (with `.env`; missing → create, else add the missing line), `.gitignore` entry.
 - `.gitattributes` LF rule when missing; firewall → `.devcontainer/init-firewall.sh` from the reference.
@@ -36,12 +37,12 @@ Per practices.md:
 
 Invoke `cdk:build-dockerfile` through the Skill tool with the step 5 arguments, in this main thread (never via the Agent tool; it asks the user itself). Invoking this skill is the user's explicit request for it.
 
-- Read its Output `Result:`. `done` or `nothing-to-do` → keep its `App:`, `Stages:` (the base digest), `Files:`, and `Checks:` lines, and confirm `<App dir>/Dockerfile` matches `build.dockerfile` (or the Compose `app` `build`); fix the reference when it differs.
+- Read its Output `Result:`. `done` or `nothing-to-do` → keep its `App:`, `Stages:` (the base tag), `Files:`, and `Checks:` lines, and confirm `<App dir>/Dockerfile` matches `build.dockerfile` (or the Compose `app` `build`); fix the reference when it differs.
 - `stopped` or `cancelled` → go to step 10 with what is left, then print `Stopped: 8: build-dockerfile <its Stopped>`.
 
 ## Open items (step 10)
 
 Sources: `Checks:` failures, `Checks:` not installed, `Skipped practices:`, analyzer `Gaps:`, the chained build-dockerfile `Open:` lines.
 
-- Fix once, in files this skill wrote only, each fix printing its diff; never re-enter the step 9 loop. A Dockerfile check failure is reported with the recommended `cdk:build-dockerfile` input, never fixed here.
+- Fix once, in files this skill wrote only, each fix printing its diff; never re-enter the step 9 loop. A failed devcontainer test is fixed in step 9 only; a Dockerfile check failure is reported with the recommended `cdk:build-dockerfile` input, never fixed here.
 - Whatever is left goes in `Open:` as `<item: impact; recommended fix>`; accepted skips stay in `Skipped practices:`.
