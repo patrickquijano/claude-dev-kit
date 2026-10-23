@@ -4,7 +4,7 @@ Claude Code plugin providing a development kit — skills, custom agents, and ho
 
 Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requests, reviews) plus skill, README, and CLAUDE.md authoring with scored rubrics, so Claude follows the same conventions in every repository.
 
-> **Status:** pre-1.0 (v0.4.0). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
+> **Status:** pre-1.0 (v0.4.1). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 - [Compatibility](#compatibility)
 - [Install](#install)
@@ -22,6 +22,7 @@ Adds guided Git and GitLab workflows (signed atomic commits, rebases, merge requ
 - Git; commit, rebase, and review-address skills sign commits when signing is configured. `/cdk:setup-git` SSH signing needs Git 2.34+; OpenPGP needs GnuPG.
 - [`glab`](https://gitlab.com/gitlab-org/cli) CLI, authenticated, for `/cdk:ship-release` (GitLab) and the merge request skills.
 - [`gh`](https://cli.github.com/) CLI, authenticated, for `/cdk:ship-release` (GitHub), the pull request skills, `/cdk:create-github-release`, and `/cdk:publish-github-release`.
+- GitHub and GitLab MCP servers optional: skills call their tools first and fall back to `gh`/`glab` when a server is not connected or errors.
 - [`uv`](https://docs.astral.sh/uv/) for `/cdk:setup-spec-kit` when `specify` is not installed.
 - [`uv`](https://docs.astral.sh/uv/) or `pipx` (Python 3.10+) for `/cdk:setup-graphify` when `graphify` is not installed.
 - Node.js with npm, pnpm, yarn, or bun for `/cdk:setup-husky` and the npm tools of `/cdk:setup-format-lint`.
@@ -72,7 +73,7 @@ A skill that reports findings (failed or skipped checks, gaps, open items) runs 
 | `/cdk:publish-github-release`        | Publish a draft GitHub release (pick one, choose latest or pre-release, notes, discussion category, Marketplace hand-off), or draft one from the latest `CHANGELOG.md` section first; the tag must already exist on origin. No force.                                                                                    |
 | `/cdk:publish-tag`                   | Create and push the annotated tag for the latest `CHANGELOG.md` version from the verified tip of `main`, with no release; skips when the tag exists. No force.                                                                                                                                                           |
 | `/cdk:rebase-onto`                   | Fetch, pick a target branch, rebase with signed commits, resolve conflicts with you.                                                                                                                                                                                                                                     |
-| `/cdk:review-change-request`         | Review a GitHub PR or GitLab MR once (read-only agents, or direct for small changes), skip findings already discussed, post labeled comments after you approve, resolve addressed own threads, optionally approve and merge.                                                                                             |
+| `/cdk:review-change-request`         | Review a GitHub PR or GitLab MR once (read-only agents, or direct for small changes), skip findings already discussed, post labeled comments after you approve, resolve addressed threads of any author (own only with `--yes`), optionally approve and merge.                                                           |
 | `/cdk:review-local-changes`          | Review unpushed and uncommitted changes before a commit or PR exists; fix safe findings, ask about the rest.                                                                                                                                                                                                             |
 | `/cdk:run-spec-kit`                  | Split a feature brief, run Spec Kit from constitution to converge, address open items after.                                                                                                                                                                                                                             |
 | `/cdk:scan-sonarqube`                | Set up SonarQube Community Build and its scanner in Docker at exact tags, scan the repo, fix issues, rescan until clean (default 3 iterations, max 5; `--yes` skips the asks), then tear down; the repo is mounted read-only.                                                                                            |
