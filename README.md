@@ -179,7 +179,7 @@ npm run test:integration
 npm run audit
 claude plugin validate --strict .
 claude plugin eval .               # LLM-graded eval suite in evals/; manual only, not run by hooks
-claude --plugin-dir .              # test local checkout; /reload-plugins after edits
+claude --plugin-dir .              # test local checkout
 ```
 
 ## Contributing

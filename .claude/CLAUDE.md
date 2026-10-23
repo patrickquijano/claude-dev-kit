@@ -22,7 +22,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Prompt hook smoke test: `echo '{"permission_mode":"default","prompt":"Implement X across multiple files\n- a\n- b\n- c"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/user-prompt-submit.mjs` (one JSON with the `AskUserQuestion` plan-mode ask; `echo garbage | …` exits 1 with one stderr line)
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/stop.mjs` (no output when no covered file changed since its last run)
 - Release check: `node skills/bump-version/scripts/release-check.mjs check --target main` (exit 1 until the changelog and version are updated and pushed)
-- Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/skills/build-skill/SKILL.md"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/post-tool-use.mjs` (exit 0 and a `systemMessage` JSON when valid)
+- Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/skills/build-skill/SKILL.md"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/post-tool-use.mjs` (exit 0 and no output when valid)
 
 ## Precedence
 
@@ -43,7 +43,6 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Changes
 
 - Change only what the task needs; no unrelated edits or refactors; one logical change per commit.
-- After a skill, subagent, or hook is created, updated, or removed, run `/reload-plugins` so the change takes effect.
 
 ## Definition of done
 

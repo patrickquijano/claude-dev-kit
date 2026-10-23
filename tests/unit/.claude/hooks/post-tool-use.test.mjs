@@ -110,15 +110,14 @@ describe('parseEvent', () => {
 });
 
 describe('plan', () => {
-  test('validates and asks for a plugin reload when a skill file changes', () => {
+  test('validates a skill file with no reload notice', () => {
     // Arrange
     const file = `${CWD}/skills/x/SKILL.md`;
     // Act
     const result = plan(file, CWD);
     // Assert
     assert.equal(result.validate, true);
-    assert.match(result.notice.systemMessage, /\/reload-plugins, then \/compact/);
-    assert.equal(result.notice.hookSpecificOutput, undefined);
+    assert.equal(result.notice, null);
   });
 
   test('asks for /reload-skills and re-reading when a project rule changes', () => {
@@ -220,14 +219,14 @@ describe('validate', () => {
 });
 
 describe('main', () => {
-  test('prints the reload notice and returns 0 for a valid plugin edit', async () => {
+  test('prints nothing and returns 0 for a valid plugin edit', async () => {
     // Arrange
     const { deps, calls } = makeDeps({ stdin: event(`${CWD}/skills/x/SKILL.md`) });
     // Act
     const code = await main(deps);
     // Assert
     assert.equal(code, 0);
-    assert.match(JSON.parse(calls.stdout[0]).systemMessage, /\/reload-plugins/);
+    assert.deepEqual(calls.stdout, []);
   });
 
   test('prints a notice without validating for a project rule edit', async () => {
