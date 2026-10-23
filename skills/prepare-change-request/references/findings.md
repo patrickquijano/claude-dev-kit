@@ -52,7 +52,7 @@ Summary: <two sentences, facts only>
 
 ## Parent validation
 
-1. Block parses and `Role` matches the agent; else respawn that reviewer once, then stop.
+1. Block parses and `Role` matches the agent; else respawn that reviewer once, then stop. A `Question:` return is not malformed: the parent answers it from its gathered values and respawns that reviewer once with the answer (shares the respawn cap of 1); it cannot answer → stop, the question listed under `Open:`; unattended (`--yes`) asks nothing.
 2. Drop a finding whose `file` is not in the name-status list (and not justified in `evidence`), whose `line` exceeds the file length at `<head>` (`git show <head>:<file>`), or whose `evidence` is empty. List dropped ones in the Output.
 3. Deduplicate by `file` + overlapping `line` + same underlying issue: keep the highest severity, record every role that raised it.
 4. Gate: any `critical` or `high` finding, confirmed or suspected, any `check-failed`, or an `incomplete` test reviewer whose limitation names a required check → stop. Any other reviewer with `Status: incomplete` does not gate but is shown in the managed block with its limitations.
