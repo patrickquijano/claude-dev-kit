@@ -1,6 +1,6 @@
 ---
 name: version-resolver
-description: Use proactively to resolve latest stable versions: GitHub Actions, runners, and images with SHAs; outdated dependencies with breaking changes; or formatter and linter packages. Read-only.
+description: Use proactively to resolve latest stable versions: GitHub Actions, runners, and images by exact tag; outdated dependencies with breaking changes; or formatter and linter packages. Read-only.
 tools: Read, Glob, Grep, Bash, WebFetch
 model: sonnet
 effort: medium
@@ -22,14 +22,13 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ### actions
 
-- Bash: `gh api` with GET only (no `-X`, `-f`, `-F`), `git ls-remote`, `docker buildx imagetools inspect`, `command -v`. No `docker pull`, no installs. Tool missing → fall back to WebFetch of the documented API; still unverifiable → `Unresolved`.
-- Required inputs: `versions.md` path, list of actions and remote reusable workflows (`owner/repo[/path]`), whether a runner label is needed (x64 or arm64), images (name, requested major.minor, variant) for `container:` and `services:`, runner architecture, pinning mode (tag | SHA) or the signals to decide it. Read `versions.md` fully; it is the procedure.
-- Pinning mode: apply `versions.md` `## Pinning mode` to the analyzer signals in the prompt (no signal → `unknown`, never a default); an analyzer `unknown` already means the lookup failed or `gh` is missing, so do not repeat it; fall through to the next rule.
-- For each action or reusable workflow: latest non-prerelease release tag, the most specific exact tag, and its commit SHA (annotated tag dereferenced), per `versions.md`.
+- Bash: `gh api` with GET only (no `-X`, `-f`, `-F`), `git ls-remote`, `command -v`. No `docker pull`, no installs. Tool missing → fall back to WebFetch of the documented API; still unverifiable → `Unresolved`.
+- Required inputs: `versions.md` path, list of actions and remote reusable workflows (`owner/repo[/path]`), whether a runner label is needed (x64 or arm64), images (name, requested major.minor, variant) for `container:` and `services:`, runner architecture. Read `versions.md` fully; it is the procedure.
+- For each action or reusable workflow: latest non-prerelease release tag and the most specific exact tag, verified with `git ls-remote --tags --refs`, per `versions.md`; never a commit SHA.
 - Runner label: per `versions.md`, from both the docs table and the runner-images README (WebFetch). Cite both URLs and state that the label is inferred from the lack of a beta, preview, or deprecated badge; a non-LTS newest label → `Unresolved` with the options.
-- Images: stable exact tag per `versions.md`; digest only in SHA mode or when asked.
+- Images: stable exact tag per `versions.md`; never a digest.
 - Unresolvable or conflicting item → list it under `Unresolved` with the reason and a suggested question; never pick a value.
-- Self-check: confirm each `Resolved` value maps to a source queried in this run and each SHA is the dereferenced commit; drop or move to `Unresolved` what does not.
+- Self-check: confirm each `Resolved` value maps to a source queried in this run; drop or move to `Unresolved` what does not.
 
 ### dependencies
 
@@ -64,9 +63,8 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### actions
 
 ```text
-Pinning: <tag | SHA | unknown> (<rule matched>)
 Resolved:
-<ref> | <tag or label> | <sha or digest | -> | <source URL> | <note>
+<ref> | <tag or label> | <source URL> | <note>
 Runner: <label> (<basis: both source URLs, inferred>) | not needed
 Unresolved: <item — reason — suggested question>, … | none
 ```
