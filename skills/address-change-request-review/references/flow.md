@@ -67,7 +67,7 @@ Step 12. Subjects: `<type>(<optional scope>): <subject>`, max 72 chars, imperati
 Step 13. Spawn `cdk:cr-feedback-analyzer` with mode `reply` and the updated items file path (classifications, `related` and `reason` per item, verifier results), the commit map, the validation summary, `${CLAUDE_SKILL_DIR}/references/state.md`, `${CLAUDE_SKILL_DIR}/references/replies.md`, the head short SHA, and whether anything was pushed.
 
 - It returns one body per item with its marker. `no reply` items post nothing; `target` picks a thread reply or a CR comment; `duplicate` and `outdated` replies are short plain explanations.
-- Pushed = yes → post the `Fix` and `Already done` replies straight away after the replier returns, one item at a time per the host `## Mutations`, with no Gate B question. First the host `## Re-fetch before a mutation`; then the `state.md` marker and `ops[]` idempotency (a recorded or already-marked reply is skipped); record each in `ops[]` before the next.
+- Pushed = yes → post only the `Fix` replies straight away after the replier returns, one item at a time per the host `## Mutations`, with no Gate B question. First the host `## Re-fetch before a mutation`; then the `state.md` marker and `ops[]` idempotency (a recorded or already-marked reply is skipped); record each in `ops[]` before the next. `Already done` and all other replies wait for Gate B (step 14 `Post other replies`).
 - Commit only (no push) → nothing auto-posts.
 - Draft the revision summary per `replies.md` `## Revision summary template` when any commit was pushed this run.
 
