@@ -27,16 +27,6 @@ Limitations: <list | none>
 Summary: <two sentences, facts only>
 ```
 
-- Own threads (`cdk:cr-reviewer` role `correctness` only, when the parent passes an own-threads digest): after `Summary`, one more block. `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`. No digest → omit the block.
-
-  ```text
-  Threads:
-  - id: <thread id>
-    where: <path:line | none>
-    addressed: yes | no
-    reply: <one plain-English sentence: what change fixes it, at path:line | why it is not fixed>
-  ```
-
 - `Findings: none` when there is nothing to report; `Commands: none` when no command ran.
 - `Status`: `pass` = no finding above `info`; `issues` = at least one finding above `info`; `check-failed` = a command marked `[required]` exited non-zero; `incomplete` = the review could not finish (missing input, command unavailable, timeout); say why in `Limitations`.
 - `side` says which side `line` is on: `new` (added or unchanged line at `<head>`, the default), `old` (removed line; `line` is its number in the base), `both` (unchanged line; `line` is the new number and `old_line` the old one). `old_line` is `none` unless `side: both`. Reviewers set `side: old` only for a removed line, and only when the finding is about the removal.
