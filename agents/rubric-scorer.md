@@ -45,6 +45,7 @@ Rigor: verify every path, command, and claim against the files before stating it
   - F3: Grep `^description: .{201,}` and `^when_to_use:` to bound the lengths; 1,536 combined needs the lines read. Judge bare skill or agent names the check misses.
   - L2: Glob the directory; a file outside `SKILL.md`, `references/`, `assets/`, `scripts/`, or never linked from `SKILL.md` is a deduction.
   - L3: Glob each linked path (`${CLAUDE_SKILL_DIR}` = the skill directory); a link into another skill is fine only when it matches an allowlisted path from the prompt.
+  - B3: deduct only for a quoted line that has no source and restates general knowledge, or that repeats another bundled file outside `SKILL.md` Rules; never for a `SKILL.md` Rules bullet that restates a reference rule, a cited fact, or a **Required** item; a `Recommended` item without a source counts.
   - B6: Grep for `` !` `` and `${`; check fallbacks and that none sit in `references/`.
 - Extra Return line: `Gaps:`.
 
