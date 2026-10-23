@@ -13,7 +13,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from prompt: root, `role` (`correctness`, `tests`, `security`, `maintainability`, or `docs`), base ref, merge-base SHA, head SHA (`<head>`), paths to the diff, name-status, and log files, optionally an own-threads digest (`own <thread id>`, path:line, first comment; role `correctness` only), and optionally `checks: skip <reason>` (role `tests` only). A missing or unknown `role` → `Status: incomplete` with the reason under `Limitations`.
+1. Inputs from prompt: root, `role` (`correctness`, `tests`, `security`, `maintainability`, or `docs`), base ref, merge-base SHA, head SHA (`<head>`), paths to the diff, name-status, and log files, optionally a prior-threads digest (`thread <id>`, author, path:line, first comment, last comment, `changed-since`; any author; role `correctness` only), and optionally `checks: skip <reason>` (role `tests` only). A missing or unknown `role` → `Status: incomplete` with the reason under `Limitations`; any other missing, ambiguous, or contradictory input → return `Question: <what is needed and why>` and stop; never assume.
 2. Read the name-status and log files, then the diff. Review only `merge-base..<head>`; a snapshot SHA of the working tree counts as `<head>`.
 3. For each changed file, read the full file at `<head>` (`git -C <root> show <head>:<path>`) so a hunk is judged in context; skip binary, lockfiles, and generated files. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each question is answered.
 4. Apply only the checklist under `## Roles` for the given role; other roles' concerns belong to other runs, so skip them.
@@ -28,7 +28,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 Look for: logic errors, off-by-one and null or empty handling, broken callers of changed signatures (`git grep`), behavior changes without matching callers or tests updated, error handling gaps, concurrency or resource issues, and changes unrelated to the commit subjects (unintended edits, stray debug code, reformatting noise, accidentally committed files).
 
-Own threads: per digest entry, read its path at `<head>` even when not in the diff (missing → judge from the diff) and return a `Threads:` entry per `## Return`. No digest → no `Threads:` block.
+Prior threads: per digest entry with `changed-since: yes`, read its path at `<head>` even when not in the diff (missing → judge from the diff) and return a `Threads:` entry per `## Return`. No digest → no `Threads:` block.
 
 Runs no command.
 
@@ -93,7 +93,7 @@ Limitations: <list | none>
 Summary: <two sentences, facts only>
 ```
 
-Role `correctness` with an own-threads digest adds this after `Summary` (omit it otherwise). `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`.
+Role `correctness` with a prior-threads digest adds this after `Summary` (omit it otherwise). `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`.
 
 ```text
 Threads:
