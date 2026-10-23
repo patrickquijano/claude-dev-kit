@@ -69,7 +69,7 @@ Summary: <two sentences, facts only>
 1. Block parses and `Role` matches the agent; else respawn that reviewer once, then treat it as `incomplete`.
 2. Drop a finding whose `file` is not in the name-status list (and not justified in `evidence`), whose `line` exceeds the file length at head (`git show <head>:<file>`), or whose `evidence` is empty. List dropped ones in the Output.
 3. Deduplicate by `file` + overlapping `line` + same underlying issue: keep the highest severity, record every role that raised it.
-4. `Threads:` block (role `correctness`): drop an entry whose id is not in the digest or whose `addressed: yes` reply lacks a `path:line`; a missing block → treat every thread as `addressed: no`.
+4. `Threads:` block (role `correctness`): drop an entry whose id is not in the digest or whose `addressed: yes` reply lacks a `path:line`; a missing block → treat every thread as `addressed: no`. After that, the parent adds its own judgments (b) accepted and (c) obsolete per `flow.md` `## Prior threads`; the reviewer's block is unchanged.
 
 ## Direct review
 
