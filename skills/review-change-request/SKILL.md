@@ -72,7 +72,7 @@ Findings: <b> blocking, <s> suggestions, <t> threads to address, <d> dropped (<a
 Comments: <n> inline + <g> general + summary posted | prepared, not posted
 Review state: requested changes | plain review | none (<posted | proposed only>)
 Approval: approved | not approved (<failed criteria ids> | declined | unavailable (own PR)) | skipped (already approved)
-Threads resolved: <n> of <open threads> (<f> fixed, <a> accepted, <o> obsolete; <k> others'; 0 under `--yes`)
+Threads resolved: <n> of <open threads> (<f> fixed, <a> accepted, <o> obsolete; <k> others' (0 under `--yes`))
 Merged: yes (<squash | merge commit>; branch <deleted | kept>[; local branch deleted][; admin]) | no (<reason>) | not offered (<blockers: not approved | unresolved threads: <n> | …>) | not requested
 Uncertainty: <list> | none
 Open: <id: severity, impact; recommended fix; who acts, …> | none
