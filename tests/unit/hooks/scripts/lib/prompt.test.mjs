@@ -2,13 +2,22 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { NOPLAN_RE, PLAN_RE, isSkippedPrompt } from '../../../../../hooks/scripts/lib/prompt.mjs';
 
-test('isSkippedPrompt: is true for a slash command', () => {
+test('isSkippedPrompt: is true for a built-in slash command', () => {
+  // Arrange
+  const prompt = '/compact';
+  // Act
+  const result = isSkippedPrompt(prompt);
+  // Assert
+  assert.equal(result, true);
+});
+
+test('isSkippedPrompt: is false for a namespaced plugin skill', () => {
   // Arrange
   const prompt = '/cdk:commit-changes';
   // Act
   const result = isSkippedPrompt(prompt);
   // Assert
-  assert.equal(result, true);
+  assert.equal(result, false);
 });
 
 test('isSkippedPrompt: is true for a ! prompt after leading whitespace', () => {
