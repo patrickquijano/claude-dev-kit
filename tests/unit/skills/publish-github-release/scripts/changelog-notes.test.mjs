@@ -261,6 +261,45 @@ describe('main', () => {
     assert.deepEqual([code, out.files[target]], [0, '### Added\n\n- a\n']);
   });
 
+  test('ignores a missing CLAUDE_JOB_DIR and writes under the temp directory', () => {
+    // Arrange
+    const job = path.resolve('/stub-missing-job');
+    const enoent = () => Object.assign(new Error('missing'), { code: 'ENOENT' });
+    const { out, deps } = stubs({
+      env: { CLAUDE_JOB_DIR: job },
+      existsSync: (p) => p !== job,
+      realpathSync: (p) => {
+        if (p === job) throw enoent();
+        return p;
+      }
+    });
+    const target = path.join(TMP, 'scratch', 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual([code, out.files[target], JSON.parse(out.logs[0]).ok], [0, '### Added\n\n- a\n', true]);
+  });
+
+  test('rejects before mkdir when the nearest existing ancestor resolves outside the roots', () => {
+    // Arrange
+    const link = path.join(TMP, 'link');
+    const missing = [path.join(link, 'a'), path.join(link, 'a', 'b')];
+    const mkdirs = [];
+    const { out, deps } = stubs({
+      existsSync: (p) => !missing.includes(p),
+      realpathSync: (p) => (p === link ? path.resolve('/elsewhere') : p),
+      mkdirSync: (p) => mkdirs.push(p)
+    });
+    const target = path.join(link, 'a', 'b', 'notes.md');
+    // Act
+    const code = main(['notes', '--version', '1.0.0', '--notes-out', target], deps);
+    // Assert
+    assert.deepEqual(
+      [code, JSON.parse(out.logs[0]).errors[0].code, mkdirs, out.files],
+      [1, 'notes-out-outside-scratch', [], {}]
+    );
+  });
+
   test('rejects a notes file outside the allowed roots and writes nothing', () => {
     // Arrange
     const { out, deps } = stubs();
