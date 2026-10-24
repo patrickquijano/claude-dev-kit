@@ -7,10 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `/cdk:review-github-pull-request` reviews one GitHub pull request on its own: it resolves addressed threads, analyzes in parallel, and posts one review pinned to the head SHA without asking for confirmation.
+- `/cdk:push-commits` pushes the current branch's pending commits to its origin branch with one normal push; it stops with the reason when none are pending, on a protected branch, or on a detached HEAD.
+
 ### Changed
 
-- `/cdk:build-skill` is self-contained and runs only when you invoke it: it no longer uses the cdk agents, the 100-point rubric, or `skill-creator`, and it names no other skill. It gains a fit gate (skill, subagent, `context: fork`, or not a skill), one `references/rules.md`, an `assets/SKILL.template.md`, and routing evals.
+- `cdk:version-resolver` accepts `pin: sha | tag` and finds a project's lockfile or manifest with Glob.
+- `/cdk:implement-goal` is renamed `/cdk:implement-spec`, with the title "Implement Spec" and a description that now says "implement a spec". Use the new name; the old one no longer exists.
+- `cdk:plan-implementer` drops the unused `review-group` kind and its `kind` input; `/cdk:implement-spec` and `/cdk:scan-sonarqube` now report its unmet self-check criteria.
+- `cdk:format-lint-analyzer`'s description now says when to delegate.
+- The `cdk:plan-implementer`, `cdk:version-resolver`, `cdk:change-analyzer`, and `cdk:rubric-improver` descriptions now name when to delegate.
+- `cdk:version-resolver` no longer returns the unused `Stack` line for dependencies.
+- `cdk:change-verifier` now runs on opus.
+- `cdk:change-analyzer` and `cdk:conflict-analyzer` no longer have Glob.
+- The `cdk:rubric-scorer`, `cdk:practices-reviewer`, and `cdk:rubric-improver` descriptions now say when to delegate.
+- `/cdk:build-github-workflows` asks whether to pin actions by commit SHA when the repo or org requires it.
+- `/cdk:commit-changes` no longer pushes; it only commits, and the push is a separate step.
+- `/cdk:setup-devcontainer` and `/cdk:assess-spec-kit-idea` now print `Next:` or `Open:` hints instead of chaining another skill.
+- Every skill except `/cdk:draft-prompt` is explicit-only (`disable-model-invocation: true`), so no skill invokes another.
+- Dead `Next:` hints and "chained by" notes are removed from the remaining skills.
+- `/cdk:build-skill` is self-contained and runs only when you invoke it: it uses only `cdk:task-worker`, for read-only audits of many skills, and no longer uses the 100-point rubric, or `skill-creator`, and it names no other skill. It gains a fit gate (skill, subagent, `context: fork`, or not a skill), one `references/rules.md`, an `assets/SKILL.template.md`, and routing evals.
+- `/cdk:build-dockerfile` and `/cdk:build-docker-compose` resolve Docker Hub tags through the new `images` kind of `cdk:version-resolver`.
+- `/cdk:build-subagent` scores with `cdk:rubric-scorer`.
 - The skill checker is renamed `validate-skill.mjs`, drops `--allow`, and also flags first or second person descriptions, nested references, reserved folders, parent or absolute paths, unmarked Claude Code-only keys, `agent` without `context: fork`, `context: fork` without `background`, side-effect tools without `disable-model-invocation`, and time-sensitive text.
+- `/cdk:build-docker-compose` review mode now picks the plain or Swarm checks without asking and never fixes the file or runs `dclint-fix`; renaming `docker-compose.yml` is a named `compose-rename` command, and `node --version`, `npm view dclint version`, and `git mv` are pre-approved.
+- `/cdk:build-dockerfile` prints a `Purpose:` line and defines the throwaway test tag; `/cdk:build-dockerfile` and `/cdk:build-github-workflows` no longer allow spawning `cdk:plan-implementer`, and the workflows skill drops the undeclared `--auto` and `--yes` flags.
+- `/cdk:assess-spec-kit-idea` separates "no AskUserQuestion but a user can reply" from "no one can answer" and drops the never-emitted `nothing-to-do` result.
+- `/cdk:build-subagent` runs its delegation test through a named `delegation-test` command, with `claude --print` pre-approved.
+- `/cdk:build-subagent` accepts the `Question:` contract for a missing input and single-domain agents with a `kind` switch.
+- `cdk:task-worker` has a narrower description: multi-step read-only investigations that no `cdk:codebase-explorer` kind covers.
+- Ten agents no longer invite auto-delegation: `cdk:change-analyzer`, `cdk:conflict-analyzer`, `cdk:format-lint-analyzer`, `cdk:plan-implementer`, `cdk:practices-reviewer`, `cdk:repo-analyzer`, `cdk:rubric-improver`, `cdk:rubric-scorer`, `cdk:speckit-open-items-analyzer`, and `cdk:version-resolver`. They run when a skill or you name them.
+- `cdk:change-analyzer` returns `Question:` for missing input instead of `Questions:`.
+- `/cdk:draft-prompt` drafts a prompt with Context, Task, Constraints, Done when, and Guardrails sections, turns a bug report into a read-only investigation first, and no longer spawns a subagent.
+- `/cdk:build-subagent` writes nothing until you confirm its brief, backs up an agent file before editing it, and stops when the target is not a subagent unless you choose to build anyway.
+- `/cdk:build-github-workflows` and `/cdk:build-docker-compose` print the files and ask once before writing them.
+- `/cdk:setup-git` confirms before initializing a repo, turning on signing by default, and writing `.gitignore`.
+- `/cdk:setup-format-lint` confirms once before it installs tools and writes configs.
+- `/cdk:scan-sonarqube` confirms before it removes leftover SonarQube containers, networks, and volumes.
+- `/cdk:create-github-release` creates the tag only when it does not exist locally and pushes it only when the remote lacks it.
+- `/cdk:rebase-onto` asks for permission before aborting a rebase; `git rebase --abort` is no longer pre-approved.
+
+### Removed
+
+- The unused `cr-summary` mode of `cdk:change-analyzer`.
+- Skills `/cdk:bump-version`, `/cdk:prepare-change-request`, `/cdk:review-change-request`, `/cdk:review-local-changes`, `/cdk:address-change-request-review`, `/cdk:ship-release`, `/cdk:setup-permissions`, `/cdk:debug-issue`, `/cdk:setup-testing`, `/cdk:scan-vulnerabilities`, `/cdk:add-unit-tests`, `/cdk:add-integration-tests`, `/cdk:add-e2e-tests`, `/cdk:setup-project`, and the project skill `prepare-release`.
+- Agents `cdk:cr-reviewer`, `cdk:cr-feedback-analyzer`, and `cdk:security-scanner`, and the `tests` kind of `cdk:repo-analyzer`.
+- The release gate in the pull request skills; the `release-check` CI job, `scripts/release-check.mjs`, and `.claude/release-policy.json`.
 
 ## [0.4.1] - 2026-10-24
 
