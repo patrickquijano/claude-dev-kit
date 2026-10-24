@@ -18,15 +18,15 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: `Result: stopped`) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`.
 - Analysis runs in `cdk:change-analyzer` (`mode=branch-name`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Pass only root, `mode`, `base`, the input, and answers to earlier `Questions`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.
-- Switch and push without asking; the request to switch is consent to a normal push. `switch`, `remote-branch-exists`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
+- Switch and push without asking; an explicit request to this skill, directly or by a chaining skill, is consent to a normal, non-force push. `switch`, `remote-branch-exists`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
 - Caps: analyzer respawn after `Questions` 1; name suffix search 10, then stop.
-- Unattended (chained, no AskUserQuestion): ask nothing; an unanswerable `Questions` → `Result: stopped`.
+- Unattended (chained, no AskUserQuestion): ask nothing; switch and push proceed under the same consent, and an unanswerable `Questions` → `Result: stopped`.
 - Chained by other skills through the Skill tool, so it never sets `disable-model-invocation`.
 
 ## Workflow
