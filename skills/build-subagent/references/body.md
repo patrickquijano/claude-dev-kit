@@ -14,7 +14,7 @@ Sources: <https://code.claude.com/docs/en/sub-agents>, the Agent SDK subagents p
 ## Structure
 
 1. A one-line role (prose), with its hard limit when it has one ("Read-only: never edit files.").
-2. `## Task`: numbered steps. Step 1 names every input read from the delegation prompt, so the parent knows what to pass. A `Self-check` step comes last before the missing-input step.
+2. `## Task`: numbered steps. Step 1 names every input read from the delegation prompt, so the parent knows what to pass. The missing-input fallback stays in step 1. `Self-check` comes last in `## Task`, just before `## Return`.
 3. `## Return`: a fixed, concise structure with only the fields the parent uses; large artifacts go to a file, returned as a path. Aim for 1–2k tokens.
 
 ## Style

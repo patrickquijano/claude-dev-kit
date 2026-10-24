@@ -4,7 +4,13 @@ Recommend one option per question with a one-line reason; the user can override.
 
 ## Contents
 
-- Fit · One job · Scope · Fields · Model and effort · Color
+- Extract · Fit · One job · Scope · Fields · Model and effort · Color
+
+## Extract
+
+- Find the named agent (path or `name`) under `~/.claude/agents/`, `<repo>/.claude/agents/`, or a plugin `agents/` (recursive), then read it → update; none found → create.
+- Pull job, triggers, inputs, tools, writes, and return shape.
+- The explorer (kind `locate`, target = the agent name, root) returns `Spawner`, `Inputs passed`, and `Return fields used`; none found → note it.
 
 ## Fit
 
@@ -16,7 +22,7 @@ Recommend one option per question with a one-line reason; the user can override.
 | Reference knowledge or a workflow that runs inline                                                  | None: a skill     | A skill adds to the main context on demand      |
 | A rule that must hold every time with no judgment                                                   | None: a hook      | Hooks are guarantees; prompts are requests      |
 
-Agents cost about 4× a chat's tokens and multi-agent about 15×; spawn only when the gain is worth it.
+Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it.
 
 ## One job
 
@@ -68,9 +74,10 @@ Set a field only on a signal; omit every field at its default.
 | `skills`                                                 | A skill's full content is needed on every run (preloaded)                          | Omit                                                                                          |
 | `omitClaudeMd`                                           | The delegation prompt carries everything and CLAUDE.md is noise                    | Omit                                                                                          |
 | `color`                                                  | Always asked; omitted only on No color                                             | See `## Color`                                                                                |
+| `experimental.cacheTtl`                                  | The input asks for a cache TTL                                                     | Omit                                                                                          |
 | `permissionMode`, `mcpServers`, `hooks`, `initialPrompt` | Personal or Project agent that needs it                                            | Omit                                                                                          |
 
-`autoCompactWindow` is a known field; never recommend it.
+Other known fields (such as `autoCompactWindow`): see `frontmatter.md`; never recommend them.
 
 ## Model and effort
 

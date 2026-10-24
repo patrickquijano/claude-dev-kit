@@ -16,9 +16,10 @@ Input: $ARGUMENTS
 - Self-contained: follow only the files linked below; never link, read, or copy from another skill's files.
 - Ask with AskUserQuestion: at most 4 questions per batch, recommendation first with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers.
 - Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/frontmatter.md` and `${CLAUDE_SKILL_DIR}/references/body.md`; anything unverified is omitted and listed in `Open:`.
-- Loops: clarify at most 3 rounds; improve rounds at most 3; step 1 one `cdk:codebase-explorer` spawn. Never loop past the cap; report what is left in `Open:`.
+- Loops: clarify (including Gate Revise) at most 3 rounds; improve rounds at most 3; step 1 one `cdk:codebase-explorer` spawn; `check-agent` exit 2 → fix the call and re-run once, then `Open:`; a malformed or `Question:` spawn return → respawn once. Never loop past the cap; report what is left in `Open:`.
+- No file is written before the Gate confirmation.
 - Only `cdk:rubric-improver` applies score fixes.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. `validate-plugin` runs once; a failure goes to `Open:` with no retry.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. `validate-plugin` runs once per run; a failure goes to `Open:` with no retry.
 - Write only the agent file; update edits in place. The spawning skill is read, never edited: mismatches go to `Open:`.
 - Name an agent as an actor, never an action: `code-reviewer`, not `review-code` or `reviewing`; a name that is a verb or gerund is asked (Rename | Keep).
 - One agent, one job: several jobs found are asked (Split | Pick one | Stop), each with a recommendation and a one-line reason; never build a multi-job agent.
@@ -26,23 +27,25 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Extract.** An existing agent named (path or `name`) → update: find it under `~/.claude/agents/`, `<repo>/.claude/agents/`, or a plugin `agents/` (recursive), then read it; else create. Pull job, triggers, inputs, tools, writes, return shape. Spawn one `cdk:codebase-explorer` (kind `locate`, target = the agent name, root) to locate the spawning skill; it returns `Spawner`, `Inputs passed`, and `Return fields used` (none found → note it). Nothing to change → `Result: nothing-to-do`.
+1. **Extract.** Find the named agent (update) or create, extract its fields, and spawn the explorer per `score.md` `## Spawn briefs`; see `decide.md` `## Extract`. Nothing to change → `Result: nothing-to-do`.
 2. **Fit.** Apply `${CLAUDE_SKILL_DIR}/references/decide.md` `## Fit` and `## One job`. Not a subagent → ask Stop (Recommended) | Build anyway; several jobs → ask Split | Pick one | Stop, recommended per `decide.md` `## One job`.
 3. **Scope.** AskUserQuestion: Personal | Project | Plugin, recommended from `decide.md` `## Scope`.
 4. **Clarify.** Fill name (an actor noun per `decide.md` `## One job`), description triggers, tools, return, writes, and the optional fields `decide.md` `## Fields` signals. Always ask model, effort, and color in one batch per `decide.md` `## Model and effort` and `## Color`. Stop → `Result: cancelled`.
-5. **Draft.** Write the file per `${CLAUDE_SKILL_DIR}/references/frontmatter.md`, `${CLAUDE_SKILL_DIR}/references/body.md`, and `${CLAUDE_SKILL_DIR}/assets/template.md`.
-6. **Check and score.** Run `check-agent`, spawn `cdk:rubric-scorer` with `kind: agent` and its JSON, per `${CLAUDE_SKILL_DIR}/references/score.md`.
-7. **Report.** Show the score table, deductions, and `Contract:` per `score.md` `## Report`. Check passes with no deductions, or 3 rounds done → step 9.
-8. **Improve.** Spawn `cdk:rubric-improver` (`kind: agent`) per `score.md` `## Improve round`, then repeat steps 6 and 7; plugin scope also runs `validate-plugin` once.
-9. **Output.** Print the block below, nothing else.
+5. **Gate.** Show a summary of 7 lines or fewer with `Target: <absolute path>`, then AskUserQuestion: "Write `<path>`" (create) or "Overwrite `<path>`" (update), Revise, Stop. Revise re-asks only the changed topics and counts toward the clarify cap. Stop → `Result: cancelled`.
+6. **Draft.** Write the file per `${CLAUDE_SKILL_DIR}/references/frontmatter.md`, `${CLAUDE_SKILL_DIR}/references/body.md`, and `${CLAUDE_SKILL_DIR}/assets/template.md`.
+7. **Check and score.** Run `check-agent`, spawn `cdk:rubric-scorer` with `kind: agent` and its JSON, per `${CLAUDE_SKILL_DIR}/references/score.md`.
+8. **Report.** Show the score table, deductions, and `Contract:` per `score.md` `## Report`. Check passes with no deductions, or 3 rounds done → step 10.
+9. **Improve.** Spawn `cdk:rubric-improver` (`kind: agent`) per `score.md` `## Improve round`, then repeat steps 7 and 8.
+10. **Validate.** Plugin scope: run `validate-plugin` once from the plugin root, after the loop ends; other scopes skip. Failure → `Open:`, no retry (`score.md` `## Validate`).
+11. **Output.** Print the block below, nothing else.
 
 ## Files
 
-- For fit, scope, and the optional-field decisions, see `${CLAUDE_SKILL_DIR}/references/decide.md`.
+- For extraction, fit, scope, and the optional-field decisions, see `${CLAUDE_SKILL_DIR}/references/decide.md`.
 - For frontmatter fields, tools, and description writing, see `${CLAUDE_SKILL_DIR}/references/frontmatter.md`.
 - For body structure, style, and return format, see `${CLAUDE_SKILL_DIR}/references/body.md`.
 - For the agent skeleton, see `${CLAUDE_SKILL_DIR}/assets/template.md`.
-- For running the check, the report, the improve round, `Open:`, and spawn briefs (steps 1, 6, 8), see `${CLAUDE_SKILL_DIR}/references/score.md`.
+- For running the check, the report, the improve round, `Open:`, `validate-plugin`, and spawn briefs (steps 1, 7, 8, 9, 10), see `${CLAUDE_SKILL_DIR}/references/score.md`.
 - For the scoring criteria, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the mechanical checks, run `${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs`; it is run, never read.
