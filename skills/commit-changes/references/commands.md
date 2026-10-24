@@ -29,6 +29,3 @@
 | `verify-log`           | `git log --format='%h %G? %s' -n <count>`                       | Signature per commit                       | —        |
 | `tree-status`          | `git status`                                                    | Remaining changes                          | —        |
 | `origin-url`           | `git remote get-url origin`                                     | Origin exists                              | —        |
-| `upstream`             | `git rev-parse --abbrev-ref @{u}`                               | Upstream ref name                          | —        |
-| `push`                 | `git push origin HEAD:<branch>`                                 | Publish branch                             | —        |
-| `push-upstream`        | `git push -u origin HEAD:<branch>`                              | Publish and set upstream                   | —        |
