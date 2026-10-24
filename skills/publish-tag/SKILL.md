@@ -19,7 +19,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Tag only the verified tip of the default branch (`<default>`: `.claude/release-policy.json` `defaultBranch`, else `default-branch` minus `origin/`; neither → stop): on `<default>`, local `<default>` fast-forwarded to the remote's; never rebase, reset, or push `<default>`.
 - Never `--force`, `-f`, `--delete`, `git tag -d`, or `--prune-tags`; a wrong tag is reported, never fixed here.
