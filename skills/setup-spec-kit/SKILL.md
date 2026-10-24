@@ -9,7 +9,7 @@ allowed-tools: Bash(command -v *) Bash(specify --version) Bash(specify integrati
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is already done, so re-runs change nothing.
 - Never pass `--force` to `specify extension add`; it overwrites an extension the user may have customized.
@@ -26,13 +26,8 @@ allowed-tools: Bash(command -v *) Bash(specify --version) Bash(specify integrati
 
 ## Workflow
 
-1. **CLI.** `has-specify` succeeds → skip. Else `has-uv` fails → report "install uv: <https://docs.astral.sh/uv/>", stop. Else AskUserQuestion ("Install specify-cli v1.2.2 globally", "Stop"); Stop or unattended → `Stopped: 1: specify-cli not installed`, `Open:` the `install-specify` command. Confirmed → run `install-specify`. Install fails → quote the error line, stop. Install succeeds but `has-specify` still fails → tell the user to run `uv tool update-shell` and restart the shell, stop. Record `version`.
-2. **Init.** Spec Kit treats a project with `.specify/` as initialized.
-   - `.specify/` and every required skill dir exist → skip.
-   - `.specify/` and every core dir exist, extension dirs missing → skip; step 3 adds them.
-   - `.specify/` exists, any core dir missing (initialized for another agent) → run `integration-install`, no question.
-   - No `.specify/` → tell the user init merges into the current directory (it writes `.specify/` and `.claude/skills/speckit-*/`, and may add hooks to `.claude/settings.json`), then run `init-here` (`--force` merge; not pre-approved, so the permission prompt guards it). A non-empty project (partial `.claude/skills/speckit-*`, a `.claude/settings.json` mentioning speckit, or a `.specify/` dir; an existing repo with only ordinary tracked files is not) → first AskUserQuestion ("Init here (merges with --force)", "Stop"); unattended stops (`Stopped: 2: non-empty project, init needs confirmation`) and records it under `Open:`.
-   - Command fails → quote the error line, stop.
+1. **CLI.** `has-specify` succeeds → skip, else confirm and run `install-specify`; record `version`. Missing uv, declined or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
+2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. Cases, confirmation, and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
 3. **Extensions.** Parse `extension-list` (objects with `id`, `priority`). Per extension in Rules: absent → `extension-add`; priority differs → `extension-set-priority`; else ok. Then check every required skill dir. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append missing lines to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Lines (from the Spec Kit extension user guide):
 
@@ -52,6 +47,8 @@ allowed-tools: Bash(command -v *) Bash(specify --version) Bash(specify integrati
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the CLI install branches (step 1), see `${CLAUDE_SKILL_DIR}/references/cli.md`.
+- For the init cases and confirmation (step 2), see `${CLAUDE_SKILL_DIR}/references/init.md`.
 - For the core and extension skill dirs to verify (steps 2-3), see `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
 - For extension failures, reinstall, and the stop path (step 3), see `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 - For each linter and formatter ignore syntax (step 5), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
