@@ -43,7 +43,7 @@ Build the file from `practices.md` in this order: top-level `name` (plain only) 
 
 ## Write
 
-Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Existing file → edit in place and print the diff. Write no other file.
+Confirm first per the Rules (create or update the named file, run `dclint` via `npx`); declined → `Result: cancelled`. Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Existing file → edit in place. Write no other file.
 
 ## Verify
 
