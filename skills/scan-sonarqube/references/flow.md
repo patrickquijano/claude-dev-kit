@@ -6,7 +6,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 - Pre-flight (step 1)
 - Stack (step 1)
-- Containers (step 2)
+- Containers (step 3)
 - Server setup (steps 4, 5)
 - Exclusions (step 6)
 - Scan (step 6)
@@ -19,7 +19,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 - `docker-info` fails → stop (`Docker unavailable`).
 - Parse arguments; a bad `max-iterations` (default 3, range 1–5) → use the default and note it in `Arguments:`.
-- Run `detect` with `--root <root>`: it returns the project key (`sonar.projectKey` from `sonar-project.properties`, else the sanitized repo directory name), `name` (the Docker object name `<name>`), the stack, and the rest used below. `stop` set → stop with that reason before `leftover-remove`. Then run `leftover-remove` to clear objects of a crashed run.
+- Run `detect` with `--root <root>`: it returns the project key (`sonar.projectKey` from `sonar-project.properties`, else the sanitized repo directory name), `name` (the Docker object name `<name>`), the stack, and the rest used below. `stop` set → stop with that reason. Nothing is created or removed before the step 2 confirmation.
 - Port: start at 9000; `port-check` exit 0 → try 9001 to 9010. Attended: tell the user which port is used. None free → stop (`no free port 9000-9010`).
 
 ## Stack
@@ -31,6 +31,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 ## Containers
 
+- Run `leftover-remove` first to clear objects of a crashed run.
 - Tags: run `tags` with `--stack <stack>` and `--jdk <jdk>` (Maven and Gradle); it looks each tag up at most once per day (`source` = `cached` or `looked-up`, for `tags:` in the output). `image tag unresolved` → stop (`image tag unresolved`).
 - Run `env-create` (it prints the path of `<envfile>`: mode 600, with `SONAR_PORT`, a generated `SONAR_ADMIN_PASSWORD`, and an empty `SONAR_TOKEN`); record that path as `<envfile>`, then `network-create`.
 - Nothing is written under the repo root: the repo is mounted read-only into the scanner, and the secrets live only in `<envfile>`.
@@ -66,7 +67,7 @@ The scanner already skips git-ignored files. Tests are never excluded.
 - Ledger: one row per issue key with `rule`, `path:line`, status (`pending`, `applied`, `confirmed`, `open`), and a reason for `open`. Only the rescan sets `confirmed`; `Fixed:` counts `confirmed` rows only.
 - Spawn `cdk:plan-implementer` (kind `requirement`) per group with the issue keys, the chosen approach, the rule description, and the exact files and lines it may edit; it touches nothing else. Disjoint-file groups run in one parallel turn, others one at a time.
 - Then spawn `cdk:change-verifier` with `kind: checks` to run the repo's documented checks on the changed files, and with `kind: goals` (goals = the group's issue keys and approach) to judge the diff, in one parallel turn: every edit maps to a ledger issue, no unplanned file or line changed, no test weakened. A failing check or an unmapped edit goes back to the implementer once for that group; still failing → revert that group's edit, mark its issues `open`.
-- Mark the group's remaining issues `applied`, then `i += 1` and rescan. After the rescan: an `applied` issue absent from the results → `confirmed`; still present → `open` with `fix did not remove the issue`; a key not in the ledger → new `pending` row (a regression or newly visible issue), fixed in the next round.
+- Mark the group's remaining issues `applied`, then rescan (step 9 counts the round). After the rescan: an `applied` issue absent from the results → `confirmed`; still present → `open` with `fix did not remove the issue`; a key not in the ledger → new `pending` row (a regression or newly visible issue), fixed in the next round.
 
 ## Spawn briefs
 
@@ -79,6 +80,6 @@ Each value is literal (root absolute, issue keys and `path:line` from the ledger
 
 ## Teardown and cleanup
 
-- Run once after the loop ends and on every stop from step 2 onward; a missing container, network, volume, or file is not an error. Never run `git` commands that change the tree.
+- Run once after the loop ends and on every stop from step 3 onward; a missing container, network, volume, or file is not an error. Never run `git` commands that change the tree.
 - Run `teardown` (the server container and its anonymous volumes, the network, and the cache volume), then `env-remove`. Images stay.
 - Report each removed item in `Cleanup:`.
