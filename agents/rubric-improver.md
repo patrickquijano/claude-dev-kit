@@ -27,7 +27,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### agent
 
 - Write scope: the target agent file only. The spawning skill is read-only; never edit it.
-- Required inputs: agent file, rubric, frontmatter and body and decide rules paths, scorer return (table, deductions, `Contract:`), spawning skill path.
+- Required inputs: agent file, rubric, `agent-checklist.md`, `interview.md`, and `docs-snapshot.md` rules paths, scorer return (table, deductions, `Contract:`), spawning skill path.
 - Never change the interview answers (model, effort, color, name): a deduction that needs it → make no edit and list it under `Questions:`.
 - A contract mismatch (an input the skill does not pass, a Return field it does not use) → make no edit for it and list it under `Blocked:`.
 - Sweep: minimal `tools` matched to the Task steps, the role line first, a numbered Task with the inputs in step 1, the missing-input fallback, a fixed Return the parent uses, boundaries and read-only stated, caps stated, the data guard line, a Self-check step before Return, and batched reads.
