@@ -16,7 +16,7 @@ Step detail for `add-e2e-tests`. Read the section a step links.
 
 - List files with `list-files`; outside git, Glob while skipping `node_modules/`, `vendor/`, `.venv/`, and build output.
 - Find manifests from the Signals in `stacks.md`. Monorepo → one package per app with a UI, API, or CLI entry point; else the project dir. Keep only packages the scope touches.
-- JS packages: detect the package manager per `stacks.md` Package manager; several lockfiles in one dir → AskUserQuestion (npm Recommended).
+- JS packages: detect the package manager per `stacks.md` Package manager; several lockfiles in one dir → AskUserQuestion (npm Recommended; unattended: npm, recorded under `Open:`); confirm the manager binary with `tool-check`, missing → stop (`Stopped: 2: <manager> not installed`).
 
 ## Analyze
 

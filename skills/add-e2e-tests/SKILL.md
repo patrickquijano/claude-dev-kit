@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask, so its `Questions:` and `Missing:` lines are asked here.
 - Writes: test files and test-only config (seed scripts, auth setup); framework and browser installs belong to `cdk:setup-testing`; never production code.
 - Never run against production or shared environments; only a locally started app or a URL the user confirms is local or safe.
-- Caps: one practices researcher (step 5); analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1.
+- Caps: one practices researcher (step 5); analyzer re-spawn after `Questions:` 1 (still open: stop); re-spawn after setup 1; run-fix rounds 3; open-items pass 1; fix attempts per open item 2.
 - Stop answer or user cancel: `Result: cancelled`. A cap hit or failure after tests exist: run step 10, then `Result: stopped` with `Stopped: <step>: <reason>`.
 - Unattended (chained or no AskUserQuestion): ask nothing; take Recommended picks and record what stays open under `Open:`; an app URL not known to be local or safe stops (`Stopped: 4: app URL not confirmed local`).
 - Tests run only against a dedicated test database, never the dev one; none configured → ask (unattended: stop `Stopped: 4: no test database`). Start the app only with the analyzer's `App start:` command or the framework's `webServer` config, run as detected; stop it with `app-stop` after each run and when the skill stops, only the process this run started.
@@ -34,7 +34,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Project dir = Context Repo root, else cwd. Stop on a rebase or merge in progress; take scope from the input, else `all` (`flow.md` `## Pre-flight`).
-2. **Packages.** Find packages with `list-files` and manifests; detect the JS package manager (`flow.md` `## Packages`).
+2. **Packages.** Find packages with `list-files` and manifests; detect the JS package manager and confirm it with `tool-check` (`flow.md` `## Packages`).
 3. **Analyze.** Spawn one `cdk:repo-analyzer` (`kind: tests`, `model: sonnet`) per package in one message, test kind `e2e` (`flow.md` `## Analyze`).
 4. **Decide.** Take Recommended picks; ask only the local-or-safe app URL; chain `cdk:setup-testing` for missing tools (`flow.md` `## Decide`).
 5. **Practices.** Spawn one `cdk:topic-researcher` (brief in `flow.md` `## Spawn briefs`; official docs only; pass the `conventions.md` path so bundled rules are skipped) and use its cited `Findings:` as rule lines for the picked framework's official docs; unavailable → bundled rules only.
