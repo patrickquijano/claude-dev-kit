@@ -53,7 +53,7 @@ test('cli: a namespaced plugin skill prompt prints plan-mode context', () => {
   // Arrange
   const d = repo();
   // Act
-  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/cdk:ship-release' }));
+  const r = run(d, JSON.stringify({ permission_mode: 'default', prompt: '/cdk:commit-changes' }));
   // Assert
   assert.equal(r.status, 0);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
