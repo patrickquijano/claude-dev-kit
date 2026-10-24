@@ -15,7 +15,7 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
