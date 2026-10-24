@@ -95,5 +95,3 @@ Gaps: <fact not derivable — why>, … | none
 ```
 
 Source = `npm`, `PyPI`, `Packagist`, `NuGet`, `Go proxy`, or `Homebrew`.
-
-Required input missing → `Question: <what is needed and why>` instead.

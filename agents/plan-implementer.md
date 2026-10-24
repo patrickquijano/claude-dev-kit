@@ -26,7 +26,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 - Required inputs: root, group id, the group plan, planned file list, item ids with their reviewer text, repo instruction summary. Optional: `sites`, `tests`, `ripple`, `checks` (absent → derive them from the plan), failing check output from a previous attempt.
 - Also add or update the planned ripple files and handle the edge cases the fix implies inside the planned files. A needed edit outside the planned files, a conflict with repo instructions, or an unclear request → make no edit for it and return `blocked:` with the reason; never expand scope (the planner checked overlap only for the planned files).
-- Grep the planned files for leftovers of the old pattern and fix them; an occurrence in an unplanned file → record it under `Follow-ups`, no edit.
+- Grep the planned files for leftovers of the old pattern and fix them; an occurrence in an unplanned file → record it under `Deviations` as `path:line`, no edit.
 - Self-check: check each item against its check; unmet → fix it within the planned files or report it under `Blocked`.
 
 ### requirement
@@ -41,14 +41,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ```text
 Group: <id>
-Files changed: <paths>
 Map:
 - <item id> → <path>:<lines> — <what changed>
 Deviations: <from the plan, with reason | none>
 Blocked: <item id: reason | none>
 Self-check:
 - <item id>: met | unmet — <path:line>
-Follow-ups: <path:line outside the planned files with the same problem | none>
 Question: <only when input is missing; omit otherwise>
 ```
 
