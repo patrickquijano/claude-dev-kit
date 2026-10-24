@@ -13,7 +13,7 @@ Detection signals, runners, recommended testers, faker libraries, and targeted r
 
 ## Package manager
 
-Detect per package, first match wins: the `packageManager` field in `package.json` (name before `@`); else a lockfile in the package dir, then the git root (`pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm); else npm. Several lockfiles in one dir → ask (npm Recommended); an analyzer reports `unknown` and the skill asks. Manager binary missing (`command -v`) → stop.
+Detect per package, first match wins: the `packageManager` field in `package.json` (name before `@`); else a lockfile in the package dir, then the git root (`pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm); else npm. Several lockfiles in one dir → ask (npm Recommended); an analyzer reports `unknown` and the skill asks. Manager binary missing (`manager-check`) → stop.
 
 | Manager | Exec, binary must be installed (`<x>`) | Add dev dependency |
 | ------- | -------------------------------------- | ------------------ |
@@ -60,7 +60,7 @@ Signals: `package.json`. Package manager: detected per Package manager above; th
 
 ## Python
 
-Signals: `pyproject.toml`, `setup.cfg`, `requirements*.txt`, `uv.lock`, `poetry.lock`. Interpreter: `uv run python` when `uv.lock`, `poetry run python` when `poetry.lock`, else project `.venv/bin/python` (Windows `.venv\Scripts\python.exe`), else `python3`.
+Signals: `pyproject.toml`, `setup.cfg`, `requirements*.txt`, `uv.lock`, `poetry.lock`. Interpreter: `uv run python` when `uv.lock`, `poetry run python` when `poetry.lock`, else project `.venv/bin/python`, else `python3`.
 
 | Runner   | Kind                   | Signal                                                   | Command               |
 | -------- | ---------------------- | -------------------------------------------------------- | --------------------- |
