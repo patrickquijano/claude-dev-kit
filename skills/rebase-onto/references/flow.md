@@ -7,7 +7,7 @@
 ## Pre-flight
 
 - Detached `HEAD` → stop. `status` shows "rebase in progress" → stop; tell the user to finish it or `rebase-abort`. `dirty-tracked` non-empty → stop; suggest `/cdk:commit-changes`.
-- Signing: `git config --get user.signingkey` is set. `gpg.format` = `ssh` → `gpg.ssh.allowedSignersFile` is set, the file exists (`~` expanded), and it holds the signing public key (`user.signingkey` itself when it starts `ssh-`, `ecdsa-`, or `sk-` after stripping `key::`, else the first two fields of the `.pub` file). `.husky/` exists → `commit.gpgsign` = `true`. Missing or mismatch → stop and say what to set. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
+- Signing: `signing-key` is set. `gpg-format` = `ssh` → `allowed-signers` is set, the file exists (`~` expanded), and it holds the signing public key (`signing-key` itself when it starts `ssh-`, `ecdsa-`, or `sk-` after stripping `key::`, else the first two fields of the `.pub` file). `.husky/` exists → `gpgsign` = `true`. Missing or mismatch → stop and say what to set. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
 
 ## Remote branches
 
