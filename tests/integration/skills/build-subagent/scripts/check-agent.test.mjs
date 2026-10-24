@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
@@ -97,5 +97,37 @@ describe('check CLI through a symlink', () => {
     // Assert
     assert.equal(result.status, 2);
     assert.match(result.stderr, /usage/);
+  });
+});
+
+describe('repo agents', () => {
+  const agents = readdirSync(resolve('agents')).filter((name) => name.endsWith('.md'));
+
+  for (const name of agents) {
+    test(`${name} passes check-agent`, () => {
+      // Arrange
+      const file = resolve('agents', name);
+      // Act
+      const result = run(file, '--scope', 'plugin');
+      // Assert
+      assert.equal(result.status, 0);
+      assert.equal(JSON.parse(result.stdout).ok, true);
+    });
+  }
+
+  test('only the plain-request agents use Use proactively', () => {
+    // Arrange
+    const expected = ['change-verifier', 'codebase-explorer', 'task-worker', 'topic-researcher'];
+    // Act
+    const proactive = agents
+      .filter((name) => {
+        const text = readFileSync(resolve('agents', name), 'utf8');
+        const description = /^description:\s*(.*)$/m.exec(text)?.[1].replace(/^["']/, '');
+        return description?.startsWith('Use proactively');
+      })
+      .map((name) => name.replace(/\.md$/, ''))
+      .sort();
+    // Assert
+    assert.deepEqual(proactive, expected);
   });
 });

@@ -1,8 +1,10 @@
 # Docs snapshot
 
-Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Fetched 2026-10-24 on local Claude Code 2.1.310; highest version gate seen v2.1.302. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists.
+Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists.
 
-Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL; unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated 2026-10-24)": omit it and list it in `Unverified:`.
+Fetched: 2026-10-24 (local Claude Code 2.1.310; highest version gate v2.1.302)
+
+Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL; unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated <the `Fetched:` date>)": omit it and list it in `Unverified:`.
 
 ## Contents
 
@@ -90,4 +92,4 @@ Plugin load rules, `initialPrompt` scope, MCP names with `__`, plan-mode inherit
 ## Unverified
 
 - Which agent wins when two descriptions overlap: the docs only advise descriptions that single out one agent. Never claim a resolution rule; state the overlap as "Unverified".
-- Offline or without `WebFetch`: every Changed fact above is "Unverified (baseline dated 2026-10-24)".
+- Offline or without `WebFetch`: every Changed fact above is "Unverified (baseline dated <the `Fetched:` date>)".

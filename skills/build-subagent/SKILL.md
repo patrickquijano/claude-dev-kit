@@ -1,8 +1,10 @@
 ---
 name: build-subagent
 description: Creates, updates, or improves a custom subagent in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, improve, or update a subagent.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[agent name or path] [what it should do]'
-allowed-tools: Read Glob Grep AskUserQuestion WebFetch Write Edit Bash(claude plugin validate *) Bash(claude --version) Bash(claude --debug *) Bash(grep *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
+allowed-tools: Read Glob Grep AskUserQuestion WebFetch Write Edit Bash(claude plugin validate *) Bash(claude --version) Bash(claude --debug *) Bash(grep *) Bash(claude --print *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
+disable-model-invocation: true
 ---
 
 # Build subagent
@@ -13,7 +15,7 @@ Input: $ARGUMENTS
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
-- Standalone: follow only the files linked below; no other skill, subagent, or file outside this skill directory is read, spawned, or required.
+- Standalone: follow only the files linked below; no other skill or file outside this skill directory is read or required, and the only subagent spawned is `cdk:rubric-scorer` (`kind: agent`), for scoring.
 - Two gates, in order: Gate 2 Preflight (step 3) and Gate 1 Interview (step 5); nothing is written before both pass and the Brief is confirmed.
 - Ask with AskUserQuestion per `${CLAUDE_SKILL_DIR}/references/interview.md` `## Protocol`: at most 3 questions per batch, 2–4 options plus Other, the recommendation first as a proposal with a one-line reason, and a Stop option on every batch (Stop → `Result: cancelled`). Skip a question the input already answers. Resolved means a user choice or a named file, never an assumption.
 - Vague or "I don't know" answers: one follow-up with concrete options, or a read-only look-up and ask again; still unresolved → `Result: stopped`.
@@ -32,7 +34,7 @@ Input: $ARGUMENTS
 
 1. **Interact check.** No `AskUserQuestion` in the tool list, or running as a subagent → `Result: stopped`, `Stopped: 1: cannot interact`; nothing else runs.
 2. **Locate.** Pull job, name, triggers, inputs, tools, writes, and return from the input; Glob all scopes per `${CLAUDE_SKILL_DIR}/references/score.md` `## Locate`. More than one match → ask which; the same name at two scopes → update mode and warn which one shadows.
-3. **Gate 2 Preflight.** Fit per `interview.md` `## Fit`: not a subagent → ask Stop (Recommended) | Build anyway. Snapshot older than 30 days, or the user asks → refresh `docs-snapshot.md` with `WebFetch`; unreachable → "Unverified (baseline dated <fetch date in docs-snapshot.md>)"; snapshot missing too → write only `name` and `description` plus fields the user supplies, each other field labeled Unverified.
+3. **Gate 2 Preflight.** Fit per `interview.md` `## Fit`: not a subagent → ask Stop (Recommended) | Build anyway. Snapshot `Fetched:` line older than 30 days, or the user asks → refresh `docs-snapshot.md` with `WebFetch`; unreachable → "Unverified (baseline dated <the `Fetched:` line in docs-snapshot.md>)"; snapshot missing too → write only `name` and `description` plus fields the user supplies, each other field labeled Unverified.
 4. **Mode.** No match → create; one match with a stated change → update; "improve" or no change → improve (ask when unclear). Improve first runs the Baseline per `score.md` `## Baseline`; nothing to do → `Result: nothing-to-do`. Several jobs → `interview.md` `## Several jobs`.
 5. **Gate 1 Interview.** Items 1–13, then the optional-capabilities question, per `interview.md` `## Items` and `## Protocol`; update and improve per `## Update and improve`.
 6. **Brief.** Show it per `interview.md` `## Brief` with `Target: <absolute path>`: Confirm | Revise | Stop.
