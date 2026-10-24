@@ -4,7 +4,7 @@ Step detail for `SKILL.md`. Commands run by name from `commands.md`.
 
 ## Contents
 
-- Pre-flight · Find CR · Branch guard · Plan · Implement · Commit and push · Replies · Gate B · Spawn briefs · Open items
+- Pre-flight · Find CR · Branch guard · Plan · Implement · Validate and verify · Commit and push · Replies · Gate B · Spawn briefs · Open items
 
 ## Pre-flight
 
