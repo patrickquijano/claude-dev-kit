@@ -22,7 +22,7 @@ Format-only drift in a released section (headings, dates, header, link refs, mar
 
 ## Review loop
 
-Run the `format.md` `## Review checklist` against the file, the diffs, and `tags`. A failing item that has a safe fix → apply it and re-run the whole checklist. A failing item that needs unavailable information, touches a released section, or is ambiguous → AskUserQuestion (≤4 options, recommended first with a reason, Stop). Last check: re-derive the entries from the same inputs; any resulting edit → fix and re-run. One full run = 1 round; the cap is checked after each. Cap hit → list the open items in `Blocked:` and `Result: stopped`.
+Run the `format.md` `## Review checklist` against the file, the diffs, and `tags`. A failing item that has a safe fix → apply it and re-run the whole checklist. A failing item that needs unavailable information, touches a released section, or is ambiguous → AskUserQuestion (≤4 options, recommended first with a reason, Stop). Last check: re-derive the entries from the same inputs; any resulting edit → fix and re-run. One full run = 1 round; the cap is checked after each. Cap hit → list the open items in `Open:` (as SKILL.md Rules).
 
 ## Fallback
 
