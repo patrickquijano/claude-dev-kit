@@ -1,6 +1,6 @@
 # Flow details
 
-Conditional branches for steps 3, 5, 6, 10, and 11 of `SKILL.md`, and the spawn briefs for steps 3 and 4.
+Conditional branches for steps 3, 5, 6, 7, 10, and 11 of `SKILL.md`, and the spawn briefs for steps 3 and 4.
 
 ## Analyze (step 3)
 
@@ -18,6 +18,11 @@ Conditional branches for steps 3, 5, 6, 10, and 11 of `SKILL.md`, and the spawn 
 - No existing tests → baseline 0%. Else run each package's coverage command and record total and per-file coverage for the metric.
 - Existing tests fail → report them as baseline failures and measure without them; they are not this skill's to fix, no ask.
 - Baseline at or above target, every target already has 2 positive and 2 negative cases, and the analyzer reports no `Misplaced:`, `Non-conforming:`, or `Needs refactor:` → `Result: nothing-to-do`.
+
+## Relocate and upgrade (step 7)
+
+- Any `Misplaced:` or `Non-conforming:` test → first AskUserQuestion ("Move and rewrite them", "Skip them", "Stop"); unattended lists each under `Open:` and skips it.
+- On move: `git-mv` each `Misplaced:` test to `tests/unit/`, fix runner globs, upgrade each `Non-conforming:` test, and hand I/O cases to `cdk:add-integration-tests`.
 
 ## Measure loop (step 10)
 
