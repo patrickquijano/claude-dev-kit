@@ -34,7 +34,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd. `CLAUDE.md` or `.claude/CLAUDE.md` exists → update (both → ask which is the target); none → create, target `CLAUDE.md`. Existing `.claude/rules/` files are edited in place, never re-templated.
-   - Input `score` or an audit-only request → score-only: steps 2, 6, 7. No target file → `Result: nothing-to-do`, suggest create mode.
+   - Input `score` or an audit-only request → score-only: steps 2, 6, 7, 9. No target file → `Result: nothing-to-do`, suggest create mode.
    - Split input: existing file paths → `Input files:`; the rest → `Input text:`.
 2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: instructions`, `model: sonnet`, root, `Target:`, `Input files:`, `Input text:`; keep its facts block.
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
