@@ -13,7 +13,8 @@ Detail for the steps that branch.
 
 ## Install
 
-- Only tools not yet installed. npm packages → one command: the `package-manager.md` add command, each package `<pkg>@<version>`.
+- Confirm first (attended, before any install or config write): AskUserQuestion listing each effect: the packages with resolved versions, the install commands (npm, Composer, .NET), and the config and ignore files to write. Options: Install `<pkgs>` + write `<configs>` (Recommended) | Stop. Stop → `Stopped: 7: user stopped` and end. Nothing to install or write → no question. Unattended → no question; the chaining skill's consent applies, and the Output reports it.
+- Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>` (workspace-root flag per `package-manager.md`).
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. .NET tools → `dotnet-manifest` when needed, then `dotnet-tool-install`; missing prerequisite → skip the tool with the reason.
 - Native tools → the first `tools.md` channel whose command exists (`uv-install`, `pipx-install`, `go-install`, `brew-install`). Ask per tool: Run `<that command>` (Recommended) | Skip this tool | Stop. No channel → skip with the install page.
 - A failed install → quote the error line and stop.

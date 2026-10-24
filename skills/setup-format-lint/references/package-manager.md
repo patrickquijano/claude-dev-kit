@@ -17,7 +17,7 @@ Order, first match wins:
 2. Lockfile in the package dir, then the git root: `pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm.
 3. No lockfile → npm (ships with Node), no question. Several lockfiles in the same dir → `unknown`: a subagent cannot ask, so it reports `unknown` and the skill asks: npm (Recommended) | pnpm | yarn | bun.
 
-`command -v <pm>` fails → stop ("install <pm>").
+`tool-check` on `<pm>` fails → stop ("install <pm>").
 
 ## Commands
 
