@@ -38,6 +38,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Never commit secrets or credentials; read them from env vars.
 - Ask first before `git push` (an explicit commit or push request to a cdk git skill counts as consent to a normal, non-force push), creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Local commits, review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 - Exception: the release gate in `cdk:prepare-change-request` chains `cdk:commit-changes` (commit and normal push of the changelog and version only).
+- Exception: `/cdk:review-github-pull-request` is consent for replying to and resolving review threads and submitting one review (approve, comment, or request changes) on the reviewed PR; it never pushes, merges, or edits the PR.
 - Exception: `/cdk:ship-release` (GitHub or GitLab, by `origin` host) is consent for atomic signed commits, pushing, creating or updating the PR or MR, posting reviews and replies, and merging a clean PR or MR (not draft, conflict-free, required checks passing) with the squash and delete-source choices it asks once; it continues past blockers and reports them, never using `--admin`.
 
 ## Changes
