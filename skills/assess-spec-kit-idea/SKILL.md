@@ -1,6 +1,6 @@
 ---
 name: assess-spec-kit-idea
-description: Vets an idea with Spec Kit's assess extension: go, clarify, or kill verdict; on go, asks before building. Use only when the user explicitly asks to vet an idea with Spec Kit.
+description: Vets an idea with Spec Kit's assess extension, returning go, needs-clarification, or kill; on go, asks before building. Use only when the user explicitly asks to vet an idea with Spec Kit.
 argument-hint: '<idea text | URL | ticket | codebase pointer> [handoff=no]'
 ---
 
@@ -10,15 +10,15 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Re-check the result against these rules before reporting.
+- Efficiency: read only what a step needs and keep output terse. No step spawns an agent.
 - Run each speckit step with the Skill tool in this main thread, one at a time, never via the Agent tool (a subagent has no AskUserQuestion). Wait for each to finish; speckit skills do not chain themselves.
 - Relay every question a speckit skill asks with AskUserQuestion. Pre-approved exceptions: accept the slug intake suggests (step 3); in step 7 re-runs only, answer yes to overwriting artifacts in the current slug. On the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - Pass `slug=<slug>` to every step after intake. All five steps write only to `.specify/assessments/<slug>/`.
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
 - `handoff=no` in the input (any position): strip it from the idea; a go verdict then stops at step 6. Default: hand off.
 - Caps: Clarify loop 2 re-runs, then stop; no other loop or retry.
-- Chaining `cdk:run-spec-kit`: Skill tool, main thread, never `context: fork`, only after the user confirms the hand-off question (step 6; unattended never starts it). Read its Output `Result:` line.
+- Chaining `cdk:run-spec-kit`: Skill tool, main thread, never `context: fork`, only after the user confirms the question to hand off (step 6; unattended never starts it). Read its Output `Result:` line.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Unattended (chained, no AskUserQuestion): ask nothing; stop at the first question needing the user and list it in `Open:`.
 - Never set `disable-model-invocation: true` on this skill; it is chained through the Skill tool.
