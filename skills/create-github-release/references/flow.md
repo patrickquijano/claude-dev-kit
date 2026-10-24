@@ -24,7 +24,7 @@ Read-only, before any write.
 
 ## Create
 
-- `create-tag`, then `push-tag` (plain, never force). A rejected push → stop; nothing is retried.
+- Per the state from `local-tag` and `remote-tag`: run `create-tag` only when no local tag exists (it fails on an existing tag, so a rerun skips it), then `push-tag` only when the remote lacks the tag (plain, never force). A rejected push → stop; nothing is retried. Output `Tag:` says `created`, `pushed existing`, or `reused` accordingly.
 - `create-release` (no `--draft`, `--prerelease`, or `--target`); `--verify-tag` aborts rather than letting GitHub create a lightweight tag. Failure after the tag is pushed → `Stopped: 6: release-create-failed: <error>`; the tag stays and a rerun reuses it.
 - `verify-release`: draft or prerelease true, or the tag missing → list it in `Blocked:`; never edit.
 
