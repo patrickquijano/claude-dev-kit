@@ -6,20 +6,31 @@ Conditional detail for the steps of `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/r
 
 - Pre-flight (step 1)
 - DAST gate (step 2)
+- Baseline (step 3)
+- Scan (steps 4, 8)
 - Triage (step 5)
 - Remediate (step 6)
 - Continue or stop (step 7)
+- Report (step 9)
 - Ship (step 10)
 - Open items (step 11)
 - Spawn briefs (steps 4, 5, 6, 8)
 
 ## Pre-flight
 
-A merge, rebase, or cherry-pick in progress, or unmerged paths in `status-porcelain`, → stop (`conflicting uncommitted changes`). Parse the arguments; a bad value → use its default, no ask, and note it in `Arguments:`. Create `.vulnerability-reports/<ts>/`. When `check-ignore-reports` fails, append `.vulnerability-reports/` to `.git/info/exclude`; this is local and untracked. Record branch, HEAD, porcelain status, and protected paths in `manifest.json`. Print the data that leaves the machine (`scanners.md` `## Network`). `.specify/` missing → scan and report only, no question (remediation needs Spec Kit; report "run `/cdk:setup-spec-kit` first").
+A merge, rebase, or cherry-pick in progress, or unmerged paths in `status-porcelain`, → stop (`conflicting uncommitted changes`). Parse the arguments; a bad value → use its default, no ask, and note it in `Arguments:`. Create `.vulnerability-reports/<ts>/`. When `check-ignore-reports` fails, run `exclude-reports` (a local, untracked `.git/info/exclude` entry); when it passes, add nothing. Record branch, HEAD, porcelain status, and protected paths in `manifest.json`. Print the data that leaves the machine (`scanners.md` `## Network`). `.specify/` missing → scan and report only, no question (remediation needs Spec Kit; report "run `/cdk:setup-spec-kit` first").
 
 ## DAST gate
 
 Check `zap-target`, and `zap-spec` when it is a URL, against `scanners.md` `## OWASP ZAP`. Unattended (chained or `--yes`) → ZAP `skipped` (`unattended: DAST needs authorization`), no question. A non-local host, or `zap-mode=api` without `zap-spec` → ZAP `skipped` with that reason, no question. Else AskUserQuestion: I own this non-production target and authorize a passive scan (Recommended) | Skip ZAP. Mode `full` → a second question: Use baseline instead (Recommended) | Run active scan (sends attack payloads to the target). Any unclear ownership → skip ZAP and record why.
+
+## Baseline
+
+Detect the commands once and list them in `manifest.json` `baseline`. Build and every test command `unavailable` → scan only, with stop reason `validation unavailable`.
+
+## Scan
+
+Step 4 and step 8 spawn `cdk:security-scanner` (`## Spawn briefs`). The `Images:` line (informational except for jq) or `Scans:` line shows jq `unavailable` or unverified, in any iteration → stop (`redaction image unverified; no scan run`). Store the `Newer major:` line in `manifest.json` for step 9.
 
 ## Triage
 
@@ -32,6 +43,10 @@ For each remediable group, in priority order: checkpoint; invoke `cdk:run-spec-k
 ## Continue or stop
 
 Stop the loop when: no confirmed remediable finding is left; only approval-bound, manual, false-positive, or accepted findings are left; a scanner, build, or test dependency needed for reliable validation is unavailable; every remaining remediable finding has used its 2 attempts; `i` = max iterations; or more changes risk regressions (for example, repeated failures across unrelated fixes). Before stopping on approval-bound findings, ask every not-yet-asked `needs-approval` item, 4 per call; an approval with iterations left cancels the stop. Unattended: ask nothing; leave the `needs-approval` items and list them in `Open:`. No stop condition met → `i += 1`, back to step 4.
+
+## Report
+
+Initial counts come from iteration 1, final counts from the final rescan. Run `image-remove` for each `cdk-vuln-scan/*` tag this run built (a missing image is ignored). Carry the stored `Newer major:` line into the Output.
 
 ## Ship
 
@@ -46,4 +61,4 @@ Every value is literal (root and run dir absolute, finding ids as `F-<n>`). Scan
 
 ## Open items
 
-Every stop from step 4 onward first runs the cleanup from `SKILL.md` Rules (raw dir, scanner containers). Runs after step 10 and once after every stop from step 4 onward (`scanner agent failed`, `redaction image unverified; no scan run`, a `Stopped: Ship` stop); pre-flight stops and cancels skip it. It runs after step 10 so `Manual actions:` includes the held-back files; `Open:` appears in chat output only, not in `summary.md`. It only reports; it never re-runs the loop. Itemize the `Remaining:` count by finding id (`needs-approval`, `manual`, `failed`, `open`) and each failed, pre-existing failed, or unavailable validation command and scanner and failed, unavailable, or skipped scanner, each with impact and recommended fix. Ask nothing again for `needs-approval` items: steps 6 and 7 already offered them.
+Every stop from step 4 onward first runs the cleanup from `SKILL.md` Rules (raw dir, scanner containers, built image tags). Runs after step 10 and once after every stop from step 4 onward (`scanner agent failed`, `redaction image unverified; no scan run`, a `Stopped: Ship` stop); pre-flight stops and cancels skip it. It runs after step 10 so `Manual actions:` includes the held-back files; `Open:` appears in chat output only, not in `summary.md`. It only reports; it never re-runs the loop. Itemize the `Remaining:` count by finding id (`needs-approval`, `manual`, `failed`, `open`) and each failed, pre-existing failed, or unavailable validation command and scanner and failed, unavailable, or skipped scanner, each with impact and recommended fix. Ask nothing again for `needs-approval` items: steps 6 and 7 already offered them.
