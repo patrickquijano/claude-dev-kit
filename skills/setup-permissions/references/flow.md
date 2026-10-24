@@ -9,11 +9,11 @@ Detail for the Workflow steps in `SKILL.md`. Commands: `${CLAUDE_SKILL_DIR}/refe
 ## Pre-flight
 
 - Platform: Windows when `os-env` prints `Windows_NT`, else `uname` (`Darwin` = macOS, `Linux` = Linux).
-- Settings dir: `config-dir` output when it prints a path (a failed command = unset), else `~/.claude` (`%USERPROFILE%\.claude` on Windows). User target = `<dir>/settings.json`; project target = `<repo root>/.claude/settings.local.json`. Managed settings, if any, still outrank both.
+- Settings dir: `config-dir` output when it prints a path (a failed command = unset), else `~/.claude` (the `.claude` directory in the user profile on Windows). User target = `<dir>/settings.json`; project target = `<repo root>/.claude/settings.local.json`. Managed settings, if any, still outrank both.
 
 ## Analyze
 
-Spawn `cdk:repo-analyzer` with `kind: permissions`, the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Ignore its `Known issue:` lines. Its `Gaps:` become `skipped` notes.
+Spawn `cdk:repo-analyzer` with `kind: permissions`, the repo root and `$ARGUMENTS` as extra notes. It cannot ask, so ask its `Questions:` here (batches of at most 4, 2-4 options each, recommended first with its reason), then re-spawn once with the answers appended as extra notes. Its `Gaps:` become `skipped` notes.
 
 ## MCP inventory
 
