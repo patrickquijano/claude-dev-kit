@@ -4,12 +4,13 @@ Recommend one option per question with a one-line reason; the user can override.
 
 ## Scope
 
-| Signal                                                                             | Recommend                                     | Path                                                               |
-| ---------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
-| Repo-specific conventions or workflow; teammates should get it through git         | Project                                       | `<repo>/.claude/skills/<name>/SKILL.md`                            |
-| Your own cross-project habit, not for the team                                     | Personal                                      | `~/.claude/skills/<name>/SKILL.md`                                 |
-| `.claude-plugin/plugin.json` at the target root, or a skill meant for distribution | Plugin                                        | `<plugin root>/skills/<name>/SKILL.md`, invoked `/<plugin>:<name>` |
-| No signal                                                                          | Project when cwd is a git repo, else Personal |                                                                    |
+An existing skill's scope is its path. For create, the roots come from `cdk:skill-analyzer` (`Git root:`, `Plugin root:`); `unknown` or `none` → "no evidence", no recommendation, never a guess.
+
+| Signal                                                                             | Recommend | Path                                                               |
+| ---------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------ |
+| Repo-specific conventions or workflow; teammates should get it through git         | Project   | `<repo>/.claude/skills/<name>/SKILL.md`                            |
+| Your own cross-project habit, not for the team                                     | Personal  | `~/.claude/skills/<name>/SKILL.md`                                 |
+| `.claude-plugin/plugin.json` at the target root, or a skill meant for distribution | Plugin    | `<plugin root>/skills/<name>/SKILL.md`, invoked `/<plugin>:<name>` |
 
 - Same name at several levels: enterprise over personal over project. Plugin skills are namespaced, so they never collide with local ones.
 - Nested `.claude/skills/` in a subdirectory load only when Claude first reads or edits a file there.
@@ -44,7 +45,7 @@ Ask only for what the table cannot derive from the extracted facts.
 
 A skill does exactly one job. Signals of several: "and" between unrelated actions, separate triggers or outputs, steps with no shared input.
 
-- Recommend **Split** when the jobs are independent: one skill per job, each built in turn through workflow steps 2–8.
+- Recommend **Split** when the jobs are independent: one skill per job, each built in turn through workflow steps 2–11.
 - Recommend **Pick one** when one job dominates: the rest go to `Open:`.
 - Update that adds a second job → same question.
 

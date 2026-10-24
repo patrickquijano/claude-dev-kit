@@ -1,6 +1,6 @@
 # Evals
 
-Step 9 of `SKILL.md`: optional; runs only when `skill-creator` is in the session's skill list and the user picks it.
+Step 12 of `SKILL.md`: optional; runs only when `skill-creator` is in the session's skill list and the user picks it.
 
 `skill-creator` not listed → `Evals: n/a`; mention `/plugin install skill-creator@claude-plugins-official` as information only, never stop.
 
