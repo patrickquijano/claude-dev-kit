@@ -93,7 +93,7 @@ Sourced from docs.docker.com, except the `Packages` pins, apt list cleanup, and 
 
 ## Devcontainer target
 
-Input `target=devcontainer` (from a chained caller such as `cdk:setup-devcontainer`) builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
+Input `target=devcontainer` builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
 
 - Replaces `Structure/multi-stage`: single stage `FROM … AS dev` on the given `mcr.microsoft.com/devcontainers/<image>` base. Multi-stage only pays off when a runtime stage receives build artifacts. <https://containers.dev/guide/dockerfile>
 - `Structure/pinned` still applies: the caller passes an exact full tag, so no run-time tag resolution applies.

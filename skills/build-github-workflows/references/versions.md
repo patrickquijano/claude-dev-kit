@@ -4,7 +4,12 @@ Procedure only; this file holds no versions. Resolve every value on each run, th
 
 ## Pin form
 
-Every action, remote reusable workflow, and image is pinned by its exact tag (`vX.Y.Z`), never a commit hash or an image hash. A repo or org policy that requires hash pinning is not applied: the analyzer reports it and the skill lists it under `Open:` for the user to decide. Source: <https://docs.github.com/en/actions/reference/security/secure-use>.
+Every action, remote reusable workflow, and image is pinned by its exact tag (`vX.Y.Z`) by default. When the analyzer reports `Pinning policy: SHA required (…)`, ask once, inside the step 3 cap:
+
+- Follow policy (Recommended: the repo enforces it): `owner/repo@<40-hex commit SHA> # vX.Y.Z`.
+- Exact tag (**cdk** default): list the policy under `Open:`.
+
+Images stay on tags either way, because the policy covers actions. Source: <https://docs.github.com/en/actions/reference/security/secure-use>.
 
 ## Actions and reusable workflows (third-party and remote)
 

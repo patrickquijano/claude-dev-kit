@@ -71,7 +71,7 @@ Names are derived, never chosen: the same request always yields the same names.
 
 ## Cleanup (**cdk**; GitHub publishes no registry-logout guidance)
 
-- **Required** every job that creates credentials, temp files, containers, or logins ends with cleanup steps `if: ${{ always() }}`: `docker logout <registry>`, delete files under `$RUNNER_TEMP` it wrote, remove credential files and `~/.docker/config.json` entries, `docker rm -f` and `docker network rm` for containers it started. `always()` also runs when cancelled, so cleanup steps must be short and idempotent; the doc warns against `always()` on steps whose failure could hang the run (source checkout), and recommends `!cancelled()` when a cancelled run needs no step. `reference/workflows-and-actions/expressions`
+- **Required** every job that creates credentials, temp files, containers, or logins ends with cleanup steps `if: ${{ always() }}`: `docker logout <registry>`, delete files under `$RUNNER_TEMP` it wrote, remove credential files and `$HOME/.docker/config.json` entries, `docker rm -f` and `docker network rm` for containers it started. `always()` also runs when cancelled, so cleanup steps must be short and idempotent; the doc warns against `always()` on steps whose failure could hang the run (source checkout), and recommends `!cancelled()` when a cancelled run needs no step. `reference/workflows-and-actions/expressions`
 - GitHub-hosted runners are ephemeral isolated VMs; self-hosted runners are not, so cleanup is mandatory there and also kept on hosted runners. `reference/security/secure-use`
 
 ## Caching and artifacts
@@ -89,7 +89,7 @@ Names are derived, never chosen: the same request always yields the same names.
 ## Pinning (**cdk** on top of GitHub guidance)
 
 - Every action, remote reusable workflow, and image is pinned by its exact release tag `vX.Y.Z`, never a bare major, a branch, a commit hash, or an image hash. Resolution: `versions.md` `## Pin form`.
-- A hash-pinning policy: see `versions.md` `## Pin form`. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off.
+- A hash-pinning policy: the skill asks per `versions.md` `## Pin form`. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off.
 
 ## Composite actions (**cdk**)
 

@@ -1,8 +1,10 @@
 ---
 name: build-docker-compose
 description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use only when the user explicitly asks to write or review Compose.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '<app description | path | existing compose file>'
-allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker info *) WebFetch(domain:hub.docker.com)
+allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker info *) Bash(node --version) Bash(npm view dclint version) Bash(git mv *)
+disable-model-invocation: true
 ---
 
 # Write Docker Compose
@@ -21,7 +23,7 @@ Input: $ARGUMENTS
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Sources: every key and value written comes from the input, an existing compose file, a user answer, or a **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`; nothing else.
-- Scope: read only the input, the paths it names, and compose files at the root (`flow.md` `## Pre-flight`); never scan or read other paths (source, CI, scripts, Dockerfiles, `.env*`) unless the input names them. Edit only the compose file.
+- Scope: read only the input, the paths it names, and compose files at the root (`flow.md` `## Pre-flight`); never scan or read other paths (source, CI, scripts, Dockerfiles, `.env*`) unless the input names them. Edit only the compose file; the one allowed rename is `compose-rename`, after the user confirms it.
 - Output form: long (mapping) syntax for every entry that has one, and no key set to its documented default (`practices.md` `## Long syntax`, `## Defaults`).
 - Apply every **Required** item for the chosen mode in `practices.md`; apply a **Recommended** item only when the input or a user answer asks for it. A skipped Required item gets a reason in the Output.
 - Mode: plain Compose or Swarm stack, decided from the input and compose-file signals, else asked (`flow.md` `## Mode`). `deploy:` alone never proves Swarm.
@@ -32,16 +34,16 @@ Input: $ARGUMENTS
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
 - Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing) and confirm with AskUserQuestion naming each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)"; unattended → write and report. The confirmation does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts; tag listing 10 pages. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
-- Unattended (chained or no way to ask): ask nothing, list each unanswered choice under `Open:`.
+- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
+- Unattended (no way to ask): ask nothing, list each unanswered choice under `Open:`.
 
 ## Workflow
 
 1. **Pre-flight.** Root = Context, else cwd; read the input and find existing compose files; mode: review | update | create (`flow.md` `## Pre-flight`).
-2. **Analyze.** Collect services, images, ports, env var names, volumes, and Swarm signals from the input and compose files only (`flow.md` `## Analyze`). Review mode → step 7, then 8.
+2. **Analyze.** Collect services, images, ports, env var names, volumes, and Swarm signals from the input and compose files only (`flow.md` `## Analyze`). Review mode → step 3 without asking, then 7, then 8.
 3. **Mode.** Pick plain Compose or Swarm stack from the signals, else ask (`flow.md` `## Mode`).
 4. **Clarify.** Ask only unresolved choices, recommended first with the reason (`flow.md` `## Clarify`).
-5. **Draft and plan.** Resolve every image tag per practices.md; build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
+5. **Draft and plan.** Resolve image tags by spawning `cdk:version-resolver` with `kind: images` (brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
 6. **Write** the file after the confirmation (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
