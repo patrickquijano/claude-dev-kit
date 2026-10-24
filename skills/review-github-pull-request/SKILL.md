@@ -1,6 +1,7 @@
 ---
 name: review-github-pull-request
 description: Reviews one GitHub PR alone: resolves addressed threads, analyzes in parallel, posts one review pinned to the head SHA, no confirmation. Use only when the user explicitly asks to review a GitHub PR.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[pr-url | number]'
 allowed-tools: Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr diff *) Bash(git remote get-url *) Bash(git branch --show-current) mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__issue_read
 disable-model-invocation: true
@@ -34,7 +35,7 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** Check `auth-status`, `origin` is `github.com`, then `repo-view`; failure → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`.
-3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`.
+3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; spawn up to 4 `cdk:task-worker` per `threads.md` `## Spawn briefs`.
 4. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 5. **Analyze.** Spawn the four `cdk:task-worker` areas in one turn; validate each return.
 6. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
