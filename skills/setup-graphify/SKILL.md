@@ -1,7 +1,9 @@
 ---
 name: setup-graphify
 description: Installs graphify, adds its hooks, builds the first code knowledge graph, and writes usage rules. Use only when the user explicitly asks to set up graphify or a code knowledge graph.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook status) Bash(git rev-parse *)
+disable-model-invocation: true
 ---
 
 # Setup Graphify
@@ -25,9 +27,8 @@ allowed-tools: Bash(command -v *) Bash(graphify --version) Bash(graphify hook st
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them. Never hand-write the `CLAUDE.md` `## graphify` section.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines); the rest of `graphify-out/` holds absolute paths or per-machine state.
 - Pre-flight or CLI (step 2) stop → print the Output with `Stopped: <step>: <reason>` and end. Any later failure → continue with the remaining steps, list it under `Open:`, and set `Result: stopped` only when nothing more can run.
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (chained, no AskUserQuestion): ask nothing; take each question's recommended option, except the global install (step 2: stop, record under `Open:`) and an existing `graphify-out/` `.gitignore` line (step 7: keep it, record under `Open:`).
+- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (no AskUserQuestion): ask nothing; take each question's recommended option, except the global install (step 2: stop, record under `Open:`) and an existing `graphify-out/` `.gitignore` line (step 7: keep it, record under `Open:`).
 - `install-uv` and `install-pipx` are global installs, so they are not pre-approved and always follow an explicit "Install graphifyy 0.9.93 globally" confirmation.
-- Chained by other skills through the Skill tool, so it never sets `disable-model-invocation`.
 
 ## Workflow
 

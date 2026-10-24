@@ -1,7 +1,9 @@
 ---
 name: setup-husky
-description: Installs Husky Git hooks that enforce Conventional Commits and signed commits; needs signing configured first. Use only when the user explicitly asks to set up Husky or Git hooks, or when chained.
+description: Installs Husky Git hooks that enforce Conventional Commits and signed commits; needs signing configured first. Use only when the user explicitly asks to set up Husky or Git hooks.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v *)
+disable-model-invocation: true
 ---
 
 # Setup Husky
@@ -25,10 +27,9 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --versio
 - Never overwrite a user file; never pass `--no-verify`.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
-- AskUserQuestion: at most 4 questions per call, 2-4 options, recommended first with its reason; each asked once. Unavailable → take the recommended option and list it under `Open:`. Unattended (chained by `cdk:setup-project`) → same.
+- AskUserQuestion: at most 4 questions per call, 2-4 options, recommended first with its reason; each asked once. Unavailable → take the recommended option and list it under `Open:`. Unattended → same.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
 - Pre-flight stops and a Stop answer: print the Output with `Result: stopped | cancelled`.
-- Chained via the Skill tool; never set `disable-model-invocation`.
 
 ## Workflow
 

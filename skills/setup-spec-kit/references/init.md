@@ -1,6 +1,6 @@
 # Init
 
-Step 2 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`. Spec Kit treats a project with `.specify/` as initialized.
+Step 2 detail. Commands run by name from `commands.md`. Spec Kit treats a project with `.specify/` as initialized.
 
 - `.specify/` and every required skill dir exist → skip.
 - `.specify/` and every core dir exist, extension dirs missing → skip; step 3 adds them.

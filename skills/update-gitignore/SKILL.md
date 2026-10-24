@@ -1,7 +1,9 @@
 ---
 name: update-gitignore
-description: Finds generated, local, and secret paths not to commit and appends approved ones to .gitignore. Use only when the user explicitly asks to update .gitignore, or when chained.
+description: Finds generated, local, and secret paths not to commit and appends approved ones to .gitignore. Use only when the user explicitly asks to update .gitignore.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
+disable-model-invocation: true
 ---
 
 # Update gitignore
@@ -22,7 +24,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 - Idempotent: a path already ignored (`check-ignore`) is skipped; existing `.gitignore` lines are kept and never reordered. `nothing-to-do` = no candidate left.
 - Never untrack, delete, commit, or push; a tracked file that matches a candidate is reported under `Tracked but ignored:`, not changed. A tracked `.env*`, key, or credential file is secret exposure: report it under `Secret exposure:` (name only, never contents) with the advice to rotate the secret and untrack the file.
 - `check-ignore` paths are repo-relative to the root (no leading `/`, no absolute path), run from the root.
-- Write only the root `.gitignore`, after the user's choice; unattended (chained, no way to ask) writes only `high`-confidence candidates.
+- Write only the root `.gitignore`, after the user's choice; unattended (no way to ask) writes only `high`-confidence candidates.
 - Caps: the analyzer reads at most 40 files and is re-spawned at most once; one choose round, then write.
 - AskUserQuestion: at most 4 questions per call, recommended first with its reason, Stop option on every call (Stop → `Result: cancelled`).
 

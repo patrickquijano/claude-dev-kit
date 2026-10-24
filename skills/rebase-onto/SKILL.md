@@ -1,8 +1,10 @@
 ---
 name: rebase-onto
 description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use only when the user explicitly asks to rebase or sync with main via rebase.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional target branch]'
 allowed-tools: Bash(git status *) Bash(git rev-parse *) Bash(git config --get *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git diff *) Bash(git merge-base *) Bash(git rev-list *) Bash(git cherry *) Bash(glab mr list *) Bash(gh pr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests Bash(git rebase --skip) Bash(git -c core.editor=true rebase --continue) Bash(git add *)
+disable-model-invocation: true
 ---
 
 # Rebase Onto
@@ -29,7 +31,7 @@ Input: $ARGUMENTS
 - Push is never automatic: always ask first.
 - Conflict analysis: one `cdk:conflict-analyzer` per conflicted file, ≤4 per message. Agents only propose; every question and git write stays here.
 - Caps: Revise loop 5 rounds per file; the conflict loop runs once per replayed commit. Cap hit or any later failure (signing, verify, push) → say the rebase is still in progress (`rebase-abort` undoes it), list the rest in `Open:`, and stop.
-- Unattended (chained, no AskUserQuestion): ask nothing; at the first conflict run `rebase-abort` (the branch returns to its pre-rebase state), skip the push, and report each in `Open:`.
+- Unattended (no AskUserQuestion): ask nothing; at the first conflict run `rebase-abort` (the branch returns to its pre-rebase state), skip the push, and report each in `Open:`.
 
 ## Workflow
 
@@ -56,7 +58,7 @@ Conflicts: <file — resolution> or none
 Skipped: <commits or none>
 Pushed: <remote>/<current> (force-with-lease | -u) | no
 Open: <item: impact; command to run, …> | none
-Next: /cdk:prepare-change-request | none
+Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

@@ -14,7 +14,7 @@ Conditional detail for the workflow steps.
 
 ## Fallback
 
-AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Unattended runs (chained) ask nothing: omit unanswerable items and list them in `Omitted:`.
+AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Unattended runs ask nothing: omit unanswerable items and list them in `Omitted:`.
 
 ## Cancelled
 

@@ -1,6 +1,6 @@
 # Initialize Husky
 
-Step 7 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Step 7 detail. Commands run by name from `commands.md`.
 
 - Other hook owners first: `lefthook.{yml,yaml,json}` or `.lefthook.*`, `.pre-commit-config.yaml`, or a non-`.sample` file in the hooks dir (`<root>/.git/hooks` when `core.hooksPath` is unset and `.git` is a directory; check with Glob) → AskUserQuestion: Stop, keep existing hooks (Recommended) | Replace with Husky (you migrate them yourself). Unattended: stop and list under `Open:`.
 - `hooks-path`: unset, or ends in `.husky/_` → ok. `.husky` or `<pkg>/.husky` (legacy Husky layout) → migrate, no prompt. Other → AskUserQuestion: Replace with Husky (Recommended) | Stop; another hook manager owns the hooks there. Unattended: stop and list under `Open:`; never replace a foreign `core.hooksPath`.

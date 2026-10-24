@@ -1,7 +1,9 @@
 ---
 name: setup-spec-kit
 description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(command -v *) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension set-priority *) Bash(git rev-parse --is-inside-work-tree)
+disable-model-invocation: true
 ---
 
 # Setup Spec Kit
@@ -19,7 +21,7 @@ allowed-tools: Bash(command -v *) Bash(specify --version) Bash(specify integrati
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
 - Caps: `extension-add` or `extension-set-priority` runs once per extension, no retries; one user-approved reinstall per extension whose skill dirs are missing; one retry pass over skipped ignore edits (step 6).
 - `specify extension remove` and `specify extension add` are deliberately not in `allowed-tools`: the reinstall deletes extension files and an add writes them, so the permission prompt is a second guard (after the AskUserQuestion for the reinstall).
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (chained): ask nothing; take the Recommended option, except the global install (step 1) and `init-here` on a non-empty project (step 2), which stop and are recorded under `Open:`.
+- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended: ask nothing; take the Recommended option, except the global install (step 1) and `init-here` on a non-empty project (step 2), which stop and are recorded under `Open:`.
 - `install-specify` is a global install, so it is not pre-approved and always follows an explicit "Install specify-cli v1.2.2 globally" confirmation.
 - Steps 1-2 stops and cancels: print the Output with `Open:` holding the item recorded at the stop (else `not run`) and end. A later stop still runs step 6 once, then prints the Output with `Result: stopped`.
 - Leftovers (failed extensions, missing skill dirs, skipped ignore edits) go to `Open:` with a recommended fix; never loop past the caps.

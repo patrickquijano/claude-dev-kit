@@ -1,8 +1,10 @@
 ---
 name: create-github-release
 description: Creates the annotated tag and GitHub release for the latest CHANGELOG.md version from the default branch, with its section as notes. Use only when the user explicitly asks to create a release or tag.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--prefix v|none] [--yes]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote origin *) Bash(git remote) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge --ff-only origin/*) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *) mcp__plugin_github_github__list_releases
+disable-model-invocation: true
 ---
 
 # Create GitHub Release
@@ -24,7 +26,7 @@ Input: $ARGUMENTS
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Changelog parsing, SemVer and date validation, tag-prefix detection, and notes rendering belong to `${CLAUDE_SKILL_DIR}/scripts/changelog-release.mjs`; never parse the changelog or build notes by hand. Notes come only from that section. Template: `${CLAUDE_SKILL_DIR}/references/release-notes.md`.
-- Release only the verified tip of the default branch (`<default>`: `.claude/release-policy.json` `defaultBranch`, else `default-branch` minus `origin/`; neither → stop): clean tree, on `<default>`, local `<default>` fast-forwarded to the remote's; never rebase or reset.
+- Release only the verified tip of the default branch (`<default>`: `default-branch` minus `origin/`; none → stop): clean tree, on `<default>`, local `<default>` fast-forwarded to the remote's; never rebase or reset.
 - Never `--force`, `-f`, `--prune-tags`, `git tag -d`, `gh release edit`, `gh release delete`, or `--draft`/`--prerelease`/`--target`. A wrong tag or release is reported, never fixed here; published releases may be immutable, so the confirmation names the tag and commit.
 - One confirmation before any write (tag, push, release); it covers exactly those. `--yes` or an unattended run skips the question, never any check.
 - Idempotent: an existing release stops the run untouched; an existing tag is reused only when it points at the verified commit.

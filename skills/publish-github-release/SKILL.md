@@ -1,8 +1,10 @@
 ---
 name: publish-github-release
 description: Publishes a draft GitHub release, or drafts one from the latest CHANGELOG.md section and publishes it, after asking latest or pre-release. Use only when the user explicitly asks to publish a release.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--tag <tag>] [--yes]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-notes.mjs *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(git ls-remote origin *) Bash(git ls-files *) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *) mcp__plugin_github_github__list_releases
+disable-model-invocation: true
 ---
 
 # Publish GitHub Release

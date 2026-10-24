@@ -1,8 +1,10 @@
 ---
 name: publish-tag
 description: Creates and pushes the annotated git tag for the latest CHANGELOG.md version from the default branch, no release. Use only when the user explicitly asks to publish, create, or push a version tag.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--prefix v|none] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge --ff-only origin/*) Bash(git ls-remote origin *) Bash(git tag --list *) Bash(git show HEAD:CHANGELOG.md)
+disable-model-invocation: true
 ---
 
 # Publish Tag
@@ -21,7 +23,7 @@ Input: $ARGUMENTS
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Tag only the verified tip of the default branch (`<default>`: `.claude/release-policy.json` `defaultBranch`, else `default-branch` minus `origin/`; neither → stop): on `<default>`, local `<default>` fast-forwarded to the remote's; never rebase, reset, or push `<default>`.
+- Tag only the verified tip of the default branch (`<default>`: `default-branch` minus `origin/`; none → stop): on `<default>`, local `<default>` fast-forwarded to the remote's; never rebase, reset, or push `<default>`.
 - Never `--force`, `-f`, `--delete`, `git tag -d`, or `--prune-tags`; a wrong tag is reported, never fixed here.
 - The version comes only from the first `## [x.y.z]` heading of the committed `CHANGELOG.md` (`changelog-head`; `Unreleased` skipped), validated per `flow.md` `## Plan`; never bump it.
 - An existing tag, local or remote, stops the run untouched; never reuse or move it.

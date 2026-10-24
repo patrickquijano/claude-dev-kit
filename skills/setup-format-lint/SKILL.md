@@ -1,7 +1,9 @@
 ---
 name: setup-format-lint
-description: Sets up a formatter and linters per repo file type at verified versions, with configs and ignore paths. Use only when the user explicitly asks to set up formatters or linters, or when chained.
+description: Sets up a formatter and linters per repo file type at verified versions, with configs and ignore paths. Use only when the user explicitly asks to set up formatters or linters.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(npm view *)
+disable-model-invocation: true
 ---
 
 # Setup Format Lint
@@ -26,9 +28,8 @@ allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(npm view *)
 - Native tools change the machine: never install one unasked.
 - AskUserQuestion: at most 4 questions per call, 2-4 options each, recommended first with its reason. Unavailable (or Write unavailable) → ask the pending question as plain text and end the turn.
 - Caps: analyzer respawn after `Gaps` 1; each question asked once (more than fit one call → further calls, at most 4 per step); step 11 fix loop 1 pass and one extra `mode=check`.
-- Unattended (chained, no AskUserQuestion): ask nothing, skip the step 7 confirmation (the chaining skill's consent covers it) and report what was installed and written; choose recommended options, skip native installs, and report the rest in `Open:`.
+- Unattended (no AskUserQuestion): ask nothing, skip the step 7 confirmation and report what was installed and written; choose recommended options, skip native installs, and report the rest in `Open:`.
 - Pre-flight stop or cancel → print the Output with `Stopped:` and end. A later failure or cap → run step 11 once on what is left, then print the Output.
-- Chained by `cdk:setup-project` through the Skill tool; never set `disable-model-invocation`.
 
 ## Workflow
 

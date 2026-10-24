@@ -1,7 +1,9 @@
 ---
 name: update-editorconfig
-description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use only when the user explicitly asks to update EditorConfig, or when chained.
+description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use only when the user explicitly asks to update EditorConfig.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec)
+disable-model-invocation: true
 ---
 
 # Update EditorConfig
@@ -21,11 +23,10 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 - Idempotent: a type already configured (step 3) keeps its settings, so a re-run writes nothing new.
 - Only the repo's file types get a section, and a section holds only properties that differ from the actual `[*]`; never repeat a base property.
 - Never change or reorder an existing section, except removing a confirmed stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
-- Run before `cdk:setup-format-lint`: Prettier and shfmt read `.editorconfig` for indentation.
+- Run before setup-format-lint: Prettier and shfmt read `.editorconfig` for indentation.
 - Fix loop: at most 2 passes over problems in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
 - Leftovers (still-failing checks, `uncovered` types) go under `Open:` in the Output, never silently dropped.
-- Write tool unavailable: print the file content as plain text and end the turn. Unattended (chained): ask nothing.
-- Chained by `cdk:setup-project` through the Skill tool, so it never sets `disable-model-invocation`.
+- Write tool unavailable: print the file content as plain text and end the turn. Unattended: ask nothing.
 
 ## Workflow
 

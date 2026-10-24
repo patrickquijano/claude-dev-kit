@@ -1,6 +1,6 @@
 # Extensions
 
-Step 3 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Step 3 detail. Commands run by name from `commands.md`.
 
 - Fail on `extension-add` or `extension-set-priority` → quote the error line, continue with the next extension, no retry.
 - Then check every required skill dir. Extension listed but any of its dirs missing → AskUserQuestion: Reinstall `<id>` (Recommended; runs `extension-reinstall`, keeps its config) | Stop.

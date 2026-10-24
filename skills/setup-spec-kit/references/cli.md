@@ -1,6 +1,6 @@
 # CLI
 
-Step 1 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Step 1 detail. Commands run by name from `commands.md`.
 
 - `has-specify` succeeds → skip the install.
 - Else `has-uv` fails → report "install uv: <https://docs.astral.sh/uv/>", stop.

@@ -1,7 +1,9 @@
 ---
 name: setup-git
-description: 'Sets up git for signed commits and .gitignore: identity, SSH or OpenPGP signing, and a signature smoke test. Use only when the user explicitly asks to set up git or signing, or when chained.'
+description: 'Sets up git for signed commits and .gitignore: identity, SSH or OpenPGP signing, and a signature smoke test. Use only when the user explicitly asks to set up git or signing.'
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *) Bash(git config --local --get *) Bash(git log -1 *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git cat-file *) Bash(git verify-commit *) Bash(ssh-add -L) Bash(ssh-keygen -l -f *.pub) Bash(gpg --list-secret-keys *) Bash(command -v *)
+disable-model-invocation: true
 ---
 
 # Setup Git
@@ -26,13 +28,13 @@ allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *
 - Never commit, push, or untrack files without an explicit choice.
 - Caps: re-detect after a user-run command twice per step; smoke test retry once; each identity value asked 3 times (empty or invalid reply re-asks); repair passes 2 (step 9 one, step 10 one more). Cap hit → stop and list what is left under `Open:`.
 - AskUserQuestion: at most 4 questions per call, 2-4 options each, recommended first with its reason. Free text with no 2 real options (name, email) → ask in plain text. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, take the next message as the answer.
-- Unattended (chained by `cdk:setup-project` with no way to ask): ask nothing; a value only the user can supply goes under `Open:`.
+- Unattended (no way to ask): ask nothing; a value only the user can supply goes under `Open:`.
 - Pre-flight stops and cancels print the Output with `Open: none` and end. Any later failure or cap prints `Open:` with each leftover (`Verify:` inconsistent, `Smoke test:` failed, tracked but ignored, uncovered stacks) and its recommended fix.
 
 ## Workflow
 
 1. **Pre-flight.** Context Git version `<none>` → stop ("install git"). SSH signing needs git 2.34 or later.
-2. **Repository.** Root `<none>` → confirm, then `init` in `<cwd>` (declined: stop; chained from `cdk:setup-project`: its ask is the consent, so `init` without asking; other unattended: stop). Root is not cwd → AskUserQuestion: Use `<root>` (Recommended; git writes local config there) | Stop; unattended: stop. Work from the root.
+2. **Repository.** Root `<none>` → confirm, then `init` in `<cwd>` (declined or unattended: stop). Root is not cwd → AskUserQuestion: Use `<root>` (Recommended; git writes local config there) | Stop; unattended: stop. Work from the root.
 3. **Detect.** `config-get` each key: `user.name`, `user.email`, `gpg.format`, `user.signingkey`, `commit.gpgsign`, `tag.gpgsign`, `gpg.ssh.allowedSignersFile`, `gpg.program`, `gpg.ssh.program`, `gpg.x509.program`; `config-local` to see local ones. Unset `gpg.format` = `openpgp`.
 4. **Identity.** Unset `user.name` or `user.email` → ask in plain text (cap in Rules). With a commit, show `last-author` and ask whether it is the user (unattended: skip this question). The email must be verified on the forge account.
 5. **Signing format.** Set in any scope → keep. Else set `ssh`; git < 2.34 → `openpgp`.

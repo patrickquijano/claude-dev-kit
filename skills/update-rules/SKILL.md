@@ -1,8 +1,10 @@
 ---
 name: update-rules
 description: Creates, updates, or scores a project's CLAUDE.md and .claude/rules against a 100-point rubric, merging input guidelines. Use only when the user explicitly asks to write, improve, or score them.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *)
+disable-model-invocation: true
 ---
 
 # Update Rules
@@ -27,7 +29,7 @@ Input: $ARGUMENTS
 - Commands, paths, and policies not derivable → ask; user omits → leave out, add to `Omitted:`; never re-ask an omitted item.
 - Update mode: keep correct content and author voice; change only stale, wrong, duplicate, conflicting, or missing items. Move any `Known issues` section to auto memory (`feedback` memory plus `MEMORY.md` pointer), then remove it; auto memory unavailable → keep it and report it.
 - Conflict → never resolve silently; ask.
-- Unattended (chained or no way to ask): ask nothing; a conflict keeps the existing side, an ambiguous target is `CLAUDE.md`, a deletion is Keep, and an unanswerable gap goes to `Omitted:` (or `Open:` for score deductions).
+- Unattended (no way to ask): ask nothing; a conflict keeps the existing side, an ambiguous target is `CLAUDE.md`, a deletion is Keep, and an unanswerable gap goes to `Omitted:` (or `Open:` for score deductions).
 - Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only `cdk:rubric-improver` applies score fixes. Never loop past the cap; list what is left in `Open:`.
 - Score-only never writes. Formatter runs prompt for permission; expected.
 

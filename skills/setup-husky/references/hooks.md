@@ -4,7 +4,7 @@
 
 - Events (step 5) · Copy (step 9) · Commitlint config (step 10) · Smoke test (step 15)
 
-Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Commands run by name from `commands.md`.
 
 ## Events
 

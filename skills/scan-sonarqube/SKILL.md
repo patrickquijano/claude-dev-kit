@@ -1,8 +1,10 @@
 ---
 name: scan-sonarqube
 description: Sets up SonarQube Community Build and its scanner in Docker, scans the repo, fixes issues, rescans until clean, then tears down. Use only when the user explicitly asks to scan with SonarQube.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[max-iterations=<n>] [--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(docker info *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs *)
+disable-model-invocation: true
 ---
 
 # Scan SonarQube
@@ -30,7 +32,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Spawn only `cdk:codebase-explorer` (brainstorm), `cdk:plan-implementer` (fix), and `cdk:change-verifier` (validate); only this skill talks to the user.
 - Caps: iterations `max-iterations` (default 3, range 1–5); one retry per failed fix group; at most 4 parallel `cdk:codebase-explorer` spawns per message; server ready within 120 polls.
 - Teardown and cleanup: when the loop ends and on every stop from step 3 onward, remove the container, network, and volumes, then `<envfile>`; images stay.
-- Unattended (chained or `--yes`): ask nothing and report what is left in `Open:`.
+- Unattended (`--yes`): ask nothing and report what is left in `Open:`.
 
 ## Workflow
 

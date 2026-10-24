@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 
 - Header text is exact: the title, the "All notable changes…" line, and the "The format is based on…" line.
-- Write the SemVer line when the project uses SemVer: `.claude/release-policy.json`, SemVer tags, SemVer versions in the file, or a statement from the user. Then the Keep a Changelog line ends with `,` as in the template. Otherwise end it with `.` and omit the SemVer line.
+- Write the SemVer line when the project uses SemVer: SemVer tags, SemVer versions in the file, or a statement from the user. Then the Keep a Changelog line ends with `,` as in the template. Otherwise end it with `.` and omit the SemVer line.
 - `## [Unreleased]` is always first and always present, even when empty.
 - Versions descending. Heading `## [version] - YYYY-MM-DD` (ISO 8601); yanked → `## [version] - YYYY-MM-DD [YANKED]`.
 - Section order inside a version: Added, Changed, Deprecated, Removed, Fixed, Security. Omit empty sections.

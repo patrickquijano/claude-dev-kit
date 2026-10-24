@@ -1,8 +1,10 @@
 ---
 name: update-readme
 description: Creates, updates, or scores a README.md from archetype templates against a 100-point rubric, improving up to 3 rounds. Use only when the user explicitly asks to write, improve, or score a README.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional archetype | score]'
 allowed-tools: Bash(git rev-parse *)
+disable-model-invocation: true
 ---
 
 # Update README

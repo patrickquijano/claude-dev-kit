@@ -2,7 +2,7 @@
 
 ## Pre-flight
 
-`.specify/` missing, or any dir in `required-skills.md` missing → name the missing ones, tell the user to run `/cdk:setup-spec-kit`, `Result: stopped`, `Stopped: Pre-flight: Spec Kit not set up`, stop. Core is checked now so a go hand off does not fail after the assessment. Input empty after stripping `handoff=no` → AskUserQuestion for the idea.
+`.specify/` missing, or any dir in `required-skills.md` missing → name the missing ones, tell the user to run `/cdk:setup-spec-kit`, `Result: stopped`, `Stopped: Pre-flight: Spec Kit not set up`, stop. Core is checked now so a go hand off does not fail after the assessment. Input empty → AskUserQuestion for the idea.
 
 ## Extract
 
@@ -17,9 +17,7 @@ Read the `**Verdict**` line in `.specify/assessments/<slug>/decision.md`. File m
 Read the section whose heading starts with `## If go`, up to the next `##` heading.
 
 - Section missing → `Next: none`, `Result: stopped`, `Stopped: Hand off: no If go section`; list leftover open questions or risks from `decision.md` in `Open:`, print the Output, end.
-- `handoff=no` → `Next: handoff ready`, `Result: done`, print the Output, end.
-- Unattended → `Next: handoff ready`, `Result: done`, print the Output, end; never start run-spec-kit unasked.
-- Else print the Output first (run-spec-kit output would bury it), then AskUserQuestion: "Start run-spec-kit (builds the feature, edits files)" | "Stop here". Stop → `Next: handoff ready`, end. Start → invoke `cdk:run-spec-kit` via the Skill tool with the section body verbatim as its argument. `Next: run-spec-kit started`; it owns the rest, including its post-converge review.
+- Else `Next: /cdk:run-spec-kit <section body verbatim>`, `Result: done`, print the Output, end. Nothing is asked and run-spec-kit is never started here; the user runs it (it builds the feature and edits files).
 
 ## Clarify
 

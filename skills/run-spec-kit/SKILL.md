@@ -1,8 +1,10 @@
 ---
 name: run-spec-kit
-description: Runs the full GitHub Spec Kit cycle from one feature brief through implement and converge, then resolves open items. Use only when the user explicitly asks to build with Spec Kit, or when chained.
+description: Runs the full GitHub Spec Kit cycle from one feature brief through implement and converge, then resolves open items. Use only when the user explicitly asks to build with Spec Kit.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '<feature brief>'
 allowed-tools: Bash(git status --porcelain)
+disable-model-invocation: true
 ---
 
 # Run Spec Kit
@@ -18,14 +20,13 @@ Input: $ARGUMENTS
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
 - Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items-analyzer` agent per round, re-spawned at most once per round after it returns `Question:`.
 - The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
-- AskUserQuestion unavailable: ask as plain text with options, end the turn, and take the next message as the answer. Chained or unattended: ask nothing; take the Recommended option.
-- Chained by other skills via the Skill tool; never set `disable-model-invocation: true` (it blocks that invocation).
+- AskUserQuestion unavailable: ask as plain text with options, end the turn, and take the next message as the answer. Unattended: ask nothing; take the Recommended option.
 - Leftovers (open items, skipped findings, unconverged tasks) go to `Open:` with the agent's recommended fix. CRITICAL items are never edited without the user's choice (unattended: left in `Open:`); non-CRITICAL items follow `addressing.md` step 4.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 
 ## Workflow
 
-1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to run `/cdk:setup-spec-kit` (or `specify integration install claude`), stop. Input empty → AskUserQuestion for the feature brief; unattended or chained → `Result: stopped`, `Stopped: pre-flight: feature brief missing`, stop. Run `git-status`: uncommitted changes → AskUserQuestion ("Continue (changes mix with this run)", "Stop"); unattended continues and lists them under `Open:`.
+1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to run `/cdk:setup-spec-kit` (or `specify integration install claude`), stop. Input empty → AskUserQuestion for the feature brief; unattended → `Result: stopped`, `Stopped: pre-flight: feature brief missing`, stop. Run `git-status`: uncommitted changes → AskUserQuestion ("Continue (changes mix with this run)", "Stop"); unattended continues and lists them under `Open:`.
 2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: cancelled`, `Stopped: <step>: user cancelled`, stop. Show the three parts in a short list.
 3. **Constitution.** Read `.specify/memory/constitution.md`; unfilled = missing or has placeholder tokens matching `\[[A-Z0-9_]+\]`.
    - Unfilled, principles extracted → run `speckit-constitution <principles>`.
@@ -58,7 +59,7 @@ Implement: <rounds> round(s), converged | not converged (<k> tasks left)
 Addressed: <fixed> fixed, <skipped> skipped (<c> of them CRITICAL), <open> open
 Open: none | items below, one per line
   <open item or unchecked task; CRITICAL prefixed `CRITICAL:`; recommended fix>
-Next: /cdk:review-local-changes | none
+Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

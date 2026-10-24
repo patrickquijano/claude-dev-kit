@@ -1,7 +1,9 @@
 ---
 name: assess-spec-kit-idea
-description: Vets an idea with Spec Kit's assess extension, returning go, needs-clarification, or kill; on go, asks before building. Use only when the user explicitly asks to vet an idea with Spec Kit.
-argument-hint: '<idea text | URL | ticket | codebase pointer> [handoff=no]'
+description: Vets an idea with Spec Kit's assess extension, returning go, needs-clarification, or kill; on go, prints the build command. Use only when the user explicitly asks to vet an idea with Spec Kit.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+disable-model-invocation: true
+argument-hint: '<idea text | URL | ticket | codebase pointer>'
 ---
 
 # Assess Spec Kit Idea
@@ -16,12 +18,10 @@ Input: $ARGUMENTS
 - Relay every question a speckit skill asks with AskUserQuestion. Pre-approved exceptions: accept the slug intake suggests (step 3); in step 7 re-runs only, answer yes to overwriting artifacts in the current slug. On the first pass relay overwrite prompts, since the slug may hold an earlier assessment.
 - Pass `slug=<slug>` to every step after intake. All five steps write only to `.specify/assessments/<slug>/`.
 - Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
-- `handoff=no` in the input (any position): strip it from the idea; a go verdict then stops at step 6. Default: hand off.
 - Caps: Clarify loop 2 re-runs, then stop; no other loop or retry.
-- Chaining `cdk:run-spec-kit`: Skill tool, main thread, never `context: fork`, only after the user confirms the question to hand off (step 6; unattended never starts it). Read its Output `Result:` line.
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Unattended (chained, no AskUserQuestion): ask nothing; stop at the first question needing the user and list it in `Open:`.
-- Never set `disable-model-invocation: true` on this skill; it is chained through the Skill tool.
+- Never start `cdk:run-spec-kit` (skills cannot chain); on go, print `Next: /cdk:run-spec-kit <the ## If go brief>` for the user to run (step 6).
+- AskUserQuestion unavailable but a user can reply: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
+- Unattended (no one can answer, such as a non-interactive run): ask nothing; stop at the first question needing the user and list it in `Open:`.
 
 ## Workflow
 
@@ -30,7 +30,7 @@ Input: $ARGUMENTS
 3. **Intake.** Run `speckit-assess-intake <idea>`; take the slug from its `Slug:` line.
 4. **Research, define, shape.** Run `speckit-assess-research`, `-define`, `-shape`, each with `slug=<slug>`.
 5. **Decide.** Run `speckit-assess-decide slug=<slug>`, then read the verdict: `go` → 6, `needs-clarification` → 7, `kill` → show the reason, end. Else `flow.md` `## Verdict`.
-6. **Hand off.** Unless `handoff=no`, print the Output, ask ("Start run-spec-kit", "Stop here"), then on start invoke `cdk:run-spec-kit` with the `## If go` section verbatim (`flow.md` `## Hand off`).
+6. **Hand off.** Print the Output with `Next: /cdk:run-spec-kit` and the `## If go` section verbatim as its brief (`flow.md` `## Hand off`).
 7. **Clarify.** Max 2 re-runs: ask the blocking questions, re-run the revisit stage through decide, re-read the verdict (`flow.md` `## Clarify`).
 8. **Report.** List anything left in `Open:` and print the Output.
 
@@ -44,8 +44,8 @@ Input: $ARGUMENTS
 ```text
 Assessment: .specify/assessments/<slug>/
 Verdict: go | needs-clarification | kill | unknown (<re-runs> re-run(s))
-Next: run-spec-kit started | handoff ready | blocking questions open | closed (<decisive reason>) | none
+Next: /cdk:run-spec-kit <## If go brief> | blocking questions open | closed (<decisive reason>) | none
 Open: <question or risk: who acts; recommended answer path, …> | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

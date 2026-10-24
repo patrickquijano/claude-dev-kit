@@ -1,8 +1,10 @@
 ---
 name: upgrade-dependencies
 description: Upgrades outdated dependencies to their latest stable versions, fixes breaking changes, then builds, lints, and tests until green. Use only when the user explicitly asks to upgrade dependencies.
+compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional package names | project path | patch-minor-only]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git stash create) Bash(command -v *)
+disable-model-invocation: true
 ---
 
 # Upgrade Dependencies
@@ -30,7 +32,7 @@ Input: $ARGUMENTS
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
 - Never commit, push, or change files outside the repo; the user commits afterwards (`/cdk:commit-changes`).
 - Caps: researchers one per selected major (and minor with breaking changes), at most 4 per message, batches until all are done (`references/plan.md`); no usable `Answer:` → mark the package high risk and continue; fix rounds per failing check 3, then revert that package and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
-- Unattended (chained): ask nothing; apply patch and minor only and list majors under `Open:`; step 5 and the step 6 major question are skipped.
+- Unattended: ask nothing; apply patch and minor only and list majors under `Open:`; step 5 and the step 6 major question are skipped.
 - Pre-flight stops and cancels print the Output with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
 
 ## Workflow
