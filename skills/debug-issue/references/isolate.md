@@ -1,6 +1,6 @@
 # Isolate
 
-Steps 4 and 9 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Steps 4, 7 (cancel), and 9 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
 
 ## Hypothesis loop
 
@@ -18,6 +18,10 @@ Steps 4 and 9 detail. Commands run by name from `${CLAUDE_SKILL_DIR}/references/
 ## Verify
 
 Step 9 and each step 10 round, skipped (`Verify: not run`) when no fix was applied (`Diagnose only`): spawn `cdk:change-verifier` kind `goals` with root, goals (G1 the regression test passes, G2 the root cause at `file:line` is fixed), and the changed paths (the fix and the test). Take `Goals`, `Findings`, and `Checks` from its `Return`; `Question` → answer from the repo and respawn once. Never run the checks in the main thread.
+
+## Cancel
+
+Remove only what this run added: a test file it created, the exact lines it added to an existing file (compared with the `diff-file` baseline saved before the edit), and any leftover probe. Never remove other content.
 
 ## Spawn briefs
 
