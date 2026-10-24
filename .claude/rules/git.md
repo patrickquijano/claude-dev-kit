@@ -7,7 +7,7 @@
 ## Push
 
 - Never bare `--force`; never force-push `main`.
-- Rewritten history: push with an explicit lease (`--force-with-lease=<branch>:<pre-rewrite sha>`) after explicit confirmation; `cdk:rebase-onto` does this.
+- Rewritten history: push with an explicit lease (`--force-with-lease=<branch>:<pre-rewrite sha>`) after explicit confirmation.
 
 ## Git hooks
 
