@@ -2,6 +2,10 @@
 
 Host section for `cdk:prepare-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. A change request here is a pull request.
 
+## Contents
+
+- Pre-flight · MCP tools · Remote branches · Identity · Templates · Managed section · Write · Verify · API rules
+
 ## Pre-flight
 
 Run in order; any failure → report the exact error line and stop.

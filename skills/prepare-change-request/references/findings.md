@@ -2,6 +2,10 @@
 
 Parent-side rules for `cdk:prepare-change-request` and its `## Direct review` path; the reviewers (`cdk:cr-reviewer` with `role:` `correctness`, `tests`, `security`, `maintainability`, `docs`) own the return block in their `## Return`, and this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
 
+## Contents
+
+- Block · Severity · Evidence rules · Parent validation · Direct review
+
 ## Block
 
 ```text

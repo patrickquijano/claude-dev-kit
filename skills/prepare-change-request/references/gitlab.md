@@ -2,6 +2,10 @@
 
 Host section for `cdk:prepare-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. A change request here is a merge request.
 
+## Contents
+
+- Pre-flight · MCP tools · Remote branches · Identity · Templates · Managed section · Write · Verify · API rules
+
 ## Pre-flight
 
 Run in order; keep Repo or Project, Root, Branch, Self, Scratch.
