@@ -1,4 +1,4 @@
-// Mechanical checks for one skill directory (frontmatter, size, layout, links, standalone, injection, Output); prints JSON.
+// Mechanical checks for one skill directory (frontmatter, size, layout, links, self-containment, Output); prints JSON.
 // Self-contained on purpose: plugin installs have no node_modules, and no skill may link another skill's files.
 import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, join, posix, resolve } from 'node:path';
@@ -24,9 +24,9 @@ const defaults = {
   error: (line) => console.error(line)
 };
 
-const USAGE = 'usage: check-skill.mjs <skill-dir> [--kind task|reference|background-only] [--allow <plugin-path>]...';
+const USAGE = 'usage: validate-skill.mjs <skill-dir> [--kind task|reference|background-only]';
 const KINDS = ['task', 'reference', 'background-only'];
-// Copied from the Fields table in references/frontmatter.md.
+// Copied from the Fields table in references/rules.md.
 const KNOWN_FIELDS = new Set([
   'name',
   'description',
@@ -49,6 +49,10 @@ const KNOWN_FIELDS = new Set([
   'compatibility',
   'metadata'
 ]);
+// Portable fields; any other known field is Claude Code-only.
+const PORTABLE_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools']);
+const SIDE_EFFECT_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'Bash']);
+const RESERVED_DIRS = new Set(['synced', 'anthropic-skills']);
 const ALLOWED_TOP = new Set(['SKILL.md', 'references', 'assets', 'scripts']);
 const ACTOR_SUFFIX = /(er|or|ist|ant)$/;
 // A verb-first name (`setup-devcontainer`) names an action, so its object may end like an actor.
@@ -88,8 +92,8 @@ const FENCE = /^\s*```/;
 
 export class FrontmatterError extends Error {}
 
-const error = (id, rubric, file, line, message) => ({ level: 'error', id, rubric, file, line, message });
-const warning = (id, rubric, file, line, message) => ({ level: 'warning', id, rubric, file, line, message });
+const error = (id, rule, file, line, message) => ({ level: 'error', id, rule, file, line, message });
+const warning = (id, rule, file, line, message) => ({ level: 'warning', id, rule, file, line, message });
 
 // Strips surrounding quotes from a scalar.
 function unquote(value) {
@@ -98,7 +102,7 @@ function unquote(value) {
   return quoted ? v.slice(1, -1) : v;
 }
 
-// Parses the frontmatter subset check-skill needs: top-level `key: value`, quoted strings, `- item` block lists, and
+// Parses the frontmatter subset validate-skill needs: top-level `key: value`, quoted strings, `- item` block lists, and
 // indented continuation lines. Returns the fields, each key's 1-based line, and the closing `---` line.
 export function parseFrontmatter(text) {
   const lines = text.split('\n');
@@ -128,6 +132,26 @@ export function parseFrontmatter(text) {
 }
 
 const text = (value) => (Array.isArray(value) ? value.join(' ') : String(value ?? ''));
+
+// First or second person in a description ("I help", "you can", "we").
+const PERSON = /(?:^|[.!?]\s+)I\s|\bI'[a-z]+|\b(?:you|your|yours|we|our|my)\b/i;
+
+// Tool names of an allowed-tools value, splitting on whitespace and commas outside parentheses.
+function toolNames(value) {
+  const names = [];
+  let depth = 0;
+  let token = '';
+  for (const ch of text(value)) {
+    if (ch === '(') depth += 1;
+    if (ch === ')') depth -= 1;
+    if (depth === 0 && /[\s,]/.test(ch)) {
+      if (token) names.push(token.replace(/\(.*$/, ''));
+      token = '';
+    } else token += ch;
+  }
+  if (token) names.push(token.replace(/\(.*$/, ''));
+  return names;
+}
 
 // F1, F3, F6, F8 on the parsed fields; `lineOf` maps a field to its line.
 export function checkFrontmatter(fields, dirName, lineOf = {}) {
@@ -190,10 +214,49 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
     if (/<[a-zA-Z/][^>]*>/.test(description))
       found.push(error('description-xml', 'F3', 'SKILL.md', line, 'description contains an XML tag'));
   }
+  if (description && PERSON.test(description))
+    found.push(
+      error('description-person', 'F9', 'SKILL.md', line, 'description uses first or second person: write third person')
+    );
   const combined = description.length + text(fields.when_to_use).length;
   if (combined > 1536)
     found.push(
       error('listing-length', 'F3', 'SKILL.md', line, `description + when_to_use is ${combined} chars, max 1,536`)
+    );
+  const ccKeys = Object.keys(fields).filter((k) => KNOWN_FIELDS.has(k) && !PORTABLE_FIELDS.has(k));
+  if (ccKeys.length > 0 && !/claude code/i.test(text(fields.compatibility))) {
+    found.push(
+      error(
+        'compat-missing',
+        'F10',
+        'SKILL.md',
+        ccKeys.map(at)[0],
+        `Claude Code-only key "${ccKeys[0]}" needs a compatibility field that says "Claude Code only" and warns that claude.ai and API uploads reject unknown keys`
+      )
+    );
+  }
+  if (fields.context === 'fork' && !('background' in fields))
+    found.push(
+      warning(
+        'fork-background',
+        'F11',
+        'SKILL.md',
+        at('context'),
+        'context: fork without background; set background: false when the result is needed this turn'
+      )
+    );
+  if ('agent' in fields && fields.context !== 'fork')
+    found.push(error('agent-without-fork', 'F12', 'SKILL.md', at('agent'), 'agent only applies with context: fork'));
+  const risky = toolNames(fields['allowed-tools']).filter((t) => SIDE_EFFECT_TOOLS.has(t));
+  if (risky.length > 0 && String(fields['disable-model-invocation']) !== 'true')
+    found.push(
+      warning(
+        'side-effect-invocation',
+        'F13',
+        'SKILL.md',
+        at('allowed-tools'),
+        `allowed-tools has ${risky.join(', ')} without disable-model-invocation: true`
+      )
     );
   return found;
 }
@@ -331,21 +394,12 @@ export function checkLinks(skillMd, files) {
 
 const SCRIPT = /\.(mjs|js|cjs)$/;
 
-// True when a plugin-relative path equals an allowed path or sits under an allowed directory (entry ending in "/").
-function isAllowed(pluginPath, allow) {
-  return allow.some((a) => pluginPath === a || (a.endsWith('/') && pluginPath.startsWith(a)));
-}
-
-// L3: nothing in the skill may reference a path outside its own directory (another skill, the plugin root, ../..), except paths in `allow`.
-export function checkStandalone(files, dir, deps = defaults, allow = []) {
+// L3: nothing in the skill may reference a path outside its own directory (another skill, the plugin root, ../..).
+export function checkStandalone(files, dir, deps = defaults) {
   const found = [];
-  const skillName = basename(resolve(dir));
   const outside = (file, line, what) =>
     found.push(error('link-outside', 'L3', file, line, `${what} leaves the skill directory`));
-  const leaves = (file, target) => {
-    const joined = posix.join(posix.dirname(file), target);
-    return joined.startsWith('..') && !isAllowed(posix.join('skills', skillName, joined), allow);
-  };
+  const leaves = (file, target) => posix.join(posix.dirname(file), target).startsWith('..');
   for (const file of files) {
     const isMd = file.endsWith('.md');
     const isScript = file.startsWith('scripts/') && SCRIPT.test(file);
@@ -365,10 +419,7 @@ export function checkStandalone(files, dir, deps = defaults, allow = []) {
         for (const m of line.matchAll(/\$\{CLAUDE_SKILL_DIR\}\/([^\s`)'"\]]+)/g)) {
           if (leaves('SKILL.md', m[1])) outside(file, at, `link "${m[1]}"`);
         }
-        for (const m of line.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/(skills\/[^\s`)'"\]]*)/g)) {
-          if (!isAllowed(posix.normalize(m[1].replace(/[.,;:*]+$/, '')), allow))
-            outside(file, at, 'a ${CLAUDE_PLUGIN_ROOT}/skills/ path');
-        }
+        if (/\$\{CLAUDE_PLUGIN_ROOT\}\/skills\//.test(line)) outside(file, at, 'a ${CLAUDE_PLUGIN_ROOT}/skills/ path');
         if (!nested) return;
         const targets = [...line.matchAll(/\]\(([^)\s#]+)/g)].map((m) => m[1]).filter((t) => !/^([a-z]+:|\/)/i.test(t));
         targets.push(...[...line.matchAll(/`(\.\.\/[^`\s]*)`/g)].map((m) => m[1]));
@@ -394,8 +445,79 @@ export function checkReferences(files, dir, deps = defaults) {
   return found;
 }
 
+const MONTH = '(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*';
+const TIME_SENSITIVE = new RegExp(
+  `\\bcurrently\\b|\\bas of\\s+(?:${MONTH}|\\d{4})|\\b(?:before|after|until|since)\\s+(?:${MONTH}\\s+)?(?:19|20)\\d\\d\\b`,
+  'i'
+);
+// A `${CLAUDE_SKILL_DIR}/..` link is reported by checkStandalone, so it is removed before the path scan.
+const SKILL_DIR_LINK = /\$\{CLAUDE_SKILL_DIR\}\/\S*/g;
+const PARENT_PATH = /(?:^|[\s`([="'/])\.\.\//;
+const ABSOLUTE_PATH = /(?:^|[\s`([="'])(?:\/Users\/|\/home\/|~\/(?!\.claude\/)|[A-Za-z]:\\)/;
+const BACKSLASH_PATH = /\b(?:references|assets|scripts)\\\S/;
+const BUNDLED_MD =
+  /(?:\]\(\.?\/?|\b(?:\$\{CLAUDE_SKILL_DIR\}\/)?(?=(?:references|assets)\/))((?:references|assets)\/[\w.-]+\.md|[\w.-]+\.md)/g;
+
+// L4, L5, B10, B11 across the skill's Markdown files: reserved folders, escaping or absolute paths, nested references, time-sensitive text.
+export function checkSelfContained(files, dir, deps = defaults) {
+  const found = [];
+  for (const file of files) {
+    if (file.split('/').some((part) => RESERVED_DIRS.has(part)))
+      found.push(
+        error('reserved-folder', 'L4', file, 1, `"${file}" sits in a reserved folder name (synced, anthropic-skills)`)
+      );
+  }
+  const mdFiles = files.filter((f) => f.endsWith('.md'));
+  for (const file of mdFiles) {
+    const isRef = file.startsWith('references/');
+    deps
+      .read(join(dir, file))
+      .split('\n')
+      .forEach((raw, i) => {
+        const at = i + 1;
+        const line = raw.replace(SKILL_DIR_LINK, '');
+        if (PARENT_PATH.test(line))
+          found.push(
+            error('path-parent', 'L5', file, at, 'parent-directory path: keep every path inside the skill folder')
+          );
+        if (ABSOLUTE_PATH.test(line))
+          found.push(
+            error(
+              'path-absolute',
+              'L5',
+              file,
+              at,
+              'absolute or home path: use a path relative to the skill, or CLAUDE_SKILL_DIR'
+            )
+          );
+        if (BACKSLASH_PATH.test(line))
+          found.push(error('path-backslash', 'L5', file, at, 'backslash path: use forward slashes'));
+        if (TIME_SENSITIVE.test(line))
+          found.push(
+            warning('time-sensitive', 'B11', file, at, 'time-sensitive text (dated or "currently"): it will go stale')
+          );
+        if (isRef) {
+          for (const m of raw.matchAll(BUNDLED_MD)) {
+            const target = m[1].includes('/') ? m[1] : posix.join('references', m[1]);
+            if (target !== file && files.includes(target))
+              found.push(
+                error(
+                  'nested-reference',
+                  'B10',
+                  file,
+                  at,
+                  `links to "${target}": a reference must not link another bundled file`
+                )
+              );
+          }
+        }
+      });
+  }
+  return found;
+}
+
 // Runs every check on one skill directory.
-export function checkSkill(dir, { kind, allow = [] } = {}, deps = defaults) {
+export function checkSkill(dir, { kind } = {}, deps = defaults) {
   const files = deps.list(dir);
   const found = [...checkLayout(files)];
   if (files.includes('SKILL.md')) {
@@ -411,31 +533,26 @@ export function checkSkill(dir, { kind, allow = [] } = {}, deps = defaults) {
     found.push(...checkLinks(content, files));
     found.push(...checkReferences(files, dir, deps));
   }
-  found.push(...checkStandalone(files, dir, deps, allow));
-  const strip = (f) => ({ id: f.id, rubric: f.rubric, file: f.file, line: f.line, message: f.message });
+  found.push(...checkSelfContained(files, dir, deps));
+  found.push(...checkStandalone(files, dir, deps));
+  const strip = (f) => ({ id: f.id, rule: f.rule, file: f.file, line: f.line, message: f.message });
   const errors = found.filter((f) => f.level === 'error').map(strip);
   const warnings = found.filter((f) => f.level === 'warning').map(strip);
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// Parses argv into { dir, kind, allow } or { usage: true } on bad input.
+// Parses argv into { dir, kind } or { usage: true } on bad input.
 export function parseArgs(argv) {
   const rest = [];
-  const allow = [];
   let kind;
   for (let i = 0; i < argv.length; i += 1) {
     if (argv[i] === '--kind') {
       kind = argv[i + 1];
       i += 1;
       if (!KINDS.includes(kind)) return { usage: true };
-    } else if (argv[i] === '--allow') {
-      const path = argv[i + 1];
-      i += 1;
-      if (!path || path.startsWith('--')) return { usage: true };
-      allow.push(posix.normalize(path));
     } else rest.push(argv[i]);
   }
-  return rest.length === 1 ? { dir: rest[0], kind, allow } : { usage: true };
+  return rest.length === 1 ? { dir: rest[0], kind } : { usage: true };
 }
 
 // Returns the exit code: 0 ok, 1 errors, 2 bad usage.
@@ -447,10 +564,10 @@ export function main(argv, deps = defaults) {
   }
   let result;
   try {
-    result = checkSkill(args.dir, { kind: args.kind, allow: args.allow }, deps);
+    result = checkSkill(args.dir, { kind: args.kind }, deps);
   } catch (err) {
     if (err?.code !== 'ENOENT') throw err;
-    deps.error(`check-skill: ${args.dir} not found`);
+    deps.error(`validate-skill: ${args.dir} not found`);
     return 2;
   }
   deps.log(JSON.stringify(result, null, 2));
@@ -461,7 +578,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
   try {
     process.exitCode = main(process.argv.slice(2));
   } catch (err) {
-    console.error(`check-skill: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(`validate-skill: ${err instanceof Error ? err.message : String(err)}`);
     process.exitCode = 1;
   }
 }

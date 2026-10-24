@@ -4,11 +4,11 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Architecture
 
-- Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction, and `/cdk:ship-release` chains skills to ship a GitHub PR or GitLab MR end to end. `build-skill` and `build-subagent` run their `scripts/check-*.mjs`, score with the `rubric-scorer` agent, and delegate fixes to the `rubric-improver` agent for up to 3 rounds. Rules `.claude/rules/skills.md`.
+- Skills: `skills/<name>/SKILL.md` — user-invoked workflows; orchestrator skills spawn subagents and own all user interaction, and `/cdk:ship-release` chains skills to ship a GitHub PR or GitLab MR end to end. `build-subagent` runs its `scripts/check-*.mjs`, scores with the `rubric-scorer` agent, and delegates fixes to the `rubric-improver` agent for up to 3 rounds; `build-skill` is self-contained: a fit gate, then its own `scripts/validate-skill.mjs`, with no rubric and no cdk agents. Rules `.claude/rules/skills.md`.
 - Subagents: `agents/` — read-only workers (analyzers, scorers, CR reviewers) spawned by skills (`topic-researcher` is also delegated to directly). Write exceptions and rules: `.claude/rules/agents.md`.
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`, each mirroring the source path. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
-- Evals: `evals/<case>/` — `prompt.md` + `graders/`, LLM-graded behavioral cases for `claude plugin eval .`; the user runs them by hand, never Claude or a hook (skill-creator evals are separate: `cdk:build-skill` drafts itself and offers optional `skill-creator` evals).
+- Evals: `evals/<case>/` — `prompt.md` + `graders/`, LLM-graded behavioral cases for `claude plugin eval .`; the user runs them by hand, never Claude or a hook (skill-creator evals are separate: `cdk:build-skill` ships its own routing evals in `references/evals.md`).
 - Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` enforce `.claude/rules/git.md`. Canonical copies and sync rule: `.claude/rules/git-hooks.md`.
 - Release enforcement: opt-in policy `.claude/release-policy.json`; `skills/bump-version/scripts/release-check.mjs` is shared by the `prepare-change-request` release gate and CI. Rules `.claude/rules/release.md`.

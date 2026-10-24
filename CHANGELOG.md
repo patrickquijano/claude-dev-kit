@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/cdk:build-skill` is self-contained and runs only when you invoke it: it no longer uses the cdk agents, the 100-point rubric, or `skill-creator`, and it names no other skill. It gains a fit gate (skill, subagent, `context: fork`, or not a skill), one `references/rules.md`, an `assets/SKILL.template.md`, and routing evals.
+- The skill checker is renamed `validate-skill.mjs`, drops `--allow`, and also flags first or second person descriptions, nested references, reserved folders, parent or absolute paths, unmarked Claude Code-only keys, `agent` without `context: fork`, `context: fork` without `background`, side-effect tools without `disable-model-invocation`, and time-sensitive text.
+
 ## [0.4.1] - 2026-10-24
 
 ### Changed

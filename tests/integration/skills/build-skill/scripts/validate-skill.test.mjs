@@ -5,16 +5,16 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
-const SCRIPT = resolve('skills/build-skill/scripts/check-skill.mjs');
+const SCRIPT = resolve('skills/build-skill/scripts/validate-skill.mjs');
 const run = (...args) => spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8', timeout: 30_000 });
 
 const runLink = (root, ...args) =>
   spawnSync('node', [join(root, 'link.mjs'), ...args], { encoding: 'utf8', timeout: 30_000 });
 
-describe('check-skill CLI', () => {
+describe('validate-skill CLI', () => {
   let root;
   before(() => {
-    root = mkdtempSync(join(tmpdir(), 'check-skill-'));
+    root = mkdtempSync(join(tmpdir(), 'validate-skill-'));
     const good = join(root, 'review-code');
     mkdirSync(join(good, 'references'), { recursive: true });
     writeFileSync(
@@ -107,16 +107,6 @@ describe('check-skill CLI', () => {
       report.errors.map((e) => e.id),
       ['link-outside']
     );
-  });
-
-  test('exits 0 when --allow covers the linked path', () => {
-    // Arrange
-    const dir = join(root, 'link-other');
-    // Act
-    const result = run(dir, '--kind', 'task', '--allow', 'skills/other/x.md');
-    // Assert
-    assert.equal(result.status, 0);
-    assert.equal(JSON.parse(result.stdout).ok, true);
   });
 
   test('exits 2 on bad usage', () => {
