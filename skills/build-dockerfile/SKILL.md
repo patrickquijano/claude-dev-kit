@@ -2,7 +2,7 @@
 name: build-dockerfile
 description: Writes, improves, or reviews a Dockerfile and .dockerignore per Docker best practices, verified by docker build --check. Use only when the user explicitly asks to write or review a Dockerfile.
 argument-hint: '<app description | path | existing Dockerfile>'
-allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker build *) Bash(docker image inspect *) Bash(docker image rm *) WebFetch(domain:hub.docker.com)
+allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker build *) Bash(docker image inspect *) Bash(docker image rm cdk-build-test:*) WebFetch(domain:hub.docker.com)
 ---
 
 # Write Dockerfile
@@ -25,7 +25,7 @@ Input: $ARGUMENTS
 - Never assume how to install a tool or package: research the vendor's official method and apply it (practices.md Install approach). Every `ARG` has a default value; no image digest anywhere.
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
-- Validate with `docker build --check`, lint with hadolint (`skipped (heredoc)` only on a parse error), test with `image-build` then `image-inspect` and `image-remove` (default target); never `docker build` without a throwaway tag.
+- Validate with `build-check`, lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error), test with `image-build` then `image-inspect` and `image-remove` (default target); never `docker build` without a throwaway tag.
 - Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts; tag listing 10 pages. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.

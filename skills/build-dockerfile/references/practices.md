@@ -24,7 +24,7 @@ Sourced from docs.docker.com, except the `Packages` pins, apt list cleanup, and 
 
 - **Required** tool from an official or trusted image instead of installing it (trusted = Docker Official Image, Docker Verified Publisher, or the tool vendor's own image, e.g. `ghcr.io/astral-sh/uv`, `docker`, `node`, a `tini` or `busybox` image): add a stage `FROM ${<TOOL>_IMAGE}:${<TOOL>_TAG} AS <tool>` (same exact-tag and `ARG` rules as other base images), then `COPY --link --from=<tool> <path> <dest>` in the stage that needs it. The binary is pinned by exact tag, and no package manager, repository, or build dependency enters the image. Path unknown → inspect the image (`tool-probe`; it asks for approval, so unattended and devcontainer-target runs skip it) or its docs; unverifiable → install the tool per Install approach. <https://docs.docker.com/build/building/multi-stage/#use-an-external-image-as-a-stage>
 - **Required** install approach: never assume how to install a tool or package. When not sure (a tool without an official image, a repository or key setup, a version manager, a runtime), research the vendor's official docs (WebSearch, then WebFetch of the official page) and apply the method they recommend; cite the doc URL in the Output `Changes:` entry. Official docs not found or ambiguous → ask the user (devcontainer target: record it under `Open:`); never fall back to a remembered command or an unverified `curl | sh`.
-- Prefer slim or distroless runtime images; keep compilers and dev dependencies in build stages.
+- Keep compilers and dev dependencies in build stages.
 
 ## Packages
 

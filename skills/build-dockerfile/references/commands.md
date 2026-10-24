@@ -4,6 +4,8 @@
 | --------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | `repo-root`     | `git rev-parse --show-toplevel`                                                                          | Repo root; fail falls back to cwd (preloaded in Context)                     |
 | `docker-check`  | `command -v docker`                                                                                      | Whether docker is installed                                                  |
+| `build-check`   | `docker build --check -f <Dockerfile> <context>`                                                         | Build checks only, no image (run by the reviewer)                            |
+| `hadolint-lint` | `hadolint <Dockerfile>` plus the `--ignore` flags in practices.md `## Packages`                          | Lint, when installed (run by the reviewer)                                   |
 | `image-build`   | `docker build -f <Dockerfile> -t cdk-build-test:<run id> <context>`                                      | Test build to a throwaway tag (default target only)                          |
 | `image-inspect` | `docker image inspect cdk-build-test:<run id> --format '{{.Config.User}} {{json .Config.ExposedPorts}}'` | User and ports of the test image, compared with the plan                     |
 | `image-remove`  | `docker image rm cdk-build-test:<run id>`                                                                | Remove the throwaway test image                                              |

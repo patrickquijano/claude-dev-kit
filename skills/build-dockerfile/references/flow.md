@@ -23,7 +23,7 @@ Devcontainer target → skip. Each missing or ambiguous fact → AskUserQuestion
 
 ## Draft
 
-Build the `Dockerfile` from practices.md in this order: syntax and check lines, image `ARG`s with tag, every `ARG` with a default (resolve the tag per practices.md; never guess; a failed lookup is asked once under the Clarify cap; review mode: report only), build stages, runtime stage, cache mounts for the package manager, unversioned installs with upgrades and same-layer cleanup (an unsure install → research the official method per practices.md Install approach), trusted-tool stages with `COPY --link --from`, explicit `COPY` of needed paths, user and group from `ARG`s, heredoc and merged `RUN`s. Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
+Build the `Dockerfile` by applying practices.md sections in this order: Structure, Packages, Cache, RUN, Secrets and config, Runtime. A failed tag lookup is asked once under the Clarify cap (review mode: report only). Add `.dockerignore` entries for the stack. Update mode → keep its intent (stages, args, labels, entrypoint), fix only what breaks a practice, list each change with its reason.
 
 ## Verify
 
