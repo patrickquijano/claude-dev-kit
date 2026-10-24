@@ -10,7 +10,7 @@ argument-hint: '<[arg]>' # task only; omit when no arguments
 disable-model-invocation: true # task with side effects
 compatibility: Claude Code only. Uses <the Claude Code-only keys>; claude.ai and API uploads reject unknown keys. # required when any Claude Code-only key is set
 allowed-tools: Read <least-privilege tools> # task only
-# user-invocable: false # background-only: replaces the two lines above
+# user-invocable: false # background-only: replaces argument-hint, disable-model-invocation, and allowed-tools
 # paths: <globs> # reference that applies to certain files only
 # context: fork # explicit task only; body must be self-contained
 # background: false # with fork, when the result is needed this turn

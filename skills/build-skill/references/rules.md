@@ -128,9 +128,9 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 5. [F10] A Claude Code-only key is present → `compatibility` says "Claude Code" and warns that claude.ai/API uploads reject unknown keys.
 6. [F11] `context: fork` → `background` is set (`false` when the result is needed this turn). [F12] `agent` only with `context: fork`.
 7. [F13] `allowed-tools` lists Write, Edit, or Bash → `disable-model-invocation: true`.
-8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file.
+8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; name a cdk: agent.
 9. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
-10. [B6] No injection syntax anywhere. [B11] No time-sensitive phrasing (dated facts, relative-time words).
+10. [B6] No injection syntax anywhere. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
 11. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
 12. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
 13. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.

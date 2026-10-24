@@ -450,6 +450,7 @@ const TIME_SENSITIVE = new RegExp(
   `\\bcurrently\\b|\\bas of\\s+(?:${MONTH}|\\d{4})|\\b(?:before|after|until|since)\\s+(?:${MONTH}\\s+)?(?:19|20)\\d\\d\\b`,
   'i'
 );
+const ISO_DATE = /\b(?:19|20)\d\d-[01]\d-[0-3]\d\b/;
 // A `${CLAUDE_SKILL_DIR}/..` link is reported by checkStandalone, so it is removed before the path scan.
 const SKILL_DIR_LINK = /\$\{CLAUDE_SKILL_DIR\}\/\S*/g;
 const PARENT_PATH = /(?:^|[\s`([="'/])\.\.\//;
@@ -470,11 +471,13 @@ export function checkSelfContained(files, dir, deps = defaults) {
   const mdFiles = files.filter((f) => f.endsWith('.md'));
   for (const file of mdFiles) {
     const isRef = file.startsWith('references/');
+    let inFence = false;
     deps
       .read(join(dir, file))
       .split('\n')
       .forEach((raw, i) => {
         const at = i + 1;
+        if (/^\s*```/.test(raw)) inFence = !inFence;
         const line = raw.replace(SKILL_DIR_LINK, '');
         if (PARENT_PATH.test(line))
           found.push(
@@ -492,7 +495,7 @@ export function checkSelfContained(files, dir, deps = defaults) {
           );
         if (BACKSLASH_PATH.test(line))
           found.push(error('path-backslash', 'L5', file, at, 'backslash path: use forward slashes'));
-        if (TIME_SENSITIVE.test(line))
+        if (TIME_SENSITIVE.test(line) || (ISO_DATE.test(line) && !inFence && !line.startsWith('Fetched:')))
           found.push(
             warning('time-sensitive', 'B11', file, at, 'time-sensitive text (dated or "currently"): it will go stale')
           );

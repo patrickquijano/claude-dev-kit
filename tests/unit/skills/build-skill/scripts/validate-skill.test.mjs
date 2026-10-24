@@ -951,4 +951,46 @@ describe('checkSelfContained', () => {
       Array(3).fill(['time-sensitive', 'warning'])
     );
   });
+
+  test('time-sensitive: warns on an ISO date in prose', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'The snapshot was taken 2026-10-24 on this machine.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.rule, f.level]),
+      [['time-sensitive', 'B11', 'warning']]
+    );
+  });
+
+  test('time-sensitive: warns on an ISO date in a bullet', () => {
+    // Arrange
+    const files = { 'SKILL.md': '- Released 2025-01-31 with breaking changes.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.level]),
+      [['time-sensitive', 'warning']]
+    );
+  });
+
+  test('time-sensitive: passes an ISO date on a Fetched: line', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Fetched: 2026-10-24 (local version 2.1.310)' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('time-sensitive: passes an ISO date inside a code fence', () => {
+    // Arrange
+    const files = { 'SKILL.md': '```text\n## [1.0.0] - 2026-10-24\n```' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
 });
