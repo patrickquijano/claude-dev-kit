@@ -2,7 +2,7 @@
 name: prepare-change-request
 description: Reviews a branch with parallel reviewers, then creates or updates a GitHub PR or GitLab MR with a filled template. Use only when the user explicitly asks to prepare, open, or update a PR or MR.
 argument-hint: '[--target <branch>] [--template <name|path>] [--draft] [--dry-run] [--yes] [--gate report] [--squash <yes|no>] [--delete-branch <yes|no>]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api projects/:id/templates/merge_requests) Bash(glab mr list *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote) Bash(git remote get-url *) Bash(git fetch --all --prune) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git rev-list *) Bash(git log *) Bash(git diff *) Bash(git show *) Bash(git ls-files *) Bash(mktemp *) Bash(gh auth status) Bash(gh repo view *) Bash(gh api user --jq .login) Bash(gh pr list *) Bash(gh pr view *) Bash(glab auth status) Bash(glab api user) Bash(glab api projects/:id) Bash(glab api projects/:id/templates/merge_requests) Bash(glab mr list *) mcp__plugin_github_github__get_me mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__pull_request_read mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__list_merge_requests mcp__plugin_gitlab_gitlab__get_merge_request
 ---
 
 # Prepare Change Request
@@ -20,14 +20,15 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Host ops: call the host file's MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their confirmation gates.
 - Only this skill asks the user; subagents cannot. Missing or ambiguous state, template, check result, or CR identity → stop with the reason. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn.
 - Host from Context → Origin: `github.com` → GitHub (`gh`, `${CLAUDE_SKILL_DIR}/references/github.md`); any other host → GitLab (`glab`, `${CLAUDE_SKILL_DIR}/references/gitlab.md`).
 - Review only the committed range `merge-base..HEAD`; uncommitted changes are out of scope.
 - Target: `--target <branch>`, else the host's default branch; ask only when none is found; unattended → `Stopped: 4: no target`.
 - Writes (`git push`, CR create and update, draft flag, GitLab merge options) happen only in step 13, after the step 12 confirmation or with `--yes`; the release gate's chained `cdk:commit-changes` also pushes under the gate's own consent. None is in `allowed-tools`.
-- `--yes` (set by `cdk:ship-release` and `cdk:scan-vulnerabilities`) skips only the consent asks: step 12 and the release gate's ask. It never skips a stop or the gate itself, and skips the step 7 gate only with `--gate report` (valid only with `--yes`): gating findings go to the managed section and `Open:`. `--dry-run` runs steps 1–12, prints the result, and writes nothing.
+- `--yes` (set by `cdk:ship-release` and `cdk:scan-vulnerabilities`) skips only the step 12 ask and the release gate's changelog-only ask. It never skips a stop, the gate itself, or the version-bump confirmation, and skips the step 7 gate only with `--gate report` (valid only with `--yes`): gating findings go to the managed section and `Open:`. `--dry-run` runs steps 1–12, prints the result, and writes nothing.
 - Reviewers: a small, low-risk change per `${CLAUDE_SKILL_DIR}/references/findings.md` `## Direct review` is reviewed here with no reviewer subagents; otherwise five `cdk:cr-reviewer` runs, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), read-only. Parse, validate, deduplicate, and gate per `findings.md` `## Parent validation`.
 - CR title: Conventional Commits, max 72 chars, imperative, no attribution (`${CLAUDE_SKILL_DIR}/references/conventions.md`); a repo commitlint config wins and is checked with `commitlint` (not installed → `skipped (not installed)`; no config → `n/a`). Body claims come only from commits, the diff, and reviewer evidence; unknown → keep the template placeholder.
 - Existing CR: change only the managed section and, when chosen, the title; keep every other byte of the body, assignees, and reviewers. Body goes through `<scratch>/body.md`, never inline shell args. Assignee = Self; reviewers none on create, kept on update.
@@ -55,7 +56,7 @@ A change request (CR) is a GitHub pull request or a GitLab merge request.
 14. **Verify.** Host file `## Verify`; mismatch → report the field, `Stopped: 14: <field mismatch>`.
 15. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
-Step 6 spawns, in one message, five parallel `cdk:cr-reviewer` Agent calls, one per role (`correctness`, `tests`, `security`, `maintainability`, `docs`), with `model: opus` on `correctness` and `security`. Each gets `role:`, root, `<target ref>`, `<mb>`, HEAD SHA, and the three scratch paths.
+Step 6 spawns the five `cdk:cr-reviewer` roles in parallel; the brief is in `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`.
 
 ## Files
 

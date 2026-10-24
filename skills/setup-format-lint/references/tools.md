@@ -50,7 +50,7 @@ Retained constraints (each applied only when the check fails; report under `Cons
 
 - Companion peer ranges: a plugin or config package (`typescript-eslint`, `@eslint/json`, `@prettier/plugin-xml`, `@prettier/plugin-php`, `stylelint-config-standard`, `stylelint-config-standard-scss`, `postcss-less`) must admit the resolved core (`eslint`, `prettier`, `stylelint`) in its `peerDependencies`. Reason: an out-of-range peer breaks install or loading. Resolve the core first, then pick the newest companion admitting it; none → lower the core to the newest version every companion admits.
 - `typescript-eslint` also needs `typescript` (its peer): install it too when absent, resolved the same way.
-- ESLint: the written `eslint.config.mjs` imports `defineConfig` from `eslint/config`, so the resolved ESLint must export `./config` (`npm view eslint@<version> exports --json`). Reason: older releases lack it. Missing → skip ESLint.
+- ESLint: the written `eslint.config.mjs` imports `defineConfig` from `eslint/config`, so the resolved ESLint must export `./config` (`npm-view-exports`). Reason: older releases lack it. Missing → skip ESLint.
 - Native and runtime tools resolve against the detected runtime (Node for npm, PHP for Composer, Python for PyPI, Go for modules). Reason: a version whose declared minimum exceeds the installed runtime fails at run time.
 
 Install forms with the resolved version `<v>`:

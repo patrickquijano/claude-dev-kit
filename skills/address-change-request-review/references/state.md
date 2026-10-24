@@ -43,6 +43,7 @@ Terminal: `no-change` (reply only), `needs-decision`, `blocked`, `failed`. State
 - Every reply body ends with the marker `<!-- address-change-request-review:<item id>:<head short SHA> -->`. Before posting, the thread or comment list is re-read; a reply by Self containing the prefix `address-change-request-review:<item id>:` or the legacy `address-pull-request-review:<item id>:` (any SHA, since the head changes after a push) → record it as posted and skip.
 - The revision summary ends with the marker `<!-- address-change-request-review:summary:<head short SHA> -->`; before posting it, a key `cr:<n>:summary` in `ops[]` or a Self comment containing the prefix `address-change-request-review:summary:` → record it as posted and skip.
 - Record an operation in `ops[]` immediately after it succeeds, with the response id.
+- The `reply` op for Fix items happens at step 13, right after the push; other replies post at step 15.
 
 ## Resume
 

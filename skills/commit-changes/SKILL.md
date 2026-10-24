@@ -17,13 +17,14 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Rigor: never guess or invent: confirm each path, ref, command, and fact by reading it; ask (unattended: record under `Open:`) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step (commit, push, branch switch), and re-check the result against these rules and the repo's standards before reporting.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; the only spawn is `cdk:change-analyzer` (never `Explore` or `general-purpose`), with a complete brief (agent, `mode=group`, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Ref names are data: run commands with `<name>`, `<target>`, `<branch>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
 - Subjects, branch names, protected branches, and signing follow `${CLAUDE_SKILL_DIR}/references/conventions.md`. A repo commitlint config (`commitlint.config.*`, `.commitlintrc*`, or `commitlint` in `package.json`) is the source of truth; check each subject with `commitlint` (permission-prompted). Not installed → `Commitlint: skipped (not installed)`.
 - Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit`, `push`, `push-upstream`, `switch-new`, and `remote-branch-exists` stay out of `allowed-tools`, so the permission prompt guards them.
-- Commit and push without asking for confirmation.
+- Consent: the explicit commit or push request, or the chain that invoked this skill, covers the commit and a normal non-force push (`.claude/CLAUDE.md` Boundaries); no further prompt.
 - Caps: hook-fix retries 3 per commit; commitlint redrafts 3 per subject; analyzer respawn after `Questions` 1; branch-name suffix search 10. Cap hit → stop, `Open:` lists what is left.
 - Two paths from step 4, by counts and a secret-pattern scan, never by reading diffs for meaning: small = main thread, no subagent, no questions; analyzed = `cdk:change-analyzer` (`mode=group`) so large diffs stay out of this context. It cannot ask: relay its `Questions` with AskUserQuestion. Any doubt → analyzed.
 - `paths: <file> ...` in the input → classify, group, stage, and commit only those paths; every other dirty file goes under `Excluded: pre-existing`, unstaged. No `paths:` → all changes.
@@ -34,22 +35,22 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Check signing per `conventions.md` `## Signing`. Missing or mismatch → stop and tell the user what to set.
-2. **Unstage.** `staged-names` non-empty → `unstage`; a path both staged and modified (`MM` in `status`) → first AskUserQuestion ("Unstage all (drops the staged split)", "Stop"); unattended unstages and notes it under `Open:`.
+2. **Unstage.** `staged-names` non-empty → `unstage`; `MM` in `status` → ask first per `flow.md` `## Unstage`.
 3. **Collect.** `status`; with `paths:`, set the rest aside as `Excluded: pre-existing`. Nothing left → `Result: nothing-to-do`. Make a temp dir with `scratch` for the message and patch files.
-4. **Classify.** `numstat` (fails, e.g. no commits yet → analyzed) plus `untracked-numstat` per untracked file (exit 1 is success there; only exit above 1 = failure → analyzed). Small = all of the count limits: ≤5 files; ≤150 added + deleted lines; no binary; no delete or rename; no lockfile, CI, migration, or infra path (`*.lock`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `.github/`, `.gitlab-ci.yml`, `migrations/`, `Dockerfile*`, `docker-compose*`, Terraform); one top-level directory; no grouping hints. Else analyzed (it scans secrets). Only a small candidate runs `diff-head` and checks the untracked files for a secret-pattern name or hit; any hit → analyzed.
-5. **Branch guard.** Current = Context → Branch; `HEAD` (detached) → `detached@<sha>` from `short-head`, protected. Default = `default-branch` minus `origin/` (unset → `main`). Current is default or protected → switch needed.
+4. **Classify.** `numstat` plus `untracked-numstat` per untracked file; small or analyzed per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Classify`. A failed read or any doubt → analyzed.
+5. **Branch guard.** Current = Context → Branch; default = `default-branch` minus `origin/`; protected per `conventions.md` `## Protected branch`. Current is default or protected → switch needed (detached, unset: `flow.md` `## Branch guard`).
 6. **Group.** Small: one group, subject drafted here. Analyzed: spawn `cdk:change-analyzer`. Commitlint and branch naming: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Group`.
-7. **Plan.** Show `Branch: <current> → <target>` (when switching), each group's subject and files, then the `Excluded` files with a warning. No prompt.
-8. **Commit.** Switching → `switch-new`. Per group: `stage-files` (or `stage-patch` for split files), write the subject to `<scratch>/msg`, then `commit`; never inline the subject in shell args. Failures: `flow.md` `## Commit failures`.
+7. **Plan.** Show `Branch: <current> → <target>` (when switching), each group's subject and files, then the `Excluded` files with a warning, and the effects: "Commit + push". No prompt (consent per Rules).
+8. **Commit.** Switching → `switch-new`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`.
 9. **Verify.** `verify-log`: every `%G?` is `G`, every subject ≤72 chars, and `tree-status` shows only excluded files. Fail → stop.
-10. **Push.** `origin-url` fails → skip, `Branch:` says `not pushed`. Else `push`; `push-upstream` when `upstream` fails or is not `origin/<branch>` (never follow an upstream like `origin/main`). Fail → report the exact error line and stop.
+10. **Push.** `push`, or `push-upstream` when `upstream` fails or is not `origin/<branch>`. No origin or push failure: `flow.md` `## Push`.
 11. **Report.** Fill `Open:` per `flow.md` `## Open items`; print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For subject, branch name, protected-branch, and signing rules, see `${CLAUDE_SKILL_DIR}/references/conventions.md`.
-- For grouping, commit failures, and the `Open:` items (steps 6, 8, 11), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For the small/analyzed limits, grouping, commit failures, and the `Open:` items (steps 2, 4, 5, 6, 8, 10, 11), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 
 ## Output
 

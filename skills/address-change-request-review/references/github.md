@@ -4,7 +4,7 @@ Host section of `cdk:address-change-request-review` (host = `origin` on `github.
 
 ## Contents
 
-- Pre-flight · Find · Candidates · Branch · Gather · Re-fetch before a mutation · Mutations · Re-request · Verify after mutations
+- Pre-flight · MCP tools · Find · Candidates · Branch · Gather · Re-fetch before a mutation · Mutations · Re-request · Verify after mutations
 
 ## Pre-flight
 
@@ -18,9 +18,26 @@ Run in order; any failure → report the exact error line and stop.
 6. Scratch = `mktemp -d`.
 7. `dirty-paths` non-empty → Dirty (see `flow.md`).
 
-Reads are `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status`; every other call stays permission-prompted.
+Reads are `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status` and the MCP read tools below (`get_me`, `list_pull_requests`, `pull_request_read`); every other call stays permission-prompted.
 
 GraphQL and REST calls stay out of `allowed-tools` (a GraphQL call may be a mutation), so each is permission-prompted. Reads and writes use scratch files for any model-written text: `-F body=@<file>` or `--input <file>`.
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`. Tool prefix: `mcp__plugin_github_github__`.
+
+| Operation                                                           | MCP tool                                                               |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `gh auth status`                                                    | —                                                                      |
+| `gh repo view`                                                      | —                                                                      |
+| `gh api user`                                                       | `mcp__plugin_github_github__get_me`                                    |
+| `gh pr list`                                                        | `mcp__plugin_github_github__list_pull_requests`                        |
+| `gh pr view`                                                        | `mcp__plugin_github_github__pull_request_read`                         |
+| `gh api graphql` threads query                                      | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
+| `gh api graphql` thread reply (`addPullRequestReviewThreadReply`)   | `mcp__plugin_github_github__add_reply_to_pull_request_comment`         |
+| `gh api repos/<owner>/<repo>/issues/<n>/comments -X POST`           | `mcp__plugin_github_github__add_issue_comment`                         |
+| `gh api graphql` resolve (`resolveReviewThread`)                    | —                                                                      |
+| `gh api repos/<owner>/<repo>/pulls/<n>/requested_reviewers -X POST` | —                                                                      |
 
 ## Find
 

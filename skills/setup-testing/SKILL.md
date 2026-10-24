@@ -2,7 +2,7 @@
 name: setup-testing
 description: Sets up unit, integration, and end-to-end test tooling per package, with a recommended tester per kind and run scripts. Use only when the user explicitly asks to set up testing, or when chained.
 argument-hint: '[unit|integration|e2e …] [package paths] [--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(docker info *)
+allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(docker info *) Bash(command -v *)
 ---
 
 # Setup Testing
@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; spawn the per-package `cdk:repo-analyzer` agents in one parallel message, never `Explore` or `general-purpose`; each spawn gets the brief in `flow.md` `## Spawn briefs`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks and writes; `cdk:repo-analyzer` cannot ask.
 - Input: kind words (`unit`, `integration`, `e2e`) limit the run to those kinds (absent: all three); paths limit it to the packages they touch (absent: every package). The `add-*-tests` skills chain this with one kind and one package.

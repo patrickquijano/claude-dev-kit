@@ -19,6 +19,5 @@ Used by `cdk:create-github-release`; `scripts/changelog-release.mjs` renders the
 ## Tags and releases
 
 - Tag form (`v1.0.0` or `1.0.0`) follows existing semver tags; with none, the changelog's link references; with neither, the user chooses. Mixed tags need an explicit `--prefix`.
-- The tag is annotated, created locally from the verified commit, then pushed, so `gh release create --verify-tag` never lets GitHub create a lightweight tag from the default branch.
-- Non-draft, non-prerelease; the latest flag stays automatic. Pre-release (`-rc.1`) and `[YANKED]` versions are refused.
+- The latest flag stays automatic.
 - With release immutability on, a published release locks its tag; check the tag and commit before publishing.

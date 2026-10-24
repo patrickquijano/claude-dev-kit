@@ -4,6 +4,11 @@
 | --------------------- | ----------------------------------------------- | ----------------------------------------------- |
 | `git-root`            | `git rev-parse --show-toplevel`                 | Repository root (preloaded in Context)          |
 | `tool-check`          | `command -v <tool>`                             | Check a native binary or package manager exists |
+| `npm-view-exports`    | `npm view eslint@<version> exports --json`      | Check the resolved ESLint exports `./config`    |
+| `npm-add-dev`         | `npm install -D <pkg>@<version> …`              | Install npm dev packages (npm)                  |
+| `pnpm-add-dev`        | `pnpm add -D <pkg>@<version> …`                 | Install npm dev packages (pnpm; `-w` at root)   |
+| `yarn-add-dev`        | `yarn add -D <pkg>@<version> …`                 | Install npm dev packages (yarn; `-W` yarn 1)    |
+| `bun-add-dev`         | `bun add -d <pkg>@<version> …`                  | Install npm dev packages (bun)                  |
 | `brew-info`           | `brew info --json=v2 <formula>`                 | Verify a Homebrew formula and its version       |
 | `composer-require`    | `composer require --dev <pkg>:^<version> …`     | Install Composer dev packages                   |
 | `dotnet-manifest`     | `dotnet new tool-manifest`                      | Create `.config/dotnet-tools.json`              |

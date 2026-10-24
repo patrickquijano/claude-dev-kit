@@ -1,6 +1,6 @@
 # Changelog format
 
-Source: Keep a Changelog 1.1.0 (<https://keepachangelog.com/en/1.1.0/>). An existing file's valid style (link format, tag prefix, header wording) wins over these defaults.
+Source: Keep a Changelog 1.1.0 (<https://keepachangelog.com/en/1.1.0/>). Follow it strictly. An existing file's tag prefix and URL host are kept; header wording, link presence, and entry style always follow the spec.
 
 ## Contents
 
@@ -32,11 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.0]: https://github.com/<owner>/<repo>/releases/tag/v1.0.0
 ```
 
-- Write the Semantic Versioning line only when the project states it follows SemVer (existing header or user). Not known → omit the line.
+- Header text is exact: the title, the "All notable changes…" line, and the "The format is based on…" line.
+- Write the SemVer line when the project uses SemVer: `.claude/release-policy.json`, SemVer tags, SemVer versions in the file, or a statement from the user. Then the Keep a Changelog line ends with `,` as in the template. Otherwise end it with `.` and omit the SemVer line.
 - `## [Unreleased]` is always first and always present, even when empty.
 - Versions descending. Heading `## [version] - YYYY-MM-DD` (ISO 8601); yanked → `## [version] - YYYY-MM-DD [YANKED]`.
 - Section order inside a version: Added, Changed, Deprecated, Removed, Fixed, Security. Omit empty sections.
-- Link references at the bottom, one per heading, newest first. Oldest version links to its tag or release page (no earlier tag to compare).
+- Link references are always present: one per version heading plus `[unreleased]` (lowercase), newest first. Oldest version links to its tag or release page (no earlier tag to compare).
+- URLs come from `origin`: GitHub `/compare/a...b` and `/releases/tag/<tag>`, GitLab `/-/compare/a...b` and `/-/tags/<tag>`. Another host or no remote → ask (unattended: `Open:`). A tag that does not exist yet → still write the link and flag it.
 
 ## Types
 
@@ -52,8 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Entries
 
 - One bullet per user-visible change, in the imperative or plain present, naming the skill, command, option, or behavior users see. Consolidate related commits and files into one bullet.
+- Each entry is one sentence of about 25 words or fewer, ending with a period. More to say → split it into several bullets.
+- No bold prefixes or markers. Nested bullets only for a list of items, each following these rules.
 - Describe the effect, not the diff: never copy commit subjects, never list file paths unless the path is the user-facing surface.
-- Breaking change → say so in the bullet (`**Breaking:** …`) and put it under Changed or Removed.
+- Breaking change → plain wording that states what breaks and what to do, under Changed or Removed (e.g. "Rename `/cdk:a` to `/cdk:b`; the old name no longer works.").
 - Deprecations and removals are always listed.
 - Idempotent match: before adding, compare meaning against existing bullets in the target section (and the Unreleased section as a whole). Already represented → leave it; partly covered → update that bullet in place.
 
@@ -70,14 +74,14 @@ Report each with its reason; never add:
 
 ## Workflows
 
-**Non-release (default).** Edit only `## [Unreleased]`. Leave every released section, date, and link as is, apart from the `[unreleased]` compare link when its base tag changed (it should already point at the latest tag; fix only when verifiably wrong).
+**Non-release (default).** Edit `## [Unreleased]` and the link references (add missing ones; repoint `[unreleased]` when verifiably wrong). Released sections keep their content. Format-only drift in them (headings, dates, header, link refs, markers, bullet style) → list each fix and apply it only after approval per `flow.md` `## Format drift`; content changes to released entries need their own ask. Unattended → list the fixes under `Open:` without changing the file.
 
 **Release.** Needs a version and a date, both from the user (arguments or answers); never infer them from commits, tags, or the clock. Then:
 
 1. Run the non-release flow first so Unreleased is complete.
 2. `[version]` already in the file: when it also exists in the base branch's `CHANGELOG.md` (`git show <base>:<changelog path>`, base per the skill's Base step), stop. Otherwise it is an unmerged release section: merge any new Unreleased entries into it in place (by meaning, no duplicates), keep its date, leave Unreleased empty, and refresh the links.
 3. Else rename the Unreleased content into `## [version] - date`; add a fresh empty `## [Unreleased]` above it.
-4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` (GitHub `/compare/a...b`, GitLab `/-/compare/a...b`); other host or no remote → ask or omit links.
+4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` per Template; other host or no remote → ask (unattended: `Open:`).
 5. Re-running with the same version and date changes nothing.
 6. Never create tags, commits, or pushes; mention that the tag must exist for links to resolve.
 
@@ -87,6 +91,8 @@ Report each with its reason; never add:
 - Duplicate entries across or within sections.
 - Missing, regional, or non-ISO dates.
 - Inconsistent categories: same kind of change under different sections, or sections outside the six types.
+- Verbose or paragraph entries; non-spec markers such as `**Breaking:**`.
+- Missing link references, or a missing SemVer statement in a SemVer project.
 - Silently rewriting a released section.
 - Removing or renaming `Unreleased`.
 - Omitting deprecations, removals, or breaking changes.
@@ -101,8 +107,8 @@ Each item pass or fail in the review loop:
 3. Duplicates: no two bullets describe the same change.
 4. Classification: type matches the change; only the six sections.
 5. Ordering: Unreleased first; versions descending; canonical section order.
-6. Format: header present; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; file ends with one newline.
-7. Links: every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the style and tag prefix; tags exist (`git tag --list`) or are flagged.
-8. Released sections (present in the base branch's changelog) unchanged (non-release; tracked file only): `git diff` of the file shows hunks only in Unreleased and, if needed, the `[unreleased]` link.
+6. Format: exact header; SemVer line per the Template rule; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; one-sentence entries ending with `.`; no bold markers; file ends with one newline.
+7. Links: references are mandatory and `[unreleased]` is present; every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the tag prefix and host; each tag missing from `git tag --list` is flagged, never its link omitted.
+8. Released sections (present in the base branch's changelog) change only by approved format fixes (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and approved fixes.
 9. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
 10. Idempotency: re-deriving entries from the same inputs against the written file produces no change.

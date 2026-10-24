@@ -15,7 +15,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Evidence only: every candidate cites a file on disk, a manifest, or a tool config that produces it; never add a path from the stack name alone.
 - Never read the contents of `.env*`, key, or credential files; their names are enough.
@@ -29,8 +29,8 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 ## Workflow
 
 1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
-2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 3 for the secret check, then step 6 with `nothing-to-do`.
-3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:`; the Output prints it even with `Candidates: none`.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 3 for the secret check, then step 6 with `nothing-to-do`.
+3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:` (every tracked secret path, none dropped); the Output prints it even with `Candidates: none`, `Report only`, or `Stop`.
 4. **Choose.** AskUserQuestion: Add all (Recommended) | Add high-confidence only | Report only | Stop. Each option names the write.
 5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Then `check-ignore` the written paths.
 6. **Output.** Print the block below, nothing else.
@@ -39,6 +39,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git check-ignore *)
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For signals, categories, and confidence levels (read by the analyzer), see `${CLAUDE_SKILL_DIR}/references/signals.md`.
+- For the analyzer spawn brief, see `${CLAUDE_SKILL_DIR}/references/spawns.md`.
 
 ## Output
 

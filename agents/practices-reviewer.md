@@ -76,7 +76,6 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### dockerfile
 
 ```text
-Files: <Dockerfile paths>, <.dockerignore path | none>
 Findings:
 - <path>:<line> [error | warning | info] <practice id | tool rule id> — <problem> → <fix>
 Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>

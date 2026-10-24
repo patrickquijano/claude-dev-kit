@@ -4,7 +4,7 @@ Host section of `cdk:review-change-request` (host = `origin` on `github.com`); t
 
 ## Contents
 
-- Pre-flight · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
+- Pre-flight · MCP tools · Select · Gather · Criteria · Positions · Publish · Verify · Approve · Merge · API rules
 
 ## Pre-flight
 
@@ -16,6 +16,26 @@ Run in order; any failure → report the exact error line and stop. A detached `
 4. `gh repo view --json viewerPermission`: error → stop; keep the value (`NONE`, `READ`, `TRIAGE`, `WRITE`, `MAINTAIN`, `ADMIN`) for `## Merge`.
 5. `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge`; keep them for `## Merge`.
 6. A `403`, or a `422` that is not a comment-position error, at publish stops there with its exact error (GitHub's docs do not say which permission each review event needs).
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                                                         | MCP tool                                                               |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `gh auth status`                                                  | —                                                                      |
+| `gh repo view` (Repo, `viewerPermission`, merge options)          | —                                                                      |
+| `gh api user`                                                     | `mcp__plugin_github_github__get_me`                                    |
+| `gh pr list`                                                      | `mcp__plugin_github_github__list_pull_requests`                        |
+| `gh pr view`                                                      | `mcp__plugin_github_github__pull_request_read`                         |
+| `gh pr diff`                                                      | `mcp__plugin_github_github__pull_request_read` (`get_diff`)            |
+| `gh pr diff --name-only`                                          | `mcp__plugin_github_github__pull_request_read` (`get_files`)           |
+| `gh pr checks`                                                    | —                                                                      |
+| `gh api graphql` threads query                                    | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
+| `gh api repos/<owner>/<repo>/pulls/<n>/reviews -X POST`           | — (one atomic POST)                                                    |
+| `gh api graphql` thread reply (`addPullRequestReviewThreadReply`) | `mcp__plugin_github_github__add_reply_to_pull_request_comment`         |
+| `gh api graphql` resolve (`resolveReviewThread`)                  | —                                                                      |
+| `gh pr merge`                                                     | — (no head-SHA guard)                                                  |
 
 ## Select
 
@@ -31,7 +51,7 @@ Run in order; any failure → report the exact error line and stop. A detached `
 - Details: `gh pr view <n> --json number,url,title,body,author,baseRefName,baseRefOid,headRefName,headRefOid,commits,files,reviews,comments,latestReviews,reviewDecision,isDraft,mergeStateStatus,isCrossRepository`. `reviews` and `comments` (review bodies, PR conversation) feed `## Prior discussion`. Keep: head = `headRefOid`, base = `baseRefOid`, author login, draft flag.
 - Diff: `gh pr diff <n>` → `<scratch>/diff.patch`; changed files with status from `files` and `gh pr diff <n> --name-only` → `<scratch>/name-status.txt`; commits from `commits` → `<scratch>/log.txt`. `gh pr diff` failing (GitHub caps very large diffs) → fall back to the local diff once the objects are present (`Local objects`, `Merge base` below): `git diff <mb>..<headRefOid>`, `git diff --name-status <mb>..<headRefOid>`, `git log <mb>..<headRefOid>`, and note it; objects not fetchable → stop. `files` or `commits` returning 100 entries → the list may be truncated: take names from `gh pr diff <n> --name-only`, take the log from `git log <mb>..<headRefOid>`, and note it.
 - Checks: `gh pr checks <n> --json name,state,bucket,link,workflow`; `bucket` is `pass | fail | pending | skipping | cancel`. `gh pr checks` exits non-zero for failing or pending checks too, so parse the JSON whatever the exit code; `no checks reported` → none.
-- Review threads, resolved and unresolved: `gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved isOutdated viewerCanResolve path line comments(first:5){nodes{author{login} body url createdAt}}}}}}}' -f o=<owner> -f r=<repo> -F n=<n>`. It is a read query; the call stays out of `allowed-tools` (a GraphQL call could be a mutation), so it is permission-prompted. More than 100 threads → note the truncation. Own threads = `isResolved` false, `viewerCanResolve` true, first comment author = Self.
+- Review threads, resolved and unresolved: `gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved isOutdated viewerCanResolve path line comments(first:5){nodes{author{login} body url createdAt}} lastComment: comments(last:1){nodes{author{login} body createdAt originalCommit{oid}}}}}}}}' -f o=<owner> -f r=<repo> -F n=<n>`. It is a read query; the call stays out of `allowed-tools` (a GraphQL call could be a mutation), so it is permission-prompted. More than 100 threads → note the truncation; Merge is then not offered. Prior threads = `isResolved` false and `viewerCanResolve` true, any author; `lastComment` is the latest comment; keep its `originalCommit.oid` for `changed-since` (per `flow.md` `## Prior threads`).
 - Local objects: `git cat-file -e <headRefOid>^{commit}` fails → `git fetch <remote> pull/<n>/head` (remote = the one whose URL matches Repo). Base likewise (`baseRefOid`). Fetch only; never check out or merge.
 - Merge base: `git merge-base <baseRefOid> <headRefOid>`; none → stop.
 - Fork PRs (`isCrossRepository`) are reviewable read-only through `pull/<n>/head`; note it.
@@ -52,11 +72,11 @@ Inline comment entry: `{"path":…,"line":<n>,"side":"RIGHT","body":…}`; a ran
 - File `<scratch>/review.json`: `{"commit_id":"<headRefOid>","event":"<EVENT>","body":<summary>,"comments":[…]}`. `body` is required for `COMMENT` and `REQUEST_CHANGES`; `commit_id` pins the reviewed commit. General non-praise findings go in `body` by subject (GitHub review payloads have no positionless threads).
 - Post: `gh api repos/<owner>/<repo>/pulls/<n>/reviews -X POST --input <scratch>/review.json`. One call, so the review lands whole or not at all (an invalid inline position returns `422` and nothing posts).
 - `422` on a comment position → move that comment to the summary and retry once; any other error → report the exact error line, stop.
-- Own threads, after the review posted and verified: per kept thread write the reply text to `<scratch>/reply-<k>.md`, then `gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{url}}}' -f t=<thread id> -F b=@<scratch>/reply-<k>.md`, then `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{isResolved}}}' -f t=<thread id>`. Only threads Self started; a failing thread is reported and left open, never retried.
+- Kept prior threads (any author), after the review posted and verified: per kept thread write the reply text to `<scratch>/reply-<k>.md`, then `gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{url}}}' -f t=<thread id> -F b=@<scratch>/reply-<k>.md`, then `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{isResolved}}}' -f t=<thread id>`; under `--yes` skip `resolveReviewThread` for threads by other authors (reply only). A failing thread is reported and left open, never retried.
 
 ## Verify
 
-`gh pr view <n> --json latestReviews,reviews`: Self's newest review has the posted state (`COMMENT`→`COMMENTED`, `REQUEST_CHANGES`→`CHANGES_REQUESTED`, `APPROVE`→`APPROVED`) and `commit.oid` equals the reviewed `headRefOid`. After the thread mutations, re-run the threads query: each kept thread has `isResolved` true. Mismatch → report the field.
+`gh pr view <n> --json latestReviews,reviews`: Self's newest review has the posted state (`COMMENT`→`COMMENTED`, `REQUEST_CHANGES`→`CHANGES_REQUESTED`, `APPROVE`→`APPROVED`) and `commit.oid` equals the reviewed `headRefOid`. After the thread mutations, re-run the threads query: each thread this run resolves has `isResolved` true. Mismatch → report the field.
 
 ## Approve
 
@@ -65,13 +85,13 @@ Approval is the `APPROVE` review event, set only when A1–A7 pass, the user pic
 ## Merge
 
 - `--yes` never uses the admin case; every other rule below stays. Offered at step 9 only when every item holds: the `flow.md` `## Verdict` merge items; `mergeStateStatus` is `CLEAN` or `HAS_HOOKS`, or, on another author's PR, `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (this skill's `APPROVE` may satisfy it; step 12 re-checks). Admin case: the author is Self, `viewerPermission` is `ADMIN`, and `mergeStateStatus` is `BLOCKED` with `reviewDecision` `REVIEW_REQUIRED` (Self cannot approve its own PR) → offered as an _admin_ merge (`ADMIN` is necessary, not sufficient: protection that includes administrators still refuses it, and the error path reports that); with any other `viewerPermission`, not offered, blocker `required review; --admin needs ADMIN (have <perm>)`. `UNKNOWN` → re-fetch up to 3 times, then not offered.
-- Step 12 gate: another author's PR → the `APPROVE` review is posted and verified, else `Merged: no (approval not posted)`; then the re-fetch below must show `CLEAN` or `HAS_HOOKS`; an _admin_ merge may instead still show `BLOCKED` with `REVIEW_REQUIRED` (and drops `--admin` when it shows `CLEAN` or `HAS_HOOKS`).
+- Step 12 gate: another author's PR → the `APPROVE` review is posted and verified (or the PR is already `APPROVED`), else `Merged: no (approval not posted)`; re-run the threads query: any thread whose id is in the prior-thread set (`flow.md` `## Prior threads`) and still `isResolved` false → `Merged: no (unresolved threads: <n>)`, also for an _admin_ merge; then the re-fetch below must show `CLEAN` or `HAS_HOOKS`; an _admin_ merge may instead still show `BLOCKED` with `REVIEW_REQUIRED` (and drops `--admin` when it shows `CLEAN` or `HAS_HOOKS`).
 - Options: from `## Pre-flight`. Squash yes → `--squash`; no → `--merge`. One of those two allowed → use it, skip the Squash question, note it. Neither allowed → not offered (name `--rebase` as unsupported when `rebaseMergeAllowed`). Delete source branch skipped for fork PRs (`isCrossRepository`), whose branch the base repo cannot delete. Question defaults: Delete recommended = `deleteBranchOnMerge`; the question text warns that gh also deletes the local branch and switches off it when it is checked out. Admin merge label: `Merge PR #<n> now (--admin, bypasses required review)`.
 - Run: re-fetch `gh pr view <n> --json headRefOid,state,mergeStateStatus` and `gh pr checks <n> --json bucket`; head changed → "new commits pushed", stop; not `OPEN`, not `CLEAN`/`HAS_HOOKS` (an _admin_ merge also accepts `BLOCKED` with `REVIEW_REQUIRED`), or any check `fail` (an _admin_ merge also stops on `pending`; every bucket must be `pass` or `skipping`); `UNKNOWN` → re-fetch up to 3 times → report the field, stop. Then `gh pr merge <n> --squash|--merge [--delete-branch] [--admin] --match-head-commit <headRefOid>`; for a squash add `--subject '<PR title> (#<n>)' --body ''` (single quotes; a `'` in the title is written `'\''`, never double quotes, so `$(...)` in another author's title cannot run), so the commit keeps a header of at most 72 characters and an empty body (GitHub's default lists every commit subject, which breaks commitlint). Pass `--admin` only for an _admin_ merge that still needs it; never pass `--auto`; `gh pr merge --help` says it enables auto-merge or the merge queue when required checks have not passed, which the gate avoids. With `--delete-branch`, gh deletes the local branch too and may switch off it; add `local branch deleted` to `Merged:` when the branch was checked out.
 - Error → report the exact error line; any posted review stays; stop. Verify: `gh pr view <n> --json state,mergeCommit` shows `MERGED` with a `mergeCommit`; else report the field.
 
 ## API rules
 
-- Reads: `gh pr list`, `gh pr view`, `gh pr diff`, `gh pr checks`, `gh repo view`, `gh api user` and the threads query only; none of the `gh api` calls is pre-approved.
-- Writes (review POST, thread reply and resolve mutations, `gh pr merge`) stay out of `allowed-tools`, so each gets a permission prompt as a second confirmation.
+- Reads: `gh pr list`, `gh pr view`, `gh pr diff`, `gh pr checks`, `gh repo view`, `gh api user` and the threads query only (plus the MCP read tools in `## MCP tools`); none of the `gh api` calls is pre-approved.
+- Writes (review POST, thread reply and resolve mutations, `gh pr merge`, and their MCP write tools) stay out of `allowed-tools`, so each gets a permission prompt as a second confirmation.
 - JSON request bodies go to a scratch file and `--input <file>`; text parameters use `-F name=@<file>`. Never inline user or model text in shell args.

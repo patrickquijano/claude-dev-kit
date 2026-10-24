@@ -32,7 +32,7 @@ Shared by `cdk:scan-vulnerabilities` and `cdk:security-scanner`. `<ts>` = run st
         rescan-<k>/                # targeted rescans after a remediation, same contents
 ```
 
-The final rescan is the last `iteration-<n>` and has `"kind": "final"`. The skill adds `.vulnerability-reports/` to `.git/info/exclude`, so reports are never committed.
+The final rescan is the last `iteration-<n>` and has `"kind": "final"`. Unless `.vulnerability-reports/` is already ignored, the skill adds it to `.git/info/exclude` (`exclude-reports`), so reports are never committed.
 
 ## Redaction
 

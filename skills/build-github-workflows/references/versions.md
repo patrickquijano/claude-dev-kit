@@ -10,7 +10,7 @@ Every action, remote reusable workflow, and image is pinned by its exact tag (`v
 
 Per `owner/repo`:
 
-1. Latest release: `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`. The endpoint returns the most recent non-prerelease, non-draft release; 404 → the repo publishes no releases, so list tags (`git ls-remote --tags --refs https://github.com/<owner>/<repo>`), drop any tag with a prerelease suffix (`-rc`, `-alpha`, `-beta`, `-pre`, `-dev`, `-next`), and take the highest numeric semver; still nothing → `Unresolved`. Source: <https://docs.github.com/en/rest/releases/releases#get-the-latest-release>.
+1. Latest release: first `mcp__plugin_github_github__get_latest_release` (`owner`, `repo`); not connected or error → `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`, unchanged. The endpoint returns the most recent non-prerelease, non-draft release; 404 → the repo publishes no releases, so list tags (`git ls-remote --tags --refs https://github.com/<owner>/<repo>`), drop any tag with a prerelease suffix (`-rc`, `-alpha`, `-beta`, `-pre`, `-dev`, `-next`), and take the highest numeric semver; still nothing → `Unresolved`. Source: <https://docs.github.com/en/rest/releases/releases#get-the-latest-release>.
 2. Most specific tag: the full `vX.Y.Z` release tag. Floating majors (`v4`) move and are never written.
 3. Verify the tag exists in that repo, never a fork: `git ls-remote --tags --refs https://github.com/<owner>/<repo> refs/tags/<tag>`. For an action with a subpath (`owner/repo/path`) the tag applies to `owner/repo`. Source: <https://git-scm.com/docs/git-ls-remote>.
 4. Written form: `owner/repo@vX.Y.Z`.

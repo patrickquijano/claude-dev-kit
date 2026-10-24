@@ -4,7 +4,7 @@ Conditional detail for the workflow steps.
 
 ## Contents
 
-- Pre-flight · Fallback · Improve round · Leftovers
+- Pre-flight · Fallback · Cancelled · Improve round · Leftovers
 
 ## Pre-flight
 
@@ -16,13 +16,17 @@ Conditional detail for the workflow steps.
 
 AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Unattended runs (chained) ask nothing: omit unanswerable items and list them in `Omitted:`.
 
+## Cancelled
+
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a Gaps question, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" or "Stop" is an answer, not a cancel.
+
 ## Improve round
 
-Below 95 and rounds < 3: rounds + 1, then spawn `cdk:rubric-improver` with root, rubric path, README path, archetype, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits `README.md` only.
+Below 95 and rounds < 3: rounds + 1, then spawn `cdk:rubric-improver` with `kind: readme`, root, rubric path, README path, archetype, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits `README.md` only.
 
-- Its `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
+- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
 - Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 5), then score again (step 6) and report (step 7).
 
 ## Leftovers
 
-After the loop ends (pass, or cap reached), list each `Remaining gaps:` deduction in `Open:` as `criterion (lost pts): scorer fix`. Do not re-enter the loop or edit further; score-only never writes.
+After the loop ends (pass, or cap reached), list each row of the last scorer return's `Deductions` in `Open:` as `criterion (lost pts): scorer fix`, plus each improver `Blocked:` item as `<ID>: reason`. Pass with no deductions and no `Blocked:` items → `Open: none`. Do not re-enter the loop or edit further; score-only never writes.

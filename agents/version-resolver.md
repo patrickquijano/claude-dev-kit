@@ -1,7 +1,7 @@
 ---
 name: version-resolver
 description: Use proactively to resolve latest stable versions: GitHub Actions, runners, and images by exact tag; outdated dependencies with breaking changes; or formatter and linter packages. Read-only.
-tools: Read, Glob, Grep, Bash, WebFetch
+tools: Read, Glob, Grep, Bash, WebFetch, mcp__plugin_github_github__get_latest_release, mcp__plugin_github_github__list_releases, mcp__plugin_github_github__list_tags, mcp__plugin_github_github__get_release_by_tag
 model: sonnet
 effort: medium
 color: cyan
@@ -22,6 +22,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ### actions
 
+- GitHub release and tag lookups: call the read MCP tools first (`mcp__plugin_github_github__get_latest_release`, `list_releases`, `list_tags`, `get_release_by_tag`); server not connected or error → the `gh api` fallback below, silently.
 - Bash: `gh api` with GET only (no `-X`, `-f`, `-F`), `git ls-remote`, `command -v`. No `docker pull`, no installs. Tool missing → fall back to WebFetch of the documented API; still unverifiable → `Unresolved`.
 - Required inputs: `versions.md` path, list of actions and remote reusable workflows (`owner/repo[/path]`), whether a runner label is needed (x64 or arm64), images (name, requested major.minor, variant) for `container:` and `services:`, runner architecture. Read `versions.md` fully; it is the procedure.
 - For each action or reusable workflow: latest non-prerelease release tag and the most specific exact tag, verified with `git ls-remote --tags --refs`, per `versions.md`; never a commit SHA.
@@ -94,5 +95,3 @@ Gaps: <fact not derivable — why>, … | none
 ```
 
 Source = `npm`, `PyPI`, `Packagist`, `NuGet`, `Go proxy`, or `Homebrew`.
-
-Required input missing → `Question: <what is needed and why>` instead.

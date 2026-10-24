@@ -2,7 +2,15 @@
 
 ## Contents
 
-- Analyze · Decide · Baseline · Run · Open items
+- Pre-flight · Packages · Analyze · Decide · Baseline · Run · Open items
+
+## Pre-flight
+
+Stop on a rebase or merge in progress: run `git-dir` and check for `rebase-merge`, `rebase-apply`, or `MERGE_HEAD` in it. Scope = paths, symbols, or a description from the input; absent → `all`; no match → ask with the closest fits.
+
+## Packages
+
+Outside git, use Glob instead of `list-files`, skipping `node_modules/`, `vendor/`, `.venv/`, and build output. Monorepo → one package each. JS package manager per stacks.md; confirm its binary with `which-binary`, missing → `Stopped: 2: package manager missing`. Several lockfiles in one dir → ask (npm Recommended); unattended → npm, listed under `Open:`.
 
 ## Analyze
 

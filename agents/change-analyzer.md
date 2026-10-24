@@ -33,7 +33,6 @@ A repo commitlint config wins over these rules.
 ```text
 Mode: group | branch-name | cr-summary
 Changes: <n files> | none
-Commits: <n unique to <base>> | none | n/a
 Groups: <n>. <subject> — <files>, … (one per line) | n/a
 Split: <file: group n @@ headers; group m @@ headers>, … | none
 Branch: <type/short-description> — <reason> | n/a

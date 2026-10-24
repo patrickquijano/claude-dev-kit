@@ -1,12 +1,11 @@
 // PostToolUse hook: structural plugin check after Claude edits a plugin file; never runs the LLM-graded eval.
 // On a nonzero exit (`--strict` turns warnings into errors), prints it to stderr and exits 2 so Claude fixes it.
-// Hooks cannot run slash commands, so each valid plugin or project component edit prints a reload notice instead.
+// Hooks cannot run slash commands, so each valid project component edit prints a `/reload-skills` notice instead.
 import { spawnSync } from 'node:child_process';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { MAX, contextOutput, readStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
 
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
-const PLUGIN_RELOAD = ['skills', 'commands', 'agents', 'hooks'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
 const PROJECT_FILES = ['settings.json', 'CLAUDE.md'];
 
@@ -40,25 +39,16 @@ export function plan(file, cwd) {
   if (!rel || rel.startsWith('..') || isAbsolute(rel)) return null;
   const parts = rel.split(/[\\/]/);
   const top = parts[0];
-  const plugin = PLUGIN_RELOAD.includes(top);
   const project = isProjectScoped(parts);
   const validate = PATHS.includes(top);
-  if (!plugin && !project) return { rel, validate, notice: null };
-  const commands = new Set();
-  if (plugin) commands.add('/reload-plugins');
-  if (project) commands.add('/reload-skills');
+  if (!project) return { rel, validate, notice: null };
   const notice = {
-    systemMessage: `${rel} changed: run ${[...commands].join(' and ')}${plugin ? ', then /compact to refresh memory' : ''}.`
+    systemMessage: `${rel} changed: run /reload-skills.`,
+    ...contextOutput(
+      'PostToolUse',
+      `${rel} was updated; treat its current on-disk content as authoritative and re-read it before relying on it.`
+    )
   };
-  if (project) {
-    Object.assign(
-      notice,
-      contextOutput(
-        'PostToolUse',
-        `${rel} was updated; treat its current on-disk content as authoritative and re-read it before relying on it.`
-      )
-    );
-  }
   return { rel, validate, notice };
 }
 

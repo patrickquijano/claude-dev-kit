@@ -15,11 +15,11 @@ allowed-tools: Bash(git rev-parse *) Bash(git config --get *)
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; spawn no subagents, since chained skills run in the main thread.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Detection is read-only; every write belongs to a chained skill, invoked through the Skill tool with no arguments.
 - Fixed order: `cdk:setup-git`, `cdk:update-editorconfig`, `cdk:setup-format-lint`, `cdk:setup-husky`, `cdk:setup-testing`. Later skills need a git repo, Prettier and shfmt read `.editorconfig`, Husky adds its paths to existing formatter and linter configs, and testing goes last.
-- One selection call, never repeated: AskUserQuestion allows 4 options per question, so use two multiSelect questions in one call, "Repository" (git, EditorConfig) and "Tooling" (formatters and linters, Husky, test tooling). Missing or partial setups get "(Recommended)" with the reason.
+- One selection call, never repeated: AskUserQuestion allows 4 options per question, so use two multiSelect questions in one call, "Repository" (git, EditorConfig) and "Tooling" (formatters and linters, Husky, test tooling). Missing or partial setups get "(Recommended)" with the reason. Each option names its effect: "Git: commit signing and .gitignore", "EditorConfig: write .editorconfig", "Formatters and linters: write tool configs", "Husky: install git hooks", "Test tooling: add test runners and configs".
 - Husky selected → git is also Recommended; `cdk:setup-husky` stops until signing and allowed signers are set.
 - No loops or retries: each skill runs at most once; a chained stop ends the run.
 - Never re-run, re-analyze, or fix a chained skill's leftovers; report them in `Open:`.

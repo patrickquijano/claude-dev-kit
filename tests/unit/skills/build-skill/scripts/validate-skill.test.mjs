@@ -6,13 +6,14 @@ import {
   checkLayout,
   checkLinks,
   checkReferences,
+  checkSelfContained,
   checkSkill,
   checkStandalone,
   FrontmatterError,
   main,
   parseArgs,
   parseFrontmatter
-} from '../../../../../skills/build-skill/scripts/check-skill.mjs';
+} from '../../../../../skills/build-skill/scripts/validate-skill.mjs';
 
 const ids = (found) => found.map((f) => f.id);
 const GOOD_FM = '---\nname: demo\ndescription: Does a thing. Use when asked.\n---\n';
@@ -151,7 +152,12 @@ describe('checkFrontmatter', () => {
 
   test('errors on description over 200 chars and combined over 1,536', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'a'.repeat(201), when_to_use: 'b'.repeat(1400) };
+    const fields = {
+      name: 'demo',
+      description: 'a'.repeat(201),
+      when_to_use: 'b'.repeat(1400),
+      compatibility: 'Claude Code only'
+    };
     // Act
     const found = checkFrontmatter(fields, 'demo');
     // Assert
@@ -454,34 +460,13 @@ describe('checkLinks', () => {
 });
 
 describe('checkStandalone', () => {
-  const run = (files, allow) => checkStandalone(Object.keys(files).sort(), '/d', makeDeps(files), allow);
+  const run = (files) => checkStandalone(Object.keys(files).sort(), '/d', makeDeps(files));
 
-  test('passes a link into an allowed directory', () => {
-    // Arrange
-    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../shared/references/x.md`' };
-    // Act
-    const found = run(files, ['skills/shared/']);
-    // Assert
-    assert.deepEqual(found, []);
-  });
-
-  test('passes an exact allowed file and a ${CLAUDE_PLUGIN_ROOT}/skills/ path under allow', () => {
-    // Arrange
-    const files = {
-      'references/a.md': '[c](../../commit-changes/references/conventions.md)',
-      'SKILL.md': '`${CLAUDE_PLUGIN_ROOT}/skills/shared/references/y.md`'
-    };
-    // Act
-    const found = run(files, ['skills/commit-changes/references/conventions.md', 'skills/shared/']);
-    // Assert
-    assert.deepEqual(found, []);
-  });
-
-  test('errors on a link outside every allowed path', () => {
+  test('errors on a link into another skill', () => {
     // Arrange
     const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../other/x.md`' };
     // Act
-    const found = run(files, ['skills/shared/']);
+    const found = run(files);
     // Assert
     assert.deepEqual(
       found.map((f) => f.id),
@@ -489,11 +474,11 @@ describe('checkStandalone', () => {
     );
   });
 
-  test('errors on a sibling file next to an allowed file', () => {
+  test('errors on a ${CLAUDE_PLUGIN_ROOT}/skills/ path', () => {
     // Arrange
-    const files = { 'SKILL.md': '`${CLAUDE_SKILL_DIR}/../commit-changes/references/other.md`' };
+    const files = { 'SKILL.md': '`${CLAUDE_PLUGIN_ROOT}/skills/shared/references/y.md`' };
     // Act
-    const found = run(files, ['skills/commit-changes/references/conventions.md']);
+    const found = run(files);
     // Assert
     assert.deepEqual(
       found.map((f) => f.id),
@@ -660,7 +645,7 @@ describe('parseArgs', () => {
     // Act
     const args = parseArgs(argv);
     // Assert
-    assert.deepEqual(args, { dir: 'skills/x', kind: 'task', allow: [] });
+    assert.deepEqual(args, { dir: 'skills/x', kind: 'task' });
   });
 
   test('parses a directory alone', () => {
@@ -669,7 +654,7 @@ describe('parseArgs', () => {
     // Act
     const args = parseArgs(argv);
     // Assert
-    assert.deepEqual(args, { dir: 'skills/x', kind: undefined, allow: [] });
+    assert.deepEqual(args, { dir: 'skills/x', kind: undefined });
   });
 
   test('rejects no directory and an unknown kind', () => {
@@ -682,32 +667,13 @@ describe('parseArgs', () => {
     assert.deepEqual(results, [{ usage: true }, { usage: true }]);
   });
 
-  test('collects each repeated --allow path', () => {
+  test('rejects the removed --allow flag', () => {
     // Arrange
-    const argv = ['skills/x', '--allow', 'skills/shared/', '--allow', 'skills/a/references/b.md'];
+    const argv = ['skills/x', '--allow', 'skills/shared/'];
     // Act
     const args = parseArgs(argv);
     // Assert
-    assert.deepEqual(args.allow, ['skills/shared/', 'skills/a/references/b.md']);
-  });
-
-  test('parses --allow before the directory', () => {
-    // Arrange
-    const argv = ['--allow', 'skills/shared/', 'skills/x'];
-    // Act
-    const args = parseArgs(argv);
-    // Assert
-    assert.deepEqual(args, { dir: 'skills/x', kind: undefined, allow: ['skills/shared/'] });
-  });
-
-  test('rejects --allow without a path', () => {
-    // Arrange
-    const missing = ['skills/x', '--allow'];
-    const flagNext = ['skills/x', '--allow', '--kind', 'task'];
-    // Act
-    const results = [parseArgs(missing), parseArgs(flagNext)];
-    // Assert
-    assert.deepEqual(results, [{ usage: true }, { usage: true }]);
+    assert.deepEqual(args, { usage: true });
   });
 });
 
@@ -761,5 +727,228 @@ describe('main', () => {
     // Assert
     assert.equal(code, 2);
     assert.throws(() => main(['/x/y'], broken), /boom/);
+  });
+});
+
+describe('new frontmatter checks', () => {
+  const base = { name: 'demo', description: 'Does a thing. Use when asked.' };
+  const CC = 'Claude Code only. Uploads to claude.ai and the API reject unknown keys.';
+
+  test('description-person: passes third person', () => {
+    // Arrange
+    const fields = { ...base };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.equal(ids(found).includes('description-person'), false);
+  });
+
+  test('description-person: passes "I/O" and "web" words', () => {
+    // Arrange
+    const fields = { ...base, description: 'Checks I/O on web assets. Use when asked.' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.equal(ids(found).includes('description-person'), false);
+  });
+
+  test('description-person: errors on "you" and on a leading "I"', () => {
+    // Arrange
+    const second = { ...base, description: 'Use this when you want a fix.' };
+    const first = { ...base, description: 'I help with commits. Use when asked.' };
+    // Act
+    const results = [checkFrontmatter(second, 'demo'), checkFrontmatter(first, 'demo')].map(ids);
+    // Assert
+    assert.ok(results.every((r) => r.includes('description-person')));
+  });
+
+  test('compat-missing: passes portable keys and a marked Claude Code key', () => {
+    // Arrange
+    const portable = { ...base, 'allowed-tools': 'Read' };
+    const marked = { ...base, 'disable-model-invocation': 'true', compatibility: CC };
+    // Act
+    const results = [checkFrontmatter(portable, 'demo'), checkFrontmatter(marked, 'demo')].map(ids);
+    // Assert
+    assert.ok(results.every((r) => !r.includes('compat-missing')));
+  });
+
+  test('compat-missing: errors without compatibility or with one that omits Claude Code', () => {
+    // Arrange
+    const none = { ...base, 'argument-hint': '[x]' };
+    const vague = { ...base, 'argument-hint': '[x]', compatibility: 'Needs git.' };
+    // Act
+    const results = [checkFrontmatter(none, 'demo'), checkFrontmatter(vague, 'demo')].map(ids);
+    // Assert
+    assert.ok(results.every((r) => r.includes('compat-missing')));
+  });
+
+  test('fork-background: passes with background set or without fork', () => {
+    // Arrange
+    const set = { ...base, compatibility: CC, context: 'fork', background: 'false' };
+    const none = { ...base, compatibility: CC, 'user-invocable': 'false' };
+    // Act
+    const results = [checkFrontmatter(set, 'demo'), checkFrontmatter(none, 'demo')].map(ids);
+    // Assert
+    assert.ok(results.every((r) => !r.includes('fork-background')));
+  });
+
+  test('fork-background: warns on context: fork without background', () => {
+    // Arrange
+    const fields = { ...base, compatibility: CC, context: 'fork' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo').filter((f) => f.id === 'fork-background');
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.level),
+      ['warning']
+    );
+  });
+
+  test('agent-without-fork: passes with fork', () => {
+    // Arrange
+    const fields = { ...base, compatibility: CC, context: 'fork', background: 'false', agent: 'reviewer' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.equal(ids(found).includes('agent-without-fork'), false);
+  });
+
+  test('agent-without-fork: errors when context is absent', () => {
+    // Arrange
+    const fields = { ...base, compatibility: CC, agent: 'reviewer' };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.ok(ids(found).includes('agent-without-fork'));
+  });
+
+  test('side-effect-invocation: passes read-only tools and a flagged skill', () => {
+    // Arrange
+    const readOnly = { ...base, 'allowed-tools': 'Read Glob Grep' };
+    const flagged = {
+      ...base,
+      compatibility: CC,
+      'disable-model-invocation': 'true',
+      'allowed-tools': 'Write Bash(node x.mjs *)'
+    };
+    // Act
+    const results = [checkFrontmatter(readOnly, 'demo'), checkFrontmatter(flagged, 'demo')].map(ids);
+    // Assert
+    assert.ok(results.every((r) => !r.includes('side-effect-invocation')));
+  });
+
+  test('side-effect-invocation: warns on Write, Edit, or a scoped Bash without the flag', () => {
+    // Arrange
+    const write = { ...base, 'allowed-tools': 'Read Write' };
+    const bash = { ...base, 'allowed-tools': 'Bash(git status *), Read' };
+    // Act
+    const results = [checkFrontmatter(write, 'demo'), checkFrontmatter(bash, 'demo')];
+    // Assert
+    assert.ok(results.every((r) => r.some((f) => f.id === 'side-effect-invocation' && f.level === 'warning')));
+  });
+});
+
+describe('checkSelfContained', () => {
+  const run = (files) => checkSelfContained(Object.keys(files).sort(), '/d', makeDeps(files));
+
+  test('reserved-folder: passes normal folders, errors on synced and anthropic-skills', () => {
+    // Arrange
+    const good = { 'SKILL.md': 'x', 'references/a.md': 'x' };
+    const bad = { 'SKILL.md': 'x', 'references/synced/a.md': 'x', 'assets/anthropic-skills/b.md': 'x' };
+    // Act
+    const results = [run(good), run(bad)];
+    // Assert
+    assert.deepEqual(results[0], []);
+    assert.deepEqual(
+      results[1].map((f) => f.id),
+      ['reserved-folder', 'reserved-folder']
+    );
+  });
+
+  test('path-parent: passes a skill-dir link, errors on a bare ../ path', () => {
+    // Arrange
+    const good = { 'SKILL.md': 'See `${CLAUDE_SKILL_DIR}/references/a.md`.' };
+    const bad = { 'SKILL.md': 'See [x](../other/a.md).' };
+    // Act
+    const results = [run(good), run(bad)];
+    // Assert
+    assert.deepEqual(results[0], []);
+    assert.deepEqual(
+      results[1].map((f) => f.id),
+      ['path-parent']
+    );
+  });
+
+  test('path-absolute: allows ~/.claude/ scope paths, errors on /Users, /home, ~/ and C:\\', () => {
+    // Arrange
+    const good = { 'SKILL.md': 'User scope is ~/.claude/skills/x/.' };
+    const bad = { 'SKILL.md': 'a /Users/me/x\nb `/home/me/y`\nc ~/notes\nd C:\\dir' };
+    // Act
+    const results = [run(good), run(bad)];
+    // Assert
+    assert.deepEqual(results[0], []);
+    assert.equal(results[1].filter((f) => f.id === 'path-absolute').length, 4);
+  });
+
+  test('path-backslash: passes forward slashes, errors on references\\x.md', () => {
+    // Arrange
+    const good = { 'SKILL.md': 'Read references/x.md' };
+    const bad = { 'SKILL.md': 'Read references\\x.md' };
+    // Act
+    const results = [run(good), run(bad)];
+    // Assert
+    assert.deepEqual(results[0], []);
+    assert.deepEqual(
+      results[1].map((f) => f.id),
+      ['path-backslash']
+    );
+  });
+
+  test('nested-reference: passes a reference that links nothing or an unbundled name', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'x', 'references/a.md': 'See notes.md and README.md.', 'references/b.md': 'x' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('nested-reference: errors on a path, a skill-dir path, and a markdown link to a bundled file', () => {
+    // Arrange
+    const files = {
+      'SKILL.md': 'x',
+      'references/a.md': 'See references/b.md.\nSee `${CLAUDE_SKILL_DIR}/references/b.md`.\nSee [b](b.md).',
+      'references/b.md': 'x'
+    };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => f.id),
+      ['nested-reference', 'nested-reference', 'nested-reference']
+    );
+  });
+
+  test('nested-reference: SKILL.md may link references', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'See `${CLAUDE_SKILL_DIR}/references/b.md`.', 'references/b.md': 'x' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('time-sensitive: passes timeless text, warns on "currently" and dated phrases', () => {
+    // Arrange
+    const good = { 'SKILL.md': 'Use the latest stable release.' };
+    const bad = { 'SKILL.md': 'This is currently beta.\nAs of March the API changed.\nSupported until 2027.' };
+    // Act
+    const results = [run(good), run(bad)];
+    // Assert
+    assert.deepEqual(results[0], []);
+    assert.deepEqual(
+      results[1].map((f) => [f.id, f.level]),
+      Array(3).fill(['time-sensitive', 'warning'])
+    );
   });
 });

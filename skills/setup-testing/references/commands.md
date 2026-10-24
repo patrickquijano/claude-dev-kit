@@ -6,6 +6,7 @@
 | `list-files`         | `git ls-files`                         | List tracked files                                                                  |
 | `git-dir`            | `git rev-parse --git-dir`              | Locate the git dir for the unsafe-state check                                       |
 | `docker-info`        | `docker info`                          | Check Docker is available (container tests)                                         |
+| `manager-check`      | `command -v <manager>`                 | Check the package manager binary exists before installs                             |
 | `js-version`         | `npm view <pkg> version`               | Latest version for `<v>` in the JS `add-js-*` rows (any manager)                    |
 | `smoke-<kind>`       | stacks.md Command column, run per kind | Smoke run of a configured suite (step 8), with the no-tests flag from flow.md Smoke |
 | `playwright-install` | `<x> playwright install`               | Install Playwright browsers (`<x>` per stacks.md Package manager)                   |

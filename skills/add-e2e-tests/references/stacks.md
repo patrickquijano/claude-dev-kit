@@ -12,7 +12,7 @@ Detection signals, runners, Recommended e2e frameworks, package manager, and tar
 
 ## Package manager
 
-Detect per package, first match wins: the `packageManager` field in `package.json` (name before `@`); else a lockfile in the package dir, then the git root (`pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm); else npm. Several lockfiles in one dir → ask (npm Recommended); an analyzer reports `unknown` and the skill asks. Manager binary missing (`command -v`) → stop.
+Detect per package, first match wins: the `packageManager` field in `package.json` (name before `@`); else a lockfile in the package dir, then the git root (`pnpm-lock.yaml` pnpm, `yarn.lock` yarn, `bun.lock` or `bun.lockb` bun, `package-lock.json` npm); else npm. Several lockfiles in one dir → ask (npm Recommended; unattended: npm, recorded under `Open:`); an analyzer reports `unknown` and the skill asks. Manager binary missing (`tool-check`) → stop.
 
 | Manager | Exec, binary must be installed (`<x>`) |
 | ------- | -------------------------------------- |

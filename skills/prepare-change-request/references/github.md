@@ -2,6 +2,10 @@
 
 Host section for `cdk:prepare-change-request` (host = `origin` on `github.com`); the GitLab counterpart is `gitlab.md`. A change request here is a pull request.
 
+## Contents
+
+- Pre-flight · MCP tools · Remote branches · Identity · Templates · Managed section · Write · Verify · API rules
+
 ## Pre-flight
 
 Run in order; any failure → report the exact error line and stop.
@@ -15,6 +19,21 @@ Run in order; any failure → report the exact error line and stop.
 7. Self = `gh api user --jq .login`.
 8. Scratch = `mktemp -d` (diffs, title, body).
 9. `git status --porcelain=v1` non-empty → note "uncommitted changes excluded" for the Output and continue.
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                | MCP tool                                         |
+| ------------------------ | ------------------------------------------------ |
+| `gh auth status`         | —                                                |
+| `gh repo view`           | —                                                |
+| `gh api user`            | `mcp__plugin_github_github__get_me`              |
+| `gh pr list`             | `mcp__plugin_github_github__list_pull_requests`  |
+| `gh pr view`             | `mcp__plugin_github_github__pull_request_read`   |
+| `gh pr create`           | `mcp__plugin_github_github__create_pull_request` |
+| `gh pr edit`             | `mcp__plugin_github_github__update_pull_request` |
+| `gh pr ready <n> --undo` | —                                                |
 
 ## Remote branches
 
@@ -68,6 +87,6 @@ A title containing `'` is escaped as `'\''` inside single quotes.
 
 ## API rules
 
-- Reads: `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status` only.
-- Writes happen only in the write step: `git push`, `gh pr create`, `gh pr edit`, `gh pr ready`. None is pre-approved, so each gets a permission prompt.
+- Reads: `gh pr list`, `gh pr view`, `gh repo view`, `gh api user`, `gh auth status` and the MCP read tools in `## MCP tools` only.
+- Writes happen only in the write step: `git push`, `gh pr create`, `gh pr edit`, `gh pr ready`. None is pre-approved (nor its MCP write tool), so each gets a permission prompt.
 - Text goes through scratch files: `-F <scratch>/body.md` for the body. Never inline body text in shell args.

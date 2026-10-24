@@ -89,7 +89,7 @@ Names are derived, never chosen: the same request always yields the same names.
 ## Pinning (**cdk** on top of GitHub guidance)
 
 - Every action, remote reusable workflow, and image is pinned by its exact release tag `vX.Y.Z`, never a bare major, a branch, a commit hash, or an image hash. Resolution: `versions.md` `## Pin form`.
-- A repo or org policy that requires hash pinning (the analyzer's `Pinning policy`) is not applied; it goes under `Open:` for the user to decide. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off. `reference/security/secure-use`
+- A hash-pinning policy: see `versions.md` `## Pin form`. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off.
 
 ## Composite actions (**cdk**)
 

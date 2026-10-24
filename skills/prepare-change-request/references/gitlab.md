@@ -2,6 +2,10 @@
 
 Host section for `cdk:prepare-change-request` (host = any `origin` host other than `github.com`); the GitHub counterpart is `github.md`. A change request here is a merge request.
 
+## Contents
+
+- Pre-flight · MCP tools · Remote branches · Identity · Templates · Managed section · Write · Verify · API rules
+
 ## Pre-flight
 
 Run in order; keep Repo or Project, Root, Branch, Self, Scratch.
@@ -13,6 +17,22 @@ Run in order; keep Repo or Project, Root, Branch, Self, Scratch.
 5. Self = `glab api user` (`id`, `username`).
 6. Scratch = `mktemp -d` (request bodies, message files, API dumps).
 7. `git status --porcelain=v1` non-empty → note "uncommitted changes excluded" for the Output and continue.
+
+## MCP tools
+
+Call the MCP tool first; server not connected, error, or `—` → run the command unchanged. Writes keep their gates; no write MCP tool is in `allowed-tools`.
+
+| Operation                                                           | MCP tool                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------ |
+| `glab auth status`                                                  | —                                                |
+| `glab api projects/:id`                                             | `mcp__plugin_gitlab_gitlab__get_project`         |
+| `glab api user`                                                     | `mcp__plugin_gitlab_gitlab__get_user`            |
+| `glab mr list`                                                      | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
+| `glab api -X GET projects/:id/merge_requests/<iid>`                 | `mcp__plugin_gitlab_gitlab__get_merge_request`   |
+| `glab api projects/:id/templates/merge_requests` (list and content) | —                                                |
+| `glab mr create`                                                    | `mcp__plugin_gitlab_gitlab__save_merge_request`  |
+| `glab mr update`                                                    | `mcp__plugin_gitlab_gitlab__save_merge_request`  |
+| `glab api projects/:id/merge_requests/<iid> -X PUT` (merge options) | —                                                |
 
 ## Remote branches
 
@@ -66,7 +86,7 @@ Merge options default: update → the MR's current `force_remove_source_branch` 
 
 ## API rules
 
-- Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` or `glab api -X GET --paginate projects/:id/merge_requests/…`; none is pre-approved, so each read gets a permission prompt.
+- Read MR endpoints only as `glab api -X GET projects/:id/merge_requests/…` or `glab api -X GET --paginate projects/:id/merge_requests/…`; none is pre-approved, so each read gets a permission prompt. The MCP read tools in `## MCP tools` are pre-approved.
 - A command that starts with `glab api -X GET` never carries a second `-X`/`--method`; the last method flag wins, so it would turn a read into a write.
 - Writes (POST, PUT, DELETE, graphql) always start `glab api <endpoint> -X <METHOD>`, never with the `-X GET` prefix, so each one gets a permission prompt as a second confirmation.
 - JSON request bodies go to a scratch file and `--input <file>`; never inline user or model text in shell args. `-f`/`-F` only for API-sourced values (SHAs, ids) or fixed literals.

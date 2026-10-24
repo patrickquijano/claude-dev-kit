@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never assume, guess, or invent a service, port, volume, name, value, path, command, or fact: confirm each by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Sources: every key and value written comes from the input, an existing compose file, a user answer, or a **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`; nothing else.
 - Scope: read only the input, the paths it names, and compose files at the root (`flow.md` `## Pre-flight`); never scan or read other paths (source, CI, scripts, Dockerfiles, `.env*`) unless the input names them. Edit only the compose file.
@@ -30,7 +30,7 @@ Input: $ARGUMENTS
 - Images: every image pinned to its most specific tag from a Docker Hub lookup; never `latest`, a floating tag, or a guess. Other registry or failed lookup → ask the user.
 - Never write secret values into the file; reference secrets, `env_file`, or `${VAR:?err}`.
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
-- Writes and AskUserQuestion happen here only. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
+- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing) and confirm with AskUserQuestion naming each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)"; unattended → write and report. The confirmation does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts; tag listing 10 pages. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
 - Unattended (chained or no way to ask): ask nothing, list each unanswered choice under `Open:`.
@@ -42,7 +42,7 @@ Input: $ARGUMENTS
 3. **Mode.** Pick plain Compose or Swarm stack from the signals, else ask (`flow.md` `## Mode`).
 4. **Clarify.** Ask only unresolved choices, recommended first with the reason (`flow.md` `## Clarify`).
 5. **Draft and plan.** Resolve every image tag per practices.md; build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
-6. **Write** the file (`flow.md` `## Write`).
+6. **Write** the file after the confirmation (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
 

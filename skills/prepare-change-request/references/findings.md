@@ -2,6 +2,10 @@
 
 Parent-side rules for `cdk:prepare-change-request` and its `## Direct review` path; the reviewers (`cdk:cr-reviewer` with `role:` `correctness`, `tests`, `security`, `maintainability`, `docs`) own the return block in their `## Return`, and this file restates its shape so the parent can parse it and emit the same block when it reviews directly. The reviewed tip is the head SHA the parent passes (`HEAD` for a local branch).
 
+## Contents
+
+- Block · Severity · Evidence rules · Parent validation · Direct review
+
 ## Block
 
 ```text
@@ -26,16 +30,6 @@ Commands:
 Limitations: <list | none>
 Summary: <two sentences, facts only>
 ```
-
-- Own threads (`cdk:cr-reviewer` role `correctness` only, when the parent passes an own-threads digest): after `Summary`, one more block. `addressed: yes` only when the change fully fixes the thread's concern; uncertain → `no`. No digest → omit the block.
-
-  ```text
-  Threads:
-  - id: <thread id>
-    where: <path:line | none>
-    addressed: yes | no
-    reply: <one plain-English sentence: what change fixes it, at path:line | why it is not fixed>
-  ```
 
 - `Findings: none` when there is nothing to report; `Commands: none` when no command ran.
 - `Status`: `pass` = no finding above `info`; `issues` = at least one finding above `info`; `check-failed` = a command marked `[required]` exited non-zero; `incomplete` = the review could not finish (missing input, command unavailable, timeout); say why in `Limitations`.
@@ -62,7 +56,7 @@ Summary: <two sentences, facts only>
 
 ## Parent validation
 
-1. Block parses and `Role` matches the agent; else respawn that reviewer once, then stop.
+1. Block parses and `Role` matches the agent; else respawn that reviewer once, then stop. A `Question:` return is not malformed: the parent answers it from its gathered values and respawns that reviewer once with the answer (shares the respawn cap of 1); it cannot answer → stop, the question listed under `Open:`; unattended (`--yes`) asks nothing.
 2. Drop a finding whose `file` is not in the name-status list (and not justified in `evidence`), whose `line` exceeds the file length at `<head>` (`git show <head>:<file>`), or whose `evidence` is empty. List dropped ones in the Output.
 3. Deduplicate by `file` + overlapping `line` + same underlying issue: keep the highest severity, record every role that raised it.
 4. Gate: any `critical` or `high` finding, confirmed or suspected, any `check-failed`, or an `incomplete` test reviewer whose limitation names a required check → stop. Any other reviewer with `Status: incomplete` does not gate but is shown in the managed block with its limitations.
@@ -74,5 +68,5 @@ Small, low-risk change → the parent reviews the diff itself and spawns no revi
 - Applies only when every item holds, counted from `name-status.txt` and `git diff --numstat <mb>..<head>`: at most 5 changed files; at most 200 added plus deleted lines; no changed path that is sensitive (auth or permissions code, secrets or `.env*`, CI config, dependency manifests or lockfiles, migrations, hook scripts).
 - Otherwise spawn the reviewers as the skill's review step says; any doubt about the size or risk → spawn.
 - The parent covers each role the skill would spawn and emits the same block per role, under the same `## Evidence rules` and `## Severity`. It reads each changed file at `<head>` rather than judging from the diff alone.
-- The test role's documented lint, typecheck, test, and build commands (read-only) run as `[required]` in a subagent. Spawn `cdk:change-verifier` kind `checks` (inputs: root, changed file paths, repo instruction summary) and map its `Checks:` to the test role's `Commands:`: each `[required]` fail → `check-failed`, each skipped required → `incomplete`. The parent keeps the small-diff judgement and reads the changed files itself. A skipped required check leaves the test role `incomplete`.
+- The test role's documented lint, typecheck, test, and build commands (read-only) run as `[required]` in a subagent. Spawn `cdk:change-verifier` kind `checks` (inputs: root, changed file paths, repo instruction summary; check mode only, no edits; a missing or ambiguous input → `Question:`, never assume) and map its `Checks:` to the test role's `Commands:` (malformed `Checks:` → respawn once, then the test role is `incomplete`): each `[required]` fail → `check-failed`, each skipped required → `incomplete`. The parent keeps the small-diff judgement and reads the changed files itself. A skipped required check leaves the test role `incomplete`.
 - The Output marks the reviewers `direct`.

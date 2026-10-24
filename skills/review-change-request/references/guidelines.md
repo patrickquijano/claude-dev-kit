@@ -71,10 +71,10 @@ Every comment MUST be:
 Standard: <repo doc path or Gn>
 ```
 
-Suggestion block only on added or unchanged lines (GitHub: a single-line or contiguous replacement on the RIGHT side). It replaces the anchored line; `-N+M` extends N lines above and M below (max 100 each):
+Suggestion block only on added or unchanged lines (GitHub: a single-line or contiguous replacement on the RIGHT side). It replaces the anchored line or range. GitHub uses a plain fence; GitLab uses `suggestion:-N+M`, which extends N lines above and M below (max 100 each; host `## Positions`):
 
 ````markdown
-```suggestion:-0+0
+```suggestion
 <replacement code>
 ```
 ````

@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Policy, syntax, baseline lists, and MCP rules live in `${CLAUDE_SKILL_DIR}/references/catalog.md`; follow it, never copy it here.
 - Two targets, split by scope (`catalog.md` Scope): repo-specific rules (repo scripts and targets, toolchain binaries, package-manager subcommands) go to the project `<repo root>/.claude/settings.local.json`; repo-agnostic rules (read-only utilities, read-only git, MCP tools, ask and deny baselines) go to the user file `$CLAUDE_CONFIG_DIR/settings.json` when set, else `~/.claude/settings.json`. Never the committed `.claude/settings.json` or managed files.
@@ -42,7 +42,7 @@ Input: $ARGUMENTS
 4. **Classify.** Apply `catalog.md` to commands, baseline, and MCP tools into candidate rules, each tagged user or project scope (`## Classify`).
 5. **Merge.** Per target, compare with the existing lists, append new rules, ask on unsafe or blocking existing ones (`## Merge`).
 6. **Validate.** Write each target to the scratchpad, run `validate-json`, check shapes; fail = fix, cap in Rules (`## Validate`).
-7. **Confirm.** Print both targets and a table (added, retained, skipped, conflicting, reclassified). AskUserQuestion: Write settings (Recommended) | Stop. Nothing added = `Result: nothing-to-do`, skip to step 9.
+7. **Confirm.** Print both targets and a table (added, retained, skipped, conflicting, reclassified). AskUserQuestion: Write user + project settings (Recommended) | Stop without writing. Nothing added = `Result: nothing-to-do`, skip to step 9.
 8. **Write.** Write both files, re-read each, repeat the checks (`## Write`).
 9. **Report.** Run the fix loop on leftovers (`## Fix loop`), print the Output, and note that `claude doctor` lists rejected rules and `/permissions` shows the active ones.
 

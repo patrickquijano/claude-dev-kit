@@ -18,7 +18,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (only those named in the Spawn rule below), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Docker only: the server and scanner run with `docker run` at the exact tags `tags` resolves, looked up at most once per day; never `latest`, never a host install. The repo is mounted read-only; nothing is written under the repo root.
 - One scanner per stack: the scanner is the one the detected stack needs (`maven`, `gradle`, or `cli`); an unsupported or undetected stack stops the run, never a guess. Exclude only the stack's generated directories that exist, never to hide an issue.
@@ -29,14 +29,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never commit, push, or stash; the user commits afterwards.
 - Spawn only `cdk:codebase-explorer` (brainstorm), `cdk:plan-implementer` (fix), and `cdk:change-verifier` (validate); only this skill talks to the user.
 - Caps: iterations `max-iterations` (default 3, range 1–5); one retry per failed fix group; at most 4 parallel `cdk:codebase-explorer` spawns per message; server ready within 120 polls.
-- Teardown and cleanup: when the loop ends and on every stop from step 2 onward, remove the container, network, and volumes, then `<envfile>`; images stay.
+- Teardown and cleanup: when the loop ends and on every stop from step 3 onward, remove the container, network, and volumes, then `<envfile>`; images stay.
 - Unattended (chained or `--yes`): ask nothing and report what is left in `Open:`.
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Check Docker, find a free port, then run `detect` for the project key, stack, scanner, JDK, and exclusions, and `leftover-remove`. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`, `## Stack`.
-2. **Containers.** Run `tags`, `env-create`, and `network-create`. Detail: `flow.md` `## Containers`.
-3. **Confirm.** Attended: AskUserQuestion Start (Recommended; removes leftover `cdk-sonar-*` containers, network, and volumes, writes a mode-600 secrets file in the temp dir, creates a network, pulls images, starts a container, caches resolved tags under the user cache dir, writes no repo files) | Stop. Unattended: skip.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Check Docker, find a free port, then run `detect` for the project key, stack, scanner, JDK, and exclusions (reads only). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`, `## Stack`.
+2. **Confirm.** Attended: AskUserQuestion Start (Recommended; removes leftover `cdk-sonar-*` containers, network, and volumes, writes a mode-600 secrets file in the temp dir, creates a network, pulls images, starts a container, caches resolved tags under the user cache dir, writes no repo files) | Stop. Unattended: skip.
+3. **Containers.** Run `leftover-remove`, `tags`, `env-create`, and `network-create`. Detail: `flow.md` `## Containers`.
 4. **Start.** `server-run`, then poll `server-status` until `UP`. Detail: `flow.md` `## Server setup`.
 5. **Set up.** `admin-password-set`, then `token-generate`. Detail: `flow.md` `## Server setup`.
 6. **Scan.** Run the `scanCommand` from `detect` (`scan-cli`, `scan-maven`, or `scan-gradle`) with its `exclusions`, then page `issues-search`; zero issues or `i` = `max-iterations` → step 10. Detail: `flow.md` `## Exclusions`, `## Scan`.
@@ -48,8 +48,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For pre-flight, stack detection, containers, server setup, exclusions, the scan, brainstorming, fixing, and teardown (steps 1, 2, 4–8, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
-- For stack and tag work (steps 1, 2), run `${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs` through `detect` and `tags` in `commands.md`; never read it.
+- For pre-flight, stack detection, containers, server setup, exclusions, the scan, brainstorming, fixing, and teardown (steps 1, 3–8, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For stack and tag work (steps 1, 3), run `${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs` through `detect` and `tags` in `commands.md`; never read it.
 
 ## Output
 
@@ -72,4 +72,4 @@ Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the loop ended with fixes or with remaining issues listed. `nothing-to-do` = the first scan found zero issues. `stopped` = pre-flight, an unsupported stack, setup, or a failed scan ended the run. `cancelled` = the user chose Stop at step 3.
+`done` = the loop ended with fixes or with remaining issues listed. `nothing-to-do` = the first scan found zero issues. `stopped` = pre-flight, an unsupported stack, setup, or a failed scan ended the run. `cancelled` = the user chose Stop at step 2.

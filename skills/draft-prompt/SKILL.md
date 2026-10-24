@@ -11,7 +11,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Check every item in `${CLAUDE_SKILL_DIR}/references/checks.md`; each missed item is a known failure mode for agents.
 - Draft in the shape of `${CLAUDE_SKILL_DIR}/references/structure.md`.
 - Derive facts from the repo first (manifests, `CLAUDE.md`, paths, git state); ask only for what the repo cannot answer, so the user is not asked twice.
@@ -25,7 +25,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Analyze.** Input empty → AskUserQuestion for the task (none given → `Result: cancelled`); AskUserQuestion unavailable or an unattended run → print the Output with no prompt, `Result: nothing-to-do`, `Open: no input`. Existing prompt → review it; review-only request → review-only mode. Extract goal, audience, start and target state, files, stack, constraints, prior failures.
-2. **Ground.** Spawn one `cdk:codebase-explorer` (kind `facts`) with the facts to confirm (every path, command, and version named, in the input prompt too, plus the manifests and test and lint commands that fill gaps); it returns `Facts`: `verified | unverified` per fact, with the commands and versions found.
+2. **Ground.** Spawn one `cdk:codebase-explorer` (kind `facts`) with the facts to confirm (every path, command, and version named, in the input prompt too, plus the manifests and test and lint commands that fill gaps); it returns `Facts`: `verified | unverified` per fact, with the commands and versions found. Brief and malformed-return handling: `spawns.md`.
 3. **Clarify.** Gaps remain → AskUserQuestion, ≤4 questions per batch, 2–4 options each, recommended first with "(Recommended)" and the reason. Max 2 batches, then continue. Review-only mode skips this step.
 4. **Draft** per structure.md. Review-only mode: walk checks.md against the input prompt instead, each unverified fact a failed check, then go to step 6.
 5. **Check.** Walk checks.md against the draft; fix each failure and re-walk, up to 3 rounds.
@@ -33,8 +33,9 @@ Input: $ARGUMENTS
 
 ## Files
 
-- For the anti-pattern checks each prompt must pass, see `${CLAUDE_SKILL_DIR}/references/checks.md` (steps 2, 4, 5).
+- For the anti-pattern checks each prompt must pass, see `${CLAUDE_SKILL_DIR}/references/checks.md` (steps 4, 5).
 - For the prompt template to draft into, see `${CLAUDE_SKILL_DIR}/references/structure.md` (step 4).
+- For the step 2 spawn brief, see `${CLAUDE_SKILL_DIR}/references/spawns.md`.
 
 ## Output
 

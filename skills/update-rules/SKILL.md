@@ -18,7 +18,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user (AskUserQuestion); subagents cannot. AskUserQuestion or Write unavailable → ask the pending question as plain text with its options and end the turn; never print finished files in place of a pending question.
 - Best practices and rubric: `${CLAUDE_SKILL_DIR}/references/rubric.md`. Skeletons: `${CLAUDE_SKILL_DIR}/assets/template.md`.
@@ -34,7 +34,7 @@ Input: $ARGUMENTS
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd. `CLAUDE.md` or `.claude/CLAUDE.md` exists → update (both → ask which is the target); none → create, target `CLAUDE.md`. Existing `.claude/rules/` files are edited in place, never re-templated.
-   - Input `score` or an audit-only request → score-only: steps 2, 6, 7. No target file → `Result: nothing-to-do`, suggest create mode.
+   - Input `score` or an audit-only request → score-only: steps 2, 6, 7, 9. No target file → `Result: nothing-to-do`, suggest create mode.
    - Split input: existing file paths → `Input files:`; the rest → `Input text:`.
 2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: instructions`, `model: sonnet`, root, `Target:`, `Input files:`, `Input text:`; keep its facts block.
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
@@ -48,7 +48,7 @@ Input: $ARGUMENTS
 
 ## Files
 
-- For combine rules, the scorer input, and the improve loop, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For combine rules, the scorer input, the improve loop, and spawn briefs, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the engineering principles, their placement, and the default requirements, see `${CLAUDE_SKILL_DIR}/references/principles.md`.
 - For the 100-point rubric and placement rules, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
