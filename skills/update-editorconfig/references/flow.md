@@ -22,11 +22,11 @@
 - Removal is confirmed in the `## Confirm` call. Kept → list under `Kept:`. Unattended → remove nothing, list each under `Open:` as "stale section: <glob>; remove it by hand or re-run interactively".
 - Append one section per group, after a blank line and a `# <Types>` comment, with only its differing properties.
 - Glob: one pattern as is (`[*.php]`); several → one top-level brace list (`[{*.sh,*.bash,Makefile,*.mk}]`).
-- Line endings follow the file's `end_of_line`; a trailing newline follows each section's `insert_final_newline` (types with `false` end without one).
+- Line endings follow the file's `end_of_line`; the file's own final newline follows the `.editorconfig` type (none), not whichever section comes last.
 
 ## Confirm (step 6)
 
-Nothing to write (no base, section, or removal) → no ask, `Confirmed: n/a (up to date)`. Otherwise one AskUserQuestion before any write, after printing the file content to be added: the missing `root = true` or base `[*]`, each appended section with its properties, and each stale section with its comment. The text names each effect and "never commits". One reason line cites the evidence: file types found, stale globs, nested configs.
+Nothing to write (no `root = true`, base, section, or removal) → no ask, `Confirmed: n/a (up to date)`. Otherwise one AskUserQuestion before any write, after printing the file content to be added: the missing `root = true` or base `[*]`, each appended section with its properties, and each stale section with its comment. The text names each effect and "never commits". One reason line cites the evidence: file types found, stale globs, nested configs.
 
 - Question 1: **Proceed** (writes the file) · **Revise** (notes via Other → back to step 5) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
 - Question 2, only when stale sections exist: **Remove stale sections <globs> and their comments** (Recommended; no file matches them) · **Keep them**. Kept → list under `Kept:`. Stop in question 1 discards both.

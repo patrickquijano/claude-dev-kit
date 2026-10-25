@@ -16,21 +16,21 @@ disable-model-invocation: true
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
+- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended = run by a hook, no AskUserQuestion: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
 - Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - No questions except the step 6 write confirmation (which carries the stale-removal ask): apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
 - Idempotent: a type already configured (step 3) keeps its settings, so a re-run writes nothing new.
 - Only the repo's file types get a section, and a section holds only properties that differ from the actual `[*]`; never repeat a base property.
 - Never change or reorder an existing section, except removing a confirmed stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
-- Run before setup-format-lint: Prettier and shfmt read `.editorconfig` for indentation.
-- Fix loop: at most 2 passes over problems in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
+- Run before any formatter setup: Prettier and shfmt read `.editorconfig` for indentation.
+- Fix loop: at most 2 passes over syntax or glob errors in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
 - Leftovers (still-failing checks, `uncovered` types) go under `Open:` in the Output, never silently dropped.
-- Write tool unavailable: print the file content as plain text and end the turn. Unattended: ask nothing.
+- Write tool unavailable: print the file content and the Output with `Stopped: 6: Write unavailable`, then end the turn. Unattended: ask nothing.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; initialize one first"). Work from the git root.
 2. **File types.** List `tracked-files` plus `untracked-files` (ignored files never count); map and count per type. No catalog entry → `uncovered` ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 3. **Existing config.** Read root `.editorconfig`; mark each type already configured and note nested configs ([rules](${CLAUDE_SKILL_DIR}/references/flow.md)).
 4. **Initialize.** Plan what is missing; step 6 writes it after the confirm:
@@ -40,7 +40,7 @@ disable-model-invocation: true
 5. **Choose per type.** Keep only the `defaults.md` properties that differ from the actual `[*]`; group identical sets ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 6. **Write.** Print the sections to append and the stale ones to remove, confirm once, then write ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write` and `## Confirm`). Step 4 inserts wait for this confirm. Unattended → remove nothing, list under `Open:`.
 7. **Check.** Run `checker` (or `checker-ec`) once from the git root and count problems; no checker found → skip ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
-8. **Fix.** Problems in sections this run wrote → correct the section and re-run the check (cap in Rules). Anything else → `Open:`.
+8. **Fix.** Syntax or glob errors in sections this run wrote → correct the section and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
 9. **Report** the Output.
 
 ## Files
@@ -59,7 +59,7 @@ Sections: <glob: properties>, … | none added
 Removed: <glob>, … | none
 Kept: <glob>, … | none
 Nested configs: <paths> | none
-Check: <N problems> | not run
+Check: <N problems before fix, M after> | not run
 Open: <problem or uncovered type: reason; recommended fix>, … | none
 Confirmed: yes | revised <n> | no (stopped) | unattended | n/a (up to date or stopped earlier)
 Next: /cdk:setup-format-lint | none
