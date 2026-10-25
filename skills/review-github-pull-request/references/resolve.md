@@ -6,7 +6,7 @@ Steps 1–2 of `SKILL.md`. Any failure → print the exact error line and stop.
 
 Run in order:
 
-1. `auth-status` succeeds, else tell the user to run `gh auth login`.
+1. `auth-status` succeeds, else tell the user to run `gh auth login` and stop.
 2. `origin` (Context → Origin) host is `github.com`; any other host → stop: "this skill reviews GitHub PRs only".
 3. `repo-view` → Owner and Repo of the working directory (kept for a number or branch match). `self` → Self.
 4. Scratch = the session scratchpad directory plus `review-<n>`; created by the first Write.
@@ -20,7 +20,7 @@ Run in order:
 
 ## State rules
 
-- `MERGED` or `CLOSED` → `Result: nothing-to-do`, `Stopped: resolve: PR is <state>`; post nothing.
+- `MERGED` or `CLOSED` → `Result: stopped`, `Stopped: resolve: PR is <state>`; post nothing.
 - `isDraft` true → continue; the verdict is never `APPROVE`: `COMMENT`, or `REQUEST_CHANGES` when the rules require it (`analyze.md` `## Verdict`).
 - Keep: owner, repo, number, URL, title, author login, head SHA (`headRefOid`, the full 40 characters), base ref, and `isCrossRepository`. A fork PR is read-only and reviewed the same way, since nothing is checked out.
 - Own PR = author login equals Self; `post.md` `## Own PR` covers it.
