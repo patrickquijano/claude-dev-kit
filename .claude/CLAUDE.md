@@ -34,7 +34,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files.
 - Never commit or push directly to `main`; work on a Conventional Branch.
 - Never commit secrets or credentials; read them from env vars.
-- Ask first before `git push`, creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Local commits, review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
+- Ask first before `git push`, creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 
 ## Changes
 
