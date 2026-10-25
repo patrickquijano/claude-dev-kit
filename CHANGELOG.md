@@ -56,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:setup-format-lint` confirms once before it installs tools and writes configs.
 - `/cdk:create-github-release` creates the tag only when it does not exist locally and pushes it only when the remote lacks it.
 - `/cdk:rebase-onto` asks for permission before aborting a rebase; `git rebase --abort` is no longer pre-approved.
+- `/cdk:update-changelog`, `/cdk:update-editorconfig`, `/cdk:update-gitignore`, `/cdk:update-readme`, `/cdk:update-rules`, `/cdk:build-docker-compose`, `/cdk:build-dockerfile`, `/cdk:build-github-workflows`, and `/cdk:upgrade-dependencies` fall back to doing the work inline when a subagent is unavailable, and stop with a named `Result:` and `Stopped:` when `Write` is unavailable, a scorer return is malformed, or a verify cap is hit.
+- `/cdk:upgrade-dependencies` no longer asks about each major twice in plan mode (the plan edit replaces the question), and its step 11 retries only reverted packages.
+- `/cdk:build-skill` handles a declined or rejected plan: it asks Apply, Skip item, or Stop when plan mode was declined, revises and re-submits up to three times when the plan is rejected, and stops with `cannot interact` when nobody can answer.
+- `/cdk:build-subagent` no longer writes the docs snapshot before you approve the plan, and asks once before a score-loop edit outside the Brief.
+- `/cdk:build-docker-compose`, `/cdk:build-dockerfile`, and `/cdk:build-github-workflows` print the plan and ask you to leave plan mode when `ExitPlanMode` is unavailable.
+- `/cdk:build-docker-compose` recommends log rotation and `x-` anchors; `/cdk:build-dockerfile` recommends `RUN --network=none` and SBOM and provenance build flags; `/cdk:build-github-workflows` recommends `actions/attest-build-provenance` and Dependabot `groups`.
 
 ### Removed
 
