@@ -1,6 +1,6 @@
 # Flow
 
-Branch detail for steps 3, 6, 7, and 8 of `SKILL.md`.
+Branch detail for steps 3, 4, 6, 7, and 8 of `SKILL.md`.
 
 ## Combine
 
@@ -10,6 +10,17 @@ Branch detail for steps 3, 6, 7, and 8 of `SKILL.md`.
 - Each facts `Gaps:` item (architecture, precedence, boundaries, focused changes, done, maintenance) → one question with an "Omit" option. Precedence → use the template order, no question.
 - `principles` gap → no question; draft from `principles.md`, listed in the step 4 plan. A default requirement with no repo support (e.g. no test runner) → omit and list under `Omitted:`.
 - More than 4 questions → next call. Record omitted items for `Omitted:`. Nothing to ask → skip.
+
+## Confirm
+
+One AskUserQuestion at step 4, after the file list, outline, dropped and moved items, suggested hooks, and each diff are printed. The text names each effect: files created, changed, or deleted, the `Known issues` move to auto memory (both paths) when planned, the `format-files` run, and "never commits". One reason line cites the evidence: conflicts resolved, `Omitted:` items, always-loaded line count.
+
+- Question 1 (Proceed → `Confirmed: yes`, or `revised <n>` after Revise rounds): **Proceed** · **Revise** (notes via Other → back to step 3) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
+- Question 2, only for a tracked file planned for deletion: **Delete** (Recommended; dropped or duplicate content) | **Keep**. Stop in question 1 discards it.
+- Recommend Revise when the draft still has an open or blocked item (an unanswered conflict or gap); else Proceed. The recommended option goes first with "(Recommended)".
+- Revise cap 2; cap hit → offer only Proceed and Stop.
+- The confirm covers this run's improve rounds on the same files; they print their `Map:` and need no new ask.
+- Unattended: write per the Rules (a deletion is Keep) and report `Confirmed: unattended`. Score-only never asks: `Confirmed: n/a (score-only)`.
 
 ## Scorer input
 
