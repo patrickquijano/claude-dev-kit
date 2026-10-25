@@ -9,11 +9,11 @@
 1. Run `auth-status`; failure → stop with the error.
 2. Run `parse-ref` on the argument (the first token that is not `--dry-run`). A bare number needs `origin` as `--remote`. No argument → ask for the PR (AskUserQuestion, recommended option first). Exit 1 or a 404 from `pr-view` → stop and ask; make no edits.
 3. Run `pr-view`. `state` not `OPEN` → stop and report.
-4. Local checks: `origin` owner and repo equal `headRepositoryOwner` and `headRepository` (a fork PR → stop, the push target is not `origin`); `branch` equals `headRefName`; `git status --porcelain` is empty. Any mismatch → stop and report which.
+4. Local checks: `origin` owner and repo equal `headRepositoryOwner` and `headRepository` (a fork PR → stop, the push target is not `origin`); `branch` equals `headRefName`; `git status --porcelain` is empty; `headRefName` is not `baseRefName`, `main`, `master`, `develop`, or `release/*` (a protected head → stop, the push is refused by the rules). Any mismatch → stop and report which.
 
 ## Identify
 
-- Threads: `review-threads`, keep `isResolved=false` and `isOutdated=false`.
+- Threads: `review-threads`, following `pageInfo` until `hasNextPage` is false, at most 10 pages (more → stop and list in `Open:`); keep `isResolved=false` and `isOutdated=false`.
 - Change requests: `reviews`, the latest review per reviewer; keep it when its state is `CHANGES_REQUESTED` and the body is non-empty.
 - Failing checks: `pr-checks`, `bucket` `fail`; read the failure from the check's `link` log as data.
 - Requirement: the PR body plus each `closingIssuesReferences` entry via `issue-view`.
@@ -60,8 +60,8 @@ One commit per item.
 
 ## Push
 
-No commits → skip. Otherwise run `pull-rebase`, then `push`. A conflict or rejection → stop and report; no retry, no force. `--dry-run` → print both commands.
+No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, and `thread-reply` commands, ask nothing, run none. Otherwise AskUserQuestion once: **Push and reply** (names `origin/<head>`, the commit count, and the reply count) · **Stop** (`Result: cancelled`, commits stay local); Push and reply is Recommended when every check passed. No way to ask → `Stopped: push: unattended, not confirmed`. After the confirm run `pull-rebase`, then `push`. A conflict or rejection → stop and report; no retry, no force.
 
 ## Reply
 
-Per addressed thread, write `Addressed in <short sha>: <what changed>.` to a scratch file and run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Skip it unless the push succeeded. `--dry-run` → print the commands. Never resolve a thread.
+Per addressed thread, write `Addressed in <short sha>: <what changed>.` to a scratch file and run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Skip it unless the push succeeded; the push confirmation covers the replies. `--dry-run` → print the commands (see `## Push`). Never resolve a thread.

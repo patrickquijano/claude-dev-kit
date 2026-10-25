@@ -1,4 +1,4 @@
-// PR reference parser for cdk:address-github-pull-request-review: a GitHub PR URL, `owner/repo#N`, or a bare number plus `--remote <origin url>`.
+// PR reference parser for address-github-pull-request-review: a GitHub PR URL, `owner/repo#N`, or a bare number plus `--remote <origin url>`.
 // CLI: `parse-pr-ref.mjs <ref> [--remote <url>]`; JSON on stdout: `{owner,repo,number}` and exit 0, or `{error}` and exit 1.
 import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';

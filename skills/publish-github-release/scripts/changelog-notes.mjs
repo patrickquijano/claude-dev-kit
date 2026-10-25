@@ -1,4 +1,4 @@
-// Release notes for cdk:publish-github-release: one released section of a Keep a Changelog file, rendered verbatim.
+// Release notes for publish-github-release: one released section of a Keep a Changelog file, rendered verbatim.
 // Writes only the `--notes-out` file, which must sit under os.tmpdir() or CLAUDE_JOB_DIR. CLI: `notes --version <x.y.z|latest> [--changelog <path>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

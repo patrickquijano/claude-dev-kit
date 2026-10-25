@@ -29,7 +29,7 @@ Ready when all hold; otherwise go to the bypass gate.
 Eligible only when all three hold:
 
 1. PR author equals `self`.
-2. Permission is `ADMIN`.
+2. Permission is `ADMIN` (compared upper-case; MCP `role_name` `admin` counts).
 3. Only protection blocks the merge: not conflicts, not draft, not a closed or merged state.
 
 Not eligible → report the blockers and the failed condition, never offer bypass, `Result: stopped`.
@@ -78,10 +78,10 @@ Re-read `head.sha` just before merging; a change since the facts → stop and re
 
 ## Post-merge check
 
-| Check                                         | Expected | Mismatch                     |
-| --------------------------------------------- | -------- | ---------------------------- |
-| `merge-commit` state                          | merged   | `Open: merge not confirmed`  |
-| Parents of the merge commit, squash or rebase | 1        | `Open: merge_method ignored` |
-| Parents of the merge commit, merge            | 2        | `Open: merge_method ignored` |
-| `branch-exists` after Delete                  | 404      | `Open: branch still present` |
-| `branch-exists` after Keep                    | 200      | `Open: branch missing`       |
+| Check                             | Expected | Mismatch                     |
+| --------------------------------- | -------- | ---------------------------- |
+| `merge-commit` state              | merged   | `Open: merge not confirmed`  |
+| `merge-parents`, squash or rebase | 1        | `Open: merge_method ignored` |
+| `merge-parents`, merge            | 2        | `Open: merge_method ignored` |
+| `branch-exists` after Delete      | 404      | `Open: branch still present` |
+| `branch-exists` after Keep        | 200      | `Open: branch missing`       |

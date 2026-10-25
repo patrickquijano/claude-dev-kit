@@ -24,13 +24,14 @@ disable-model-invocation: true
 2. **Branch guard.** `default-branch` minus `origin/` (unset → `main`). Current is that name or `main`, `master`, `develop`, `release/*` → `Stopped: 2: protected branch <name>`.
 3. **Pending.** `pending-count`. `0` → `Result: nothing-to-do`; reason: no commit on this branch is missing from origin. A failed read → `Stopped: 3: <error line>`. Otherwise `pending-log` lists them and `head-sha` records HEAD.
 4. **Plan.** Show `Branch: <branch> → origin/<branch>`, the count, and each pending commit. Flag any commit whose `%G?` is not `G`, any `fixup!`, `squash!`, or `WIP` subject, and a remote with commits not in HEAD (`remote-head` sha not an ancestor per `is-ancestor`, or unknown). Then AskUserQuestion: **Push** · **Stop** (`Result: cancelled`). The text names the effect: `origin/<branch>`, N commits, and "creates the remote branch and sets upstream" when `push-upstream` applies. Any flag → Stop is Recommended with the flag as the reason; else Push, citing "N signed commits, fast-forward". Unattended (no way to ask) → `Stopped: 4: unattended, not confirmed`; interactive without AskUserQuestion → ask as plain text and end the turn.
-5. **Push.** `head-sha` differs from step 3 → `Stopped: 5: HEAD moved after confirm`. Else `push`, or `push-upstream` when `upstream` fails or is not `origin/<branch>`. Failure → `Stopped: 5: <git error line>`.
-6. **Verify.** `pending-count` must be `0`; else `Open:` reports the remaining count.
+5. **Push.** Re-run `head-sha` and `pending-count`; either differs from step 3 → `Stopped: 5: HEAD or pending count changed after confirm`. Else `push`, or `push-upstream` when `upstream` fails or is not `origin/<branch>`. Failure → `Stopped: 5: <git error line>`.
+6. **Verify.** Re-run `pending-count` (the push refreshed the origin ref); it must be `0`, else `Open:` reports the remaining count.
 7. **Report.** Print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 

@@ -4,7 +4,7 @@ description: 'Merges one GitHub PR via the GitHub MCP server (gh fallback): squa
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[pr-url | number]'
 disable-model-invocation: true
-allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh api repos/*/rules/branches/*) Bash(gh api repos/*/branches/*) Bash(gh api user *)
+allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh api repos/*/rules/branches/*) Bash(gh api repos/*/branches/*) Bash(gh api repos/*/commits/*) Bash(gh api user *)
 ---
 
 # Merge GitHub Pull Request
@@ -25,12 +25,12 @@ Input: $ARGUMENTS
 
 1. **Pre-flight.** `origin` must be `github.com` → owner/repo. `self` → the user's login. Run `auth-status` only before the first `gh` row; failure → stop with the exact error.
 2. **Resolve.** URL → owner, repo, number from the URL; number → the origin repo; no argument → `pr-for-branch`. No open PR → `Result: nothing-to-do`.
-3. **Facts.** Read `pr-get`, `reviews`, `checks`, and `permission` via MCP. Fill the gaps with `pr-gaps`, `checks-required`, `merge-methods`, `rules`; record each as `Fallbacks: <step>: MCP lacks <field>`.
+3. **Facts.** Read `pr-get`, `reviews`, `checks`, and `permission` via MCP. Normalize `permission` to upper case (`role_name` `admin` = `ADMIN`). Fill the gaps with `pr-gaps`, `checks-required`, `merge-methods`, `rules`; record each as `Fallbacks: <step>: MCP lacks <field>`.
 4. **Stop gates.** Closed, merged, draft, or conflicts → stop and report; `UNKNOWN` → re-read once, then stop. Table in `${CLAUDE_SKILL_DIR}/references/gates.md`.
-5. **Path.** Classify standard or bypass per `gates.md`. Standard-ready → step 6. Blocked → step 7; not eligible → report the blockers and the failed condition, `Result: stopped`.
+5. **Path.** Classify standard or bypass per `gates.md`. Standard-ready → step 6. Blocked → step 7, per `gates.md` `## Bypass eligibility`.
 6. **Standard.** Ask the pre-merge questions (below), re-read `head.sha`, then merge with the tool the choice selects (`gates.md` merge-tool table). A non-policy MCP error or no server → run `merge-gh` once; a policy or "not mergeable" error → step 7.
-7. **Bypass.** Eligible only when author is self, permission is `ADMIN`, and only protection blocks. List the blockers; ask the pre-merge questions with `Bypass merge (admin)` | `Stop` first; on confirm run `merge-admin` (MCP lacks bypass, recorded).
-8. **Verify.** Re-read the PR (`merged` true), take the merge commit SHA, and check its parents with `merge-commit`; confirm the branch state with `branch-exists`. A parent-count mismatch → `Open: merge_method ignored`.
+7. **Bypass.** Eligible per `gates.md` `## Bypass eligibility`. List the blockers; ask the pre-merge questions with `Bypass merge (admin)` | `Stop` first; on confirm run `merge-admin` (MCP lacks bypass, recorded).
+8. **Verify.** Re-read the PR (`merged` true), take the merge commit SHA, and check its parents with `merge-parents`; confirm the branch state with `branch-exists`. A parent-count mismatch → `Open: merge_method ignored`.
 9. **Report.** Print the Output.
 
 ## Pre-merge questions
@@ -41,6 +41,7 @@ One AskUserQuestion call before any merge, on both paths: standard asks Method +
 
 - For every runnable command, its MCP tool, and the `gh` fallback, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For stop gates, readiness, bypass eligibility, blocker mapping, method and branch choices, the merge tool, and the post-merge check (steps 4–8), see `${CLAUDE_SKILL_DIR}/references/gates.md`.
+- For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 

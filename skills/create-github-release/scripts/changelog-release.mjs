@@ -1,4 +1,4 @@
-// Release plan for cdk:create-github-release: the latest released section of a Keep a Changelog file, its tag, and its notes.
+// Release plan for create-github-release: the latest released section of a Keep a Changelog file, its tag, and its notes.
 // Writes only the `--notes-out` file. CLI: `plan [--changelog <path>] [--prefix <v|none>] [--repo-url <url>] [--notes-out <file>]`, JSON on stdout.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -149,7 +149,7 @@ export function plan({ changelog, tags = [], prefix, repoUrl } = {}) {
         fail(
           only ? 'unreleased-only' : 'no-release',
           only ? 'the changelog has only an Unreleased section' : 'no `## [x.y.z]` release section found',
-          'cut a release first with cdk:update-changelog (release)'
+          'cut a release first by adding a dated release section to the changelog'
         )
       ]
     };
@@ -255,7 +255,7 @@ export function main(argv, deps = {}) {
     d.log(
       JSON.stringify({
         ok: false,
-        errors: [fail('no-changelog', `${file} does not exist`, 'create it with cdk:update-changelog')]
+        errors: [fail('no-changelog', `${file} does not exist`, 'create a Keep a Changelog file first')]
       })
     );
     return 1;
