@@ -1,6 +1,6 @@
 ---
 name: update-editorconfig
-description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text; confirms first. Use only when the user explicitly asks to update EditorConfig.
+description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text; plan-approved. Use only when the user explicitly asks to update EditorConfig.
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec) Bash(node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs *)
 disable-model-invocation: true
@@ -16,27 +16,28 @@ disable-model-invocation: true
 
 ## Rules
 
-- Ask (unattended = run by a hook, no AskUserQuestion: record) what the input and repo cannot answer.
+- Unattended = run by a hook, no AskUserQuestion: record what the input and repo cannot answer; interactively the only ask is the step 6 stale-removal question.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- No questions except the step 6 write confirmation (which carries the stale-removal ask): apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
+- No questions except the stale-removal ask inside plan mode (step 6): apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
 - Idempotent: a type already configured (step 3) keeps its settings, so a re-run writes nothing new.
 - Only the repo's file types get a section, and a section holds only properties that differ from the actual `[*]`; never repeat a base property.
-- Never change or reorder an existing section, except removing a confirmed stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
+- Never change or reorder an existing section, except removing an approved stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
+- Write only after the `ExitPlanMode` approval ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`. Unattended: no plan mode.
 - Fix loop: at most 2 passes over syntax or glob errors in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
 - Leftovers (still-failing checks, `uncovered` types) go under `Open:` in the Output, never silently dropped.
 - Write tool unavailable: print the file content and the Output with `Stopped: 6: Write unavailable`, then end the turn. Unattended: ask nothing.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; initialize one first"). Work from the git root.
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; initialize one first"). Work from the git root. Then enter plan mode per `flow.md` `## Plan mode` (skipped when unattended).
 2. **File types.** List `tracked-files` plus `untracked-files` (ignored files never count); map and count per type. No catalog entry → `uncovered` ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 3. **Existing config.** Read root `.editorconfig`; mark each type already configured and note nested configs ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
-4. **Initialize.** Plan what is missing; step 6 writes it after the confirm:
+4. **Initialize.** Plan what is missing; step 6 writes it after the plan approval:
    - File missing → write `root = true` and the `defaults.md` base `[*]`.
    - No `[*]` section → insert the base per the Rules exception.
    - No `root = true` in the preamble (key and value case-insensitive, any spacing) → insert it as the first line.
 5. **Choose per type.** Keep only the `defaults.md` properties that differ from the actual `[*]`; group identical sets ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
-6. **Write.** Print the sections to append and the stale ones to remove, confirm once, then write ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write` and `## Confirm`). Step 4 inserts wait for this confirm. Unattended → remove nothing, list under `Open:`.
+6. **Write.** Print the sections to append and the stale ones to remove, ask the stale-removal question, put them in the plan file, and call `ExitPlanMode`. On approval, write ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write`, `## Plan mode`). Step 4 inserts wait for this approval. Unattended: remove nothing and list stale sections under `Open:`.
 7. **Check.** Run `checker` (or `checker-ec`) from the git root for the first pass and count problems; no checker found → skip ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 8. **Fix.** Syntax or glob errors in sections this run wrote → correct the section and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
 9. **Report** the Output.
@@ -44,7 +45,7 @@ disable-model-invocation: true
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md` (read when running a named command, steps 1-9).
-- For per-step branches (type mapping, configured-type matching, grouping, stale removal, checker choice), see `${CLAUDE_SKILL_DIR}/references/flow.md` (read at steps 2, 3, 5, 6, 7; the write confirm is `## Confirm`).
+- For per-step branches (type mapping, configured-type matching, grouping, stale removal, checker choice), see `${CLAUDE_SKILL_DIR}/references/flow.md` (read at steps 2, 3, 5, 6, 7; plan mode and the approval are `## Plan mode`).
 - For the base `[*]` block (4 spaces, final newline), type globs (no final newline for Git files, `.editorconfig`, Markdown, text), override properties, and reasons, see `${CLAUDE_SKILL_DIR}/references/defaults.md` (read at steps 2, 4, 5).
 - For the stale-section finder (step 6; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs`.
 - For the evals (only when testing or changing this skill), see `${CLAUDE_SKILL_DIR}/references/evals.md`.
@@ -52,6 +53,7 @@ disable-model-invocation: true
 ## Output
 
 ```text
+Plan mode: entered | already active | declined | skipped (<reason>)
 File types: <type (count)>, … | uncovered: <types>
 .editorconfig: <created | updated | up to date> (root = true: <present | added>)
 Base [*]: <added | kept>

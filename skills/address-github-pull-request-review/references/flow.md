@@ -2,7 +2,17 @@
 
 ## Contents
 
-- Input · Identify · Triage · Plan · Implement · Verify · Iterate · Commit · Push · Reply
+- Plan mode · Input · Identify · Triage · Plan · Implement · Verify · Iterate · Commit · Push · Reply
+
+## Plan mode
+
+Runs once, before step 0. Unattended (no way to ask) → `Plan mode: skipped (unattended)`. `--dry-run` still enters plan mode.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is edited, pushed, or replied.
+- Steps 0–3 run inside plan mode: they only read (`gh`, MCP reads, Read, Grep, Glob), ask with AskUserQuestion, and write no scratch file outside the plan file.
+- At the end of step 3 write the plan file: the triage table (class and `path:line` evidence per item) and, per fixable item, the cause, the approaches, and the chosen fix with the files it touches, then the remote effects: the push to `origin/<head>` (commit count) and the thread replies (count). Call `ExitPlanMode`; approval → step 4 and covers the push and replies.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 3: plan rejected`.
+- Any end before step 4 (a stop, `nothing-to-do`) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
 ## Input
 
@@ -33,7 +43,7 @@ Each row carries evidence as `path:line`. Invalid and needs-clarification items 
 
 ## Plan
 
-Per fixable item, write: cause, at least two approaches, the chosen one and why.
+Per fixable item, write: cause, at least two approaches, the chosen one and why. Plan mode active (entered or already active) → this is the plan file (`## Plan mode`).
 
 ## Implement
 
@@ -60,8 +70,8 @@ One commit per item.
 
 ## Push
 
-No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, and `thread-reply` commands, ask nothing, run none. Otherwise AskUserQuestion once: **Push and reply** (names `origin/<head>`, the commit count, and the reply count) · **Stop** (`Result: cancelled`, commits stay local); Push and reply is Recommended when every check passed. No way to ask → `Stopped: push: unattended, not confirmed`. After the confirm run `pull-rebase`, then `push`. A conflict or rejection → stop and report; no retry, no force.
+No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, and `thread-reply` commands, ask nothing, run none. Plan mode skipped (unattended) → `Stopped: push: unattended, not approved`; commits stay local. Otherwise run `pull-rebase`, then `push`; the `ExitPlanMode` approval named them. A conflict or rejection → stop and report; no retry, no force.
 
 ## Reply
 
-Per addressed thread, write `Addressed in <short sha>: <what changed>.` to a scratch file and run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Skip it unless the push succeeded; the push confirmation covers the replies. `--dry-run` → print the commands (see `## Push`). Never resolve a thread.
+Per addressed thread, write `Addressed in <short sha>: <what changed>.` to a scratch file and run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Skip it unless the push succeeded; the plan approval covers the replies. `--dry-run` → print the commands (see `## Push`). Never resolve a thread.

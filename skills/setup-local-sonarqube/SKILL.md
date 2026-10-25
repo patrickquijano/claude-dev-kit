@@ -26,15 +26,15 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Exact tags: the images are pinned to the tags `compose` resolves (looked up at most once per day); never `latest`, never a host install.
 - One scanner per stack: the scanner is the one the detected stack needs (`maven`, `gradle`, or `cli`); an unsupported or undetected stack gets a server-only file and a researched approach, never a guess.
 - Secrets: they live only in `.env.sonar` (mode 600, gitignored), which the scanner service reads; `compose.sonar.yaml` and the tasks hold none. Never print, quote, or commit one.
-- Never overwrite a file without the user's choice; `--yes` never overwrites. Before the first write, the step 1 confirm names every effect (the files, starting the server, rotating the analysis token); `--yes` is that confirmation. Never commit, push, or stash.
+- Never overwrite a file the approved plan does not name; `--yes` never overwrites. Before the first write, the `ExitPlanMode` approval names every effect (the files, an existing `compose.sonar.yaml` overwrite, starting the server, rotating the analysis token); plan mode declined or unavailable → `Result: stopped`, `Stopped: 1: plan mode declined`; `--yes` skips plan mode. Never commit, push, or stash.
 - Only this skill talks to the user.
 - Unattended (`--yes`): ask nothing and report what is left in `Open:`.
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Attended: AskUserQuestion Proceed | Stop naming every effect (list in `flow.md` `## Pre-flight`); Stop → `Result: cancelled`. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode`. The `ExitPlanMode` approval names every effect (list in `flow.md` `## Pre-flight`). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Write.** Run `compose` with `--root <root>`; an `ask` (two build tools) → AskUserQuestion, then re-run with `--stack <choice>`. Detail: `flow.md` `## Stack`.
-3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → attended: AskUserQuestion Overwrite | Stop; Overwrite → re-run `compose` with `--force`, Stop → `Result: cancelled`. Unattended: record it under `Open:` and stop. Detail: `flow.md` `## Exists`.
+3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → the approved plan named the overwrite → re-run `compose` with `--force`; else record it under `Open:` and stop (`Result: stopped`). Unattended: record it under `Open:` and stop. Detail: `flow.md` `## Exists`.
 4. **Unsupported stack.** Any other `stop` except `invalid sonar.projectKey` → spawn a research subagent (inline research when it is unavailable); its answer and sources go under `Open:`. Detail: `flow.md` `## Unsupported stack`.
 5. **Validate.** `docker-info` succeeds → run `compose-check`; else `Validate: skipped (no Docker)`. Detail: `flow.md` `## Validate`.
 6. **Configure.** Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
@@ -43,13 +43,14 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For pre-flight, stack handling, the exists ask, unsupported stacks, validation, and configuring the server, and running the result (steps 1–7), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For pre-flight, plan mode, stack handling, the exists ask, unsupported stacks, validation, and configuring the server, and running the result (steps 1–7), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the file contents, `${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs` renders them through `compose` in `commands.md`; it is run, never read.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 
 ```text
+Plan mode: entered | already active | declined | skipped (<reason>)
 Stack: cli | maven | gradle | none (<reason>)
 File: <root>/compose.sonar.yaml | not written
 Tasks: .vscode/tasks.json (<labels>) | skipped (<reason>)
@@ -64,4 +65,4 @@ Result: done | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an unresolved image tag, a refused unattended overwrite, or a failed validation ended the run. `cancelled` = the user chose Stop at step 1 or step 3.
+`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an unresolved image tag, a refused unattended overwrite, or a failed validation ended the run. `cancelled` = the user rejected the plan 3 times.

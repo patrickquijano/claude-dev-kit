@@ -4,7 +4,7 @@ Conditional detail for the workflow steps.
 
 ## Contents
 
-- Pre-flight · Fallback · Confirm · Cancelled · Improve round · Leftovers
+- Pre-flight · Plan mode · Fallback · Cancelled · Improve round · Leftovers
 
 ## Pre-flight
 
@@ -12,23 +12,23 @@ Conditional detail for the workflow steps.
 - Score-only, no README at all → report it, suggest create mode, end `Result: nothing-to-do`.
 - Only a non-`.md` README (`README`, `README.rst`, ...) → AskUserQuestion: Convert to README.md (Recommended) | Stop. Stop → `Result: nothing-to-do`. Convert → update mode on its content converted to Markdown; keep the old file and name it in `Converted from:`. In score-only, Convert leaves score-only (the only way out of it).
 
+## Plan mode
+
+Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`; score-only → `skipped (score-only)`.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 4: plan mode declined`, `Confirmed: no (stopped)`; nothing is written.
+- Steps 2–4 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the read-only analyst.
+- At the end of step 4 write the plan file: the archetype, the outline, the changed sections with their diff (the full content in create mode), and the effects (`README.md` created or updated, the `format-readme` run, "never commits"). Call `ExitPlanMode`; approval (`Confirmed: yes`) covers this run's improve rounds, then go to step 5; they print their `Map:` and need no new ask.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 4: plan rejected`, `Confirmed: no (stopped)`.
+- Any end before step 5 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
+
 ## Fallback
 
 AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 5: write unavailable`. Unattended runs ask nothing: write the README, report `Confirmed: unattended`, omit unanswerable items and list them in `Omitted:`.
 
-## Confirm
-
-One AskUserQuestion at step 5, after the archetype, outline, and changed sections are printed. The text names each effect: `README.md` created or updated, the formatter run when facts `Formatter` is not none, and "never commits". One reason line cites the evidence: `Stale` facts fixed, `Omitted:` items, a rubric section filled with an explicit line.
-
-- Options (Proceed → `Confirmed: yes`, or `revised <n>` after Revise rounds): **Proceed** · **Revise** (notes via Other → back to step 4) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
-- Recommend Revise when the draft still has an open or blocked item (an unanswered `Gaps:` item); else Proceed. The recommended option goes first with "(Recommended)".
-- Revise cap 2; cap hit → offer only Proceed and Stop.
-- The confirm covers this run's improve rounds; they print their `Map:` and need no new ask.
-- Score-only never asks and never writes: `Confirmed: n/a (score-only)`.
-
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a Gaps question, an analyst `Question:` ask, the write confirm, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" is an answer, not a cancel; Stop at the confirm is a cancel (`Confirmed: no (stopped)`), and nothing is written.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a Gaps question, an analyst `Question:` ask, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" is an answer, not a cancel.
 
 ## Improve round
 

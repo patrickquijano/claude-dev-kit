@@ -31,11 +31,26 @@ pass: Writes no Dockerfile
 pass: `Next:` holds one line "write a Dockerfile with these arguments: ..." with the `target=devcontainer` keys
 pass: The test reports `up + exec test: skipped (no Dockerfile)` and cleans up nothing
 
-id: update-asks-before-write
+id: update-writes-after-approval
 kind: behavior
-prompt: "Add Redis to our existing devcontainer."
-expected: Update mode; plan, then Write | Stop
+prompt: "Add Redis to our existing devcontainer." (plan mode entered)
+expected: Update mode; plan, then write after approval
 pass: Reads the existing config as JSONC and keeps its comments
-pass: Prints a diff and asks Write | Stop before any change
+pass: Prints a diff and writes only after `ExitPlanMode` approval
 pass: The test container is removed through the `cdk-test` label after the run
+
+id: plan-entered
+kind: behavior
+prompt: "Set up a devcontainer for this repo."
+expected: Plan mode before any write
+pass: Enters plan mode after pre-flight and reports `Plan mode: entered`
+pass: Writes the plan file and calls `ExitPlanMode` before the first write
+pass: The test question is asked before `ExitPlanMode`; no separate Write | Stop ask
+
+id: plan-declined
+kind: behavior
+prompt: "Add Redis to our existing devcontainer." (the user declines plan mode)
+expected: Stops without writing
+pass: Reports `Plan mode: declined`, `Result: stopped`, `Stopped: 6: plan mode declined`
+pass: No file is written
 ```

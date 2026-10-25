@@ -26,8 +26,8 @@ Input: $ARGUMENTS
 - Never assume how to install a tool or package: research the vendor's official method and apply it (practices.md Install approach). Every `ARG` has a default value; no image digest anywhere.
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
-- Validate with `build-check` and lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error): the reviewer subagent runs them, and step 6 runs them inline when it is unavailable. This skill itself runs the test (`image-build`, then `image-inspect` and `image-remove`; default target) after the write confirmation; never `docker build` without `--check` or a throwaway tag.
-- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write and the test build always need approval: the `ExitPlanMode` approval when plan mode was entered, else an AskUserQuestion Confirm | Revise | Stop naming the files and the test build (it pulls images and runs the Dockerfile's `RUN` commands) (`flow.md` `## Plan mode`). Unattended: write the files, skip the test build (`skipped (unattended)`), and list it under `Open:`.
+- Validate with `build-check` and lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error): the reviewer subagent runs them, and step 6 runs them inline when it is unavailable. This skill itself runs the test (`image-build`, then `image-inspect` and `image-remove`; default target) after the `ExitPlanMode` approval; never `docker build` without `--check` or a throwaway tag.
+- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write and the test build need the `ExitPlanMode` approval, whose plan names the files, the test build (it pulls images and runs the Dockerfile's `RUN` commands), and any `tool-probe` (`flow.md` `## Plan mode`); plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: write the files, skip the test build (`skipped (unattended)`), and list it under `Open:`.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; plan rejections 3 (`flow.md` `## Plan mode`); Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 
@@ -37,7 +37,7 @@ Input: $ARGUMENTS
 2. **Analyze.** Collect stack, build and start facts, and existing Docker files. Review mode → step 6, then 7 (`flow.md` `## Analyze`).
 3. **Clarify.** Ask only missing facts; apply the defaults without asking. Devcontainer → skip (`flow.md` `## Clarify`).
 4. **Draft and plan.** Resolve image tags with `resolve-tag` only for an image without an exact tag; build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
-5. **Write**, once the plan is approved (plan mode declined: the Confirm after the step 4 print; unattended: right after the print), `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
+5. **Write**, once the plan is approved (unattended: right after the print), `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
 6. **Verify.** Spawn a read-only reviewer subagent (brief in `flow.md` `## Spawn briefs`), fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
 7. **Report** leftovers under `Open:`, then print the Output.
 

@@ -4,7 +4,18 @@ Details for the SKILL.md steps. Practices: `practices.md`.
 
 ## Contents
 
-- Clarify (step 3) · Draft (step 5) · Dockerfile (step 8) · Open items (step 10) · Spawn briefs (step 2)
+- Plan mode (step 1) · Clarify (step 3) · Draft (step 5) · Dockerfile (step 8) · Open items (step 10) · Spawn briefs (step 2)
+
+## Plan mode (step 1)
+
+Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written (unattended runs skip plan mode and follow the SKILL.md Rules).
+- Steps 2–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyzer, and run the step 4 lookups (`node-probe`, `pick-tag`, WebFetch).
+- At the end of step 6 print the plan, ask the step 6 test question (AskUserQuestion, its answer goes in the plan), then write the plan file: each file with its purpose, the content (a diff for existing files), the handoff arguments, the change list, and the effects (files written; the step 9 test container when confirmed). Call `ExitPlanMode`; approval covers every listed write, then go to step 7.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → print the Output directly with `Result: cancelled`, `Stopped: 6: plan rejected` (nothing was written, so no step 10).
+- Update mode with nothing to add or fix → `Result: nothing-to-do` without `ExitPlanMode`; plan mode stays as it is.
+- Any end before step 7 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Clarify (step 3)
 

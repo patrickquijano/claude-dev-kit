@@ -1,6 +1,6 @@
 # Evals
 
-Cases for `build-dockerfile`: review, create, and the confirmation behaviors. Test each on Haiku, Sonnet, and Opus.
+Cases for `build-dockerfile`: review, create, and the plan-approval behaviors. Test each on Haiku, Sonnet, and Opus.
 
 ## Template
 
@@ -23,12 +23,12 @@ pass: Plan mode is `skipped (review)`; no file is written and no test build runs
 pass: Findings come from a read-only reviewer subagent, or from inline `docker build --check` and `hadolint` when it is unavailable
 pass: Ends with `Result: done` and a plain-words `Next:` line
 
-id: create-plan-declined-confirms
+id: create-plan-declined-stops
 kind: behavior
 prompt: "Write a production Dockerfile for this Node app." (user declines plan mode)
-expected: Create mode; asks before the write and the test build
-pass: Prints the Dockerfile and `.dockerignore`, then asks Confirm | Revise | Stop naming the files and the test build
-pass: Writes and runs `image-build` only after Confirm; removes the test image afterwards
+expected: Create mode; stops without writing
+pass: `Plan mode: declined`, `Result: stopped`, `Stopped: 5: plan mode declined`
+pass: Writes no file and runs no `image-build` or `tool-probe`
 pass: Base images are exact full tags with no digest
 
 id: unattended-no-test-build

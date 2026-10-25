@@ -10,10 +10,10 @@ Detail for the workflow steps in `SKILL.md`.
 
 Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`.
 
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the Rules confirm before step 8; `ExitPlanMode` unavailable after entering → ask the user to leave plan mode, then use that confirm.
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 8: plan mode declined`; nothing is written. `ExitPlanMode` unavailable after entering → same stop.
 - Steps 2–7 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the read-only subagents (repo analysis, docs research, version resolution).
 - At step 7 write the plan file: the files with their purpose, the resolved versions table, the diff for existing files, the effects ("Write N files under .github/workflows/", "Write .github/dependabot.yml"), the skipped practices, and the retained constraints. Call `ExitPlanMode`.
-- Approval replaces the AskUserQuestion confirm → step 8. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the clarify cap) → `Result: cancelled`, `Stopped: 8: plan rejected` (the write step that did not run).
+- Approval covers every listed effect → step 8. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the clarify cap) → `Result: cancelled`, `Stopped: 8: plan rejected` (the write step that did not run).
 - Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
 ## Clarify

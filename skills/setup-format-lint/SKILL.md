@@ -29,19 +29,19 @@ disable-model-invocation: true
 - Native tools change the machine: never install one unasked.
 - AskUserQuestion: at most 4 questions per call, 2-4 options each, recommended first with its reason. Unavailable (or Write unavailable) → ask the pending question as plain text and end the turn.
 - Caps: analyst respawn after `Gaps` 1; each question asked once (more than fit one call → further calls, at most 4 per step); step 11 fix loop 1 pass and one extra check.
-- Unattended (no AskUserQuestion): ask nothing, skip the step 7 confirmation and report what was installed and written; choose recommended options, skip native installs, and report the rest in `Open:`.
+- Unattended (no AskUserQuestion): ask nothing, skip plan mode and the step 7 approval and report what was installed and written; choose recommended options, skip native installs, and report the rest in `Open:`.
 - Pre-flight stop or cancel → print the Output with `Stopped:` and end. A later failure or cap → run step 11 once on what is left, then print the Output.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root. Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode`.
 2. **Detect.** Spawn the analyst (detect); keep `File types`, `Uncovered`, `Lists`, `Filled roles`, `Unfilled roles`, `Package`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`).
 3. **Existing.** Filled roles keep their tool; the detect step already applied the catalog rules for what counts as filled.
 4. **Choose tools.** Per unfilled role: one candidate → use it; several formatters → the first, no question; linters → `multiSelect` question (`references/flow.md` `## Choose tools`).
-5. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`; a missing `package.json` is only noted here and created after the step 7 confirm (`package-manager.md`).
+5. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`; a missing `package.json` is only noted here and created after the step 7 approval (`package-manager.md`).
 6. **Versions.** Only for tools to install or version-dependent configs; spawn the version resolver; `Unverified` → skip that tool. Unavailable or malformed → resolve inline (`flow.md` `## Spawn briefs`).
-7. **Install.** Confirm once, then create a missing `package.json`, then install missing tools only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools after a per-tool question (`references/flow.md` `## Install`).
-8. **Configure.** Write each missing config with the catalog's non-default keys under step 7's confirmation; existing config → keep (`configs.md` `## Config files and defaults`, `## YAML alignment`).
+7. **Install.** After the `ExitPlanMode` approval (plan mode declined or unavailable → `Result: stopped`, `Stopped: 7: plan mode declined`), create a missing `package.json`, then install missing tools only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools run the command the plan names (`references/flow.md` `## Install`).
+8. **Configure.** Write each missing config with the catalog's non-default keys under step 7's approval; existing config → keep (`configs.md` `## Config files and defaults`, `## YAML alignment`).
 9. **Overlaps and ignores.** Apply the catalog overlaps (`configs.md` `## Overlaps`), then add every ignore candidate that exists in each tool's syntax, never skipping one a tool already inherits or skips (`ignores.md`).
 10. **Check.** Spawn the analyst (check) for the installed and kept tools; report counts and first `Problems` lines; never auto-fix user code.
 11. **Resolve.** One pass, capped: fix a config this run wrote only when itself invalid; re-run the check once; list leftovers in `Open:`.
@@ -52,7 +52,7 @@ disable-model-invocation: true
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the tool catalog, versions, and install channels (steps 3-7), see `${CLAUDE_SKILL_DIR}/references/tools.md`.
 - For configs, check commands, overlaps, and YAML alignment (steps 8-10), see `${CLAUDE_SKILL_DIR}/references/configs.md`.
-- For tool choice, installs, the resolve pass (steps 4, 7, 11), and spawn briefs (steps 2, 6, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For plan mode, tool choice, installs, the resolve pass (steps 4, 7, 11), and spawn briefs (steps 2, 6, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For package dir, manager detection, and exec forms (steps 5, 7, 10), see `${CLAUDE_SKILL_DIR}/references/package-manager.md`.
 - For ignore syntax and candidate paths (step 9), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 - For the package-dir and manager detector (step 5; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/pm-detect.mjs`.
@@ -61,6 +61,7 @@ disable-model-invocation: true
 ## Output
 
 ```text
+Plan mode: entered | already active | declined | skipped (<reason>)
 File types: <type (count)>, … | uncovered: <types>
 Package manager: <pm> (<packageManager | lockfile | default | chosen>), package dir <pkg> | n/a
 Tools: <type>: <formatter> + <linter>[, <linter>] (<kept | chosen | only option>), …

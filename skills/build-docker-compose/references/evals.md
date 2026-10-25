@@ -27,10 +27,10 @@ pass: Ends with `Result: done` and a plain-words `Next:` line
 id: create-pins-tags
 kind: behavior
 prompt: "Write a Compose file for a Node app with Postgres 16 and Redis 7."
-expected: Create mode; exact image tags, long syntax, confirmation before the write
+expected: Create mode; exact image tags, long syntax, plan approval before the write
 pass: Spawns a read-only subagent for the image tags, or resolves them inline when it is unavailable
 pass: Every `image:` is an exact `X.Y.Z` tag; no `latest`, no `version:` key
-pass: Shows the file and confirms (or `ExitPlanMode`) before the Write; starts no containers
+pass: Shows the file and gets the `ExitPlanMode` approval before the Write; starts no containers
 
 id: legacy-name-rename-ask
 kind: behavior
@@ -39,4 +39,11 @@ expected: Update mode; asks about the legacy file name before any move
 pass: Asks Rename to `compose.yaml` | Keep the name
 pass: Runs `git mv` only after the user confirms the rename and the plan is approved
 pass: Keeps existing service names and ports; lists each change with its reason
+
+id: plan-declined-stops
+kind: behavior
+prompt: "Write a Compose file for a Node app." (the user declines plan mode)
+expected: Stops without writing
+pass: `Plan mode: declined`, `Result: stopped`, `Stopped: 6: plan mode declined`
+pass: Writes no file and runs no `dclint` or `compose-rename`
 ```

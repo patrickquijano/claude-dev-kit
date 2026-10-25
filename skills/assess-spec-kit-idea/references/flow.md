@@ -6,7 +6,7 @@
 
 ## Extract
 
-Keep URLs verbatim; intake fetches them under its own trust policy. No idea found → AskUserQuestion for one. None given or a cancelled question → `Result: cancelled`, `Stopped: Extract: user cancelled`, print the Output, stop.
+Keep URLs verbatim; intake fetches them under its own trust policy. No idea found → AskUserQuestion for one. None given or a cancelled question → `Result: cancelled`, `Stopped: Extract: user cancelled`, print the Output, stop. Then ask `Run assessment` | `Stop` once; `Stop` or a dismissed question → `Result: cancelled`, `Stopped: 2: run declined`, print the Output, stop; nothing is written.
 
 ## Verdict
 
