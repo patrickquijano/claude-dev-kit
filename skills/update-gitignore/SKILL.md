@@ -31,10 +31,10 @@ disable-model-invocation: true
 ## Workflow
 
 1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
-2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 3 for the secret check, then step 6 with `nothing-to-do`.
+2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once; unattended → skip the affected candidates, list them under `Skipped:`, never re-spawn. `Candidates:` `(none)` → step 3 for the secret check, then step 6 with `nothing-to-do`.
 3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:` (every tracked secret path, none dropped); the Output prints it even with `Candidates: none`, `Report only`, or `Stop`.
-4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high: then Add high-confidence only goes first and is marked. Each option names the write; one reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing. No candidate left → no ask. Unattended → write per the Rules, `Confirmed: unattended`. Stop → `Confirmed: no (stopped)`.
-5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Then `check-ignore` the written paths.
+4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high (and high is at least 1): then Add high-confidence only goes first and is marked. Zero high candidates → never recommend or offer Add high-confidence only. Each option names the write; one reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing; Report only, or unattended with no high candidate, ends `Result: done` with medium candidates under `Skipped:`. No candidate left → no ask. Unattended → write per the Rules, `Confirmed: unattended`. Stop → `Confirmed: no (stopped)`.
+5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Write the category lines first, then run `check-ignore` on each `!` negation path (for example `.env.example`); not ignored → remove that negation line (it would do nothing). Then `check-ignore` the written paths. Write unavailable → print the lines to append, `Result: stopped`, `Stopped: 5: write unavailable`.
 6. **Output.** Print the block below, nothing else.
 
 ## Files
@@ -54,7 +54,7 @@ Skipped: <path: reason, ... | none>
 Tracked but ignored: <files; untrack yourself with git rm --cached | none>
 Secret exposure: <tracked secret file names; rotate the secret and untrack with git rm --cached | none>
 Confirmed: <Add all | Add high-confidence only | Report only | no (stopped) | unattended | n/a (nothing to do)>
-Verify: <all written paths ignored | not ignored: <path>>
+Verify: <all written paths ignored | not ignored: <path> | n/a>
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none

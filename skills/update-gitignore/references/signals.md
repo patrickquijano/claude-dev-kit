@@ -4,7 +4,7 @@ Read manifests and tool configs, then look for what they produce on disk. A cand
 
 ## Contents
 
-- Categories · Evidence sources · Never ignore
+- Categories · Evidence sources · Never ignore · Tracked secrets
 
 ## Categories
 
