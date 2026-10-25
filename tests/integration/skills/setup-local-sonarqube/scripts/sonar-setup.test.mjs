@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const SCRIPT = fileURLToPath(new URL('../../../../../skills/scan-sonarqube/scripts/sonar-setup.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(
+  new URL('../../../../../skills/setup-local-sonarqube/scripts/sonar-setup.mjs', import.meta.url)
+);
 const SONAR_GRADLE = "plugins { id 'org.sonarqube' version '5.0.0' }\n";
 
 const dirs = [];
@@ -43,7 +45,7 @@ describe('sonar-setup detect', () => {
     assert.equal(res.status, 0);
     const out = JSON.parse(res.stdout);
     assert.equal(out.stack, 'maven');
-    assert.equal(out.scanCommand, 'scan-maven');
+    assert.equal(out.scanCommand, undefined);
     assert.equal(out.jdk, 25);
     assert.deepEqual(out.excluded, ['target']);
     assert.match(out.key, /^[a-z0-9_-]+$/);
@@ -104,7 +106,7 @@ describe('sonar-setup detect', () => {
     // Assert
     const out = JSON.parse(res.stdout);
     assert.equal(out.stack, 'gradle');
-    assert.equal(out.scanCommand, 'scan-gradle');
+    assert.equal(out.scanCommand, undefined);
     assert.equal(out.ask, undefined);
   });
 
@@ -141,7 +143,7 @@ describe('sonar-setup tags', () => {
     const date = new Date().toLocaleDateString('sv-SE');
     mkdirSync(path.join(cache, 'cdk'));
     writeFileSync(
-      path.join(cache, 'cdk', 'scan-sonarqube-tags.json'),
+      path.join(cache, 'cdk', 'setup-local-sonarqube-tags.json'),
       JSON.stringify({
         server: { date, tag: '25.1.0.1-community' },
         'maven-21': { date, tag: '3.9.9-eclipse-temurin-21' }
@@ -167,6 +169,73 @@ describe('sonar-setup tags', () => {
     // Assert
     assert.equal(res.status, 1);
     assert.match(res.stderr, /--stack must be/);
+  });
+});
+
+describe('sonar-setup compose', () => {
+  // A tag cache for today, so the run needs no network.
+  const cachedTags = () => {
+    const cache = tempDir();
+    const date = new Date().toLocaleDateString('sv-SE');
+    mkdirSync(path.join(cache, 'cdk'));
+    writeFileSync(
+      path.join(cache, 'cdk', 'setup-local-sonarqube-tags.json'),
+      JSON.stringify({
+        server: { date, tag: '25.1.0.1-community' },
+        'scanner-cli': { date, tag: '12.0.1.1_7.10.0' }
+      })
+    );
+    return { XDG_CACHE_HOME: cache };
+  };
+
+  test('writes compose.sonar.yaml and the three VS Code tasks', () => {
+    // Arrange
+    const dir = gitRepo({ 'package.json': '{}' });
+    // Act
+    const res = run(['compose', '--root', dir], cachedTags());
+    // Assert
+    assert.equal(res.status, 0);
+    const out = JSON.parse(res.stdout);
+    assert.deepEqual(out.services, ['sonarqube', 'scanner']);
+    const yaml = readFileSync(path.join(dir, 'compose.sonar.yaml'), 'utf8');
+    assert.ok(yaml.includes('image: sonarqube:25.1.0.1-community'));
+    assert.ok(!/latest/.test(yaml));
+    const tasks = JSON.parse(readFileSync(path.join(dir, '.vscode', 'tasks.json'), 'utf8'));
+    assert.deepEqual(
+      tasks.tasks.map((t) => t.label),
+      ['sonar: start', 'sonar: stop', 'sonar: scan']
+    );
+    assert.equal(tasks.inputs, undefined);
+    assert.ok(yaml.includes('condition: service_healthy'));
+    assert.ok(yaml.includes('path: .env.sonar'));
+  });
+
+  test('refuses a second run without --force and overwrites with it', () => {
+    // Arrange
+    const dir = gitRepo({ 'package.json': '{}' });
+    const env = cachedTags();
+    run(['compose', '--root', dir], env);
+    writeFileSync(path.join(dir, 'compose.sonar.yaml'), 'edited');
+    // Act
+    const refused = run(['compose', '--root', dir], env);
+    const forced = run(['compose', '--root', dir, '--force'], env);
+    // Assert
+    assert.equal(JSON.parse(refused.stdout).stop, 'compose.sonar.yaml exists');
+    assert.equal(readFileSync(path.join(dir, 'compose.sonar.yaml'), 'utf8') === 'edited', false);
+    assert.equal(JSON.parse(forced.stdout).stop, undefined);
+  });
+
+  test('leaves a JSONC tasks file untouched', () => {
+    // Arrange
+    const dir = gitRepo({ 'package.json': '{}' });
+    mkdirSync(path.join(dir, '.vscode'));
+    writeFileSync(path.join(dir, '.vscode', 'tasks.json'), '{ // note\n "tasks": [] }');
+    // Act
+    const res = run(['compose', '--root', dir], cachedTags());
+    // Assert
+    assert.match(JSON.parse(res.stdout).tasksStop, /not plain JSON/);
+    assert.equal(readFileSync(path.join(dir, '.vscode', 'tasks.json'), 'utf8'), '{ // note\n "tasks": [] }');
+    assert.ok(existsSync(path.join(dir, 'compose.sonar.yaml')));
   });
 });
 
