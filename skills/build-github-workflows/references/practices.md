@@ -8,7 +8,7 @@ Checked against docs.github.com, github.com/actions, github.com/rhysd/actionlint
 
 ## Reusable-workflow contract
 
-- **Required** one orchestration workflow holds `on:` triggers and caller jobs; each job lives in its own `workflow_call` file. Calls sit directly in a job, never in steps. `reference/workflows-and-actions/reusing-workflow-configurations`, `how-tos/reuse-automations/reuse-workflows`
+- **Required** one orchestration workflow per trigger set holds `on:` triggers and caller jobs; each job lives in its own `workflow_call` file. Calls sit directly in a job, never in steps. `reference/workflows-and-actions/reusing-workflow-configurations`, `how-tos/reuse-automations/reuse-workflows`
 - A caller job may use only `name`, `uses`, `with`, `secrets`, `strategy`, `needs`, `if`, `concurrency`, `permissions` (the doc's exhaustive list); `environment` is not allowed on it, so the environment goes in the callee. `runs-on`, `steps`, `timeout-minutes`, and `env` are not on that list. Put them in the callee.
 - `uses` takes no contexts or expressions. Local call: `./.github/workflows/<file>.yml`, no `@ref` suffix, so the callee is from the caller's commit. Remote call: `{owner}/{repo}/.github/workflows/<file>.yml@{ref}` with a tag (**cdk**: the exact tag).
 - `on.workflow_call.inputs.<id>.type` is required (`boolean`, `number`, `string`). Always write `required` and `default` explicitly: the docs state no default for `required`. Passing an undeclared input or secret is an error.
@@ -51,6 +51,7 @@ Names are derived, never chosen: the same request always yields the same names.
 
 - **Required** orchestrator top-level `permissions: {}` (**cdk** convention; syntax confirmed, doc only says specifying any permission sets the rest to `none`); each caller job grants only what its callee needs; each callee declares its own job-level `permissions` as the same or narrower set. `reference/security/secure-use`, `tutorials/authenticate-with-github_token`
 - Cloud access → OIDC with `id-token: write` on that job only, never long-lived cloud keys. `concepts/security/openid-connect`
+- Build provenance for a published artifact or image → `actions/attest-build-provenance` with `id-token: write` and `attestations: write` (plus `contents: read`) on that job only. `concepts/security/artifact-attestations`
 - `actions/checkout`: **Required** `persist-credentials: false` unless a later step needs authenticated git (default is `true`). Its README recommends `permissions: contents: read`.
 
 ## Untrusted input and secrets
@@ -84,7 +85,7 @@ Names are derived, never chosen: the same request always yields the same names.
 ## Containers and services
 
 - `container:` and `services:` take a Docker Hub name or full registry path, with optional `credentials`, `env`, `ports`, `options`. GitHub's examples use floating tags. **Required** (**cdk**) exact stable tag, never `latest`, a bare major, or a floating alias; never a digest. Registry credentials come from secrets, with logout in cleanup. `tutorials/use-containerized-services/use-docker-service-containers`
-- Tag resolution: `versions.md`.
+- A service a job depends on gets `options: --health-cmd … --health-interval … --health-timeout … --health-retries …` so steps wait until it is healthy. Tag resolution: `versions.md`.
 
 ## Pinning (**cdk** on top of GitHub guidance)
 
@@ -99,7 +100,7 @@ Names are derived, never chosen: the same request always yields the same names.
 
 ## Dependabot (**cdk**)
 
-- Create or update `.github/dependabot.yml` with a `package-ecosystem: github-actions` entry: `directory: /` (Dependabot then scans `/.github/workflows` and the root `action.yml`), `schedule.interval: weekly`, and `cooldown.default-days: 3` (the only `cooldown` key this ecosystem supports; 3 is the documented default, written explicitly). Use the existing `.github/dependabot.yml` or `.yaml` if present: add the entry only when none exists, keep every other entry and any existing `cooldown`. Create the file only in create mode or when the analyzer reports `Dependabot: none`; in update mode touch it only then. Options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference` (fetch it in step 4 before writing).
+- Create or update `.github/dependabot.yml` with a `package-ecosystem: github-actions` entry: `directory: /` (Dependabot then scans `/.github/workflows` and the root `action.yml`), `schedule.interval: weekly`, and `cooldown.default-days: 3` (the only `cooldown` key this ecosystem supports; 3 is the documented default, written explicitly). Use the existing `.github/dependabot.yml` or `.yaml` if present: add the entry only when none exists, keep every other entry and any existing `cooldown`. Add a `groups` block (one group, `patterns: ['*']`) so action updates arrive as one PR. Create the file only in create mode or when the analyzer reports `Dependabot: none`; in update mode touch it only then. Options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference` (fetch it in step 4 before writing).
 
 ## Maintenance links
 

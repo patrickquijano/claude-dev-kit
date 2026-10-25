@@ -119,6 +119,7 @@ jobs:
     services: # only when requested
       <service-id>:
         image: <name>:<exact tag>
+        options: --health-cmd <cmd> --health-interval 10s --health-timeout 5s --health-retries 5 # service readiness
     outputs:
       <output_name>: ${{ steps.<step-id>.outputs.<output_name> }}
     steps:

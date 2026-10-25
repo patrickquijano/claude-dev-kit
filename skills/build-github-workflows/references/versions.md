@@ -1,6 +1,6 @@
 # Version resolution
 
-Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. The `gh api` and `git ls-remote` commands below run in `cdk:version-resolver`, which owns them, so they have no `commands.md` row.
+Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. The `gh api` and `git ls-remote` commands below run in `cdk:version-resolver`, which owns them, so they have no `commands.md` row; the inline resolver fallback runs them in this skill, where each run prompts for permission.
 
 ## Pin form
 
@@ -18,7 +18,7 @@ Per `owner/repo`:
 1. Latest release: first `mcp__plugin_github_github__get_latest_release` (`owner`, `repo`); not connected or error → `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`, unchanged. The endpoint returns the most recent non-prerelease, non-draft release; 404 → the repo publishes no releases, so list tags (`git ls-remote --tags --refs https://github.com/<owner>/<repo>`), drop any tag with a prerelease suffix (`-rc`, `-alpha`, `-beta`, `-pre`, `-dev`, `-next`), and take the highest numeric semver; still nothing → `Unresolved`. Source: <https://docs.github.com/en/rest/releases/releases#get-the-latest-release>.
 2. Most specific tag: the full `vX.Y.Z` release tag. Floating majors (`v4`) move and are never written.
 3. Verify the tag exists in that repo, never a fork: `git ls-remote --tags --refs https://github.com/<owner>/<repo> refs/tags/<tag>`. For an action with a subpath (`owner/repo/path`) the tag applies to `owner/repo`. Source: <https://git-scm.com/docs/git-ls-remote>.
-4. Written form: `owner/repo@vX.Y.Z`.
+4. Commit SHA: the 40-hex commit the tag points to (`git ls-remote` of `<tag>^{}`, else `<tag>`); written form `owner/repo@vX.Y.Z`, or `owner/repo@<SHA> # vX.Y.Z` when `pin: sha`.
 5. Local reusable workflows (`./.github/workflows/<file>.yml`) and local composite actions (`./.github/actions/<name>`) take no version.
 6. Actions with their own runtime requirement (for example a Node version) → read the action's `action.yml` at the resolved tag only when the request needs it; never infer it.
 
@@ -45,4 +45,4 @@ Source for pin guidance: <https://docs.github.com/en/actions/reference/security/
 
 ## Return table
 
-`<ref> | <tag or label> | <source URL> | <note>` per resolved item, then `Unresolved: <item — reason — suggested question | none>`.
+`<ref> | <tag or label> | <commit SHA, or - when none> | <source URL> | <note>` per resolved item, then `Unresolved: <item — reason — suggested question | none>`.
