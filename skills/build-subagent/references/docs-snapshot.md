@@ -4,7 +4,7 @@ Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end)
 
 Fetched: 2026-10-24
 
-Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL; unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated <the `Fetched:` date>)": omit it and list it in `Unverified:`.
+Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL and use the result in memory for this run only (never write it to this file or any file under `${CLAUDE_SKILL_DIR}`); unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated <the `Fetched:` date>)": omit it and list it in `Unverified:`.
 
 ## Contents
 

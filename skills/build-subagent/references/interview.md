@@ -8,13 +8,13 @@ Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo 
 
 ## Plan mode
 
-Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFetch` only reads; the refresh is written at step 7) and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
+Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFetch` only reads; a refresh stays in memory and is never written) and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the AskUserQuestion Brief (Confirm | Revise | Stop).
 - Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
-- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, the `docs-snapshot.md` refresh when due). Call `ExitPlanMode`.
+- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, and any changed doc fact from the freshness read). Call `ExitPlanMode`.
 - Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 8 batches; cap hit → `Result: stopped`, `Stopped: 6: batch cap`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again.
-- The backup, the snapshot refresh, and the write come only after approval.
+- The backup and the write come only after approval.
 
 ## Protocol
 
@@ -103,7 +103,7 @@ Precedence and plugin restrictions: `docs-snapshot.md` `## Scopes and precedence
 
 ## Name
 
-- An actor noun for who does the job (`code-reviewer`, `change-analyzer`), never the action (`review-code`) or a gerund (`reviewing`). Actions name skills; actors name agents.
+- An actor noun for who does the job (`code-reviewer`, `log-analyzer`), never the action (`review-code`) or a gerund (`reviewing`). Actions name skills; actors name agents.
 - A requested action name → ask Rename | Keep, recommending Rename with the actor form (`review-code` → `code-reviewer`).
 - Lowercase, hyphen-separated; no `:`, no leading `-`; the file stem matches `name`.
 
@@ -159,7 +159,7 @@ A domain color wins over the generic one (security red and test blue beat review
 Step 6, before any write: show at most 40 lines (a longer diff goes to the plan file), then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
 
 - `Target: <absolute path>` and `Mode:`.
-- The `docs-snapshot.md` refresh, when due.
+- Doc facts that differ from `docs-snapshot.md` after a due freshness read (in memory only), when any.
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
