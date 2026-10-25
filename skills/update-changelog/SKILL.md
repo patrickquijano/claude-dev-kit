@@ -3,11 +3,11 @@ name: update-changelog
 description: Creates or updates CHANGELOG.md per Keep a Changelog from commits and local changes, or cuts a dated `release`; confirms first. Use only when the user explicitly asks to update the changelog.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[release <version> [YYYY-MM-DD]] [base <branch>]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(git show *) Bash(gh pr list *) Bash(glab mr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(git show *) Bash(date +%F) Bash(node ${CLAUDE_SKILL_DIR}/scripts/release-candidates.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-changelog.mjs *) Bash(gh pr list *) Bash(glab mr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests
 disable-model-invocation: true
 ---
 
-# Write Changelog
+# Update Changelog
 
 Input: $ARGUMENTS
 
@@ -20,8 +20,7 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal.
+- Ask (unattended: record) what the input and repo cannot answer.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Format, exclusions, bad practices, and the review checklist: `${CLAUDE_SKILL_DIR}/references/format.md`; read it fully in step 1.
@@ -47,6 +46,9 @@ Input: $ARGUMENTS
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For base choice, release-mode asks, format-drift asks, the write confirm, the review loop, and the unattended fallback, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the Keep a Changelog format, exclusions, workflows, and the review checklist, see `${CLAUDE_SKILL_DIR}/references/format.md`.
+- For the release version candidates (step 5; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/release-candidates.mjs`.
+- For the section order, header, and link checks (step 6; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/check-changelog.mjs`.
+- For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 
@@ -64,7 +66,7 @@ Checks: completeness <ok|n>, accuracy <ok|n>, duplicates <ok|n>, classification 
 Blocked: <items needing user input | none>
 Confirmed: yes | revised <n> | no (stopped) | unattended | n/a (unchanged or stopped earlier)
 Open: <id: severity, reason; recommended fix>, … | none
-Next: /cdk:commit-changes | none
+Next: commit the changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

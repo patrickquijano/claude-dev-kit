@@ -74,12 +74,12 @@ Report each with its reason; never add:
 
 ## Workflows
 
-**Non-release (default).** Edit `## [Unreleased]` and the link references (add missing ones; repoint `[unreleased]` when verifiably wrong). Released sections keep their content. Format-only drift in them (headings, dates, header, link refs, markers, bullet style) → list each fix and apply it only after approval per `flow.md` `## Format drift`; content changes to released entries need their own ask. Unattended → list the fixes under `Open:` without changing the file.
+**Non-release (default).** Edit `## [Unreleased]` and the link references (add missing ones; repoint `[unreleased]` when verifiably wrong). Released sections keep their content. Format-only drift in them → per `flow.md` `## Format drift`.
 
 **Release.** Needs a version and a date, both from the user (arguments or answers); never infer them from commits, tags, or the clock (the clock date only when the user picks "Today"). Then:
 
 1. Run the non-release flow first so Unreleased is complete.
-2. `[version]` already in the file: when it also exists in the base branch's `CHANGELOG.md` (`git show <base>:<changelog path>`, base per the skill's Base step), stop. Otherwise it is an unmerged release section: merge any new Unreleased entries into it in place (by meaning, no duplicates), keep its date, leave Unreleased empty, and refresh the links.
+2. `[version]` already in the file: stop or update in place per `flow.md` `## Release mode`; an unmerged section takes new Unreleased entries merged in by meaning, keeps its date, leaves Unreleased empty, and refreshes the links.
 3. Else rename the Unreleased content into `## [version] - date`; add a fresh empty `## [Unreleased]` above it.
 4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` per Template; other host or no remote → ask (unattended: `Open:`).
 5. Re-running with the same version and date changes nothing.
@@ -106,9 +106,7 @@ Each item pass or fail in the review loop:
 2. Accuracy: each entry matches the diff (names, options, behavior).
 3. Duplicates: no two bullets describe the same change.
 4. Classification: type matches the change; only the six sections.
-5. Ordering: Unreleased first; versions descending; canonical section order.
-6. Format: exact header; SemVer line per the Template rule; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; one-sentence entries ending with `.`; no bold markers; file ends with one newline.
-7. Links: references are mandatory and `[unreleased]` is present; every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the tag prefix and host; each tag missing from `git tag --list` is flagged under `Open:`, never its link omitted.
-8. Released sections (present in the base branch's changelog) change only by approved format fixes (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and approved fixes.
-9. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
-10. Idempotency: re-deriving entries from the same inputs against the written file produces no change.
+5. Ordering, header, format, links: run `node ${CLAUDE_SKILL_DIR}/scripts/check-changelog.mjs check --changelog <changelog path>`; any finding fails. Also check blank lines, one-sentence entries, and flag each tag missing from `git tag --list` under `Open:`.
+6. Released sections (present in the base branch's changelog) change only by approved format fixes (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and approved fixes.
+7. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
+8. Idempotency: re-deriving entries from the same inputs against the written file produces no change.

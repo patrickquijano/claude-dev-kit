@@ -19,8 +19,8 @@ Base: input `base`; else the open PR or MR base for the current branch by origin
 
 Format and workflow: `format.md` `## Workflows`.
 
-- Version missing → AskUserQuestion with candidates computed from the latest released version (none → 0.1.0 or 1.0.0): Removed or breaking → major, Added → minor, else patch, each with its reason, plus Stop. While the latest major is 0, shift down one level (breaking → minor, anything else → patch).
-- Date missing → AskUserQuestion: Today (Recommended; the SessionStart date) | Enter another | Stop.
+- Version missing → run `node ${CLAUDE_SKILL_DIR}/scripts/release-candidates.mjs candidates --latest <latest released version or none> --types <comma-separated change types since it>`, then AskUserQuestion with its `candidates` (each with its reason) plus Stop.
+- Date missing → AskUserQuestion: Today (Recommended; the SessionStart date, else the `today` row) | Enter another | Stop.
 - Version already in the file and also in `base-changelog` → `Stopped: 5: version exists`. Only in this branch's file → update that unmerged section in place.
 
 ## Format drift
