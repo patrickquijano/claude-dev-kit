@@ -135,7 +135,7 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 11. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
 12. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
 13. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
-14. [S1] Never a Skill tool, `/other` or `/plugin:other` command, or `${CLAUDE_PLUGIN_ROOT}` path outside code fences. [S2] Each spawn has an inline fallback.
+14. [S1] Never a Skill tool, `/other` or `/plugin:other` command, or `${CLAUDE_PLUGIN_ROOT}` path outside code fences. [S2] Each spawn has an inline fallback (judgment-only: the script does not check it).
 
 ## Sources
 
