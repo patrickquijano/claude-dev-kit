@@ -16,7 +16,7 @@ Format: file type (keys) — formatters — linters. `—` = no candidate; skip 
 - SCSS (`scss`) — Prettier — Stylelint (SCSS config).
 - Less (`less`) — Prettier — Stylelint (`postcss-less` syntax).
 - HTML (`html htm`) — Prettier — HTMLHint.
-- Markdown (`md markdown`) — no formatter — markdownlint-cli2 (also fixes with `--fix`; Prettier does not format Markdown, so files can end without a final newline).
+- Markdown (`md markdown`) — no formatter — markdownlint-cli2.
 - YAML (`yaml yml`) — yamlfmt | Prettier — yamllint.
 - Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`) — no formatter — hadolint.
 - Shell (`sh bash`, and extensionless files whose first line is a `#!` line ending in `sh` or `bash`) — shfmt — ShellCheck.
@@ -44,7 +44,7 @@ Not covered (list as `uncovered`): `.sass` (indented syntax; Prettier and Stylel
 
 ## Versions
 
-Never pin or remember versions in this skill. Before any install or config write, `cdk:version-resolver` (`kind: packages`) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
+Never pin or remember versions in this skill. Before any install or config write, the version resolver (step 6) resolves the newest stable version of every package or formula to install from its authoritative source: npm registry (`npm view`), PyPI JSON API, Packagist, NuGet (flat container plus registration index), Go module proxy, Homebrew (`brew info --json=v2`). Registry URLs: PyPI `https://pypi.org/pypi/<pkg>/json` (`info.version`, `info.yanked`, `info.requires_python`); Packagist `https://repo.packagist.org/p2/<vendor>/<package>.json` (highest stable, skip abandoned, `require.php`); NuGet flat container `https://api.nuget.org/v3-flatcontainer/<lowercase id>/index.json` (highest version without a `-` suffix); Go proxy `https://proxy.golang.org/<module>/@v/list` (highest version without a `-` suffix; `…/@v/<version>.mod` for the `go` directive). Exclude pre-release, preview, alpha, beta, rc, nightly, deprecated, yanked, unlisted, and incompatible versions (peer ranges, `engines`, `require.php`, `requires_python`, `go` directive vs the detected runtime). A version that cannot be verified → skip that tool with the reason; never fall back to a remembered version.
 
 Retained constraints (each applied only when the check fails; report under `Constraints`):
 

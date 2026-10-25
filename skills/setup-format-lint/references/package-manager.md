@@ -4,6 +4,8 @@ JavaScript package rules for the npm tools this skill installs and checks.
 
 ## Package dir
 
+The `pm-detect` command (`commands.md`) applies the rules of `## Package dir` and `## Detect` and the name rule of `## Missing package.json`; its JSON gives `pkg`, `packageJson`, `manager`, `source`, `lockfiles`, and `name`. The text below is the spec and the inline fallback.
+
 - Git root `package.json` has `workspaces`, or git root has `pnpm-workspace.yaml` → git root (monorepo: repo tooling belongs at the root).
 - Else nearest `package.json` from cwd up to the git root, no question (that package owns the tooling).
 - None → git root.
@@ -34,6 +36,6 @@ Workspace root (Package dir resolved to a git root with `workspaces` or `pnpm-wo
 
 ## Missing package.json
 
-- Create `{ "name": "<name>", "private": true }` in the package dir, no question (npm tools need it).
+- Create `{ "name": "<name>", "private": true }` in the package dir (npm tools need it) only after the install confirm of `flow.md` `## Install`, which lists it; unattended, the run itself is the consent.
 - `<name>` = package dir name, lowercased; each run of characters outside `a-z`, `0-9`, `-`, `.`, `_` → `-`; leading `.`, `_`, and `-` trimmed; empty → `project`.
 - Never run `<pm> init`: `bun init` and `yarn init` scaffold extra files, and `npm init` copies every package in an existing `node_modules/` into `dependencies`.

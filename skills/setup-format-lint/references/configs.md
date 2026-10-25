@@ -26,7 +26,7 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 - PHPStan — `phpstan.neon.dist` (NEON only; PHPStan also reads `phpstan.neon`, `phpstan.dist.neon`) — `parameters: { level: 5, paths: [<dirs holding PHP files, for example src, app, tests>] }` — `vendor/bin/phpstan analyse --no-progress`.
 - PHP_CodeSniffer — `phpcs.xml.dist` (XML only; phpcs also reads `.phpcs.xml`, `phpcs.xml`, `.phpcs.xml.dist`) — `<ruleset>` with `<file>` per PHP source dir, `<arg name="extensions" value="php"/>`, `<rule ref="PSR12"/>`, and `Generic.Files.LineLength` `lineLimit` 120 — `vendor/bin/phpcs`.
 - CSharpier — `.csharpierrc.json` (CSharpier also reads `.csharpierrc`, `.csharpierrc.yaml`, `.editorconfig`) — `{ "printWidth": 120 }` — `dotnet csharpier check .` (also its lint step).
-- `dotnet format` — `.editorconfig` (`cdk:update-editorconfig` owns it) — none — `dotnet format style --verify-no-changes`, `dotnet format analyzers --verify-no-changes`.
+- `dotnet format` — `.editorconfig` (the repo's own file; never written here) — none — `dotnet format style --verify-no-changes`, `dotnet format analyzers --verify-no-changes`.
 - HTMLHint — `.htmlhintrc` — none — `<x> htmlhint "**/*.{html,htm}"`.
 - gofmt, `go vet` — no config — `gofmt -l .`, `go vet ./...`.
 - xmlstarlet — no config — none (formatter only; xmllint checks).
@@ -40,7 +40,7 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 - RuboCop — `.rubocop.yml` — none — `rubocop`.
 - google-java-format — no config — `google-java-format --dry-run --set-exit-if-changed <Java files>`.
 - Checkstyle — no config — `checkstyle -c /google_checks.xml <Java files>` (the bundled Google ruleset, 100-column limit like google-java-format).
-- ktlint — `.editorconfig` (`cdk:update-editorconfig` owns it) — none — `ktlint`.
+- ktlint — `.editorconfig` (the repo's own file; never written here) — none — `ktlint`.
 - SwiftFormat — `.swiftformat` — none — `swiftformat --lint .`.
 - SwiftLint — `.swiftlint.yml` — `disabled_rules:` for the style rules SwiftFormat owns (`trailing_whitespace`, `trailing_comma`, `vertical_whitespace`, `opening_brace`, `statement_position`, `colon`, `comma`, `leading_whitespace`, `return_arrow_whitespace`, `trailing_newline`, `closing_brace`) and `strict: true` — `swiftlint lint`.
 - Vue — ESLint config gains `...pluginVue.configs['flat/recommended']` for `**/*.vue`, then `eslintConfigPrettier` from `eslint-config-prettier/flat` as the last element; Prettier needs no change (it formats `.vue` itself).
