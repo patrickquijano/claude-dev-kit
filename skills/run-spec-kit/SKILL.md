@@ -13,40 +13,42 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
-- Invoke each speckit skill with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
+- Ask (unattended: record) what the input and repo cannot answer.
+- The only spawn is the open-items classifier of step 10.
+- Invoke each speckit skill (a third-party skill installed by `specify init`) with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
 - Relay every question a speckit skill asks to the user with AskUserQuestion. Pre-approved exceptions: accept the analyze remediation offer for non-CRITICAL findings only (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
-- Never edit `.specify/` templates or `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
-- Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one `cdk:speckit-open-items-analyzer` agent per round, re-spawned at most once per round after it returns `Question:`.
-- The agent only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
+- Never edit `.specify/` templates or third-party `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
+- Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one classifier per round, re-spawned at most once per round after it returns `Question:`.
+- The classifier only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.
+- Edit consent: this skill edits `spec.md`, `plan.md`, `tasks.md`, and code only after one batched AskUserQuestion per batch of edits (step 9 remediations; each round's fixes): list each edit with its file, options `Apply all (Recommended)` | `Skip all` | `Stop`. Unattended: apply the non-CRITICAL ones. The constitution is written by third-party `speckit-constitution` (step 3), which the user's invocation covers.
 - AskUserQuestion unavailable: ask as plain text with options, end the turn, and take the next message as the answer. Unattended: ask nothing; take the Recommended option.
-- Leftovers (open items, skipped findings, unconverged tasks) go to `Open:` with the agent's recommended fix. CRITICAL items are never edited without the user's choice (unattended: left in `Open:`); non-CRITICAL items follow `addressing.md` step 4.
+- Leftovers (open items, skipped findings, unconverged tasks) go to `Open:` with the classifier's recommended fix. CRITICAL items are never edited without the user's choice (unattended: left in `Open:`); non-CRITICAL items follow `addressing.md` step 4.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 
 ## Workflow
 
-1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to run `/cdk:setup-spec-kit` (or `specify integration install claude`), stop. Input empty → AskUserQuestion for the feature brief; unattended → `Result: stopped`, `Stopped: pre-flight: feature brief missing`, stop. Run `git-status`: uncommitted changes → AskUserQuestion ("Continue (changes mix with this run)", "Stop"); unattended continues and lists them under `Open:`.
-2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: cancelled`, `Stopped: <step>: user cancelled`, stop. Show the three parts in a short list.
+1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to install Spec Kit (`specify init`, or `specify integration install claude`; row `install-claude` in `commands.md`, never run here), `Result: stopped`, `Stopped: pre-flight: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the feature brief; unattended → `Result: stopped`, `Stopped: pre-flight: feature brief missing`, stop. Run `git-status`: uncommitted changes → AskUserQuestion ("Continue (changes mix with this run)", "Stop"); unattended continues and lists them under `Open:`.
+2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; third-party `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: cancelled`, `Stopped: <step>: user cancelled`, stop. Show the three parts in a short list.
 3. **Constitution.** Read `.specify/memory/constitution.md`; unfilled = missing or has placeholder tokens matching `\[[A-Z0-9_]+\]`.
-   - Unfilled, principles extracted → run `speckit-constitution <principles>`.
-   - Unfilled, no principles → run `speckit-constitution` with no argument (infers from the repo, no ask).
-   - Filled, principles add to or conflict with it → update, no ask: `speckit-constitution <principles>`.
+   - Unfilled, principles extracted → run third-party `speckit-constitution <principles>`.
+   - Unfilled, no principles → run third-party `speckit-constitution` with no argument (infers from the repo, no ask).
+   - Filled, principles add to or conflict with it → update, no ask: third-party `speckit-constitution <principles>`.
    - Filled, principles covered or none → skip.
-4. **Specify.** Run `speckit-specify <what-and-why>`. Take the feature directory from its report. A git hook created a branch → tell the user its name.
-5. **Clarify.** `spec.md` still has `[NEEDS CLARIFICATION` markers, or `checklists/requirements.md` has unchecked items → run `speckit-clarify <marker topics and unchecked items>`. Else skip.
-6. **Plan.** Run `speckit-plan <implementation-detail>`; empty argument when it is missing.
-7. **Checklist.** Run `speckit-checklist <domain>`: one or two words for the area the what-and-why mostly concerns (e.g. `ux`, `api`, `security`).
-8. **Tasks.** Run `speckit-tasks`.
-9. **Analyze.** Run `speckit-analyze`. Non-CRITICAL findings with remediations → accept its offer; it is read-only, so apply those edits to `spec.md`, `plan.md`, `tasks.md` here, then run it once more. CRITICAL and other findings left → list them, CRITICAL first, and carry them into step 10 (`addressing.md` step 4 decides them); implementation proceeds without a gate.
-10. **Implement, converge, address.** Up to 5 rounds; keep a skip list and a fixed-awaiting-check list. Each round: `speckit-implement`, `speckit-converge`, then `${CLAUDE_SKILL_DIR}/references/addressing.md`. Stopped after 5 rounds → list open items and unchecked tasks; repeated misses point to a spec or plan problem.
+4. **Specify.** Run third-party `speckit-specify <what-and-why>`. Take the feature directory from its report. A git hook created a branch → tell the user its name.
+5. **Clarify.** `spec.md` still has `[NEEDS CLARIFICATION` markers, or `checklists/requirements.md` has unchecked items → run third-party `speckit-clarify <marker topics and unchecked items>`. Else skip.
+6. **Plan.** Run third-party `speckit-plan <implementation-detail>`; empty argument when it is missing.
+7. **Checklist.** Run third-party `speckit-checklist <domain>`: one or two words for the area the what-and-why mostly concerns (e.g. `ux`, `api`, `security`).
+8. **Tasks.** Run third-party `speckit-tasks`.
+9. **Analyze.** Run third-party `speckit-analyze`. Non-CRITICAL findings with remediations → accept its offer; it is read-only, so apply those edits to `spec.md`, `plan.md`, `tasks.md` here after the Edit consent batch, then run it once more. CRITICAL and other findings left → list them, CRITICAL first, and carry them into step 10 (`addressing.md` step 4 decides them); implementation proceeds without a gate.
+10. **Implement, converge, address.** Up to 5 rounds; keep a skip list and a fixed-awaiting-check list. Each round: third-party `speckit-implement`, `speckit-converge`, then `${CLAUDE_SKILL_DIR}/references/addressing.md`. Stopped after 5 rounds → list open items and unchecked tasks; repeated misses point to a spec or plan problem.
 11. **Report.** Put everything left (step 9 findings, skipped items, unchecked tasks) in `Open:`, CRITICAL first, each with its recommended fix; print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the core speckit skill dirs the pre-flight checks (step 1), see `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
-- For the per-round address procedure and the agent input (step 10), see `${CLAUDE_SKILL_DIR}/references/addressing.md`.
+- For test scenarios, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the per-round address procedure, classifier brief, and classify fallback (step 10), see `${CLAUDE_SKILL_DIR}/references/addressing.md`.
 
 ## Output
 

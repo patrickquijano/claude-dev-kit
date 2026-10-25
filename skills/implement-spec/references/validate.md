@@ -4,7 +4,7 @@ Detail for steps 7–9: the change-set check, the verifier, the implementer's fi
 
 ## Verify
 
-Spawn `cdk:change-verifier` per Spawn briefs in `SKILL.md`, with the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
+Spawn the verifier per Spawn briefs in `SKILL.md`, with the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
 
 ## Evidence
 
@@ -30,7 +30,7 @@ G2: unmet — <what failed, file:line>
 
 Run after every implementer return (step 7 and each fix round). Run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
 
-- A newly changed path that is not planned: AskUserQuestion `Revert it` (`restore-path`; an untracked new file is removed with the file tool) | `Keep it` | `Stop`; unattended → leave it and list it under `Open:`.
+- A newly changed path that is not planned: AskUserQuestion `Revert it` (`restore-path`; an untracked new file is removed with `remove-new`) | `Keep it` | `Stop`; unattended → leave it and list it under `Open:`.
 - A Dirty path whose diff changed: never `restore-path` it (that would drop the user's own edits). AskUserQuestion `Keep it` | `Stop`; unattended → `Result: stopped`, `Stopped: 7: dirty path edited`, with the path under `Open:`.
 
 ## Iterate
