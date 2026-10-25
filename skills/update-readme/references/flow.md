@@ -4,7 +4,7 @@ Conditional detail for the workflow steps.
 
 ## Contents
 
-- Pre-flight · Fallback · Cancelled · Improve round · Leftovers
+- Pre-flight · Fallback · Confirm · Cancelled · Improve round · Leftovers
 
 ## Pre-flight
 
@@ -14,11 +14,21 @@ Conditional detail for the workflow steps.
 
 ## Fallback
 
-AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Unattended runs ask nothing: omit unanswerable items and list them in `Omitted:`.
+AskUserQuestion or Write unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Unattended runs ask nothing: write the README, report `Confirmed: unattended`, omit unanswerable items and list them in `Omitted:`.
+
+## Confirm
+
+One AskUserQuestion at step 5, after the archetype, outline, and changed sections are printed. The text names each effect: `README.md` created or updated, the formatter run when facts `Formatter` is not none, and "never commits". One reason line cites the evidence: `Stale` facts fixed, `Omitted:` items, a rubric section filled with an explicit line.
+
+- Options (Proceed → `Confirmed: yes`, or `revised <n>` after Revise rounds): **Proceed** · **Revise** (notes via Other → back to step 4) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
+- Recommend Revise when the draft still has an open or blocked item (an unanswered `Gaps:` item); else Proceed. The recommended option goes first with "(Recommended)".
+- Revise cap 2; cap hit → offer only Proceed and Stop.
+- The confirm covers this run's improve rounds; they print their `Map:` and need no new ask.
+- Score-only never asks and never writes: `Confirmed: n/a (score-only)`.
 
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a Gaps question, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" or "Stop" is an answer, not a cancel.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a Gaps question, the write confirm, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" is an answer, not a cancel; Stop at the confirm is a cancel (`Confirmed: no (stopped)`), and nothing is written.
 
 ## Improve round
 
