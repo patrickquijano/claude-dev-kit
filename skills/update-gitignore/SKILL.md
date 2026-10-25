@@ -33,7 +33,7 @@ disable-model-invocation: true
 1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
 2. **Analyze.** Spawn `cdk:repo-analyzer` with `kind: gitignore`, the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once. `Candidates: none` → step 3 for the secret check, then step 6 with `nothing-to-do`.
 3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:` (every tracked secret path, none dropped); the Output prints it even with `Candidates: none`, `Report only`, or `Stop`.
-4. **Choose.** AskUserQuestion: Add all (Recommended) | Add high-confidence only | Report only | Stop. Each option names the write.
+4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high: then Add high-confidence only goes first and is marked. Each option names the write; one reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing. No candidate left → no ask. Unattended → write per the Rules, `Confirmed: unattended`. Stop → `Confirmed: no (stopped)`.
 5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Then `check-ignore` the written paths.
 6. **Output.** Print the block below, nothing else.
 
@@ -53,6 +53,7 @@ Added: <path (category), ... | none>
 Skipped: <path: reason, ... | none>
 Tracked but ignored: <files; untrack yourself with git rm --cached | none>
 Secret exposure: <tracked secret file names; rotate the secret and untrack with git rm --cached | none>
+Confirmed: <Add all | Add high-confidence only | Report only | no (stopped) | unattended | n/a (nothing to do)>
 Verify: <all written paths ignored | not ignored: <path>>
 Next: /cdk:commit-changes | none
 Result: done | nothing-to-do | stopped | cancelled
