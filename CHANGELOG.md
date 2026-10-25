@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `/cdk:merge-github-pull-request` merges one GitHub pull request through the GitHub MCP server, with `gh` only where MCP lacks a step. It asks the merge method (squash recommended) and whether to delete the branch before merging, then verifies the merge commit. An admin bypass is offered only for your own PRs, with `ADMIN` permission, after you confirm.
 - `/cdk:review-github-pull-request` reviews one GitHub pull request on its own: it resolves addressed threads, analyzes in parallel, and posts one review pinned to the head SHA without asking for confirmation.
 - `/cdk:push-commits` pushes the current branch's pending commits to its origin branch with one normal push after you confirm (flags unsigned, fixup, and behind-remote commits); it stops with the reason when none are pending, on a protected branch, or on a detached HEAD.
 - `/cdk:address-github-pull-request-review` addresses a GitHub pull request's open review threads, change requests, and failing checks: it triages each item, fixes the valid ones with tests in one commit per item, pushes once, and replies on each addressed thread with the short SHA. It never force-pushes or resolves threads, and `--dry-run` prints the push and replies instead of running them.
