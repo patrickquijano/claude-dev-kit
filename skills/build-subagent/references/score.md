@@ -1,6 +1,6 @@
 # Score
 
-Steps 2, 3, 8–10 of `SKILL.md`: locate, baseline an improve, the check, inline scoring and fixing, validation, the delegation test, and `Open:`. The only spawn is `cdk:rubric-scorer` (`## Spawn briefs`).
+Steps 2–4, 8–10 of `SKILL.md`: locate, baseline an improve, the check, inline scoring and fixing, validation, the delegation test, and `Open:`. The only spawn is `cdk:rubric-scorer` (`## Spawn briefs`).
 
 ## Locate
 
@@ -19,7 +19,7 @@ Improve only: run `check-agent` and spawn `cdk:rubric-scorer` per `## Spawn brie
 
 1. Spawn `cdk:rubric-scorer` per `## Spawn briefs` and take its score table, `Deductions`, and `Contract`; criteria marked "S" come from the check JSON.
 2. Show the score table and deductions, largest first, each with its concrete fix.
-3. Fix every deduction with `Edit` on the agent file only, then re-run `check-agent` and rescore by respawning the scorer. Rules: score 95 or more with `check-agent` passing → stop; a round that changes no file or does not raise the score → stop; at most 3 rounds, shared with Rules. Never edit an agent only to silence a finding, and never invent a fact to gain points.
+3. Fix every deduction with `Edit` on the agent file only, then re-run `check-agent` and rescore by respawning the scorer. Rules: score 95 or more with `check-agent` passing → stop; a round that changes no file or does not raise the score → stop; at most 3 rounds, shared with Rules. Update and improve only: an edit outside the Brief's listed lines → ask once (Apply | Skip | Stop) before applying it; Stop → end the loop, `Result: stopped`, `Stopped: 8: edit declined`. Never edit an agent only to silence a finding, and never invent a fact to gain points.
 4. What is left goes to `Open:`.
 
 ## Contract
@@ -28,7 +28,7 @@ Optional, read-only, only when the user names a spawner file: confirm it passes 
 
 ## Validate
 
-Once, after the loop ends: run `validate-agents` on the directory of the agent file, then `debug-log-search` when `claude-version` allows it. A failure goes to `Open:` with no retry; a command that cannot run (no `claude`, older than the gate) → `Not tested: <why>`.
+Once, after the loop ends: run `validate-agents` on the directory of the agent file, then `debug-log-search`. A failure goes to `Open:` with no retry; a command that cannot run (no `claude`) → `Not tested: <why>`.
 
 ## Delegation test
 

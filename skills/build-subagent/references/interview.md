@@ -8,13 +8,13 @@ Steps 4–6 of `SKILL.md` (plan mode, Gate 1): ask only what the input and repo 
 
 ## Plan mode
 
-Runs once at the end of step 4 (Mode), after the snapshot refresh and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
+Runs once at the end of step 4 (Mode), after the snapshot fetch and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the AskUserQuestion Brief (Confirm | Revise | Stop).
 - Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
-- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited). Call `ExitPlanMode`.
-- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 6 batches; cap hit → `Result: stopped`. A rejection that asks to stop → `Result: cancelled`, write nothing.
-- The backup and write come only after approval.
+- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, the `docs-snapshot.md` refresh when due). Call `ExitPlanMode`.
+- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 6 batches; cap hit → `Result: stopped`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again.
+- The backup, the snapshot refresh, and the write come only after approval.
 
 ## Protocol
 
@@ -46,7 +46,7 @@ Runs once at the end of step 4 (Mode), after the snapshot refresh and the Baseli
 
 ## Optional capabilities
 
-One multi-select question (Stop included), each option set only when chosen: `color` (display only), `maxTurns`, `isolation: worktree`, `memory` (makes the agent write-capable), `skills`, `background`, `omitClaudeMd`, `permissionMode` / `mcpServers` / `hooks` / `initialPrompt` (Personal or Project only). Propose none by default; each pick needs a signal from `agent-checklist.md` `## Fields on signal`. Nothing chosen → the field is omitted and the Brief says so with the default it falls back to.
+Multi-select questions of at most 3 capabilities each, batched per `## Protocol` (Stop on every batch); each option set only when chosen: `color` (display only), `maxTurns`, `isolation: worktree`, `memory` (makes the agent write-capable), `skills`, `background`, `omitClaudeMd`, `permissionMode` / `mcpServers` / `hooks` / `initialPrompt` (Personal or Project only). Propose none by default; each pick needs a signal from `agent-checklist.md` `## Fields on signal`. Nothing chosen → the field is omitted and the Brief says so with the default it falls back to.
 
 ## Fit
 
@@ -82,7 +82,7 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 | The input cannot say which job matters most                 | Stop      | Guessing builds the wrong agent; ask the user to narrow down |
 
 - Split: each split agent gets its own interview; it inherits no tools, model, or trigger from the others. Show a before/after map (job → agent) and run the item 13 overlap check across the new descriptions (Unverified). Build the first now; list the rest in `Open:`.
-- Skill: move the work to a Skill: tell the user; build nothing.
+- Skill: move the work to a Skill: tell the user; build nothing, `Result: stopped`, `Stopped: <step>: moved to a skill` (the step that ran the question).
 - All options rejected or Stop → write nothing, `Result: cancelled`.
 
 ## Update and improve
@@ -159,6 +159,7 @@ A domain color wins over the generic one (security red and test blue beat review
 Step 6, before any write: show about 40 lines, then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
 
 - `Target: <absolute path>` and `Mode:`.
+- The `docs-snapshot.md` refresh, when due.
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
