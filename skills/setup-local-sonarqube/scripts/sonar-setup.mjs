@@ -1,4 +1,4 @@
-// Setup helper for cdk:setup-local-sonarqube: stack detection, image tag lookup with a daily cache, compose.sonar.yaml rendering, and server configuration into .env.sonar.
+// Setup helper for setup-local-sonarqube: stack detection, image tag lookup with a daily cache, compose.sonar.yaml rendering, and server configuration into .env.sonar.
 // CLI: `detect`, `tags`, `compose`, and `configure` (see `main` usage); JSON on stdout.
 import { execFileSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -762,7 +762,7 @@ export async function configure({ root } = {}, deps = {}) {
     const body = [...env].map(([k, v]) => `${k}=${v}`).join('\n');
     d.writeText(
       file,
-      `# Written by cdk:setup-local-sonarqube. Docker Compose interpolation reads the shell or .env, not this file.\n${body}\n`,
+      `# Written by setup-local-sonarqube. Docker Compose interpolation reads the shell or .env, not this file.\n${body}\n`,
       0o600
     );
     result.env = file;

@@ -1,6 +1,6 @@
 # Plan
 
-Details plan mode and step 6 of `${CLAUDE_SKILL_DIR}/SKILL.md`; the researcher brief is in `spawns.md`.
+Details plan mode and step 6 of `${CLAUDE_SKILL_DIR}/SKILL.md`.
 
 ## Plan mode
 
@@ -14,7 +14,7 @@ Runs once, right after pre-flight passes. Unattended (subagent or print mode) �
 
 ## Step 6
 
-1. Spawn one `cdk:topic-researcher` per selected major (and minor with breaking changes), at most 4 per message, in batches until all are done. Scope: the `Breaking:` URLs and `Affects:` hits. Its `Answer:` is the required edit per file.
+1. Spawn one read-only researcher subagent per selected major (and minor with breaking changes), at most 4 per message, in batches until all are done. Scope: the `Breaking:` URLs and `Affects:` hits. Its `Answer:` is the required edit per file.
 2. Check each edit against Grep hits for the package's API in the repo. Drop an edit with no hit or one that targets another file; print the rest.
 3. Patch and minor edits apply without asking.
 4. Each major's edits → in plan mode no question: the plan file marks it Apply and the user edits it to Skip at approval. Plan mode `declined` → AskUserQuestion Apply | Skip. Skipped → `Skipped:` and `Open:`; dismissing the Apply | Skip question → `Result: cancelled`, `Stopped: 6: user cancelled`. Unattended: skip the question and list majors under `Open:`.

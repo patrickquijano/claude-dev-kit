@@ -34,4 +34,4 @@ Read manifests and tool configs, then look for what they produce on disk. A cand
 
 ## Tracked secrets
 
-A tracked file matching the Secrets category (`.env`, `.env.*` except templates, `*.pem`, `*.key`, `credentials.json`) is secret exposure. The analyzer lists every such tracked file under `Tracked but ignored`, whether or not a candidate matches it.
+A tracked file matching the Secrets category (`.env`, `.env.*` except templates, `*.pem`, `*.key`, `credentials.json`) is secret exposure. The analyst lists every such tracked file under `Tracked but ignored`, whether or not a candidate matches it.
