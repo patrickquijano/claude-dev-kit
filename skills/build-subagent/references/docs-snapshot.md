@@ -1,14 +1,14 @@
 # Docs snapshot
 
-Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists.
+Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists, except `experimental.cacheTtl` and the `autoCompactWindow` range.
 
-Fetched: 2026-10-24 (local Claude Code 2.1.310; highest version gate v2.1.302)
+Fetched: 2026-10-24
 
 Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL; unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated <the `Fetched:` date>)": omit it and list it in `Unverified:`.
 
 ## Contents
 
-- Format · Fields · Version gates · Tools · Permission modes · Scopes and precedence · Plugin restrictions · Trust and environment · Changed since the earlier baseline · Unverified
+- Format · Fields · Version gates · Tools · Permission modes · Scopes and precedence · Plugin restrictions · Trust and environment · Changed facts · Unverified
 
 ## Format
 
@@ -85,9 +85,9 @@ Plugin agents ignore `permissionMode`, `hooks`, `mcpServers`, `initialPrompt`; a
 - Inline `mcpServers` need trust of the agent file's own folder (v2.1.238); frontmatter `hooks` in an untrusted folder are skipped (v2.1.218); user-scope hooks need no trust. Changed.
 - `CLAUDE_CODE_SUBAGENT_MODEL` overrides `model` unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` is set. Changed.
 
-## Changed since the earlier baseline
+## Changed facts
 
-Plugin load rules, `initialPrompt` scope, MCP names with `__`, plan-mode inheritance, folder trust, the version gates above, `CLAUDE_CODE_EFFORT_LEVEL`, the background tool set, name persistence after a restart (v2.1.299), and fork mode (v2.1.302). Everything else in this file was Confirmed unchanged.
+Facts that differ from the earlier baseline: plugin load rules, `initialPrompt` scope, MCP names with `__`, plan-mode inheritance, folder trust, the version gates above, `CLAUDE_CODE_EFFORT_LEVEL`, the background tool set, name persistence after a restart (v2.1.299), and fork mode (v2.1.302). Everything else in this file was Confirmed unchanged.
 
 ## Unverified
 

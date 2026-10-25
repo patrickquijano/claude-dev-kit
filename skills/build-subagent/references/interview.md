@@ -1,6 +1,6 @@
 # Interview
 
-Steps 4–6 of `SKILL.md` (plan mode, Gate 1): ask only what the input and repo cannot answer, then gate the write on a confirmed brief. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
+Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo cannot answer, then gate the write on a confirmed brief. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
 
 ## Contents
 
@@ -8,21 +8,21 @@ Steps 4–6 of `SKILL.md` (plan mode, Gate 1): ask only what the input and repo 
 
 ## Plan mode
 
-Runs once at the end of step 4 (Mode), after the snapshot fetch and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
+Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFetch` only reads; the refresh is written at step 7) and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the AskUserQuestion Brief (Confirm | Revise | Stop).
 - Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
 - At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, the `docs-snapshot.md` refresh when due). Call `ExitPlanMode`.
-- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 6 batches; cap hit → `Result: stopped`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again.
+- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 8 batches; cap hit → `Result: stopped`, `Stopped: 6: batch cap`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again.
 - The backup, the snapshot refresh, and the write come only after approval.
 
 ## Protocol
 
 - At most 3 questions per batch, 2–4 options plus Other, the recommended option first, worded as a proposal with a one-line reason that cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch.
-- At most 6 batches in all (13 items at 3 per batch need at least 5). Skip an item the input or a named file already answers; record its source (`user` or the path).
+- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including Brief Revise and plan rejections. Cap hit before a Brief is confirmed → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path).
 - Resolved means a user choice or a named file; never an assumption or a default.
 - A vague answer ("whatever", "not sure") or "I don't know" → one follow-up with concrete options, or offer a read-only look-up (Grep, Read) and ask again with its result; still unresolved → stop with `Result: stopped`, never fill the gap.
-- Any change at the brief reopens only the items it touches (counts toward the 6 batches).
+- Any change at the brief reopens only the items it touches (counts toward the 8 batches).
 
 ## Items
 
@@ -70,7 +70,7 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 | -------- | -------------------------------------------------------------------- | --------------------------------------------------- |
 | A Split  | One agent per job, each with a full interview of its own             | More files and descriptions; each stays minimal     |
 | B Narrow | One agent for the chosen job; the rest dropped and listed in `Open:` | The dropped jobs need another route later           |
-| C Skill  | Move the multi-step workflow into a skill; the agent keeps one step  | Skill adds to the main context; agent stays focused |
+| C Skill  | Move the workflow into a skill; no agent is built now                | Skill adds to the main context; agent stays focused |
 | Stop     | Write nothing                                                        | The user narrows the request first                  |
 
 | Signal                                                      | Recommend | Why                                                          |
@@ -81,7 +81,7 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 | The jobs form an ordered workflow with user decisions       | C Skill   | Orchestration with user interaction is a skill's job         |
 | The input cannot say which job matters most                 | Stop      | Guessing builds the wrong agent; ask the user to narrow down |
 
-- Split: each split agent gets its own interview; it inherits no tools, model, or trigger from the others. Show a before/after map (job → agent) and run the item 13 overlap check across the new descriptions (Unverified). Build the first now; list the rest in `Open:`.
+- Split: each split agent gets its own interview; it inherits no tools, model, or trigger from the others. Show a before/after map (job → agent) and run the item 13 overlap check across the new descriptions (Unverified). Build the first now; `Next: build <names>` lists the rest.
 - Skill: move the work to a Skill: tell the user; build nothing, `Result: stopped`, `Stopped: <step>: moved to a skill` (the step that ran the question).
 - All options rejected or Stop → write nothing, `Result: cancelled`.
 
@@ -122,7 +122,7 @@ Criteria: reasoning depth, cost of a miss, context size, spawn frequency and lat
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `haiku`  | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                     |
 | `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                   |
-| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | Most capable of the three, slower and costlier; use only when an error costs more than the run                              |
+| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run                             |
 | `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (prices: see the models overview); recommend only when the input says `opus` is not enough |
 
 Never omit `model`. `inherit` is written only when the user confirms it (the agent then follows the parent's model); otherwise recommend the alias the criteria support and say why.
@@ -135,7 +135,7 @@ Never omit `model`. `inherit` is written only when the user confirms it (the age
 | `xhigh`  | Interdependent planning, conflict resolution, long-horizon edits                                    | Slower still; use when `high` misses cross-step dependencies |
 | `max`    | Only when the input says `xhigh` is not enough                                                      | Slowest and most expensive level                             |
 
-Layout: model options `haiku`, `sonnet`, `opus`, `fable` with the recommended one first, `inherit` under Other; effort: the recommended level first, then its two neighbours; "Other" covers a full model ID only for model.
+Layout: model options the recommended alias first and one alternate it was weighed against, the other aliases and `inherit` under Other; effort: the recommended level first, then its two neighbours; "Other" covers a full model ID only for model.
 
 ## Color
 
@@ -156,7 +156,7 @@ A domain color wins over the generic one (security red and test blue beat review
 
 ## Brief
 
-Step 6, before any write: show about 40 lines, then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
+Step 6, before any write: show at most 40 lines (a longer diff goes to the plan file), then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
 
 - `Target: <absolute path>` and `Mode:`.
 - The `docs-snapshot.md` refresh, when due.

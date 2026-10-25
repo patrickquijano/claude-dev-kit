@@ -1,6 +1,6 @@
 # Rubric
 
-100 points; pass at 95 or more. Score one agent file. "S" marks criteria `check-agent` covers: score them from its JSON (an error is a deduction, cite `file:line`). A criterion that cannot apply is N/A and earns full points; state why.
+100 points; pass at 100. Score one agent file. "S" marks criteria `check-agent` covers: score them from its JSON (an error is a deduction, cite `file:line`). A criterion that cannot apply is N/A and earns full points; state why.
 
 ## Frontmatter (33)
 
@@ -19,9 +19,9 @@
 | ID  | Pts | Criterion                                                                                                                                                      |
 | --- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | B1  | 3   | S: a one-line prose role comes first                                                                                                                           |
-| B2  | 6   | S: `## Task` is numbered; step 1 names the delegation inputs                                                                                                   |
+| B2  | 6   | `## Task` is numbered (S); step 1 names the delegation inputs                                                                                                  |
 | B3  | 5   | The Question contract: the body names the delegation-message inputs and a missing one returns `Question: <what is needed and why>`, never `AskUserQuestion`    |
-| B4  | 7   | S: `## Return` follows Task with a fixed, concise structure holding only fields the parent uses                                                                |
+| B4  | 7   | `## Return` exists after Task (S) with a fixed, concise structure holding only fields the parent uses                                                          |
 | B5  | 5   | Boundaries and out-of-scope stated; read-only stated when `tools` is read-only                                                                                 |
 | B6  | 6   | Style: reasons beside rules, positive phrasing, no caps emphasis, no filler, nothing CLAUDE.md carries                                                         |
 | B7  | 4   | A stop condition or cap is stated for any loop                                                                                                                 |
@@ -49,5 +49,5 @@ Optional: scored only when the user names a spawner file; otherwise N/A, full po
 ## Scoring
 
 - Award full, partial, or zero points per criterion from evidence; cite `file:line`.
-- Total = sum of awarded points, written term by term. Pass at 95 or more.
+- Total = sum of awarded points, written term by term. Pass at 100.
 - Deductions list largest first, each with the concrete fix.
