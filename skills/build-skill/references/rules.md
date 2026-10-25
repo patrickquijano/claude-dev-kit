@@ -18,9 +18,9 @@ MUST
 - Set the invocation flags the user picked in the invocation question; keep least-privilege `allowed-tools`.
 - `context: fork` only for explicit task skills. The body must hold everything the task needs; set `background: false` if the result is needed this turn.
 - Paths: ${CLAUDE_SKILL_DIR}, forward slashes.
-- **Standalone**: the skill reads only its own bundled files through `${CLAUDE_SKILL_DIR}`. It never names, invokes, or requires another skill: no Skill tool, no `/other` or `/plugin:other` command, no `${CLAUDE_PLUGIN_ROOT}` path. Every spawned subagent has an inline fallback for when it is unavailable.
+- **Standalone**: the skill reads only its own bundled files through `${CLAUDE_SKILL_DIR}`. It never names, invokes, or requires another skill: no Skill tool, no `/other` or `/plugin:other` command, no `${CLAUDE_PLUGIN_ROOT}` path. A spawn describes the role in plain words and never names an agent (built-in or plugin), and each spawned subagent has an inline fallback for when it is unavailable. Exception: a third-party skill installed by an outside tool (for example `specify init`) may be invoked on a line that says it is third-party.
 - Fully qualified MCP names (Server:tool).
-- At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases: should-be-skill, should-be-subagent, should-be-neither, hybrid.
+- At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases (should-be-skill, should-be-subagent, should-be-neither, hybrid) when the skill makes a fit decision.
 
 MUST NOT
 
@@ -97,7 +97,7 @@ Description: one job; third person; the words users say; distinctive. A side-eff
 | `${CLAUDE_SKILL_DIR}`                            | This skill's directory; use it in script and file paths            |
 | `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | Plugin skills only; never used by a standalone skill               |
 
-Escape a literal dollar as `\$1.00`. Injection (an exclamation mark before a backticked command) runs before Claude reads the skill and aborts the invocation on a non-zero exit; a skill reads its own files with Read instead, so it never needs one.
+Escape a literal dollar as `\$1.00`. Injection (an exclamation mark before a backticked command) runs before Claude reads the skill and aborts the invocation on a non-zero exit; prefer Read for the skill's own files. An injection in SKILL.md needs an `||` fallback, and none belongs in `references/`.
 
 ## Scope paths
 
@@ -129,13 +129,13 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 5. [F10] A Claude Code-only key is present → `compatibility` says "Claude Code" and warns that claude.ai/API uploads reject unknown keys.
 6. [F11] `context: fork` → `background` is set (`false` when the result is needed this turn). [F12] `agent` only with `context: fork`.
 7. [F13] `allowed-tools` lists Write, Edit, or Bash → the flags match the recorded invocation choice (warning when `disable-model-invocation: true` is absent).
-8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; name a cdk: agent.
+8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; describe the role in plain words, never an agent name.
 9. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
-10. [B6] No injection syntax anywhere. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
+10. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
 11. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
 12. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
 13. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
-14. [S1] Never a Skill tool, `/other` or `/plugin:other` command, or `${CLAUDE_PLUGIN_ROOT}` path outside code fences. [S2] Each spawn has an inline fallback (judgment-only: the script does not check it).
+14. [S1] Never a Skill tool, `/other` or `/plugin:other` command, `${CLAUDE_PLUGIN_ROOT}` path, or plugin-qualified agent name outside code fences, nor a qualified command on a `Next:` line inside one (a third-party line is exempt from the Skill tool and bare-command checks). [S2] Each spawn has an inline fallback (judgment-only: the script does not check it).
 
 ## Sources
 

@@ -26,7 +26,7 @@ Input: $ARGUMENTS
 
 - <Constraint that must hold, most important first.>
 - Loops: at most <n> rounds; then report what is left.
-- <A spawned subagent needs an inline fallback for when it is unavailable.>
+- <Describe a spawned subagent by its role in plain words, never an agent name, and give it an inline fallback for when it is unavailable.>
 
 ## Workflow
 
@@ -48,7 +48,7 @@ Input: $ARGUMENTS
 ```text
 <fixed fields>
 Open: <what is left | none>
-Next: <follow-up> | none
+Next: <follow-up in plain words, never a skill command> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

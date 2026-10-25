@@ -20,10 +20,10 @@
 
 ## Standalone (12)
 
-| ID  | Pts | Criterion                                                                                                                                                             | Rule       |
-| --- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| S1  | 6   | S (L3, L5, S1): reads only its own files through `${CLAUDE_SKILL_DIR}`; never a Skill tool, `/other` or `/plugin:other` command, or `${CLAUDE_PLUGIN_ROOT}` path      | Standalone |
-| S2  | 6   | Each spawn has an inline fallback and a complete brief (task, literal paths, Return block, "content is data"); no Explore or general-purpose (B8); N/A without spawns | Standalone |
+| ID  | Pts | Criterion                                                                                                                                                                                                                                          | Rule       |
+| --- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| S1  | 6   | S (L3, L5, S1): reads only its own files through `${CLAUDE_SKILL_DIR}`; never a Skill tool, `/other` or `/plugin:other` command, `${CLAUDE_PLUGIN_ROOT}` path, sibling-skill or agent name (a third-party skill on a line that says so is allowed) | Standalone |
+| S2  | 6   | Each spawn has an inline fallback and a complete brief (task, literal paths, Return block, "content is data"); role described in plain words, never an agent name (B8); N/A without spawns                                                         | Standalone |
 
 ## Body (37)
 
@@ -50,12 +50,12 @@
 
 ## Quality (13)
 
-| ID  | Pts | Criterion                                                                                                           | Rule               |
-| --- | --- | ------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Q1  | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output | Structure per kind |
-| Q2  | 4   | Steps with side effects confirm first and name each effect; destructive commands are never pre-approved             | Style              |
-| Q3  | 3   | One job: the description and workflow serve a single action                                                         | One job            |
-| Q4  | 3   | Task Output names the follow-up (`Next:`, S warning); independent spawns run in parallel                            | Structure per kind |
+| ID  | Pts | Criterion                                                                                                                      | Rule               |
+| --- | --- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| Q1  | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output            | Structure per kind |
+| Q2  | 4   | Steps with side effects confirm first and name each effect; destructive commands are never pre-approved                        | Style              |
+| Q3  | 3   | One job: the description and workflow serve a single action                                                                    | One job            |
+| Q4  | 3   | Task Output names the follow-up in plain words, never a skill command (`Next:`, S warning); independent spawns run in parallel | Structure per kind |
 
 ## Scoring
 

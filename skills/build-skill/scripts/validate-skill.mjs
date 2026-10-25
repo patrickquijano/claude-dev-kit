@@ -311,7 +311,7 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
           'B8',
           'SKILL.md',
           i + 1,
-          'spawns Explore or general-purpose: name a cdk: agent instead'
+          'spawns Explore or general-purpose: describe the role in plain words instead of naming an agent'
         )
       );
     }
@@ -523,9 +523,13 @@ const SKILL_TOOL = /\bSkill tool\b/;
 const PLUGIN_ROOT = /\$\{CLAUDE_PLUGIN_ROOT\}/;
 const QUALIFIED_SLASH = /(?<![\w/:.-])\/([a-z0-9-]+):([a-z0-9-]+)\b/g;
 const INVOKE_SLASH = /\b(?:run|invoke|call)\s+`?\/([a-z0-9-]+)(?![\w/:-]|\.\w)/gi;
+// A plugin-qualified agent or skill name (`cdk:task-worker`); an image tag (`node:22-alpine`) starts its second part with a digit.
+const AGENT_NAME = /(?<![\w/.:@-])([a-z0-9-]+):([a-z][a-z0-9]*-[a-z0-9-]+)\b/g;
+const THIRD_PARTY = /third-party/i;
 
-// S1: SKILL.md and references/*.md, outside code fences, never invoke another skill (Skill tool, slash command, plugin root);
-// a line with "never" and the skill's own name are exempt, bare skill names stay a rubric judgment.
+// S1: SKILL.md and references/*.md, outside code fences, never invoke another skill (Skill tool, slash command, plugin root)
+// or name an agent (`plugin:agent-name`); a `Next:` line inside a fence is checked for a qualified command too.
+// A line with "never", the skill's own name, and (for the Skill tool and bare commands) a "third-party" line are exempt.
 export function checkSkillReferences(files, dir, name, deps = defaults) {
   const found = [];
   const targets = files.filter((f) => f === 'SKILL.md' || (f.startsWith('references/') && f.endsWith('.md')));
@@ -539,12 +543,19 @@ export function checkSkillReferences(files, dir, name, deps = defaults) {
           inFence = !inFence;
           return;
         }
-        if (inFence || /\bnever\b/i.test(line)) return;
+        if (/\bnever\b/i.test(line)) return;
         const hits = [];
-        if (SKILL_TOOL.test(line)) hits.push('the Skill tool');
-        if (PLUGIN_ROOT.test(line)) hits.push('${CLAUDE_PLUGIN_ROOT}');
-        for (const m of line.matchAll(QUALIFIED_SLASH)) if (m[2] !== name) hits.push(`/${m[1]}:${m[2]}`);
-        for (const m of line.matchAll(INVOKE_SLASH)) if (m[1] !== name) hits.push(`/${m[1]}`);
+        for (const m of line.matchAll(QUALIFIED_SLASH)) {
+          if (m[2] !== name && (!inFence || /^\s*Next:/.test(line))) hits.push(`/${m[1]}:${m[2]}`);
+        }
+        const names = [];
+        if (!inFence) {
+          const thirdParty = THIRD_PARTY.test(line);
+          if (SKILL_TOOL.test(line) && !thirdParty) hits.push('the Skill tool');
+          if (PLUGIN_ROOT.test(line)) hits.push('${CLAUDE_PLUGIN_ROOT}');
+          if (!thirdParty) for (const m of line.matchAll(INVOKE_SLASH)) if (m[1] !== name) hits.push(`/${m[1]}`);
+          for (const m of line.matchAll(AGENT_NAME)) if (m[2] !== name && m[1] !== 'mcp') names.push(m[0]);
+        }
         for (const what of hits) {
           found.push(
             error(
@@ -553,6 +564,17 @@ export function checkSkillReferences(files, dir, name, deps = defaults) {
               file,
               i + 1,
               `${what} invokes or requires another skill: a skill stays standalone`
+            )
+          );
+        }
+        for (const what of names) {
+          found.push(
+            error(
+              'agent-name',
+              'S1',
+              file,
+              i + 1,
+              `"${what}" names an agent or skill: describe the role in plain words`
             )
           );
         }
