@@ -66,7 +66,7 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 | `hooks`                    |     | hook config, kept for the session                                       | A rule must hold every time                      |
 | `shell`                    |     | `bash` (default) or `powershell`                                        | Injection blocks need PowerShell                 |
 
-Description: one job; third person; the words users say; distinctive. A side-effect task ends with "Use only when the user explicitly asks to <action>." Never name another skill or subagent. Not triggering → add natural keywords; over-triggering → narrow it or set `disable-model-invocation: true`.
+Description: one job; third person; the words users say; distinctive. A side-effect task with `disable-model-invocation: true` ends with "Use only when the user explicitly asks to <action>." Never name another skill or subagent. Not triggering → add natural keywords; over-triggering → narrow it, or suggest `disable-model-invocation: true`.
 
 ## Invocation matrix
 
@@ -128,7 +128,7 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 4. [F6] Every frontmatter key is in the fields table; the YAML opens on line 1 and closes.
 5. [F10] A Claude Code-only key is present → `compatibility` says "Claude Code" and warns that claude.ai/API uploads reject unknown keys.
 6. [F11] `context: fork` → `background` is set (`false` when the result is needed this turn). [F12] `agent` only with `context: fork`.
-7. [F13] `allowed-tools` lists Write, Edit, or Bash → the flags match the recorded invocation choice (warning when `disable-model-invocation: true` is absent).
+7. [F13] `allowed-tools` lists Write, Edit, or Bash → the flags match the recorded invocation choice (warning when `disable-model-invocation: true` is absent; a recorded Allow choice → the warning is informational, not a deduction).
 8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; describe the role in plain words, never an agent name.
 9. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
 10. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
