@@ -8,6 +8,7 @@ import {
   checkReferences,
   checkSelfContained,
   checkSkill,
+  checkSkillReferences,
   checkStandalone,
   FrontmatterError,
   main,
@@ -551,6 +552,83 @@ describe('checkStandalone', () => {
     const found = run(files);
     // Assert
     assert.deepEqual(ids(found), ['link-outside']);
+  });
+});
+
+describe('checkSkillReferences', () => {
+  const run = (files, name = 'demo') => checkSkillReferences(Object.keys(files).sort(), '/d', name, makeDeps(files));
+
+  test('errors on the Skill tool', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Step 1: use the Skill tool to lint.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(ids(found), ['skill-reference']);
+  });
+
+  test('errors on a qualified slash command in a reference', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'x', 'references/a.md': 'Then `/plugin:other` runs.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.equal(found[0].file, 'references/a.md');
+    assert.equal(found[0].line, 1);
+  });
+
+  test('errors on ${CLAUDE_PLUGIN_ROOT}', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Read `${CLAUDE_PLUGIN_ROOT}/x`.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(ids(found), ['skill-reference']);
+  });
+
+  test('errors on a bare slash command after run', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'First run /lint-code.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(ids(found), ['skill-reference']);
+  });
+
+  test('allows a line with never', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Never invoke /plugin:other or the Skill tool.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test("allows the skill's own name", () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Invoked as /cdk:demo or run /demo.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('allows a fenced example', () => {
+    // Arrange
+    const files = { 'SKILL.md': '```text\nrun /plugin:other\n```' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('allows plain qualified text without a slash', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Spawn cdk:agent-name for it.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
   });
 });
 

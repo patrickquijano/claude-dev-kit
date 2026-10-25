@@ -35,6 +35,12 @@ describe('validate-skill CLI', () => {
       join(linker, 'SKILL.md'),
       '---\nname: link-other\ndescription: Links out. Use when asked.\n---\n\n## Files\n\n- See `${CLAUDE_SKILL_DIR}/../other/x.md`.\n\n## Output\n\n```text\nResult: done\n```\n'
     );
+    const caller = join(root, 'call-other');
+    mkdirSync(caller);
+    writeFileSync(
+      join(caller, 'SKILL.md'),
+      '---\nname: call-other\ndescription: Calls out. Use when asked.\n---\n\nFirst run `/other:skill`.\n\n## Output\n\n```text\nResult: done\n```\n'
+    );
     const dots = join(root, 'dot-files');
     mkdirSync(dots);
     writeFileSync(
@@ -45,6 +51,16 @@ describe('validate-skill CLI', () => {
     writeFileSync(join(dots, '.env'), 'x\n');
   });
   after(() => rmSync(root, { recursive: true, force: true }));
+
+  test('exits 1 with skill-reference for a skill that invokes another skill', () => {
+    // Arrange
+    const dir = join(root, 'call-other');
+    // Act
+    const result = run(dir, '--kind', 'task');
+    // Assert
+    assert.equal(result.status, 1);
+    assert.ok(JSON.parse(result.stdout).errors.some((e) => e.id === 'skill-reference'));
+  });
 
   test('flags .env but ignores .DS_Store', () => {
     // Arrange

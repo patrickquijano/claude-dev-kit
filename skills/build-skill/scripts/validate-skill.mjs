@@ -1,4 +1,4 @@
-// Mechanical checks for one skill directory (frontmatter, size, layout, links, self-containment, Output); prints JSON.
+// Mechanical checks for one skill directory (frontmatter, size, layout, links, self-containment, skill references, Output); prints JSON.
 // Self-contained on purpose: plugin installs have no node_modules, and no skill may link another skill's files.
 import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, join, posix, resolve } from 'node:path';
@@ -519,6 +519,48 @@ export function checkSelfContained(files, dir, deps = defaults) {
   return found;
 }
 
+const SKILL_TOOL = /\bSkill tool\b/;
+const PLUGIN_ROOT = /\$\{CLAUDE_PLUGIN_ROOT\}/;
+const QUALIFIED_SLASH = /(?<![\w/:.-])\/([a-z0-9-]+):([a-z0-9-]+)\b/g;
+const INVOKE_SLASH = /\b(?:run|invoke|call)\s+`?\/([a-z0-9-]+)(?![\w/:-]|\.\w)/gi;
+
+// S1: SKILL.md and references/*.md, outside code fences, never invoke another skill (Skill tool, slash command, plugin root);
+// a line with "never" and the skill's own name are exempt, bare skill names stay a rubric judgment.
+export function checkSkillReferences(files, dir, name, deps = defaults) {
+  const found = [];
+  const targets = files.filter((f) => f === 'SKILL.md' || (f.startsWith('references/') && f.endsWith('.md')));
+  for (const file of targets) {
+    let inFence = false;
+    deps
+      .read(join(dir, file))
+      .split('\n')
+      .forEach((line, i) => {
+        if (FENCE.test(line)) {
+          inFence = !inFence;
+          return;
+        }
+        if (inFence || /\bnever\b/i.test(line)) return;
+        const hits = [];
+        if (SKILL_TOOL.test(line)) hits.push('the Skill tool');
+        if (PLUGIN_ROOT.test(line)) hits.push('${CLAUDE_PLUGIN_ROOT}');
+        for (const m of line.matchAll(QUALIFIED_SLASH)) if (m[2] !== name) hits.push(`/${m[1]}:${m[2]}`);
+        for (const m of line.matchAll(INVOKE_SLASH)) if (m[1] !== name) hits.push(`/${m[1]}`);
+        for (const what of hits) {
+          found.push(
+            error(
+              'skill-reference',
+              'S1',
+              file,
+              i + 1,
+              `${what} invokes or requires another skill: a skill stays standalone`
+            )
+          );
+        }
+      });
+  }
+  return found;
+}
+
 // Runs every check on one skill directory.
 export function checkSkill(dir, { kind } = {}, deps = defaults) {
   const files = deps.list(dir);
@@ -538,6 +580,7 @@ export function checkSkill(dir, { kind } = {}, deps = defaults) {
   }
   found.push(...checkSelfContained(files, dir, deps));
   found.push(...checkStandalone(files, dir, deps));
+  found.push(...checkSkillReferences(files, dir, basename(resolve(dir)), deps));
   const strip = (f) => ({ id: f.id, rule: f.rule, file: f.file, line: f.line, message: f.message });
   const errors = found.filter((f) => f.level === 'error').map(strip);
   const warnings = found.filter((f) => f.level === 'warning').map(strip);
