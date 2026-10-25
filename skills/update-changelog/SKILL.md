@@ -34,11 +34,11 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop. Read `format.md`. Input `release <version> [date]` → release mode; `base <branch>` → base override; anything else → ask (unattended: `Stopped: 1: unknown input`). Find `CHANGELOG.md` at root, case-insensitive (absent → create from the template). Existing file without `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop; unattended → `Stopped: 1: changelog not Keep a Changelog shaped`. Format drift in released sections → ask per `flow.md` `## Format drift`.
-2. **Base.** Run `fetch` and `merge-base` per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Base`.
-3. **Collect.** Run `commits`, `committed-names`, `committed-stat`, `status`, `staged-names`, `unstaged-names`; read untracked text files. Read diffs only for candidate user-facing paths (skip generated, lock, binary). Nothing changed → `Result: nothing-to-do`.
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop. Read `format.md`. Input `release <version> [date]` → release mode; `base <branch>` → base override; anything else → ask (unattended: `Stopped: 1: unknown input`). Find `CHANGELOG.md` at root, case-insensitive (absent → create from the template). Existing file without `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop; unattended → `Stopped: 1: changelog not Keep a Changelog shaped`.
+2. **Base.** Run `fetch` and `merge-base`, and read `base-changelog`, per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Base`. Format drift in released sections → ask per `flow.md` `## Format drift`.
+3. **Collect.** Run `commits`, `committed-names`, `committed-stat`, `status`, `staged-names`, `unstaged-names`; read untracked text files. Read diffs only for candidate user-facing paths (skip generated, lock, binary). Nothing changed, not release mode, and no format drift → `Result: nothing-to-do`; a release run still cuts the Unreleased section.
 4. **Classify.** Map each change to Added, Changed, Deprecated, Removed, Fixed, Security, or an exclusion with its reason; one entry per user-visible effect; mark breaking changes.
-5. **Draft, confirm, write.** Compare with existing entries by meaning. Release mode asks per `flow.md` `## Release mode`. Differs from the file → print the entries to write, ask per `flow.md` `## Confirm`, then on Proceed write it and run `format-md` (the repo's configured Markdown formatter); identical → `unchanged`, no ask.
+5. **Draft, confirm, write.** Compare with existing entries by meaning. Release mode asks per `flow.md` `## Release mode`. Differs from the file → print the entries to write, ask per `flow.md` `## Confirm`, then on Proceed write it and run `format-md` (the Markdown command from the formatter config or a package script; none → skip); identical → `unchanged`, `Result: nothing-to-do`, no ask.
 6. **Review.** Run the review loop per `flow.md` `## Review loop`.
 7. **Report.** Print the Output.
 
@@ -53,7 +53,8 @@ Input: $ARGUMENTS
 ```text
 CHANGELOG: <path> (created | updated | unchanged)
 Mode: non-release | release <version> - <date>
-Range: <base>..HEAD (merge-base <sha>, <n> commits) | <tag>..HEAD
+Range: <base>..HEAD (merge-base <sha>, <n> commits) | <tag>..HEAD | all history | last 50
+Format: <cmd> | not configured
 Working tree: staged <n>, unstaged <n>, untracked <n>
 Entries:
 - <Section>: added <n>, updated <n>

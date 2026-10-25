@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versions descending. Heading `## [version] - YYYY-MM-DD` (ISO 8601); yanked → `## [version] - YYYY-MM-DD [YANKED]`.
 - Section order inside a version: Added, Changed, Deprecated, Removed, Fixed, Security. Omit empty sections.
 - Link references are always present: one per version heading plus `[unreleased]` (lowercase), newest first. Oldest version links to its tag or release page (no earlier tag to compare).
-- URLs come from `origin`: GitHub `/compare/a...b` and `/releases/tag/<tag>`, GitLab `/-/compare/a...b` and `/-/tags/<tag>`. Another host or no remote → ask (unattended: `Open:`). A tag that does not exist yet → still write the link and flag it.
+- URLs come from `origin`: GitHub `/compare/a...b` and `/releases/tag/<tag>`, GitLab `/-/compare/a...b` and `/-/tags/<tag>`. Another host or no remote → ask (unattended: `Open:`). A tag that does not exist yet → still write the link and flag under `Open:`.
 
 ## Types
 
@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Each entry is one sentence of about 25 words or fewer, ending with a period. More to say → split it into several bullets.
 - No bold prefixes or markers. Nested bullets only for a list of items, each following these rules.
 - Describe the effect, not the diff: never copy commit subjects, never list file paths unless the path is the user-facing surface.
-- Breaking change → plain wording that states what breaks and what to do, under Changed or Removed (e.g. "Rename `/cdk:a` to `/cdk:b`; the old name no longer works.").
+- Breaking change → plain wording that states what breaks and what to do, under Changed or Removed (e.g. "Rename `old-name` to `new-name`; the old name no longer works.").
 - Deprecations and removals are always listed.
 - Idempotent match: before adding, compare meaning against existing bullets in the target section (and the Unreleased section as a whole). Already represented → leave it; partly covered → update that bullet in place.
 
@@ -76,7 +76,7 @@ Report each with its reason; never add:
 
 **Non-release (default).** Edit `## [Unreleased]` and the link references (add missing ones; repoint `[unreleased]` when verifiably wrong). Released sections keep their content. Format-only drift in them (headings, dates, header, link refs, markers, bullet style) → list each fix and apply it only after approval per `flow.md` `## Format drift`; content changes to released entries need their own ask. Unattended → list the fixes under `Open:` without changing the file.
 
-**Release.** Needs a version and a date, both from the user (arguments or answers); never infer them from commits, tags, or the clock. Then:
+**Release.** Needs a version and a date, both from the user (arguments or answers); never infer them from commits, tags, or the clock (the clock date only when the user picks "Today"). Then:
 
 1. Run the non-release flow first so Unreleased is complete.
 2. `[version]` already in the file: when it also exists in the base branch's `CHANGELOG.md` (`git show <base>:<changelog path>`, base per the skill's Base step), stop. Otherwise it is an unmerged release section: merge any new Unreleased entries into it in place (by meaning, no duplicates), keep its date, leave Unreleased empty, and refresh the links.
@@ -108,7 +108,7 @@ Each item pass or fail in the review loop:
 4. Classification: type matches the change; only the six sections.
 5. Ordering: Unreleased first; versions descending; canonical section order.
 6. Format: exact header; SemVer line per the Template rule; `## [x] - YYYY-MM-DD`; blank lines around headings and lists; `-` bullets; one-sentence entries ending with `.`; no bold markers; file ends with one newline.
-7. Links: references are mandatory and `[unreleased]` is present; every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the tag prefix and host; each tag missing from `git tag --list` is flagged, never its link omitted.
+7. Links: references are mandatory and `[unreleased]` is present; every `[ref]` heading has a definition and every definition is used; compare URLs consistent with the tag prefix and host; each tag missing from `git tag --list` is flagged under `Open:`, never its link omitted.
 8. Released sections (present in the base branch's changelog) change only by approved format fixes (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and approved fixes.
 9. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
 10. Idempotency: re-deriving entries from the same inputs against the written file produces no change.

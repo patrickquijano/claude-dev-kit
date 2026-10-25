@@ -6,7 +6,7 @@
 
 ## Base
 
-Base: input `base`; else the open PR or MR base for the current branch by origin host (`origin-url`; github `pr-base`, gitlab `mr-base`; CLI missing or error → skip); else `default-branch`, else the first that resolves of `origin/main`, `origin/master`, `main`, `master`. Run `fetch`; failure or no remote → note it and use local refs. `mb` = `merge-base`. Current equals the base branch, or no merge-base → the range starts at the latest reachable tag (`latest-tag`, first); no tag → all history, and more than 50 commits → AskUserQuestion: Use the last 50 commits (Recommended) | Use all history | Stop.
+Base: input `base`; else the open PR or MR base for the current branch by origin host (`origin-url`; github `pr-base`, gitlab `mr-base`; CLI missing or error → skip); else `default-branch`, else the first that resolves of `origin/main`, `origin/master`, `main`, `master`. Run `fetch`; failure or no remote → note it and use local refs. `mb` = `merge-base`. Read `base-changelog` (absent on the base → no released sections). Current equals the base branch, or no merge-base → the range starts at the latest reachable tag (`latest-tag`, first); no tag → all history, and more than 50 commits → AskUserQuestion: Use the last 50 commits (Recommended) | Use all history | Stop.
 
 ## Release mode
 
@@ -27,6 +27,7 @@ One AskUserQuestion at step 5, after the entries to write are printed. The text 
 - Options: **Proceed** · **Revise** (notes via Other → back to step 4) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
 - Recommend Revise when `Blocked:` has an item or a classification is unresolved; else Proceed. The recommended option goes first with "(Recommended)".
 - Revise cap 2; cap hit → offer only Proceed and Stop.
+- Stop at any ask (restructure, base, release version or date, format drift, this confirm) → `Result: cancelled`, `Confirmed: no (stopped)`, `Stopped: <step>: user stopped`.
 - The release-mode and format-drift asks stay separate and come first; this ask does not repeat them.
 - The confirm covers this run's later edits to the same file (review loop); they print their diff and need no new ask.
 
@@ -36,4 +37,16 @@ Run the `format.md` `## Review checklist` against the file, the diffs, and `tags
 
 ## Fallback
 
-AskUserQuestion or Write unavailable (unattended run) → ask nothing, report `Confirmed: unattended`: an existing changelog that needs restructuring → `Stopped: 1: changelog not Keep a Changelog shaped`. Version or date missing in release mode → `Stopped: 5: version or date missing`. Format drift in released sections → list each fix under `Open:`, change nothing there. Missing link URL → `Open:`. Otherwise write non-release entries, and list every item that needed a decision in `Blocked:`.
+AskUserQuestion or Write unavailable (unattended run) → ask nothing, report `Confirmed: unattended`, and act per row:
+
+| Ask                                     | Action                                                    |
+| --------------------------------------- | --------------------------------------------------------- |
+| Changelog needs restructuring           | `Stopped: 1: changelog not Keep a Changelog shaped`       |
+| Release without version or date         | `Stopped: 5: version or date missing`                     |
+| Release with both version and date      | Cut the release                                           |
+| Format drift in released sections       | List each fix under `Open:`; change nothing there         |
+| Missing link URL                        | `Open:`                                                   |
+| More than 50 commits                    | Use the last 50; list under `Blocked:`                    |
+| Write unavailable                       | Print the entries, then `Stopped: 5: write unavailable`   |
+| Review-loop ask                         | List under `Open:`; change nothing                        |
+| Any other decision in a non-release run | Write non-release entries; list the item under `Blocked:` |
