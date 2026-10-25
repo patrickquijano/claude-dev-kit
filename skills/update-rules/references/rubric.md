@@ -46,7 +46,7 @@ N/A → full points; evidence states rule. Use only these rules.
 - Engineering principles: trade-off order in `CLAUDE.md` Precedence; repo-wide principles in unconditional `.claude/rules/principles.md`; stack-specific principles in path-scoped rules. Details: `principles.md`.
 - `@import`: use only to reuse an existing doc; it still loads into context.
 - Hard requirement Claude must never break → also suggest a hook; memory files are advisory.
-- Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy files.
+- Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy files. Exception: the auto-memory directory takes only the `Known issues` move (a `feedback` memory plus its `MEMORY.md` pointer).
 
 ## Sources
 
