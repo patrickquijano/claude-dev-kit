@@ -22,7 +22,7 @@ Sourced from docs.docker.com, except the `Packages` pins, apt list cleanup, and 
   FROM ${NODE_IMAGE}:${NODE_TAG} AS build
   ```
 
-- **Required** tool from an official or trusted image instead of installing it (trusted = Docker Official Image, Docker Verified Publisher, or the tool vendor's own image, e.g. `ghcr.io/astral-sh/uv`, `docker`, `node`, a `tini` or `busybox` image): add a stage `FROM ${<TOOL>_IMAGE}:${<TOOL>_TAG} AS <tool>` (same exact-tag and `ARG` rules as other base images), then `COPY --link --from=<tool> <path> <dest>` in the stage that needs it. The binary is pinned by exact tag, and no package manager, repository, or build dependency enters the image. Path unknown → inspect the image (`tool-probe`; it asks for approval, so unattended and devcontainer-target runs skip it) or its docs; unverifiable → install the tool per Install approach. <https://docs.docker.com/build/building/multi-stage/#use-an-external-image-as-a-stage>
+- **Required** tool from an official or trusted image instead of installing it (trusted = Docker Official Image, Docker Verified Publisher, or the tool vendor's own image, e.g. `ghcr.io/astral-sh/uv`, `docker`, `node`, a `tini` or `busybox` image): add a stage `FROM ${<TOOL>_IMAGE}:${<TOOL>_TAG} AS <tool>` (same exact-tag and `ARG` rules as other base images), then `COPY --link --from=<tool> <path> <dest>` in the stage that needs it. The binary is pinned by exact tag, and no package manager, repository, or build dependency enters the image. Path unknown → the image's docs, else inspect the image with `tool-probe` (it asks for approval: never in plan mode, only after approval and before the write; the plan prints an unknown path as `<path pending tool-probe>`; unattended and devcontainer-target runs skip it); unverifiable → install the tool per Install approach. <https://docs.docker.com/build/building/multi-stage/#use-an-external-image-as-a-stage>
 - **Required** install approach: never assume how to install a tool or package. When not sure (a tool without an official image, a repository or key setup, a version manager, a runtime), research the vendor's official docs (WebSearch, then WebFetch of the official page) and apply the method they recommend; cite the doc URL in the Output `Changes:` entry. Official docs not found or ambiguous → ask the user (devcontainer target: record it under `Open:`); never fall back to a remembered command or an unverified `curl | sh`.
 - Keep compilers and dev dependencies in build stages.
 
@@ -60,6 +60,7 @@ Sourced from docs.docker.com, except the `Packages` pins, apt list cleanup, and 
 
 - Quote the delimiter (`<<"EOF"`) to stop build-time variable expansion; a shebang (`#!/usr/bin/env bash`) picks another interpreter.
 - Pipes: `set -o pipefail` (bash, or a shell that supports it), else a failing first command is ignored. <https://docs.docker.com/build/building/best-practices/#using-pipes>
+- Recommended: `RUN --network=none` for steps that need no network, such as a build or compile after the dependency install, so they cannot fetch or leak anything. <https://docs.docker.com/reference/dockerfile/#run---network>
 - Absolute `WORKDIR`; never `RUN cd …` (check `WorkdirRelativePath`). <https://docs.docker.com/build/building/best-practices/#workdir>
 - `COPY` for local files; `ADD` only for remote artifacts, with `--checksum=sha256:<sum>`. <https://docs.docker.com/build/building/best-practices/#add-or-copy>
 
@@ -91,6 +92,8 @@ Sourced from docs.docker.com, except the `Packages` pins, apt list cleanup, and 
 - `EXPOSE` the app's port; it documents, it does not publish. <https://docs.docker.com/reference/dockerfile/#expose>
 - `HEALTHCHECK` only when the app has a health endpoint or command and the runtime image has the tool to call it; exit 0 healthy, 1 unhealthy. <https://docs.docker.com/reference/dockerfile/#healthcheck>
 
+- Recommended: the `Build:` hint adds `--sbom=true --provenance=mode=max`, so the image carries an SBOM and provenance attestations (needs the containerd image store or a `docker-container` builder). <https://docs.docker.com/build/metadata/attestations/>
+
 ## Devcontainer target
 
 Input `target=devcontainer` builds the image a dev container runs; the workspace is mounted, and the container runs the editor's command, not the app. These items replace the practices they name by id; every other item still applies.
@@ -105,4 +108,4 @@ Input `target=devcontainer` builds the image a dev container runs; the workspace
 
 - Validate: `docker build --check .` runs only the build checks; the `# syntax=docker/dockerfile:1` line pulls a frontend that supports them. The `# check=error=true` line makes a plain `docker build` fail on the same violations. <https://docs.docker.com/build/checks/>
 - Lint: `hadolint` with the Packages `--ignore` flags, whenever installed. A parse error on a file with a heredoc (hadolint cannot parse a heredoc followed by more instructions) → `skipped (heredoc)`; `docker build --check` still covers the file.
-- Test (default target only): `docker build` of the Dockerfile to a throwaway tag, then `docker image inspect` that its `User` matches the planned user (and `ExposedPorts` the planned port), then remove the image. A build or inspect mismatch is a finding; no docker or daemon → `skipped (no docker)`. The devcontainer target is built by the devcontainer CLI (`cdk:setup-devcontainer` tests it).
+- Test (default target only): `docker build` of the Dockerfile to a throwaway tag, then `docker image inspect` that its `User` matches the planned user (and `ExposedPorts` the planned port), then remove the image. A build or inspect mismatch is a finding; no docker or daemon → `skipped (no docker)`. The devcontainer CLI builds the devcontainer target, so it is not tested here.
