@@ -25,7 +25,5 @@ Host from `origin-url`; run the `commands.md` rows verbatim:
 
 ## Signing
 
-- `signing-key` set.
-- `signing-format` = `ssh` → `signing-signers-file` set, that file exists (`~` expanded), and it contains the signing public key: `user.signingkey` itself when it starts `ssh-`/`ecdsa-`/`sk-` (strip `key::`), else the first two fields of `<key>.pub` (or the key file when it ends `.pub`).
-- `.husky/` exists → also `signing-gpgsign` = `true` (hook enforces it).
-- Missing or mismatch → stop, tell user what to set. Commit, rebase, or hook fails on signing → stop, tell user the exact error line. Never edit signing config (git config, keys, allowed signers file) or retry unsigned.
+- `check-signing` verifies the signing key, the SSH allowed signers file holding that key (for `gpg.format` = `ssh`), and `commit.gpgsign` = `true` when `.husky/` exists. Exit 1 → stop, tell the user each error's `fix`.
+- Commit, rebase, or hook fails on signing → stop, tell user the exact error line. Never edit signing config (git config, keys, allowed signers file) or retry unsigned.

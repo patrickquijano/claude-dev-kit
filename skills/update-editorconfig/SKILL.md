@@ -1,7 +1,9 @@
 ---
 name: update-editorconfig
-description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use only when the user explicitly asks to update EditorConfig, or when chained.
-allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec)
+description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text; confirms first. Use only when the user explicitly asks to update EditorConfig.
+compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec) Bash(node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs *)
+disable-model-invocation: true
 ---
 
 # Update EditorConfig
@@ -14,38 +16,38 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: record) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`.
+- Ask (unattended = run by a hook, no AskUserQuestion: record) what the input and repo cannot answer.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- No questions: apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
+- No questions except the step 6 write confirmation (which carries the stale-removal ask): apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
 - Idempotent: a type already configured (step 3) keeps its settings, so a re-run writes nothing new.
 - Only the repo's file types get a section, and a section holds only properties that differ from the actual `[*]`; never repeat a base property.
-- Never change or reorder an existing section, except removing a stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
-- Run before `cdk:setup-format-lint`: Prettier and shfmt read `.editorconfig` for indentation.
-- Fix loop: at most 2 passes over problems in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
+- Never change or reorder an existing section, except removing a confirmed stale one (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
+- Fix loop: at most 2 passes over syntax or glob errors in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
 - Leftovers (still-failing checks, `uncovered` types) go under `Open:` in the Output, never silently dropped.
-- Write tool unavailable: print the file content as plain text and end the turn. Unattended (chained): ask nothing.
-- Chained by `cdk:setup-project` through the Skill tool, so it never sets `disable-model-invocation`.
+- Write tool unavailable: print the file content and the Output with `Stopped: 6: Write unavailable`, then end the turn. Unattended: ask nothing.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; run /cdk:setup-git first"). Work from the git root.
-2. **File types.** List `tracked-files` plus `untracked-files` (ignored files never count). Map each to a `defaults.md` type by extension or name; count per type. No catalog entry, or an extensionless script (EditorConfig matches names, not shebangs) → `uncovered`; the `[*]` base applies.
-3. **Existing config.** Read root `.editorconfig`. A type is configured when a section glob without a path separator matches its extensions or names (`[*.{js,ts}]` matches `.ts`). Catch-all (`[*]`, `[**]`) and path-scoped globs (`[src/**.php]`) do not count. Note nested `.editorconfig` files (they override the root for their directory).
-4. **Initialize.** Apply what is missing:
+1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository; initialize one first"). Work from the git root.
+2. **File types.** List `tracked-files` plus `untracked-files` (ignored files never count); map and count per type. No catalog entry → `uncovered` ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
+3. **Existing config.** Read root `.editorconfig`; mark each type already configured and note nested configs ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
+4. **Initialize.** Plan what is missing; step 6 writes it after the confirm:
    - File missing → write `root = true` and the `defaults.md` base `[*]`.
    - No `[*]` section → insert the base per the Rules exception.
    - No `root = true` in the preamble (key and value case-insensitive, any spacing) → insert it as the first line.
-5. **Choose per type.** Base = the actual `[*]` after step 4. For each unconfigured detected type keep only the `defaults.md` properties whose value differs from the base; no differing property → no section. Group types with identical remaining properties (Makefile, Go, and Shell at `indent_style = tab`; Git files, EditorConfig, and Text at `insert_final_newline = false`).
-6. **Write.** First remove each existing section whose every pattern matches no file from step 2 (a stale type), with its `# <Types>` comment; never `[*]`. Then append one section per group, after a blank line and a `# <Types>` comment, with only its differing properties. Glob: one pattern as is (`[*.php]`); several → one top-level brace list (`[{*.sh,*.bash,Makefile,*.mk}]`). Keep the file LF-terminated.
-7. **Check.** Checker = `editorconfig-checker` when `tool-check` finds it, else `ec` only when `ec-version` exits 0 and prints just a version number (another tool named `ec` fails this). Found → run it once from the git root and count problems; else skip.
-8. **Fix.** Problems in sections this run wrote → correct the section and re-run the check (cap in Rules). Anything else → `Open:`.
-9. **Report** the Output, plus the editor note: VS Code needs the EditorConfig for VS Code extension; JetBrains IDEs and Visual Studio support EditorConfig natively.
+5. **Choose per type.** Keep only the `defaults.md` properties that differ from the actual `[*]`; group identical sets ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
+6. **Write.** Print the sections to append and the stale ones to remove, confirm once, then write ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write` and `## Confirm`). Step 4 inserts wait for this confirm. Unattended → remove nothing, list under `Open:`.
+7. **Check.** Run `checker` (or `checker-ec`) from the git root for the first pass and count problems; no checker found → skip ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
+8. **Fix.** Syntax or glob errors in sections this run wrote → correct the section and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
+9. **Report** the Output.
 
 ## Files
 
-- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For the base `[*]` block (4 spaces, final newline), type globs (no final newline for Git files, `.editorconfig`, Markdown, text), override properties, and reasons, see `${CLAUDE_SKILL_DIR}/references/defaults.md` (read at step 2).
+- For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md` (read when running a named command, steps 1-9).
+- For per-step branches (type mapping, configured-type matching, grouping, stale removal, checker choice), see `${CLAUDE_SKILL_DIR}/references/flow.md` (read at steps 2, 3, 5, 6, 7; the write confirm is `## Confirm`).
+- For the base `[*]` block (4 spaces, final newline), type globs (no final newline for Git files, `.editorconfig`, Markdown, text), override properties, and reasons, see `${CLAUDE_SKILL_DIR}/references/defaults.md` (read at steps 2, 4, 5).
+- For the stale-section finder (step 6; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs`.
+- For the evals (only when testing or changing this skill), see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 
@@ -57,9 +59,10 @@ Sections: <glob: properties>, … | none added
 Removed: <glob>, … | none
 Kept: <glob>, … | none
 Nested configs: <paths> | none
-Check: <N problems> | not run
+Check: <N problems before fix, M after> | not run
 Open: <problem or uncovered type: reason; recommended fix>, … | none
-Next: /cdk:setup-format-lint | none
+Confirmed: yes | revised <n> | no (stopped) | unattended | n/a (up to date or stopped earlier)
+Next: set up formatters and linters if wanted | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

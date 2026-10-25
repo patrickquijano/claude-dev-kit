@@ -4,7 +4,7 @@
 
 - Events (step 5) · Copy (step 9) · Commitlint config (step 10) · Smoke test (step 15)
 
-Commands run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`.
+Commands run by name from `commands.md`.
 
 ## Events
 
@@ -13,7 +13,7 @@ Existing asset stubs map back to a choice: commit-msg stub without `--skip-messa
 - Commit message check: commit-msg (the only hook that gets the final message file as `$1` and can block before the commit exists).
 - Signed check: commit-msg pre-check + post-commit report (git can verify a signature only after the commit object exists, so commit-msg blocks on missing signing config and post-commit confirms the real signature).
 - Stub flags: message skipped → `--skip-message`; signing pre-check not chosen → `--skip-signing`; step 3 asked the user → `--pm=<pm>`, because run-time detection could pick another lockfile's manager. commit-msg stub = `node .husky/commit-msg.mjs <flags> "$@"`; both checks off commit-msg → no commit-msg hook. post-commit report chosen → post-commit hook. Message skipped → also skip the commitlint packages (step 6), config (step 10), and commit rules (step 11). Both checks skipped → nothing to install but Husky.
-- Signing pre-check chosen: the hook blocks commits when `commit.gpgsign` is not `true`, `user.signingkey` is unset, or (`gpg.format` = `ssh`) `gpg.ssh.allowedSignersFile` is unset. Any of `gpgsign` not `true`, `signingkey` empty, or `gpg.format` = `ssh` with `allowed-signers` empty, missing, or not listing the signing public key → stop ("run /cdk:setup-git first"; commits would be blocked), no question.
+- Signing pre-check chosen: the hook blocks commits when `commit.gpgsign` is not `true`, `user.signingkey` is unset, or (`gpg.format` = `ssh`) `gpg.ssh.allowedSignersFile` is unset. Any of `gpgsign` not `true`, `signingkey` empty, or `gpg.format` = `ssh` with `allowed-signers` empty, missing, or not listing the signing public key → AskUserQuestion: Skip the signing pre-check (Recommended; adds `--skip-signing`, the post-commit report stays, and the `Open:` list notes it) | Stop (commits would be blocked until signing is configured). Stop → `Stopped: 5: signing not configured`. Unattended: skip the pre-check and list under `Open:`.
 
 ## Copy
 

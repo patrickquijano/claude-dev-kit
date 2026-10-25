@@ -12,7 +12,7 @@
 
 ## Publish options
 
-After `release-view` of the draft and `notes` for its version (strip a leading `v` to get the version), ask in up to three batches. Skip a question the input already answers.
+After `release-view` of the draft, `remote-tag` for its tag, and `notes` for its version (strip a leading `v` to get the version), ask in up to three batches. Skip a question the input already answers.
 
 Batch 0 (only when `action-file` is non-empty, one question):
 
@@ -43,16 +43,16 @@ Batch 2 (only for `Publish`, at most 2 questions):
 ## Draft new
 
 - Scratch comes from pre-flight. Run `notes --version <tag without a leading v>` with `--tag`, else `notes --version latest`. Any `ok: false` → `Stopped: 6: <code>: <message>; <fix>`.
-- Tag: with `--tag`, check that tag with `remote-tag`; else the script returns the version, so try `v<version>`, then `<version>` with `remote-tag`; none found → `Stopped: 6: tag-missing: no tag for <version> on origin; push it first, then rerun` (`Next:` names `/cdk:publish-tag`).
+- Tag: with `--tag`, check that tag with `remote-tag`; else the script returns the version, so try `v<version>`, then `<version>` with `remote-tag`; none found → `Stopped: 6: tag-missing: no tag for <version> on origin; push it first, then rerun` (`Next:` says to push the tag, then rerun).
 - `release-view` of that tag: it exists (draft or published) → a draft goes back to `## Publish options` only when it was not already shown; a published one → `Result: nothing-to-do`, `Release: <url> (published)`.
 - `create-draft` (never `--target`); a failure → `Stopped: 6: draft-failed: <error>`.
 - Then ask `## Publish options` (notes question skipped), and `## Publish`.
 
 ## Unattended
 
-`--yes` or an unattended run asks nothing:
+`--yes` or an unattended run (no user to answer: headless, `-p`, or scheduled) asks nothing:
 
-- One draft (or `--tag`) → publish it, notes kept, no discussion category, no Marketplace listing; `latest`, or `pre-release` for a version with a pre-release label. `remote-tag` empty (publishing would create the tag) → `Stopped: 5: tag-missing: <tag> is not on origin; push it first`, nothing published; `Open:` lists the draft and `/cdk:publish-tag`.
+- One draft (or `--tag`) → publish it, notes kept, no discussion category, no Marketplace listing; `latest`, or `pre-release` for a version with a pre-release label. `remote-tag` empty (publishing would create the tag) → `Stopped: 5: tag-missing: <tag> is not on origin; push it first`, nothing published; `Open:` lists the draft and the push of its tag.
 - Several drafts without `--tag` → `Stopped: 3: ambiguous-drafts: <tags>; pass --tag`.
 - No draft → `## Draft new`, then publish with the same kind rule.
 

@@ -1,22 +1,12 @@
-# Ignore Catalog
+# Signing Artifact Ignores
 
-A stack is detected when any of its markers is found by step 11 of SKILL.md. Always-on groups need no marker. Step 12 takes the Recommended groups. Step 13 writes a pattern shared by several chosen groups once. Patterns use `.gitignore` syntax; a trailing `/` matches directories only.
+Only signing artifacts that sit inside the work tree are ignore candidates; other stacks and files are out of scope.
 
-| Group            | Markers                                                   | Patterns                                                                                                                                 | Why                                     | Recommended |
-| ---------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------- |
-| Node             | `package.json`                                            | `node_modules/`, `npm-debug.log*`, `yarn-debug.log*`, `yarn-error.log*`, `pnpm-debug.log*`, `.pnpm-store/`, `coverage/`                  | dependencies, logs, test output         | yes         |
-| Node build       | `package.json`                                            | `dist/`, `build/`, `.next/`, `.nuxt/`, `.turbo/`                                                                                         | build output; some libraries commit it  | no          |
-| PHP              | `composer.json`                                           | `vendor/`, `.phpunit.result.cache`, `.phpunit.cache/`, `.php-cs-fixer.cache`                                                             | dependencies, tool caches               | yes         |
-| Laravel          | `artisan`                                                 | `/storage/*.key`, `/public/storage`, `/public/hot`, `/bootstrap/cache/*.php`                                                             | generated keys, links, caches           | yes         |
-| .NET             | `*.sln`, `*.slnx`, `*.csproj`, `*.fsproj`, `*.vbproj`     | `bin/`, `obj/`, `.vs/`, `*.user`, `*.suo`, `TestResults/`                                                                                | build output, per-user IDE state        | yes         |
-| Python           | `pyproject.toml`, `requirements*.txt`, `setup.py`, `*.py` | `__pycache__/`, `*.py[cod]`, `.venv/`, `venv/`, `*.egg-info/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.coverage`, `htmlcov/` | bytecode, virtualenvs, tool caches      | yes         |
-| Python build     | `pyproject.toml`, `setup.py`                              | `dist/`, `build/`                                                                                                                        | package build output                    | yes         |
-| Rust             | `Cargo.toml`                                              | `target/`                                                                                                                                | build output                            | yes         |
-| Java / Kotlin    | `pom.xml`, `build.gradle`, `build.gradle.kts`             | `target/`, `.gradle/`, `build/`, `*.class`                                                                                               | build output, Gradle cache              | yes         |
-| Secrets (always) | —                                                         | `.env`, `.env.*`, `!.env.example`, `!.env.sample`, `!.env.template`                                                                      | local secrets; keep the shared template | yes         |
-| Logs (always)    | —                                                         | `*.log`                                                                                                                                  | runtime output                          | yes         |
-| OS (always)      | —                                                         | `.DS_Store`, `Thumbs.db`, `Desktop.ini`                                                                                                  | personal OS metadata                    | yes         |
-| Editors (always) | —                                                         | `.idea/`, `.vscode/*`, `*.swp`, `*~`                                                                                                     | personal editor state                   | yes         |
-| Claude Code      | `.claude/*`                                               | `.claude/settings.local.json`                                                                                                            | personal Claude Code settings           | yes         |
+| Artifact                | Source                                                                                  | Pattern written                             |
+| ----------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Allowed signers file    | `gpg.ssh.allowedSignersFile` path, when it resolves under the repo root                 | root-relative path, e.g. `/allowed_signers` |
+| SSH private signing key | `user.signingkey` path with no `.pub` suffix and no `key::` prefix, under the repo root | root-relative path                          |
 
-Stacks not listed get only the always-on groups; name them as uncovered in the Output `Ignores:` line so the user can add patterns.
+- Skip a path that `check-ignore` already reports ignored.
+- Write each pattern once, under a `# Signing` comment; keep existing lines.
+- A listed artifact that `tracked-ignored` reports as tracked: warn that history still holds it and that a private key must be rotated.

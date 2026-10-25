@@ -1,6 +1,9 @@
 # Commands
 
-| Name           | Command                                                 | Purpose                                                                                         |
-| -------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `repo-root`    | `git rev-parse --show-toplevel`                         | Repo root; fail falls back to cwd (preloaded in Context)                                        |
-| `format-files` | the facts block's `Formatter` command, run on the files | Format the files written this run; `none` → skip; runs prompt for permission (not pre-approved) |
+| Name            | Command                                                     | Purpose                                                                                                                                                                                          |
+| --------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `repo-root`     | `git rev-parse --show-toplevel`                             | Repo root; fail falls back to cwd (preloaded in Context)                                                                                                                                         |
+| `format-files`  | the facts block's `Formatter` command, run on the files     | Format the files written this run; `none` → skip; runs prompt for permission (not pre-approved)                                                                                                  |
+| `delete-file`   | `git rm -- <path>`                                          | Delete a tracked file; tracked only, permission-prompted (not pre-approved); undo with `git restore --staged --worktree -- <path>`                                                               |
+| `tracked-files` | `git ls-files`                                              | Tracked files; inline fallback of the step 2 analyst                                                                                                                                             |
+| `count-context` | `node ${CLAUDE_SKILL_DIR}/scripts/count-context.mjs <root>` | Read-only JSON: non-blank line counts of always-loaded files (`project`, `ancestors`, `alwaysLoaded` as `<project n> + <ancestor n>`) and each `paths` glob's tracked-file match count (`rules`) |

@@ -27,7 +27,14 @@
       "label": "lint: markdownlint",
       "type": "shell",
       "command": "npx",
-      "args": ["--no-install", "markdownlint-cli2", { "value": "**/*.md", "quoting": "strong" }],
+      "args": [
+        "--no-install",
+        "markdownlint-cli2",
+        {
+          "value": "**/*.md",
+          "quoting": "strong"
+        }
+      ],
       "problemMatcher": []
     },
     {
@@ -69,7 +76,15 @@
       "label": "format: markdownlint",
       "type": "shell",
       "command": "npx",
-      "args": ["--no-install", "markdownlint-cli2", "--fix", { "value": "**/*.md", "quoting": "strong" }],
+      "args": [
+        "--no-install",
+        "markdownlint-cli2",
+        "--fix",
+        {
+          "value": "**/*.md",
+          "quoting": "strong"
+        }
+      ],
       "problemMatcher": []
     },
     {
@@ -83,6 +98,27 @@
       "label": "git: delete other local branches",
       "type": "shell",
       "command": "cur=$(git branch --show-current); for b in $(git branch --format='%(refname:short)'); do [ \"$b\" = \"$cur\" ] || git branch -D \"$b\"; done",
+      "problemMatcher": []
+    },
+    {
+      "label": "sonar: start",
+      "type": "process",
+      "command": "docker",
+      "args": ["compose", "-f", "compose.sonar.yaml", "up", "-d", "--wait", "sonarqube"],
+      "problemMatcher": []
+    },
+    {
+      "label": "sonar: stop",
+      "type": "process",
+      "command": "docker",
+      "args": ["compose", "-f", "compose.sonar.yaml", "down"],
+      "problemMatcher": []
+    },
+    {
+      "label": "sonar: scan",
+      "type": "process",
+      "command": "docker",
+      "args": ["compose", "-f", "compose.sonar.yaml", "run", "--rm", "scanner"],
       "problemMatcher": []
     }
   ]

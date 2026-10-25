@@ -13,7 +13,7 @@ const defaults = {
 
 const USAGE = 'usage: check-agent.mjs <agent-file> [--scope personal|project|plugin]';
 const SCOPES = ['personal', 'project', 'plugin'];
-// Copied from the Fields table in references/frontmatter.md.
+// Copied from the Fields table in references/docs-snapshot.md.
 const KNOWN_FIELDS = new Set([
   'name',
   'description',
@@ -36,7 +36,7 @@ const KNOWN_FIELDS = new Set([
   'autoCompactWindow'
 ]);
 const ENUMS = {
-  permissionMode: ['default', 'acceptEdits', 'auto', 'dontAsk', 'bypassPermissions', 'plan'],
+  permissionMode: ['default', 'manual', 'acceptEdits', 'auto', 'dontAsk', 'bypassPermissions', 'plan'],
   effort: ['low', 'medium', 'high', 'xhigh', 'max'],
   isolation: ['worktree'],
   memory: ['user', 'project', 'local'],
@@ -45,8 +45,10 @@ const ENUMS = {
 const MODEL_ALIASES = ['sonnet', 'opus', 'haiku', 'fable', 'inherit'];
 const BOOLEANS = ['background', 'omitClaudeMd'];
 const PLUGIN_IGNORED = ['permissionMode', 'hooks', 'mcpServers', 'initialPrompt'];
+// Always-removed list from references/docs-snapshot.md `## Tools`.
 const REMOVED_TOOLS = [
   'AskUserQuestion',
+  'EndConversation',
   'EnterPlanMode',
   'ExitPlanMode',
   'ScheduleWakeup',
@@ -108,12 +110,29 @@ const REFERENCE = /\b[a-z0-9-]+:[a-z0-9]+-[a-z0-9-]+\b|\bspawned by\b/i;
 
 const toolName = (entry) => entry.replace(/\(.*$/, '').trim();
 
+// Edit distance between two short strings, for suggesting the intended field name.
+function distance(a, b) {
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i += 1) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j += 1) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = row;
+  }
+  return prev[b.length];
+}
+
 // A1, A2, A3, A7 on the parsed fields; `lineOf` maps a field to its line; `stem` is the file name without `.md`.
 export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
   const found = [];
   const at = (key) => lineOf[key] ?? 1;
   for (const key of Object.keys(fields)) {
-    if (!KNOWN_FIELDS.has(key)) found.push(error('unknown-field', 'A1', at(key), `unknown frontmatter field "${key}"`));
+    if (KNOWN_FIELDS.has(key)) continue;
+    const near = [...KNOWN_FIELDS].find((known) => distance(key.toLowerCase(), known.toLowerCase()) <= 2);
+    if (near)
+      found.push(warning('unknown-field-near', 'A1', at(key), `unknown field "${key}"; did you mean "${near}"?`));
+    else found.push(error('unknown-field', 'A1', at(key), `unknown frontmatter field "${key}"`));
   }
   const name = String(fields.name ?? '');
   if (!name) {
@@ -134,8 +153,6 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
     const line = at('description');
     if (description.length > 200)
       found.push(error('description-length', 'A3', line, `description is ${description.length} chars, max 200`));
-    if (!/use proactively/i.test(description))
-      found.push(error('description-proactive', 'A3', line, 'description must contain "Use proactively"'));
     if (REFERENCE.test(description))
       found.push(error('description-reference', 'A3', line, 'description names a skill, subagent, or spawner'));
   }
@@ -170,6 +187,19 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
     }
   }
   const tools = items(fields.tools).map(toolName);
+  if ('tools' in fields && tools.filter((t) => !REMOVED_TOOLS.includes(t)).length === 0) {
+    found.push(error('tools-empty', 'A4', at('tools'), 'tools is empty or lists only always-removed tools'));
+  }
+  for (const entry of items(fields.tools).filter((e) => /^Agent\(/.test(e))) {
+    found.push(
+      error('tools-agent-type', 'A4', at('tools'), `"${entry}" is not valid in a subagent's tools; list Agent`)
+    );
+  }
+  if (!('tools' in fields) && !('disallowedTools' in fields)) {
+    found.push(
+      warning('tools-omitted', 'A4', 1, 'tools and disallowedTools are both omitted: the agent gets every tool')
+    );
+  }
   for (const tool of tools.filter((t) => REMOVED_TOOLS.includes(t))) {
     found.push(warning('removed-tool', 'A7', at('tools'), `${tool} is always removed from subagents`));
   }
@@ -179,7 +209,9 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
     );
   }
   if ('memory' in fields && 'tools' in fields && !tools.includes('Write') && !tools.includes('Edit')) {
-    found.push(warning('memory-tools', 'A7', at('memory'), 'memory adds file tools but tools lacks Write and Edit'));
+    found.push(
+      warning('memory-tools', 'A7', at('memory'), 'memory makes the agent write-capable but tools is read-only')
+    );
   }
   return found;
 }

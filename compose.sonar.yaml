@@ -1,0 +1,60 @@
+---
+name: cdk-sonar-claude-dev-kit
+services:
+  sonarqube:
+    image: sonarqube:26.10.0.133078-community
+    ports:
+      - target: 9000
+        published: "${SONAR_PORT:-9000}"
+        host_ip: 127.0.0.1
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    volumes:
+      - type: volume
+        source: sonarqube-data
+        target: /opt/sonarqube/data
+      - type: volume
+        source: sonarqube-extensions
+        target: /opt/sonarqube/extensions
+      - type: volume
+        source: sonarqube-logs
+        target: /opt/sonarqube/logs
+  scanner:
+    profiles:
+      - scan
+    image: sonarsource/sonar-scanner-cli:12.3.0.4285_8.1.0
+    depends_on:
+      sonarqube:
+        condition: service_healthy
+    env_file:
+      - path: .env.sonar
+        required: false
+    environment:
+      - SONAR_HOST_URL=http://sonarqube:9000
+      - "SONAR_EXCLUSIONS=**/.scannerwork/**,**/.git/**,**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/.nuxt/**,**/.angular/**,**/.turbo/**,**/out/**,**/storybook-static/**,**/vendor/**,**/storage/**,**/bootstrap/cache/**,**/public/build/**,**/public/hot/**,**/var/cache/**,**/var/log/**,**/.venv/**,**/venv/**,**/env/**,**/__pycache__/**,**/.tox/**,**/.mypy_cache/**,**/.pytest_cache/**,**/.ruff_cache/**,**/site-packages/**,**/staticfiles/**,**/tmp/**,**/log/**,**/public/assets/**,**/public/packs/**"
+    volumes:
+      - type: bind
+        source: .
+        target: /src
+        read_only: true
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - |-
+        cd /src && sonar-scanner \
+          -Dsonar.working.directory=/tmp/.scannerwork \
+          -Dsonar.projectKey=claude-dev-kit \
+          -Dsonar.host.url="$$SONAR_HOST_URL" \
+          -Dsonar.qualitygate.wait=true \
+          -Dsonar.exclusions="$$SONAR_EXCLUSIONS"
+volumes:
+  sonarqube-data: {}
+  sonarqube-extensions: {}
+  sonarqube-logs: {}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
@@ -17,7 +17,7 @@ describe('check-agent CLI', () => {
     root = mkdtempSync(join(tmpdir(), 'check-agent-'));
     writeFileSync(
       join(root, 'good.md'),
-      `---\nname: good\ndescription: Use proactively to review.\ntools: Read\n---\n\n${BODY}`
+      `---\nname: good\ndescription: Reviews on request.\ntools: Read\n---\n\n${BODY}`
     );
     writeFileSync(join(root, 'bad.md'), '---\nname: bad\ncolour: red\npermissionMode: plan\n---\n\n# Heading\n');
   });
@@ -40,15 +40,10 @@ describe('check-agent CLI', () => {
     const result = run(file, '--scope', 'plugin');
     // Assert
     assert.equal(result.status, 1);
-    const found = JSON.parse(result.stdout).errors.map((e) => e.id);
-    assert.deepEqual(found, [
-      'unknown-field',
-      'description-missing',
-      'scope-ignored',
-      'role-missing',
-      'task-missing',
-      'return-missing'
-    ]);
+    const report = JSON.parse(result.stdout);
+    const found = report.errors.map((e) => e.id);
+    assert.deepEqual(report.warnings.map((w) => w.id).slice(0, 1), ['unknown-field-near']);
+    assert.deepEqual(found, ['description-missing', 'scope-ignored', 'role-missing', 'task-missing', 'return-missing']);
   });
 
   test('exits 2 with usage when no file is given', () => {
@@ -79,7 +74,7 @@ describe('check CLI through a symlink', () => {
     symlinkSync(SCRIPT, join(root, 'link.mjs'));
     writeFileSync(
       join(root, 'linked.md'),
-      `---\nname: linked\ndescription: Use proactively to review.\ntools: Read\n---\n\n${BODY}`
+      `---\nname: linked\ndescription: Reviews on request.\ntools: Read\n---\n\n${BODY}`
     );
   });
   after(() => rmSync(root, { recursive: true, force: true }));
@@ -102,5 +97,37 @@ describe('check CLI through a symlink', () => {
     // Assert
     assert.equal(result.status, 2);
     assert.match(result.stderr, /usage/);
+  });
+});
+
+describe('repo agents', () => {
+  const agents = readdirSync(resolve('agents')).filter((name) => name.endsWith('.md'));
+
+  for (const name of agents) {
+    test(`${name} passes check-agent`, () => {
+      // Arrange
+      const file = resolve('agents', name);
+      // Act
+      const result = run(file, '--scope', 'plugin');
+      // Assert
+      assert.equal(result.status, 0);
+      assert.equal(JSON.parse(result.stdout).ok, true);
+    });
+  }
+
+  test('only the plain-request agents use Use proactively', () => {
+    // Arrange
+    const expected = ['change-verifier', 'codebase-explorer', 'task-worker', 'topic-researcher'];
+    // Act
+    const proactive = agents
+      .filter((name) => {
+        const text = readFileSync(resolve('agents', name), 'utf8');
+        const description = /^description:\s*(.*)$/m.exec(text)?.[1].replace(/^["']/, '');
+        return description?.startsWith('Use proactively');
+      })
+      .map((name) => name.replace(/\.md$/, ''))
+      .sort();
+    // Assert
+    assert.deepEqual(proactive, expected);
   });
 });
