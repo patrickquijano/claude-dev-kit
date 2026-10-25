@@ -18,7 +18,7 @@
 
 ## Write (step 6)
 
-- Stale section = an existing section whose every pattern matches no file from step 2; never `[*]`. Its `# <Types>` comment goes with it.
+- Stale section = an existing section whose every pattern matches no file from step 2; never `[*]`. Its `# <Types>` comment goes with it. Run `node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs --root <git root>` and read `stale` from its JSON (`ok: false` or a section with `note` → judge it by hand and keep it).
 - Removal is confirmed in the `## Confirm` call. Kept → list under `Kept:`. Unattended → remove nothing, list each under `Open:` as "stale section: <glob>; remove it by hand or re-run interactively".
 - Append one section per group, after a blank line and a `# <Types>` comment, with only its differing properties.
 - Glob: one pattern as is (`[*.php]`); several → one top-level brace list (`[{*.sh,*.bash,Makefile,*.mk}]`).
@@ -37,5 +37,6 @@ Nothing to write (no `root = true`, base, section, or removal) → no ask, `Conf
 
 ## Check (step 7)
 
+- Fix loop (step 8): rerun the checker after each correction; the step 7 run is the first pass.
 - Checker = `editorconfig-checker` when `tool-check` finds it, else `ec` only when `ec-version` exits 0 and prints just a version number (another tool named `ec` fails this).
 - Neither found → `Check: not run`.
