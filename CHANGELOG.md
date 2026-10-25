@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** `/cdk:scan-sonarqube` is renamed `/cdk:setup-local-sonarqube` and is setup-only. It writes `compose.sonar.yaml` (pinned SonarQube Community Build; for a supported stack, a `scan`-profile scanner service that waits for the server's healthcheck and reads `.env.sonar`) and merges `sonar: start`, `sonar: stop`, and `sonar: scan` tasks into `.vscode/tasks.json`. The scan, fix, and teardown loop is gone; an unsupported stack gets a server-only file and a researched approach. An existing file is never overwritten without your choice.
+- `/cdk:setup-local-sonarqube` also configures the server: it starts it only when needed, sets the admin password, creates the project, rotates an analysis token, writes `SONAR_HOST_URL`, `SONAR_TOKEN`, and `SONAR_ADMIN_PASSWORD` to `.env.sonar` (mode 600, added to `.gitignore`), and stops the server again. `sonar: scan` no longer prompts for a token; `sonar: start` waits until the server is healthy. Maven and Gradle scans use `./mvnw` or `./gradlew` when the wrapper is tracked, the CLI scanner scans the repo in place, and image tags come from Docker Hub's documented tags endpoint (the highest of all listed tags).
 - `cdk:version-resolver` accepts `pin: sha | tag` and finds a project's lockfile or manifest with Glob.
 - `/cdk:implement-goal` is renamed `/cdk:implement-spec`, with the title "Implement Spec" and a description that now says "implement a spec". Use the new name; the old one no longer exists.
-- `cdk:plan-implementer` drops the unused `review-group` kind and its `kind` input; `/cdk:implement-spec` and `/cdk:scan-sonarqube` now report its unmet self-check criteria.
+- `cdk:plan-implementer` drops the unused `review-group` kind and its `kind` input; `/cdk:implement-spec` now reports its unmet self-check criteria.
 - `cdk:format-lint-analyzer`'s description now says when to delegate.
 - The `cdk:plan-implementer`, `cdk:version-resolver`, `cdk:change-analyzer`, and `cdk:rubric-improver` descriptions now name when to delegate.
 - `cdk:version-resolver` no longer returns the unused `Stack` line for dependencies.
@@ -45,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:build-github-workflows` and `/cdk:build-docker-compose` print the files and ask once before writing them.
 - `/cdk:setup-git` confirms before initializing a repo, turning on signing by default, and writing `.gitignore`.
 - `/cdk:setup-format-lint` confirms once before it installs tools and writes configs.
-- `/cdk:scan-sonarqube` confirms before it removes leftover SonarQube containers, networks, and volumes.
 - `/cdk:create-github-release` creates the tag only when it does not exist locally and pushes it only when the remote lacks it.
 - `/cdk:rebase-onto` asks for permission before aborting a rebase; `git rebase --abort` is no longer pre-approved.
 
