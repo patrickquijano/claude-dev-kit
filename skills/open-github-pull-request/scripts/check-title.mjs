@@ -1,6 +1,6 @@
 // Conventional Commits title check for open-github-pull-request: `type(scope)!: description`, 11 types, lowercase start, no trailing period, at most 72 chars.
-// CLI: `check-title.mjs "<title>"`; JSON on stdout: `{ok:true}` and exit 0, or `{ok:false,errors:[…]}` and exit 1.
-import { realpathSync } from 'node:fs';
+// CLI: `check-title.mjs < <file>` reads the title from stdin, so it never reaches a shell argument; JSON on stdout: `{ok:true}` and exit 0, or `{ok:false,errors:[…]}` and exit 1.
+import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 // Runs `fn` only when this module is the entry script; an error it throws prints one stderr line and sets exit code 1.
@@ -38,6 +38,7 @@ export function titleErrors(title) {
   if (text.length > MAX_LENGTH) errors.push(`longer than ${MAX_LENGTH} chars (${text.length})`);
   const colon = text.indexOf(': ');
   const description = colon < 0 ? '' : text.slice(colon + 2);
+  if (/[\p{Cc}'"`$\\;&|<>]/u.test(text)) errors.push('contains control characters or shell metacharacters');
   if (colon < 0 || !prefixOk(text.slice(0, colon)) || !description.trim()) {
     errors.push('not `type(scope)!: description` with a known type and a lowercase scope');
     return errors;
@@ -49,6 +50,7 @@ export function titleErrors(title) {
 }
 
 const realDeps = {
+  readStdin: () => readFileSync(0, 'utf8'),
   log: (text) => console.log(text),
   error: (text) => console.error(text)
 };
@@ -56,9 +58,9 @@ const realDeps = {
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
-  const title = argv[0];
-  if (title === undefined) {
-    d.error('usage: check-title.mjs "<title>"');
+  const title = argv.length === 0 ? d.readStdin().replace(/\n$/, '') : '';
+  if (argv.length > 0 || title === '') {
+    d.error('usage: check-title.mjs < <file>');
     return 2;
   }
   const errors = titleErrors(title);
