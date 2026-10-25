@@ -1,10 +1,20 @@
 # Interview
 
-Steps 5–6 of `SKILL.md` (Gate 1): ask only what the input and repo cannot answer, then gate the write on a confirmed brief. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
+Steps 4–6 of `SKILL.md` (plan mode, Gate 1): ask only what the input and repo cannot answer, then gate the write on a confirmed brief. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
 
 ## Contents
 
-- Protocol · Items · Optional capabilities · Fit · Several jobs · Update and improve · Scope · Name · Model and effort · Color · Brief
+- Plan mode · Protocol · Items · Optional capabilities · Fit · Several jobs · Update and improve · Scope · Name · Model and effort · Color · Brief
+
+## Plan mode
+
+Runs once at the end of step 4 (Mode), after the snapshot refresh and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the AskUserQuestion Brief (Confirm | Revise | Stop).
+- Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
+- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited). Call `ExitPlanMode`.
+- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 6 batches; cap hit → `Result: stopped`. A rejection that asks to stop → `Result: cancelled`, write nothing.
+- The backup and write come only after approval.
 
 ## Protocol
 
@@ -146,7 +156,7 @@ A domain color wins over the generic one (security red and test blue beat review
 
 ## Brief
 
-Step 6, before any write: show about 40 lines, then AskUserQuestion Confirm | Revise | Stop.
+Step 6, before any write: show about 40 lines, then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
 
 - `Target: <absolute path>` and `Mode:`.
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
