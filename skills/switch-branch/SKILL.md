@@ -3,7 +3,7 @@ name: switch-branch
 description: Derives a Conventional Branch name from the current commits and changes, switches to that new branch, and pushes it. Use only when the user explicitly asks to move their changes to a new branch.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional branch hint or description]'
-allowed-tools: Bash(git status *) Bash(git diff *) Bash(git rev-parse *) Bash(git restore --staged *) Bash(git show-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git rev-list *) Bash(git remote get-url *)
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git show-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git rev-list *) Bash(git remote get-url *)
 disable-model-invocation: true
 ---
 
@@ -20,30 +20,31 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Rigor: never guess or invent: confirm each path, command, and fact by reading it; ask (unattended: `Result: stopped`) what the input and repo cannot answer. Finish every step in full, think twice before each irreversible step, and re-check the result against these rules and the repo's standards before reporting.
-- Efficiency: read only what a step needs, keep output terse, and take the fewest steps that meet the goal; when work is autonomous and splits cleanly, spawn independent cdk subagents in one parallel turn (`cdk:task-worker` for read-only work, `cdk:plan-implementer` for edits), never `Explore` or `general-purpose`; each spawn gets a complete brief (agent, kind, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Ask (unattended: `Result: stopped`) what the input and repo cannot answer.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`.
-- Analysis runs in `cdk:change-analyzer` (`mode=branch-name`) so large diffs stay out of this context. It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, `mode`, `base`, the input, and answers to earlier `Question`.
+- The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`; uniqueness and format checks belong to `${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs`, never done by hand.
+- Analysis runs in a read-only subagent so large diffs stay out of this context (step 3; brief and fallback in `branch-name.md`). It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, base, the input, and answers to earlier `Question`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.
-- Switch and push without asking; an explicit request to this skill, is consent to a normal, non-force push. `switch`, `remote-branch-exists`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
-- Caps: analyzer respawn after `Question` 1; name suffix search 10, then stop.
-- Unattended (no AskUserQuestion): ask nothing; switch and push proceed under the same consent, and an unanswerable `Question` → `Result: stopped`.
+- One confirmation (step 5) before any change (unstage, switch, push); nothing changes before it. `unstage`, `switch`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
+- Caps: analyzer respawn after `Question` 1; name suffix search 10 (inside `branch-name.mjs`), then stop.
+- Unattended (no AskUserQuestion): ask nothing; unstage and switch proceed because the request names the move, the push is skipped (`not pushed`), and an unanswerable `Question` → `Result: stopped`.
 
 ## Workflow
 
 1. **Pre-flight.** `inside-work-tree` fails → stop. `status` shows a rebase, merge, or cherry-pick in progress → stop and tell the user to finish or abort it. Origin = Context → Origin; `<none>` → skip the remote check and the push.
-2. **Unstage.** `staged-files` non-empty → `unstage`; a path both staged and modified (`MM` in `changes`) → first AskUserQuestion ("Unstage all (drops the staged split)", "Stop"); unattended unstages and notes it. Failure (no HEAD) → stop.
-3. **Collect.** Current = Context → Branch; `HEAD` → `detached@` plus `short-head`. Base = `origin-head` when `verify-ref` resolves it, else the first that `verify-full-ref` resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master`. Current equals the base's branch name → base = `origin/<name>` when that ref resolves, else no base. Count `unique-commits` (no base or failure → 0). `changes` empty, no commits, no input → `Result: nothing-to-do`.
-4. **Analyze.** Spawn `cdk:change-analyzer` with root, `mode=branch-name`, `base` (`none` without one), and the input as hints. Take `Branch` and the `Changes` count; `Question` → AskUserQuestion, then respawn once.
-5. **Name.** `local-branch-exists` exit 0 or `remote-branch-exists` non-empty → append `-2`, `-3`, … (cap in Rules); an `ls-remote` error counts as not on remote.
-6. **Switch and push.** Show `Branch: <current> → <name>` and a one-line reason. Run `switch`; failure → report the exact error line, stop. Then `push` (skip without origin); failure → report the exact error line, stop.
+2. **Collect.** Current = Context → Branch; `HEAD` → `detached@` plus `short-head`. Base = `origin-head` when `verify-ref` resolves it, else the first that `verify-full-ref` resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master`. Current equals the base's branch name → base = `origin/<name>` when that ref resolves, else no base. Count `unique-commits` (no base or failure → 0). `changes` empty, no commits, no input → `Result: nothing-to-do`.
+3. **Analyze.** Spawn the read-only analyzer per `${CLAUDE_SKILL_DIR}/references/branch-name.md` `## Spawn brief`, with root, `base` (`none` without one), and the input as hints. Take `Branch` and `Changes`; `Question` → AskUserQuestion, then respawn once. Unavailable or malformed twice → derive them inline per `## Inline analysis`.
+4. **Name.** Run `free-name` with the analyzer's name (`--no-remote` without origin). Exit 1 → `Result: stopped` with its message.
+5. **Confirm.** Show `Branch: <current> → <name>`, a one-line reason, and each effect: unstage (staged files from `staged-files`, naming any `MM` file whose staged split is dropped), switch, push. Ask once: `Switch + push (Recommended)` | `Switch only` | `Stop` (`Result: cancelled`, nothing changed). Without origin, only `Switch only` | `Stop`. Unattended: `Switch only` without asking.
+6. **Switch and push.** `staged-files` non-empty → `unstage`; failure (no HEAD) → stop. Run `switch`; failure → report the exact error line, stop. Then `push` when chosen; failure → report the exact error line, stop.
 7. **Report.** Print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For the branch name format, naming rule, and analyzer brief (step 4), see `${CLAUDE_SKILL_DIR}/references/branch-name.md`.
+- For the branch name format, naming rule, analyzer brief and its inline fallback (step 3), see `${CLAUDE_SKILL_DIR}/references/branch-name.md`.
+- For the name format and free-name check (step 4), run `${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs`; it is run, never read.
+- For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output
 
@@ -53,7 +54,7 @@ Switched from: <previous branch>
 Unstaged: <files or none>
 Changes carried: <count> files
 Commits carried: <count> | none
-Next: /cdk:commit-changes | none
+Next: commit the carried changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
