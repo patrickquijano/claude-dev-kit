@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:build-subagent` no longer writes the docs snapshot before you approve the plan, and asks once before a score-loop edit outside the Brief.
 - `/cdk:build-docker-compose`, `/cdk:build-dockerfile`, and `/cdk:build-github-workflows` print the plan and ask you to leave plan mode when `ExitPlanMode` is unavailable.
 - `/cdk:build-docker-compose` recommends log rotation and `x-` anchors; `/cdk:build-dockerfile` recommends `RUN --network=none` and SBOM and provenance build flags; `/cdk:build-github-workflows` recommends `actions/attest-build-provenance` and Dependabot `groups`.
+- `/cdk:update-changelog` runs on all history or the last 50 commits with a defined commit range, and `/cdk:update-rules` deletes a tracked file with `git rm` after you answer Delete.
+- `/cdk:build-skill` scores an improve run before plan mode and stops with `nothing-to-do` at 100/100, and it writes evals to the target skill's `references/evals.md`.
+- `/cdk:build-subagent` lists fields above your Claude Code version under `Unverified` and skips `validate-agents` below v2.1.233.
 
 ### Removed
 
