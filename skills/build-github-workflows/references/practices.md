@@ -35,7 +35,7 @@ Names are derived, never chosen: the same request always yields the same names.
 
 - Workflow `name` = file stem in Title Case, with `ci` as `CI`: CI, Release, Deploy, Scheduled, Manual.
 - Job id = `<verb>[-<noun>]`. `<verb>` is from the closed list lint, format, typecheck, test, build, scan, publish, deploy, release, gate; a job outside it → ask in Clarify. Add the noun only when the verb repeats in the workflow: the distinguishing target in kebab-case (`test-unit`, `test-integration`, `build-image`, `build-docs`). Ids are lowercase `kebab-case` starting with a letter or `_`, only alphanumerics, `-`, `_` (the doc's rule).
-- Everything else derives from the job id: callee file `_<job-id>.yml` (underscore prefix groups reusables apart from entry points); caller and callee job id = `<job-id>`, so check names stay stable; job `name` = Title Case of the id (`Build Image`); callee workflow `name` = `'<Workflow name>: <Job name>'`, always quoted (an unquoted `:` is a YAML error); artifact = `<job-id>-<what>`, unique per run (upload-artifact requires a unique name per run in its current majors; see its README). The gate is `gate` / `Gate` / `_gate.yml`.
+- Everything else derives from the job id: callee file `_<job-id>.yml` (underscore prefix groups reusables apart from entry points); caller and callee job id = `<job-id>`, so check names stay stable; job `name` = Title Case of the id (`Build Image`); callee workflow `name` = `'<Workflow name>: <Job name>'`, always quoted (an unquoted `:` is a YAML error); artifact = `<job-id>-<what>`, unique per run (upload-artifact requires a unique name per run; see its README). The gate is `gate` / `Gate` / `_gate.yml`.
 - Step `name`: sentence-case verb phrase. Inputs and outputs: `snake_case`; secrets and `env`: `UPPER_SNAKE_CASE`. Environments: lowercase noun (`production`). Concurrency groups: `${{ github.workflow }}-${{ github.ref }}`, adding a scope segment only when one workflow needs several groups.
 - Existing workflows: new files and jobs always follow this scheme; existing files, ids, and `name` values are kept. A rename happens only when the user chooses it in Clarify, and it then goes into `Check-name map`.
 - **cdk** Required checks: a touched job with a required check gets a gate callee (`_gate.yml`, see `layout.md`) as the one stable check. The caller job `needs` every other job and has `if: ${{ always() }}`; the callee fails when any result is `failure` or `cancelled`, or when there are no results (`skipped` is accepted). Print an old→new check-name map; never edit branch protection or rulesets. The `<caller> / <callee>` check-name format comes from secondary sources, so the map labels it unverified.
@@ -89,13 +89,12 @@ Names are derived, never chosen: the same request always yields the same names.
 
 ## Pinning (**cdk** on top of GitHub guidance)
 
-- Every action, remote reusable workflow, and image is pinned by its exact release tag `vX.Y.Z`, never a bare major, a branch, a commit hash, or an image hash. Resolution: `versions.md` `## Pin form`.
-- A hash-pinning policy: the skill asks per `versions.md` `## Pin form`. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off.
+- Pin form and the hash-pinning ask: `versions.md` `## Pin form`. Tags can be moved or deleted, so the exact tag plus Dependabot is the **cdk** trade-off.
 
 ## Composite actions (**cdk**)
 
-- Extract steps that repeat in 2 or more jobs or workflows into `.github/actions/<name>/action.yml`; call it as `uses: ./.github/actions/<name>` after checkout. Skeleton: `layout.md` `## Composite action`. `tutorials/create-actions/create-a-composite-action`
-- Every `run` step sets `shell: sh`; secrets arrive as inputs.
+- Extract steps that repeat in 2 or more jobs or workflows into `.github/actions/<name>/action.yml`; call it as `uses: ./.github/actions/<name>` after checkout, with no `@ref`, so it is the caller's commit; `.github/actions` exists only after checkout. Skeleton: `layout.md` `## Composite action`. `tutorials/create-actions/create-a-composite-action`
+- Every `run` step sets `shell: sh`; secrets arrive as inputs from the calling step. Declare only the inputs and outputs the steps use. Remote `uses:` inside the action pin to an exact tag.
 - Dependabot `directory: /` scans the root `action.yml` only, and the docs confirm no `.github/actions/*` pattern: list a composite action's remote `uses:` under `Open:` as not covered by Dependabot.
 
 ## Dependabot (**cdk**)

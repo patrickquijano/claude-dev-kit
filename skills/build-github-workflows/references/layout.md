@@ -12,7 +12,7 @@ Skeletons for the orchestrator and callee files. `<…>` is filled from the requ
 - `.github/workflows/_<job-id>.yml`: one callee per job, named from the job id (for example `_lint.yml`, `_test-unit.yml`, `_build-image.yml`).
 - Shared by several orchestrators → keep the one callee; never copy it. A job used once still gets its own file.
 - `.github/actions/<name>/action.yml`: a composite action for steps that repeat (see `## Composite action`).
-- Names follow `practices.md` `## Naming`; existing files and ids are kept unless the user approved a rename. Update mode adds callees beside the existing files.
+- Update mode adds callees beside the existing files.
 
 ## Orchestrator
 
@@ -42,7 +42,7 @@ jobs:
       <SECRET_NAME>: ${{ secrets.<SECRET_NAME> }} # explicit; never inherit
 ```
 
-- Caller job keys: `name`, `uses`, `with`, `secrets`, `strategy`, `needs`, `if`, `concurrency`, `permissions` only. `environment`, `runs-on`, `steps`, `timeout-minutes`, `env` belong to the callee.
+- Caller job keys: per practices.md `## Reusable-workflow contract`.
 - Callee outputs are read as `needs.<job-id>.outputs.<output_name>` and passed on through `with:`.
 - Untrusted event data (titles, bodies, branch names) may be passed in `with:` only to a callee that reads it through step `env:` or an action input, never interpolated into a script; see practices `## Untrusted input and secrets`.
 
@@ -144,7 +144,7 @@ jobs:
 - Write outputs in POSIX: `printf '%s=%s\n' "<name>" "$VALUE" >> "$GITHUB_OUTPUT"`.
 - Artifacts: `actions/upload-artifact@<resolved ref>` with `name: <job>-<what>` unique per run, `retention-days: <n>`; downstream jobs download with `needs`.
 - Caching: the setup action's built-in cache when it has one; otherwise `actions/cache@<resolved ref>` keyed on `hashFiles('<lockfile>')` with `restore-keys`.
-- Cleanup steps (`if: ${{ always() }}`) only for what the job created: registry logout, temp credential and file removal under `$RUNNER_TEMP`, container and network removal. Omit the step when the job creates nothing.
+- Cleanup steps: per practices.md `## Cleanup`; omit the step when the job creates nothing.
 - Each callee declares only inputs and secrets it uses.
 
 ## Composite action
@@ -178,6 +178,4 @@ runs:
         <posix sh>
 ```
 
-- A job uses it after its checkout step: `uses: ./.github/actions/<name>`, with no `@ref`, so it is the caller's commit. The `.github/actions` directory exists only after checkout, so the checkout comes first.
-- Pass each secret to a composite action as an input from the calling step. Remote `uses:` inside the action pin to an exact tag like any other.
-- Declare only the inputs and outputs the steps use; `shell: sh` on every `run` step.
+Rules: `practices.md` `## Composite actions`.

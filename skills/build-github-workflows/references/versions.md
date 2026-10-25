@@ -1,6 +1,6 @@
 # Version resolution
 
-Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. The `gh api` and `git ls-remote` commands below run in `cdk:version-resolver`, which owns them, so they have no `commands.md` row; the inline resolver fallback runs them in this skill, where each run prompts for permission.
+Procedure only; this file holds no versions. Resolve every value on each run, then write the verified values into the workflows (Actions cannot resolve these references at run time). Never guess, never reuse a remembered version, never fall back to an older one. Unverifiable item → return it under `Unresolved`; the skill asks once or stops. The `gh api`, `git ls-remote`, and Docker Hub lookups below are the `commands.md` rows `gh-release`, `ls-remote-tags`, `ls-remote-tag`, and `hub-tags`; the version-resolution subagent runs them, and the inline fallback runs them in this skill, where each run prompts for permission. Tag choice is mechanical: pipe the candidate tags to the `pick-tag` row instead of comparing by eye.
 
 ## Pin form
 
@@ -15,7 +15,7 @@ Images stay on tags either way, because the policy covers actions. Source: <http
 
 Per `owner/repo`:
 
-1. Latest release: first `mcp__plugin_github_github__get_latest_release` (`owner`, `repo`); not connected or error → `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`, unchanged. The endpoint returns the most recent non-prerelease, non-draft release; 404 → the repo publishes no releases, so list tags (`git ls-remote --tags --refs https://github.com/<owner>/<repo>`), drop any tag with a prerelease suffix (`-rc`, `-alpha`, `-beta`, `-pre`, `-dev`, `-next`), and take the highest numeric semver; still nothing → `Unresolved`. Source: <https://docs.github.com/en/rest/releases/releases#get-the-latest-release>.
+1. Latest release: first `mcp__plugin_github_github__get_latest_release` (`owner`, `repo`); not connected or error → `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`, unchanged. The endpoint returns the most recent non-prerelease, non-draft release; 404 → the repo publishes no releases, so list tags (`git ls-remote --tags --refs https://github.com/<owner>/<repo>`), drop any tag with a prerelease suffix (`-rc`, `-alpha`, `-beta`, `-pre`, `-dev`, `-next`), and take the highest numeric semver with `pick-tag action`; still nothing → `Unresolved`. Source: <https://docs.github.com/en/rest/releases/releases#get-the-latest-release>.
 2. Most specific tag: the full `vX.Y.Z` release tag. Floating majors (`v4`) move and are never written.
 3. Verify the tag exists in that repo, never a fork: `git ls-remote --tags --refs https://github.com/<owner>/<repo> refs/tags/<tag>`. For an action with a subpath (`owner/repo/path`) the tag applies to `owner/repo`. Source: <https://git-scm.com/docs/git-ls-remote>.
 4. Commit SHA: the 40-hex commit the tag points to (`git ls-remote` of `<tag>^{}`, else `<tag>`); written form `owner/repo@vX.Y.Z`, or `owner/repo@<SHA> # vX.Y.Z` when `pin: sha`.
@@ -28,13 +28,13 @@ Source for pin guidance: <https://docs.github.com/en/actions/reference/security/
 
 1. Read the Linux x64 labels from <https://docs.github.com/en/actions/reference/runners/github-hosted-runners> and <https://github.com/actions/runner-images/blob/main/README.md>.
 2. Keep labels of the form `ubuntu-<YY>.<MM>` (x64 unless the request needs arm64, then the `-arm` form). Drop `ubuntu-latest` (floating), `ubuntu-slim` (a different image family; use only when asked), any label the README marks `Beta`, `Preview`, or `Deprecated`, and any label the docs do not list.
-3. Take the highest by numeric comparison. Neither source says "GA" in words, so report the label as `no beta, preview, or deprecated badge`, cite both URLs, and say it is inferred.
-4. Both sources must list the label; one-source label → ask. When the highest is not an LTS release (`ubuntu-YY.04`), return `Unresolved` with the options newest or newest LTS (the highest `.04`). The README says `-latest` moves to a newer OS gradually and advises pinning a version.
+3. Pipe the kept labels to the `pick-tag` row (`runner`, with `--arch arm64` when needed): `tag` is the highest, `lts` the highest `.04`. Neither source says "GA" in words, so report the label as `no beta, preview, or deprecated badge`, cite both URLs, and say it is inferred.
+4. Both sources must list the label; one-source label → ask. When `tag` differs from `lts`, return `Unresolved` with the options newest (`tag`) or newest LTS (`lts`). The README says `-latest` moves to a newer OS gradually and advises pinning a version.
 5. Self-hosted or other OS runners come from the user, never resolved here.
 
 ## Container and service images
 
-1. Docker Hub image: list `https://hub.docker.com/v2/namespaces/<namespace, library for official>/repositories/<repo>/tags?page_size=100&name=<major.minor>` (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>), page through `next` until exhausted, at most 10 pages (cap reached with no match → `Unresolved`), keep tags matching the allowlist `^<digits>(\.<digits>)+-<variant>$` (the allowlist excludes `-rc`, `-alpha`, `-beta`, `-nightly`, `-preview`, `-dev`; no variant requested: `^<digits>(\.<digits>)+$`), and take the highest by numeric semver comparison, never by update time. The variant is the one the request or the repo already uses.
+1. Docker Hub image: list `https://hub.docker.com/v2/namespaces/<namespace, library for official>/repositories/<repo>/tags?page_size=100&name=<major.minor>` (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>), page through `next` until exhausted, at most 10 pages (cap reached with no match → `Unresolved`), keep tags matching the allowlist `^<digits>(\.<digits>)+-<variant>$` (the allowlist excludes `-rc`, `-alpha`, `-beta`, `-nightly`, `-preview`, `-dev`; no variant requested: `^<digits>(\.<digits>)+$`), and take the highest by numeric semver comparison with `pick-tag image --variant <variant>`, never by update time. The variant is the one the request or the repo already uses.
 2. Other registries (`ghcr.io`, `mcr.microsoft.com`, …): the tag cannot be listed here → ask the user for the tag or the registry's tag page; never guess.
 3. Written form: `image: <name>:<tag>`.
 4. Never `latest`, a bare major, or a floating alias (`-alpine`, `-slim`).
@@ -42,7 +42,3 @@ Source for pin guidance: <https://docs.github.com/en/actions/reference/security/
 ## Tool versions inside jobs
 
 - Language and tool versions (Node, Python, Go, …) come from the repo's version files (`.nvmrc`, `.python-version`, `go.mod`, `.tool-versions`) or the request, passed to the setup action as input; never invented. No source → ask. Setup-action input names come from its `action.yml` at the resolved tag.
-
-## Return table
-
-`<ref> | <tag or label> | <commit SHA, or - when none> | <source URL> | <note>` per resolved item, then `Unresolved: <item — reason — suggested question | none>`.
