@@ -1,6 +1,6 @@
 # Evals
 
-Write at least 3 evals for each skill you build; include routing cases when the skill makes a fit decision. Test each on Haiku, Sonnet, and Opus.
+Write at least 3 evals for each skill you build, in the target skill's `references/evals.md`, linked from its SKILL.md `## Files`; include routing cases when the skill makes a fit decision. Test each on Haiku, Sonnet, and Opus.
 
 ## Contents
 
@@ -38,6 +38,7 @@ A behavior eval for a build: the skill asks at most one blocking question, write
 | score-loop         | "Build a skill that summarizes a changelog, then keep fixing it."                | Scores each round and fixes inline until 100/100 or a stall       | Prints an open-items table (ID, cause, options, chosen) per round; enters plan mode with the open-items table before any Edit; rescores after every fix round, and the final Score comes from a rescore; at a stall asks; at most 10 rounds |
 | plan-declined      | "Improve my deploy skill." (the user declines plan mode)                         | Records `declined`, continues to step 3, uses the Rules' confirms | Output shows `Plan mode: declined`; the invocation question is still asked; the score loop asks Apply \| Skip item \| Stop instead of `ExitPlanMode`; no write without a confirm                                                            |
 | plan-rejected-3x   | "Build a skill that tidies commit messages." (the user rejects the plan 3 times) | Revises and calls `ExitPlanMode` again each time, then cancels    | Writes no file; `Result: cancelled`, `Stopped: 4: plan rejected`                                                                                                                                                                            |
+| cannot-interact    | "Build a skill that tidies logs." (run as a subagent, no way to ask)             | Asks nothing and writes nothing                                   | No file written; `Result: stopped`, `Stopped: <step>: cannot interact`                                                                                                                                                                      |
 
 ## Running per model
 
