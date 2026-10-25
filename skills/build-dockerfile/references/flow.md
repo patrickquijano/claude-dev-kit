@@ -2,11 +2,21 @@
 
 ## Contents
 
-- Pre-flight · Analyze · Clarify · Draft · Verify · Spawn briefs
+- Pre-flight · Plan mode · Analyze · Clarify · Draft · Verify · Spawn briefs
 
 ## Pre-flight
 
 Root = `repo-root`, else cwd. Read the input (text, paths, pasted Dockerfile); app dir = `dir=`, else root. Target: `target=devcontainer` → devcontainer, else default. Devcontainer keys (space-separated `key=value`, values with spaces in double quotes): `dir=`, `context=` (build context), `base=<image>:<tag>`, `packages=<a,b,…>`, `sudoers="<line>"`, `copy=<src>:<dest>,…`. Mode: input asks only to review, score, or audit → review (writes nothing); Dockerfile exists in the app dir → update; else create. Review mode, no Dockerfile → report it, suggest create mode, `Result: nothing-to-do`.
+
+## Plan mode
+
+Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; unattended (no way to ask) → `skipped (unattended)`.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and write after step 4 with the diff printed, no approval.
+- Steps 2–4 run inside plan mode: they only read, ask with AskUserQuestion, and spawn `cdk:version-resolver`.
+- At the end of step 4 write the plan file: each file (`Dockerfile`, `.dockerignore`) with its purpose, the printed content (a diff when existing), the resolved image tags, the change list, the skipped practices, and the effects: the files written and, for the default target, the test build (`image-build`, then `image-remove`). Call `ExitPlanMode`.
+- Approval → step 5. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the Clarify cap) → `Result: cancelled`, `Stopped: 5: plan rejected`.
+- Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
 ## Analyze
 

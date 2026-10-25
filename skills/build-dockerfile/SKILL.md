@@ -28,30 +28,31 @@ Input: $ARGUMENTS
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
 - Validate with `build-check`, lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error), test with `image-build` then `image-inspect` and `image-remove` (default target); never `docker build` without a throwaway tag.
-- Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff; no approval asked (local, reviewable files).
+- Writes and AskUserQuestion happen here only; `cdk:practices-reviewer` only reviews. Each write to an existing file prints its diff. Plan mode entered → the `ExitPlanMode` approval gates the write (`flow.md` `## Plan mode`); declined, unavailable, or unattended → no approval asked (local, reviewable files).
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
+- Caps: Clarify 3 AskUserQuestion calls; plan rejections 3 (`flow.md` `## Plan mode`); Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context, else cwd; read input, app dir, target, and mode (review | update | create). Review with no Dockerfile → `nothing-to-do` (`flow.md` `## Pre-flight`).
+1. **Pre-flight.** Root = Context, else cwd; read input, app dir, target, and mode (review | update | create). Review with no Dockerfile → `nothing-to-do` (`flow.md` `## Pre-flight`). Then enter plan mode per `flow.md` `## Plan mode`.
 2. **Analyze.** Collect stack, build and start facts, and existing Docker files. Review mode → step 6, then 7 (`flow.md` `## Analyze`).
 3. **Clarify.** Ask only missing facts; apply the defaults without asking. Devcontainer → skip (`flow.md` `## Clarify`).
 4. **Draft and plan.** Resolve image tags by spawning `cdk:version-resolver` with `kind: images` (brief in `flow.md` `## Spawn briefs`); build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
-5. **Write** `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
+5. **Write**, once the plan is approved, `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
 6. **Verify.** Spawn `cdk:practices-reviewer` with `kind: dockerfile`, fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
 7. **Report** leftovers under `Open:`, then print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For pre-flight, analyze, clarify defaults, draft order, the verify loop, and the spawn brief, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For pre-flight, plan mode, analyze, clarify defaults, draft order, the verify loop, and the spawn brief, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the Dockerfile rules (Required items, pins, cache, RUN, runtime, devcontainer target), see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 
 ## Output
 
 ```text
 Mode: create | update | review
+Plan mode: entered | already active | declined | skipped (<reason>)
 Purpose: production | dev | devcontainer
 App: <dir> (<language runtime version>, <package manager>)
 Stages: <name: image:tag>, … (tool stages included)
