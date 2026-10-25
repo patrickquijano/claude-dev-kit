@@ -3,7 +3,7 @@ name: build-docker-compose
 description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use only when the user explicitly asks to write or review Compose.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '<app description | path | existing compose file>'
-allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker info *) Bash(node --version) Bash(npm view dclint version) Bash(git mv *)
+allowed-tools: Bash(git rev-parse *) Bash(command -v *) Bash(docker info *) Bash(node --version) Bash(npm view dclint version) Bash(npm view dclint@* engines --json) Bash(git mv * compose.yaml)
 disable-model-invocation: true
 ---
 
@@ -28,13 +28,13 @@ Input: $ARGUMENTS
 - Apply every **Required** item for the chosen mode in `practices.md`; apply a **Recommended** item only when the input or a user answer asks for it. A skipped Required item gets a reason in the Output.
 - Mode: plain Compose or Swarm stack, decided from the input and compose-file signals, else asked (`flow.md` `## Mode`). `deploy:` alone never proves Swarm.
 - Ask every configuration choice (mode, scoped file name, services, ports, volumes, secrets, configs, resource limits, restart and update policy) with AskUserQuestion: recommended option first, one-line reason, max 4 questions per call. Stated in the input or the existing compose file → do not ask.
-- Files: base `compose.yaml`; a scoped or environment file `compose.<scope>.yaml`, the name asked. Never create `docker-compose.yml` or any `.yml` file.
+- Files: base `compose.yaml`; a scoped or environment file `compose.<scope>.yaml`, the name asked, validated together with `compose.yaml`. Never create `docker-compose.yml` or any `.yml` file.
 - Images: every image pinned to its most specific tag from a Docker Hub lookup; never `latest`, a floating tag, or a guess. Other registry or failed lookup → ask the user.
 - Never write secret values into the file; reference secrets, `env_file`, or `${VAR:?err}`.
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
 - Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing) and confirm with AskUserQuestion naming each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen; unattended → write and report. In plan mode the `ExitPlanMode` approval replaces this ask (`flow.md` `## Plan mode`). The confirmation does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: Clarify 3 AskUserQuestion calls; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:` and stop.
+- Caps: Clarify 3 AskUserQuestion calls; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 - Unattended (no way to ask): ask nothing, list each unanswered choice under `Open:`.
 
 ## Workflow
