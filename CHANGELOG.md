@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `/cdk:commit-changes` asks you to confirm the plan (Commit, Regroup, or Stop) before committing; unattended runs stop and report the plan.
 - `/cdk:build-skill` builds standalone skills (no other skill invoked, every subagent spawn has an inline fallback), asks a weighted invocation question every run with a score preview per option, and scores the result with `cdk:rubric-scorer` against a 100-point rubric, fixing inline until 100/100 or a stall (at most 10 rounds). Each fix round enters plan mode for approval before editing, and it always rescores afterward.
 - `cdk:rubric-scorer` reads the `/cdk:build-skill` rules reference and rubric for a skill, takes the invocation choice as input, and reports the pass mark from the rubric.
 - **Breaking:** `/cdk:scan-sonarqube` is renamed `/cdk:setup-local-sonarqube` and is setup-only. It writes `compose.sonar.yaml` (pinned SonarQube Community Build; for a supported stack, a `scan`-profile scanner service that waits for the server's healthcheck and reads `.env.sonar`) and merges `sonar: start`, `sonar: stop`, and `sonar: scan` tasks into `.vscode/tasks.json`. The scan, fix, and teardown loop is gone; an unsupported stack gets a server-only file and a researched approach. An existing file is never overwritten without your choice.
