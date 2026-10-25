@@ -8,6 +8,13 @@
 
 Base: input `base`; else the open PR or MR base for the current branch by origin host (`origin-url`; github `pr-base`, gitlab `mr-base`; CLI missing or error → skip); else `default-branch`, else the first that resolves of `origin/main`, `origin/master`, `main`, `master`. Run `fetch`; failure or no remote → note it and use local refs. `mb` = `merge-base`. Read `base-changelog` (absent on the base → no released sections). Current equals the base branch, or no merge-base → the range starts at the latest reachable tag (`latest-tag`, first); no tag → all history, and more than 50 commits → AskUserQuestion: Use the last 50 commits (Recommended) | Use all history | Stop.
 
+`<range>` for `commits`, `committed-names`, and `committed-stat`:
+
+- merge-base → `<mb>..HEAD`.
+- tag → `<tag>..HEAD`.
+- all history → `commits` takes `HEAD`; the diffs run against the empty tree: `<empty-tree>..HEAD` with `<empty-tree>` = `4b825dc642cb6eb9a060e54bf8d69288fbee4904`.
+- last 50 → `<start>^..HEAD`, `<start>` = the last line of `last-50`.
+
 ## Release mode
 
 Format and workflow: `format.md` `## Workflows`.
