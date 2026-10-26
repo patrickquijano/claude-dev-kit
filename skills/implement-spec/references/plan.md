@@ -4,20 +4,11 @@ Formats and asks for steps 2, 5–6.
 
 ## Plan mode
 
-Step 2 asks once, only when plan mode is not active; if it is on, do nothing and run steps 3–6 inside it.
+Step 2 runs once. `--yes` enters nothing, continues without plan mode (the flag is the approval, never for a Dirty path), and records `Plan mode: skipped (--yes)`.
 
-Ask one AskUserQuestion:
-
-- Options: `Enter plan mode` | `Continue without plan mode` | `Stop`, the recommended one first with `(Recommended)` and a one-line reason from the input.
-- Lean Enter when the requirement spans several files or components, has several valid approaches, is unclear, changes behavior or architecture, or is risky or hard to reverse.
-- Lean Continue when it is small or fully specified, or already covered by an approved plan or spec.
-- `--yes` asks nothing, continues without plan mode (plan approval would need the user), and records it as `skipped (--yes)`.
-- `Stop` → `Result: cancelled`.
-
-Enter path:
-
-- Load `EnterPlanMode` with ToolSearch if it is deferred, then call it. Steps 3–6 are read-only and run inside plan mode; the step 6 Pick ask stays.
-- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach) and call `ExitPlanMode`. Approval → step 7.
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 2: plan mode declined`; nothing is edited.
+- Steps 3–6 are read-only and run inside plan mode; the step 6 Pick ask stays.
+- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the Dirty paths the plan names, with no separate ask.
 - Rejection → revise per the feedback and call `ExitPlanMode` again; each rejection counts toward the clarify cap.
 
 ## Goals

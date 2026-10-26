@@ -31,7 +31,7 @@ Input: $ARGUMENTS
 - Never delete tests, lower lint or type strictness, or add ignores to make checks pass; fix the code.
 - Never commit, push, or change files outside the repo; the user commits afterwards.
 - Caps: plan rejections 3, then cancelled (`references/plan.md`); researchers one per selected major (and minor with breaking changes), at most 4 per message, batches until all are done (`references/plan.md`); no usable `Answer:` after one respawn (`spawns.md`) → mark the package high risk and continue; fix rounds per failing check 3, then revert that package and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
-- Unattended (subagent or print mode): ask nothing; apply patch and minor only and list majors under `Open:`; step 5 and the step 6 major question are skipped, and so is plan mode (`skipped (unattended)`).
+- Unattended (subagent or print mode): ask nothing; choosing an unattended run is the caller's approval for patch and minor only, which apply; list majors under `Open:`; step 5 and the step 6 major marking are skipped, and so is plan mode (`skipped (unattended)`).
 - Stops and cancels print the Output with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
 
 ## Workflow
@@ -41,7 +41,7 @@ Input: $ARGUMENTS
 3. **Analyze.** Spawn one read-only version-resolver subagent per project in one message (`spawns.md`). First run `tool-check` for each project's manager; it fails → skip that project's spawn, exclude it from steps 4-11, and say why; every project excluded → `Result: stopped`, `Stopped: 3: no usable package manager`.
 4. **Report.** Print one table per project: package, current, latest, bump, dev?, breaking changes with URL, affected files, config files, requires. Nothing outdated → `Result: nothing-to-do`.
 5. **Select.** `patch-minor-only` → all patch and minor, no question. Else AskUserQuestion per `${CLAUDE_SKILL_DIR}/references/select.md`.
-6. **Plan.** Research, validate, and print the plan; majors and the plan-mode exit per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Step 6`. Approval gates steps 7–8.
+6. **Plan.** Research, validate, and print the plan; majors and the plan-mode exit per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Step 6`. Approval gates steps 7–8; plan mode declined or unavailable → `Result: stopped`, `Stopped: 1: plan mode declined`.
 7. **Baseline.** Run step 9's `checks` once before any upgrade (changed paths: none, baseline run); record its `Checks:` and `Required failing:`, and only new failures count later.
 8. **Apply.** Per package, patch and minor batch first, then majors with dependencies before dependents: take `checkpoint` (empty output → `git rev-parse HEAD`) and record it with the manifest specifier, run its `managers.md` upgrade command (workspace: in the declaring member), apply the planned edits, then step 9.
 9. **Validate.** Run `frozen-install` inline, then spawn a read-only check-runner subagent (`spawns.md`); consume `Checks:` and `Required failing:`. New failure → fix or revert per `${CLAUDE_SKILL_DIR}/references/validate.md`.
@@ -54,7 +54,7 @@ Input: $ARGUMENTS
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For per-manager detect, upgrade, workspace, and registry lookups, see `${CLAUDE_SKILL_DIR}/references/managers.md`.
 - For the step 5 question and its outcomes, see `${CLAUDE_SKILL_DIR}/references/select.md`.
-- For plan mode and the step 6 plan and major question, see `${CLAUDE_SKILL_DIR}/references/plan.md`.
+- For plan mode and the step 6 plan and major marking, see `${CLAUDE_SKILL_DIR}/references/plan.md`.
 - For the fix loop and the exact revert, see `${CLAUDE_SKILL_DIR}/references/validate.md`.
 - For the spawn briefs (steps 3, 6, 9, 10), see `${CLAUDE_SKILL_DIR}/references/spawns.md`.
 - For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.

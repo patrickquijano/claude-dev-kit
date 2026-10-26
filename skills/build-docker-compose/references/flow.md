@@ -14,10 +14,10 @@ An existing `docker-compose.yml`, `docker-compose.yaml`, or `*.yml` compose file
 
 Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; unattended (no way to ask) → `skipped (unattended)`.
 
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the Rules confirm at step 6.
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
 - Steps 2–5 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the image-tag subagent.
-- At the end of step 5 write the plan file: the compose file path and its purpose, the printed file (a diff when existing), the resolved image tags, the change list, the skipped practices, and the effects: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and "Rename <file> to compose.yaml with git mv" when `compose-rename` was chosen. Call `ExitPlanMode`; unavailable → print the plan, ask the user to leave plan mode, then use the Rules confirm at step 6.
-- Approval replaces the AskUserQuestion confirm → step 6. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the Clarify cap) → `Result: cancelled`, `Stopped: 6: plan rejected`.
+- At the end of step 5 write the plan file: the compose file path and its purpose, the printed file (a diff when existing), the resolved image tags, the change list, the skipped practices, and the effects: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and "Rename <file> to compose.yaml with git mv" when `compose-rename` was chosen. Call `ExitPlanMode`; unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`.
+- Approval covers every listed effect → step 6. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the Clarify cap) → `Result: cancelled`, `Stopped: 6: plan rejected`.
 - The `compose-rename` ask in pre-flight stays an AskUserQuestion; the rename runs only after the plan is approved.
 - Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
@@ -54,7 +54,7 @@ Build the file from `practices.md` in this order: top-level `name` (plain only) 
 
 ## Write
 
-Confirm first per the Rules or `## Plan mode` (create or update the named file, run `dclint` via `npx`); answered no or rejected 3 times → `Result: cancelled`. Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Run `compose-rename` first when chosen, then edit `compose.yaml`; otherwise an existing file → edit in place. Write no other file except the plan file.
+Write only after the `## Plan mode` approval (create or update the named file, run `dclint` via `npx`); unattended → write and report; rejected 3 times → `Result: cancelled`. Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Run `compose-rename` first when chosen, then edit `compose.yaml`; otherwise an existing file → edit in place. Write no other file except the plan file.
 
 ## Verify
 

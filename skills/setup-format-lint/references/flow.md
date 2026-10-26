@@ -4,7 +4,18 @@ Detail for the steps that branch.
 
 ## Contents
 
-- Choose tools · Install · Resolve · Spawn briefs
+- Plan mode · Choose tools · Install · Resolve · Spawn briefs
+
+## Plan mode
+
+Runs once, right after pre-flight passes. Unattended (no AskUserQuestion) → `Plan mode: skipped (unattended)`; nothing to install or write is known only after step 6, so it is not a skip reason.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 7: plan mode declined`; nothing is installed or written.
+- Steps 2–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
+- At the end of step 6 write the plan file: the packages with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write, each with its purpose and effects. Nothing to install or write → a one-line plan file saying so, then `ExitPlanMode`, so step 10 runs after approval. Call `ExitPlanMode`; approval covers every listed effect, then go to step 7.
+- After approval the missing `package.json` is created first, then the install runs, native tools included.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 7: plan rejected`.
+- Any end before step 7 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Choose tools
 
@@ -13,11 +24,11 @@ Detail for the steps that branch.
 
 ## Install
 
-- Confirm first (attended, before any install or config write): AskUserQuestion listing each effect: the packages with resolved versions, the `package.json` to create when missing, the install commands (npm, Composer, .NET), and the config and ignore files to write. Options: Install `<pkgs>` + write `<configs>` (Recommended) | Stop. Stop → `Stopped: 7: user stopped` and end. Nothing to install or write → no question. Unattended → no question; the Output reports what was created and installed.
-- Confirmed → create the missing `package.json` first (`package-manager.md`), then install.
+- Approved first (attended, before any install or config write): the `ExitPlanMode` approval lists each effect: the packages with resolved versions, the `package.json` to create when missing, the install commands (npm, Composer, .NET, native), and the config and ignore files to write. Nothing to install or write → no question. Unattended → no approval; the Output reports what was created and installed.
+- Approved → create the missing `package.json` first (`package-manager.md`), then install.
 - Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>` (workspace-root flag per `package-manager.md`).
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. .NET tools → `dotnet-manifest` when needed, then `dotnet-tool-install`; missing prerequisite → skip the tool with the reason.
-- Native tools → the first `tools.md` channel whose command exists (`uv-install`, `pipx-install`, `go-install`, `brew-install`). Ask per tool: Run `<that command>` (Recommended) | Skip this tool | Stop. No channel → skip with the install page.
+- Native tools → the first `tools.md` channel whose command exists (`uv-install`, `pipx-install`, `go-install`, `brew-install`). Run that command (it is in the plan). No channel → skip with the install page.
 - A failed install → quote the error line and stop.
 
 ## Resolve

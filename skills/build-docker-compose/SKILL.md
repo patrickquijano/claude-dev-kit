@@ -31,7 +31,7 @@ Input: $ARGUMENTS
 - Images: every image pinned to its most specific tag from a Docker Hub lookup; never `latest`, a floating tag, or a guess. Other registry or failed lookup → ask the user.
 - Never write secret values into the file; reference secrets, `env_file`, or `${VAR:?err}`.
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
-- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing) and confirm with AskUserQuestion naming each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen; unattended → write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`). In plan mode the `ExitPlanMode` approval replaces this ask (`flow.md` `## Plan mode`). The confirmation does not count toward the Clarify cap.
+- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; unattended → write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 - Unattended (no way to ask): ask nothing, list each unanswered choice under `Open:`.
@@ -43,7 +43,7 @@ Input: $ARGUMENTS
 3. **Mode.** Pick plain Compose or Swarm stack from the signals, else ask (`flow.md` `## Mode`).
 4. **Clarify.** Ask only unresolved choices, recommended first with the reason (`flow.md` `## Clarify`).
 5. **Draft and plan.** Resolve image tags with a read-only subagent (brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
-6. **Write** the file after the confirmation or the `ExitPlanMode` approval (`flow.md` `## Write`).
+6. **Write** the file after the `ExitPlanMode` approval (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
 

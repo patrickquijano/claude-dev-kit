@@ -1,6 +1,6 @@
 # Interview
 
-Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo cannot answer, then gate the write on a confirmed brief. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
+Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo cannot answer, then gate the write on the approved plan. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
 
 ## Contents
 
@@ -10,16 +10,16 @@ Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo 
 
 Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFetch` only reads; a refresh stays in memory and is never written) and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
 
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, and keep the AskUserQuestion Brief (Confirm | Revise | Stop).
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
 - Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
 - At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, and any changed doc fact from the freshness read). Call `ExitPlanMode`.
-- Approval replaces Confirm → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 8 batches; cap hit → `Result: stopped`, `Stopped: 6: batch cap`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again.
+- Approval → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 8 batches; cap hit → `Result: stopped`, `Stopped: 6: batch cap`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again. This ask is a rejection follow-up, not a write gate.
 - The backup and the write come only after approval.
 
 ## Protocol
 
 - At most 3 questions per batch, 2–4 options plus Other, the recommended option first, worded as a proposal with a one-line reason that cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch.
-- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including Brief Revise and plan rejections. Cap hit before a Brief is confirmed → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path).
+- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including plan rejections. Cap hit before the plan is approved → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
 - Resolved means a user choice or a named file; never an assumption or a default.
 - A vague answer ("whatever", "not sure") or "I don't know" → one follow-up with concrete options, or offer a read-only look-up (Grep, Read) and ask again with its result; still unresolved → stop with `Result: stopped`, never fill the gap.
 - Any change at the brief reopens only the items it touches (counts toward the 8 batches).
@@ -103,9 +103,23 @@ Precedence and plugin restrictions: `docs-snapshot.md` `## Scopes and precedence
 
 ## Name
 
-- An actor noun for who does the job (`code-reviewer`, `log-analyzer`), never the action (`review-code`) or a gerund (`reviewing`). Actions name skills; actors name agents.
-- A requested action name → ask Rename | Keep, recommending Rename with the actor form (`review-code` → `code-reviewer`).
-- Lowercase, hyphen-separated; no `:`, no leading `-`; the file stem matches `name`.
+Propose the name as a weighted question. Always in create (the user's name is a candidate); in update and improve only when the current name breaks a hard rule or the user asks to rename (a rename moves the file and breaks `@name` callers). The user's choice wins.
+
+- Candidates: 2–4, each from a different source so no one source dominates: the user's (or current) name, the job's words, the closest sibling role suffix in the scope, the user's domain words. Gather evidence read-only first: Glob the scope's agents dir, Grep the purpose.
+- Hard rules (`docs-snapshot.md` `## Format`, `agent-checklist.md`): lowercase, hyphen-separated; no `:`, no leading `-`; at most 256 characters; the file stem matches `name`; unique in the scope (`rubric.md` D3). A candidate that fails one is dropped and listed with its rule, never scored.
+- An actor noun names who does the job (`code-reviewer`), never the action (`review-code`) or a gerund (`reviewing`). A requested action or gerund name is a scored candidate beside its actor form; it is never silently kept or renamed.
+
+| Criterion                                                                        | Weight |
+| -------------------------------------------------------------------------------- | ------ |
+| Names the actor noun, never an action or gerund                                  | 30     |
+| Fits the sibling role suffix (`-analyzer`, `-reviewer`; cite siblings; none → 1) | 25     |
+| Distinct for delegation against sibling names and descriptions (item 13)         | 20     |
+| Uses the job's domain words                                                      | 15     |
+| Short to @-mention                                                               | 10     |
+
+- Score each candidate 0, 1, or 2 per criterion with evidence (`file:line`, a sibling name, a user quote, or a bundled fact); no evidence → 1 and say so. Total = Σ(weight × score / 2); the highest is Recommended.
+- Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either). A tie goes to the user's or current name, else the shorter.
+- One question: the Recommended name first with a one-line reason and both top totals; each option's `preview` holds its breakdown (criterion, weight, score, evidence). Other → hard-rule check, scored the same way, shown once more. Record the name and its total.
 
 ## Model and effort
 
@@ -156,11 +170,11 @@ A domain color wins over the generic one (security red and test blue beat review
 
 ## Brief
 
-Step 6, before any write: show at most 40 lines (a longer diff goes to the plan file), then AskUserQuestion Confirm | Revise | Stop (plan mode entered → the `## Plan mode` plan file and `ExitPlanMode` instead).
+Step 6, before any write: put the Brief in the `## Plan mode` plan file (at most 40 lines of diff inline; a longer diff goes to the plan file's end), then call `ExitPlanMode`.
 
 - `Target: <absolute path>` and `Mode:`.
 - Doc facts that differ from `docs-snapshot.md` after a due freshness read (in memory only), when any.
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
-- Revise → reopen only the changed items; Stop or no answer → write nothing, `Result: cancelled`. A timed-out answer is never Confirm.
+- Rejection with feedback → reopen only the changed items; a rejection that asks to stop or no answer → write nothing, `Result: cancelled`. A timed-out answer is never approval.

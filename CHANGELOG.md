@@ -7,21 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-25
+
 ### Added
 
 - `/cdk:merge-github-pull-request` merges one GitHub pull request through the GitHub MCP server, with `gh` only where MCP lacks a step. It asks the merge method (squash recommended) and whether to delete the branch before merging, then verifies the merge commit. An admin bypass is offered only for your own PRs, with `ADMIN` permission, after you confirm.
-- `/cdk:review-github-pull-request` reviews one GitHub pull request on its own: it resolves addressed threads, analyzes in parallel, and posts one review pinned to the head SHA without asking for confirmation.
+- `/cdk:review-github-pull-request` reviews one GitHub pull request on its own: it resolves addressed threads, analyzes in parallel, and posts one review pinned to the head SHA after one confirmation.
 - `/cdk:push-commits` pushes the current branch's pending commits to its origin branch with one normal push after you confirm (flags unsigned, fixup, and behind-remote commits); it stops with the reason when none are pending, on a protected branch, or on a detached HEAD.
-- `/cdk:address-github-pull-request-review` addresses a GitHub pull request's open review threads, change requests, and failing checks: it triages each item, fixes the valid ones with tests in one commit per item, pushes once, and replies on each addressed thread with the short SHA. It never force-pushes or resolves threads, and `--dry-run` prints the push and replies instead of running them.
+- `/cdk:open-github-pull-request` creates a GitHub pull request from the diff, or updates one by URL or number, with a Conventional Commits title and the repo's filled template. It waits for your confirmation before any create or update.
+- `/cdk:address-github-pull-request-review` addresses a GitHub pull request's open review threads, change requests, and failing checks: it triages each item, fixes the valid ones with tests in one commit per item, pushes once, and replies on each addressed thread with the short SHA. It enters plan mode first, and the approved plan covers the push and replies. It never force-pushes or resolves threads, and `--dry-run` prints the push and replies instead of running them.
 
 ### Changed
 
-- `/cdk:update-changelog`, `/cdk:update-editorconfig`, `/cdk:update-readme`, and `/cdk:update-rules` ask once (Proceed, Revise, or Stop) before they write; `/cdk:update-gitignore` shows the exact lines it appends and adds a reason to its existing ask.
+- `/cdk:update-changelog`, `/cdk:update-editorconfig`, and `/cdk:update-gitignore` enter plan mode after their pre-flight check and write only after you approve the plan; `/cdk:update-gitignore` still shows the exact lines it appends.
 - `/cdk:build-docker-compose`, `/cdk:build-dockerfile`, `/cdk:build-github-workflows`, `/cdk:build-subagent`, `/cdk:build-skill`, and `/cdk:upgrade-dependencies` enter plan mode after their pre-flight check; you approve the write with the plan.
 - `/cdk:commit-changes` asks you to confirm the plan (Commit, Regroup, or Stop) before committing; unattended runs stop and report the plan.
-- `/cdk:build-skill` builds standalone skills (no other skill invoked, every subagent spawn has an inline fallback), asks a weighted invocation question every run with a score preview per option, and scores the result with `cdk:rubric-scorer` against a 100-point rubric, fixing inline until 100/100 or a stall (at most 10 rounds). Each fix round enters plan mode for approval before editing, and it always rescores afterward.
+- `/cdk:build-skill` builds standalone skills (no other skill invoked, every subagent spawn has an inline fallback), asks a weighted invocation question every run with a score preview per option, and scores the result with a read-only scorer subagent against a 100-point rubric, fixing inline until 100/100 or a stall (at most 10 rounds). Each fix round enters plan mode for approval before editing, and it always rescores afterward.
 - `cdk:rubric-scorer` reads the `/cdk:build-skill` rules reference and rubric for a skill, takes the invocation choice as input, and reports the pass mark from the rubric.
-- **Breaking:** `/cdk:scan-sonarqube` is renamed `/cdk:setup-local-sonarqube` and is setup-only. It writes `compose.sonar.yaml` (pinned SonarQube Community Build; for a supported stack, a `scan`-profile scanner service that waits for the server's healthcheck and reads `.env.sonar`) and merges `sonar: start`, `sonar: stop`, and `sonar: scan` tasks into `.vscode/tasks.json`. The scan, fix, and teardown loop is gone; an unsupported stack gets a server-only file and a researched approach. An existing file is never overwritten without your choice.
+- Rename `/cdk:scan-sonarqube` to `/cdk:setup-local-sonarqube`, which is setup-only; the old name no longer works. It writes `compose.sonar.yaml` (pinned SonarQube Community Build; for a supported stack, a `scan`-profile scanner service that waits for the server's healthcheck and reads `.env.sonar`) and merges `sonar: start`, `sonar: stop`, and `sonar: scan` tasks into `.vscode/tasks.json`. The scan, fix, and teardown loop is gone; an unsupported stack gets a server-only file and a researched approach. An existing file is never overwritten without your choice.
 - `/cdk:setup-local-sonarqube` also configures the server: it starts it only when needed, sets the admin password, creates the project, rotates an analysis token, writes `SONAR_HOST_URL`, `SONAR_TOKEN`, and `SONAR_ADMIN_PASSWORD` to `.env.sonar` (mode 600, added to `.gitignore`), and stops the server again. `sonar: scan` no longer prompts for a token; `sonar: start` waits until the server is healthy. Maven and Gradle scans use `./mvnw` or `./gradlew` when the wrapper is tracked, the CLI scanner scans the repo in place, and image tags come from Docker Hub's documented tags endpoint (the highest of all listed tags).
 - `cdk:version-resolver` accepts `pin: sha | tag` and finds a project's lockfile or manifest with Glob.
 - `/cdk:implement-goal` is renamed `/cdk:implement-spec`, with the title "Implement Spec" and a description that now says "implement a spec". Use the new name; the old one no longer exists.
@@ -37,9 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:setup-devcontainer` and `/cdk:assess-spec-kit-idea` now print `Next:` or `Open:` hints instead of chaining another skill.
 - Every skill except `/cdk:draft-prompt` is explicit-only (`disable-model-invocation: true`), so no skill invokes another.
 - Dead `Next:` hints and "chained by" notes are removed from the remaining skills.
-- `/cdk:build-skill` is self-contained and runs only when you invoke it: it uses only `cdk:task-worker`, for read-only audits of many skills, and no longer uses the 100-point rubric, or `skill-creator`, and it names no other skill. It gains a fit gate (skill, subagent, `context: fork`, or not a skill), one `references/rules.md`, an `assets/SKILL.template.md`, and routing evals.
+- `/cdk:build-skill` is self-contained and runs only when you invoke it: it spawns only a read-only investigator subagent, for audits of many skills, and no longer uses the 100-point rubric, or `skill-creator`, and it names no other skill. It gains a fit gate (skill, subagent, `context: fork`, or not a skill), one `references/rules.md`, an `assets/SKILL.template.md`, and routing evals.
 - `/cdk:build-dockerfile` and `/cdk:build-docker-compose` resolve Docker Hub tags through the new `images` kind of `cdk:version-resolver`.
-- `/cdk:build-subagent` scores with `cdk:rubric-scorer`.
+- `/cdk:build-subagent` scores with a read-only scorer subagent, and its score loop stops at 100 instead of 95.
+- `/cdk:build-skill` flags plugin-qualified agent names in a skill, and allows command injection only in `SKILL.md` with an `||` fallback.
 - The skill checker is renamed `validate-skill.mjs`, drops `--allow`, and also flags first or second person descriptions, nested references, reserved folders, parent or absolute paths, unmarked Claude Code-only keys, `agent` without `context: fork`, `context: fork` without `background`, side-effect tools without `disable-model-invocation`, and time-sensitive text.
 - `/cdk:build-docker-compose` review mode now picks the plain or Swarm checks without asking and never fixes the file or runs `dclint-fix`; renaming `docker-compose.yml` is a named `compose-rename` command, and `node --version`, `npm view dclint version`, and `git mv` are pre-approved.
 - `/cdk:build-dockerfile` prints a `Purpose:` line and defines the throwaway test tag; `/cdk:build-dockerfile` and `/cdk:build-github-workflows` no longer allow spawning `cdk:plan-implementer`, and the workflows skill drops the undeclared `--auto` and `--yes` flags.
@@ -53,7 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:build-subagent` writes nothing until you confirm its brief, backs up an agent file before editing it, and stops when the target is not a subagent unless you choose to build anyway.
 - `/cdk:build-github-workflows` and `/cdk:build-docker-compose` print the files and ask once before writing them.
 - `/cdk:setup-git` confirms before initializing a repo, turning on signing by default, and writing `.gitignore`.
-- `/cdk:setup-format-lint` confirms once before it installs tools and writes configs.
+- `/cdk:setup-format-lint` enters plan mode and installs tools and writes configs only after you approve the plan.
+- `/cdk:implement-spec`, `/cdk:setup-devcontainer`, `/cdk:setup-graphify`, `/cdk:setup-husky`, `/cdk:setup-local-sonarqube`, `/cdk:update-readme`, and `/cdk:update-rules` enter plan mode; nothing is installed or written before you approve the plan.
+- `/cdk:assess-spec-kit-idea` asks `Run assessment` before it writes anything.
+- `/cdk:build-skill` and `/cdk:build-subagent` ask a weighted name question when creating, and when updating only if the name breaks a rule or you ask to rename.
 - `/cdk:create-github-release` creates the tag only when it does not exist locally and pushes it only when the remote lacks it.
 - `/cdk:rebase-onto` asks for permission before aborting a rebase; `git rebase --abort` is no longer pre-approved.
 - `/cdk:update-changelog`, `/cdk:update-editorconfig`, `/cdk:update-gitignore`, `/cdk:update-readme`, `/cdk:update-rules`, `/cdk:build-docker-compose`, `/cdk:build-dockerfile`, `/cdk:build-github-workflows`, and `/cdk:upgrade-dependencies` fall back to doing the work inline when a subagent is unavailable, and stop with a named `Result:` and `Stopped:` when `Write` is unavailable, a scorer return is malformed, or a verify cap is hit.
@@ -72,6 +79,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills `/cdk:bump-version`, `/cdk:prepare-change-request`, `/cdk:review-change-request`, `/cdk:review-local-changes`, `/cdk:address-change-request-review`, `/cdk:ship-release`, `/cdk:setup-permissions`, `/cdk:debug-issue`, `/cdk:setup-testing`, `/cdk:scan-vulnerabilities`, `/cdk:add-unit-tests`, `/cdk:add-integration-tests`, `/cdk:add-e2e-tests`, `/cdk:setup-project`, and the project skill `prepare-release`.
 - Agents `cdk:cr-reviewer`, `cdk:cr-feedback-analyzer`, and `cdk:security-scanner`, and the `tests` kind of `cdk:repo-analyzer`.
 - The release gate in the pull request skills; the `release-check` CI job, `scripts/release-check.mjs`, and `.claude/release-policy.json`.
+
+### Fixed
+
+- `/cdk:build-dockerfile` skips its throwaway test build only when the error says it cannot connect to the Docker daemon; other build failures are findings.
+- `/cdk:update-rules` names the path in its undo command for a deleted file.
 
 ## [0.4.1] - 2026-10-24
 
@@ -222,7 +234,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.2.0...v0.3.0

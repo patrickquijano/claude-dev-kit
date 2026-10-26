@@ -36,6 +36,6 @@ Workspace root (Package dir resolved to a git root with `workspaces` or `pnpm-wo
 
 ## Missing package.json
 
-- Create `{ "name": "<name>", "private": true }` in the package dir (npm tools need it) only after the install confirm of `flow.md` `## Install`, which lists it; unattended, the run itself is the consent.
+- Create `{ "name": "<name>", "private": true }` in the package dir (npm tools need it) only after the `ExitPlanMode` approval of `flow.md` `## Install`, whose plan lists it; unattended, the run itself is the consent.
 - `<name>` = package dir name, lowercased; each run of characters outside `a-z`, `0-9`, `-`, `.`, `_` → `-`; leading `.`, `_`, and `-` trimmed; empty → `project`.
 - Never run `<pm> init`: `bun init` and `yarn init` scaffold extra files, and `npm init` copies every package in an existing `node_modules/` into `dependencies`.

@@ -8,15 +8,15 @@
 
 ## Frontmatter (30)
 
-| ID  | Pts | Criterion                                                                                                                                               | Rule              |
-| --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| F1  | 4   | S: `name` valid: equals directory, kebab-case, ≤64, no edge or double hyphens, no reserved words; verb-first (F8, warning plus judgment)                | Fields            |
-| F2  | 5   | S (F9): `description` third person, states what and when, key use case first                                                                            | Description       |
-| F3  | 4   | S: `description` ≤200 chars, no named skill or subagent; `description` + `when_to_use` ≤1,536                                                           | Description       |
-| F4  | 3   | Description holds natural trigger words and is distinctive, not vague                                                                                   | Description       |
-| F5  | 6   | Invocation flags equal the recorded invocation choice (and the kind's allowed set); a missing choice scores 0                                           | Invocation matrix |
-| F6  | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                     | Format            |
-| F7  | 4   | Optional fields justified (F10–F12): `allowed-tools` not used as a restriction, `context: fork` only with a self-contained task body, no unused `model` | Fields            |
+| ID  | Pts | Criterion                                                                                                                                                                                                        | Rule              |
+| --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| F1  | 4   | S: `name` valid: equals directory, kebab-case, ≤64, no edge or double hyphens, no reserved words; verb-first (F8, warning plus judgment)                                                                         | Fields            |
+| F2  | 5   | S (F9): `description` third person, states what and when, key use case first                                                                                                                                     | Description       |
+| F3  | 4   | S: `description` ≤200 chars, no named skill or subagent; `description` + `when_to_use` ≤1,536                                                                                                                    | Description       |
+| F4  | 3   | Description holds natural trigger words and is distinctive, not vague                                                                                                                                            | Description       |
+| F5  | 6   | Invocation flags equal the recorded invocation choice (and the kind's allowed set); a missing choice scores 0; an Allow choice (no `disable-model-invocation`) is never a deduction, even for a side-effect task | Invocation matrix |
+| F6  | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                                                                              | Format            |
+| F7  | 4   | Optional fields justified (F10–F12): `allowed-tools` not used as a restriction, `context: fork` only with a self-contained task body, no unused `model`                                                          | Fields            |
 
 ## Standalone (12)
 
@@ -62,3 +62,4 @@
 - Award full, partial, or zero points per criterion from evidence; cite `file:line`.
 - Total = sum of awarded points. Pass at 100 of 100.
 - Deductions list largest first, each with the concrete fix.
+- Recorded choice allows model invocation → no criterion deducts for the missing `disable-model-invocation: true`: not the F13 `side-effect-invocation` warning, not a missing "Use only when the user explicitly asks" ending (F2–F4), not the matrix default (F5).

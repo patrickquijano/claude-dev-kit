@@ -4,15 +4,25 @@ Branch detail for steps 2, 3, 4, 6, and 8 of `SKILL.md`, plus the fallback and c
 
 ## Contents
 
-- Fallback · Cancelled · Combine · Confirm · Scorer input · Improve · Spawn briefs
+- Fallback · Cancelled · Plan mode · Combine · Scorer input · Improve · Spawn briefs
 
 ## Fallback
 
-AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print finished files in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 5: write unavailable`. Unattended runs ask nothing: write per the `SKILL.md` Rules, report `Confirmed: unattended`, and list unanswerable items in `Omitted:`.
+AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print finished files in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 5: write unavailable`. Unattended runs ask nothing: write per the `SKILL.md` Rules, report `Confirmed: unattended` (a deletion is skipped), and list unanswerable items in `Omitted:`.
 
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a conflict or gap question, the write confirm, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. Files already written stay; report them as `created` or `updated`. Choosing "Omit" is an answer, not a cancel; Stop at the confirm is a cancel (`Confirmed: no (stopped)`), and nothing is written.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a conflict or gap question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. Files already written stay; report them as `created` or `updated`. Choosing "Omit" is an answer, not a cancel.
+
+## Plan mode
+
+Runs once, right after step 1 passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`; score-only → `skipped (score-only)`.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 4: plan mode declined`, `Confirmed: no (stopped)`; nothing is written or deleted.
+- Steps 2–4 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the read-only analyst.
+- At the end of step 4 write the plan file: each file (new | changed | deleted) with its purpose, the diff, dropped and moved items (including a `Known issues` move with both paths), suggested hooks, and the effects (the `format-files` run, "never commits"). Each tracked file to delete is listed in the plan with its reason (dropped or duplicate content). Call `ExitPlanMode`; approval (`Confirmed: yes`) covers the writes, the listed deletes, and this run's improve rounds (they print their `Map:` and need no new ask), then go to step 5.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 4: plan rejected`, `Confirmed: no (stopped)`.
+- Any end before step 5 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Combine
 
@@ -22,17 +32,6 @@ The user dismisses, cancels, or declines an AskUserQuestion this skill needs ans
 - Each facts `Gaps:` item (architecture, boundaries, focused changes, done, maintenance) → one question with an "Omit" option. A precedence gap → use the template order, no question.
 - `principles` gap → no question; draft from `principles.md`, listed in the step 4 plan. A default requirement with no repo support (e.g. no test runner) → omit and list under `Omitted:`.
 - More than 4 questions → next call. Record omitted items for `Omitted:`. Nothing to ask → skip.
-
-## Confirm
-
-One AskUserQuestion at step 4, after the file list, outline, dropped and moved items, suggested hooks, and each diff are printed. The text names each effect: files created, changed, or deleted, the `Known issues` move to auto memory (both paths) when planned, the `format-files` run, and "never commits". One reason line cites the evidence: conflicts resolved, `Omitted:` items, always-loaded line count.
-
-- Question 1 (Proceed → `Confirmed: yes`, or `revised <n>` after Revise rounds): **Proceed** · **Revise** (notes via Other → back to step 3) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
-- Question 2, only for a tracked file planned for deletion: **Delete** (Recommended; dropped or duplicate content) | **Keep**. Stop in question 1 discards it.
-- Recommend Revise when the draft still has an open or blocked item (an unanswered conflict or gap); else Proceed. The recommended option goes first with "(Recommended)".
-- Revise cap 2; cap hit → offer only Proceed and Stop.
-- The confirm covers this run's improve rounds on the same files; they print their `Map:` and need no new ask.
-- Unattended: write per the Rules (a deletion is Keep) and report `Confirmed: unattended`. Score-only never asks: `Confirmed: n/a (score-only)`.
 
 ## Scorer input
 

@@ -5,6 +5,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 ## Contents
 
 - Pre-flight (step 1)
+- Plan mode (step 1)
 - Stack (step 2)
 - Exists (step 3)
 - Unsupported stack (step 4)
@@ -15,8 +16,18 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 ## Pre-flight
 
 - Parse arguments; only `--yes` is known, anything else is ignored.
-- Attended: before any write, AskUserQuestion Proceed | Stop (Recommended: Proceed) naming each effect: `compose.sonar.yaml` and `.vscode/tasks.json` written (an existing tasks file is merged by label), the server started when it is not running, the admin password set on a first run, the analysis token revoked and regenerated (a rerun rotates the old one), `.env.sonar` and the `.gitignore` entry written. Stop → `Result: cancelled`, nothing written. `--yes` counts as Proceed.
+- Attended: before any write, the `ExitPlanMode` approval names each effect: `compose.sonar.yaml` and `.vscode/tasks.json` written (an existing tasks file is merged by label), the server started when it is not running, the admin password set on a first run, the analysis token revoked and regenerated (a rerun rotates the old one), `.env.sonar` and the `.gitignore` entry written, and an existing `compose.sonar.yaml` overwritten (checked with Glob). Nothing is written before approval. `--yes` skips plan mode and never overwrites.
 - Nothing is written before `compose` runs; it is the only step that writes, and it writes only `compose.sonar.yaml` and `.vscode/tasks.json` under `<root>`; `configure` later writes `.env.sonar` and the `.gitignore` entry.
+
+## Plan mode
+
+Runs once, right after the root check. Unattended (`--yes`) → `Plan mode: skipped (unattended)`.
+
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 1: plan mode declined`; nothing is written.
+- Inside plan mode only the root check and a Glob for an existing `compose.sonar.yaml` run: the next steps write.
+- Write the plan file with the effects list from `## Pre-flight`: the files written, the server start, the first-run admin password, the analysis token rotation, `.env.sonar` and the `.gitignore` entry, and the overwrite when `compose.sonar.yaml` exists. Call `ExitPlanMode`; approval goes to step 2. The step 2 two-build-tools ask stays after approval, because `compose` detects it while writing.
+- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 1: plan rejected`.
+- Any end before step 2 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Stack
 
@@ -27,8 +38,8 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 
 ## Exists
 
-- `stop` = `compose.sonar.yaml exists` → nothing was written. Attended: AskUserQuestion Overwrite | Stop (Stop is Recommended); Overwrite → re-run `compose` with `--force` (it also re-merges the sonar tasks by label and keeps every other task).
-- Unattended: never overwrite; `Open:` gets `compose.sonar.yaml exists, not overwritten`, `Result: stopped`.
+- `stop` = `compose.sonar.yaml exists` → nothing was written. Attended: the approved plan named the overwrite → re-run `compose` with `--force` (it also re-merges the sonar tasks by label and keeps every other task).
+- Plan did not name the overwrite, or unattended: never overwrite; `Open:` gets `compose.sonar.yaml exists, not overwritten`, `Result: stopped`.
 
 ## Unsupported stack
 

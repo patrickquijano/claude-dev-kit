@@ -6,7 +6,7 @@
 
 ## CLI
 
-`has-graphify` succeeds → skip. Else AskUserQuestion ("Install graphifyy globally (latest stable)", "Stop"); Stop or unattended → `Stopped: 2: graphify not installed`, `Open:` the install command. Install: `has-uv` succeeds → `install-uv`; else `has-pipx` succeeds → `install-pipx`; neither → report "install uv: <https://docs.astral.sh/uv/>", stop. Install fails → quote the error line, stop. Install succeeds but `has-graphify` still fails → tell the user to run `uv tool update-shell` (uv) or `pipx ensurepath` (pipx) and restart the shell, stop. Record `version`.
+`has-graphify` succeeds → skip. Else, unattended → `Stopped: 2: graphify not installed`, `Open:` the install command; otherwise the plan named the global install (latest stable). Install: `has-uv` succeeds → `install-uv`; else `has-pipx` succeeds → `install-pipx`; neither → report "install uv: <https://docs.astral.sh/uv/>", stop. Install fails → quote the error line, stop. Install succeeds but `has-graphify` still fails → tell the user to run `uv tool update-shell` (uv) or `pipx ensurepath` (pipx) and restart the shell, stop. Record `version`.
 
 ## Names
 
@@ -14,4 +14,4 @@ Placeholder names come from `graphify update` or a label-less build. Say `label-
 
 ## Git ignore
 
-`graphify-out/*`, not `graphify-out/`: git cannot re-include a file whose parent folder is excluded. An existing `graphify-out/` or `/graphify-out` line blocks the negations → AskUserQuestion: Replace it with the block (Recommended; shares the graph and report with the team) | Keep local only. Replace → delete that line, then run `append-ignores`. Keep local only → leave the line, report it. Tell the user the post-commit hook rebuilds the tracked `graph.json`, so it shows as modified after commits and goes in the next commit.
+`graphify-out/*`, not `graphify-out/`: git cannot re-include a file whose parent folder is excluded. An existing `graphify-out/` or `/graphify-out` line blocks the negations → the plan states: replace it with the block (shares the graph and report with the team). Replace → delete that line, then run `append-ignores`. Unattended → leave the line, report it. Tell the user the post-commit hook rebuilds the tracked `graph.json`, so it shows as modified after commits and goes in the next commit.

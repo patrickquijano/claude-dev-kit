@@ -2,11 +2,11 @@
 
 ## Contents
 
-- Base · Release mode · Format drift · Confirm · Review loop · Fallback
+- Base · Release mode · Format drift · Plan mode · Review loop · Fallback
 
 ## Base
 
-Base: input `base`; else the open PR or MR base for the current branch by origin host (`origin-url`; github `pr-base`, gitlab `mr-base`; CLI missing or error → skip); else `default-branch`, else the first that resolves of `origin/main`, `origin/master`, `main`, `master`. Run `fetch`; failure or no remote → note it and use local refs. `mb` = `merge-base`. Read `base-changelog` (absent on the base → no released sections). Current equals the base branch, or no merge-base → the range starts at the latest reachable tag (`latest-tag`, first); no tag → all history, and more than 50 commits → AskUserQuestion: Use the last 50 commits (Recommended) | Use all history | Stop.
+Base: input `base`; else the open PR or MR base for the current branch by origin host (`origin-url`; github `pr-base`, gitlab `mr-base`; CLI missing or error → skip); else `default-branch`, else the first that resolves of `origin/main`, `origin/master`, `main`, `master`. Run `fetch` at the end of step 1, before plan mode (it is not read-only); failure or no remote → note it and use local refs. `mb` = `merge-base`. Read `base-changelog` (absent on the base → no released sections). Current equals the base branch, or no merge-base → the range starts at the latest reachable tag (`latest-tag`, first); no tag → all history, and more than 50 commits → AskUserQuestion: Use the last 50 commits (Recommended) | Use all history | Stop.
 
 `<range>` for `commits`, `committed-names`, and `committed-stat`:
 
@@ -27,16 +27,18 @@ Format and workflow: `format.md` `## Workflows`.
 
 Format-only drift in a released section (headings, dates, header, link refs, markers, bullet style): list each fix, then AskUserQuestion: Apply format fixes to released sections (Recommended; keeps the file spec-conformant) | Unreleased only | Stop. Content changes to released entries need their own ask.
 
-## Confirm
+## Plan mode
 
-One AskUserQuestion at step 5, after the entries to write are printed. The text names each effect: the file written (created | updated), the entries added or updated per section, `format-md` when configured, and "never commits". One reason line cites the run's evidence: `Blocked:` items, excluded changes, a `Release mode` version or date taken from a default.
+Runs once, right after the step 1 `fetch`. Unattended → `Plan mode: skipped (unattended)`.
 
-- Options: **Proceed** · **Revise** (notes via Other → back to step 4) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
-- Recommend Revise when `Blocked:` has an item or a classification is unresolved; else Proceed. The recommended option goes first with "(Recommended)".
-- Revise cap 2; cap hit → offer only Proceed and Stop.
-- Stop at any ask (restructure, base, release version or date, format drift, this confirm) → `Result: cancelled`, `Confirmed: no (stopped)`, `Stopped: <step>: user stopped`.
-- The release-mode and format-drift asks stay separate and come first; this ask does not repeat them.
-- The confirm covers this run's later edits to the same file (review loop); they print their diff and need no new ask.
+- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 5: plan mode declined`, `Confirmed: no (stopped)`; nothing is written.
+- Steps 2–5 before the write run inside plan mode: they only read, run `release-candidates.mjs`, and ask. The 50-commit, release version/date, and format-drift asks stay separate and come before the plan.
+- Nothing to write (identical content) → no plan file and no `ExitPlanMode`; `Confirmed: n/a (unchanged or stopped earlier)`, `Result: nothing-to-do`.
+- The plan file holds: the entries to add or update, per section; any approved released-section format fixes; the link references; the effects (`CHANGELOG.md` created or updated, `format-md` when configured, "never commits, tags, or pushes"); one reason line citing `Blocked:` items, excluded changes, and a release version or date taken from a default. Call `ExitPlanMode`.
+- Approval (`Confirmed: yes`) covers the write, `format-md`, and this run's review-loop edits to the file; they print their diff and need no new ask.
+- Rejection → revise per the feedback (back to step 4) and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 5: plan rejected`, `Confirmed: no (stopped)`. `Confirmed: revised <n>` counts the rejections.
+- Stop at any earlier ask (restructure, base, release version or date, format drift) → `Result: cancelled`, `Confirmed: no (stopped)`, `Stopped: <step>: user stopped`.
+- Any end before the write prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Review loop
 

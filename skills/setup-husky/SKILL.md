@@ -21,25 +21,25 @@ disable-model-invocation: true
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - `${CLAUDE_SKILL_DIR}/assets/` holds the canonical hooks. Copy `.mjs` files byte for byte; stubs change only in their path prefix and step 5 flags (step 9).
-- Hooks: `.husky/<hook>` is a POSIX stub `node .husky/<hook>.mjs "$@"` (Git for Windows runs hooks with its bundled `sh`); the logic lives in Node. `commit-msg.mjs` runs commitlint through the package manager: the stub's `--pm=<pm>` flag, else detected at run time.
+- Hooks: `.husky/<hook>` is a POSIX stub `node .husky/<hook>.mjs "$@"`; the logic lives in Node. `commit-msg.mjs` runs commitlint through the package manager: the stub's `--pm=<pm>` flag, else detected at run time.
 - Run `husky-init` only when Husky is not initialized. It overwrites `scripts.prepare` and `.husky/pre-commit`, so snapshot both first; step 7 merges `prepare`, never overwrites it.
 - Never overwrite a user file; never pass `--no-verify`.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
 - AskUserQuestion: at most 4 questions per call, 2-4 options, recommended first with its reason; each asked once. Unavailable → take the recommended option and list it under `Open:`. Unattended → same.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
-- Confirm once: after step 5 and before the first install or write (package.json, dependencies, init, hooks, config, ignores, rules), list the planned installs and writes and AskUserQuestion ("Apply" (Recommended), "Stop"). Stop → `Stopped: 5: writes declined`. Unattended: apply. Kept-file and hook-owner questions below stay separate.
+- Approval: nothing is installed or written (package.json, dependencies, init, hooks, config, ignores, rules) before the `ExitPlanMode` approval after step 5 (`plan.md`); the plan names every install, write, and a hook-owner or `core.hooksPath` replacement. Plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: apply, but never replace another hook owner.
 - Pre-flight stops and a Stop answer: print the Output with `Result: stopped | cancelled`.
 
 ## Workflow
 
-1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Node version `<none>` → stop ("install Node.js").
+1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Node version `<none>` → stop ("install Node.js"). Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan mode`.
 2. **Package dir.** Per `package-manager.md` Package dir. `<pkg>` = package dir relative to the git root (`.` at root).
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
-4. **package.json.** Missing → create it per `package-manager.md` Missing package.json.
+4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json after the `ExitPlanMode` approval.
 5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop. `hooks.md` Events.
 6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
-7. **Initialize Husky.** Ask before replacing another hook owner (lefthook, pre-commit, `.git/hooks` files); `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
+7. **Initialize Husky.** Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → replaced only when the approved plan names it, else stop; `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
 9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); `chmod-exec` copied stubs. `hooks.md` Copy.
 10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
@@ -54,6 +54,7 @@ disable-model-invocation: true
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the plan-mode entry (step 1), see `${CLAUDE_SKILL_DIR}/references/plan.md`.
 - For package dir, package manager detection, and a missing `package.json` (steps 2-4), see `${CLAUDE_SKILL_DIR}/references/package-manager.md`.
 - For hook events, copying hooks, the commitlint config, and the smoke test (steps 5, 9, 10, 15), see `${CLAUDE_SKILL_DIR}/references/hooks.md`.
 - For `hooksPath`, `prepare` merging, and init (step 7), see `${CLAUDE_SKILL_DIR}/references/init.md`.
@@ -65,6 +66,7 @@ disable-model-invocation: true
 ## Output
 
 ```text
+Plan mode: entered | already active | declined | skipped (<reason>)
 Package: <pkg> (<root | nearest | workspace root>)
 Package manager: <pm> (<packageManager | lockfile | chosen>)
 package.json: created | present
