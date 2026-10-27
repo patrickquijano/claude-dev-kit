@@ -35,7 +35,7 @@ Input: $ARGUMENTS
 8. **Config and paths.** Read the target config. Build the merge, skipping identical handlers. Exec-form `args` path per scope from `scopes.md` (user scope: the absolute home path unless the fetched reference documents `~` expansion in exec form). Handler `timeout` is in seconds and each step `timeout` in milliseconds: handler `timeout` ≥ ceil(Σ step ms / 1000) + 5.
 9. **Plan.** Put in the plan file: scope, resolved paths, event, the handler JSON diff, the script outline, the chosen practices, and the enforce-or-advise statement; every file created, overwritten, or merged is named. Call `ExitPlanMode`; approval is the confirmation for every write.
 10. **Write.** Script from `${CLAUDE_SKILL_DIR}/assets/hook-template.mjs` (copy, set `STEPS` and `BLOCK_ON_FAILURE`, adapt per the practices), then the config merge, re-checking each path first. A failed write → `Result: stopped`, `Stopped: 10: <error>`.
-11. **Smoke run.** Run the script once with sample JSON from the event's documented input schema (`echo '<json>' | node <script>`; the permission prompt applies). Report the exit code and stdout; never claim it works inside Claude Code. No script → `skipped`.
+11. **Smoke run.** Run the script once with sample JSON from the event's documented input schema (write it to a scratch file with Write, then `node <script> < <file>`; never put the JSON in a shell argument; the permission prompt applies). Report the exit code and stdout; never claim it works inside Claude Code. No script → `skipped`.
 12. **Output.** Print the block below, nothing else.
 
 ## Files
