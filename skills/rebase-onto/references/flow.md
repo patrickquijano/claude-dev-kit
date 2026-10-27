@@ -23,7 +23,7 @@ No question. Input names a branch → try `origin/<input>` first (listed or `ver
 
 - Files: `conflicted-files`; commit: `replayed-commit`; ancestor: `merge-base`.
 - Analysis: one read-only subagent per file (`## Conflict analysis`, ≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block.
-- AskUserQuestion per file (≤4 per batch), recommendation from the analysis with its justification (default Merge both unless one side clearly supersedes):
+- Decision question per file (≤4 per batch), options scored from the analysis; Recommended only on the highest total, none on a close call. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`:
   - Merge both: combine the hunks (analyzer `combined` text or by hand); show the proposed hunk in the question; choosing it writes it and continues to `stage-file`. A Revise option (max 5 rounds) lets the user edit it, then re-asks.
   - Keep target: `keep-target`; discards all your changes to the file from this commit.
   - Keep mine: `keep-mine`; discards all target changes to the file.
