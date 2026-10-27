@@ -109,6 +109,24 @@ const realDeps = {
   error: (text) => console.error(text)
 };
 
+const METADATA_NAMES = ['action.yml', 'action.yaml'];
+
+// Reads `action.yml`, else `action.yaml`, in `dir`; neither existing throws.
+function readMetadata(dir, d) {
+  const [yml, yaml] = METADATA_NAMES.map((name) => join(dir, name));
+  try {
+    return { file: yml, text: d.readFile(yml) };
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+  }
+  try {
+    return { file: yaml, text: d.readFile(yaml) };
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+    throw new Error(`no action.yml or action.yaml in ${dir}`, { cause: err });
+  }
+}
+
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
@@ -121,12 +139,12 @@ export function main(argv, deps = {}) {
   if (given !== root && !given.startsWith(root + sep))
     throw new Error(`path outside the working directory: ${argv[0]}`);
   const isFile = /\.ya?ml$/.test(given);
-  const file = isFile ? given : join(given, 'action.yml');
+  const { file, text } = isFile ? { file: given, text: d.readFile(given) } : readMetadata(given, d);
   const findings = [];
-  if (isFile && basename(file) !== 'action.yml') {
+  if (isFile && !METADATA_NAMES.includes(basename(file))) {
     findings.push(finding('file', 1, `file is \`${basename(file)}\``, 'name it action.yml'));
   }
-  const parsed = parseYaml(d.readFile(file), d);
+  const parsed = parseYaml(text, d);
   if (parsed.status === 'fail') findings.push(finding('yaml', 1, parsed.error, 'fix the syntax'));
   if (parsed.status === 'pass') findings.push(...checkMetadata(parsed.data), ...checkSteps(parsed.data));
   const ok = findings.length === 0 && parsed.status === 'pass';

@@ -199,6 +199,49 @@ describe('main', () => {
     assert.deepEqual(JSON.parse(out.logs[0]), { ok: true, yaml: 'pass', findings: [] });
   });
 
+  test('exits 0 for a directory holding action.yaml', () => {
+    // Arrange
+    const files = { '/repo/act/action.yaml': 'x' };
+    const readFile = (p) => {
+      if (!(p in files)) throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      return files[p];
+    };
+    const out = { logs: [] };
+    const deps = {
+      cwd: () => '/repo',
+      readFile,
+      run: runner({ yq: ok(JSON.stringify(good)) }),
+      log: (t) => out.logs.push(t)
+    };
+    // Act
+    const code = main(['act'], deps);
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('throws when a directory holds neither action.yml nor action.yaml', () => {
+    // Arrange
+    const deps = {
+      cwd: () => '/repo',
+      readFile: () => {
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      }
+    };
+    // Act
+    const act = () => main(['act'], deps);
+    // Assert
+    assert.throws(act, /no action\.yml or action\.yaml/);
+  });
+
+  test('accepts an explicit action.yaml without a file finding', () => {
+    // Arrange
+    const files = { '/repo/act/action.yaml': 'x' };
+    // Act
+    const { code } = run(['act/action.yaml'], files, { yq: ok(JSON.stringify(good)) });
+    // Assert
+    assert.equal(code, 0);
+  });
+
   test('exits 0 for a root-level action given as the working directory', () => {
     // Arrange
     const files = { '/repo/action.yml': 'x' };
