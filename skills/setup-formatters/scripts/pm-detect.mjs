@@ -47,8 +47,9 @@ function readJson(file, deps) {
   if (!deps.existsSync(file)) return undefined;
   try {
     return JSON.parse(deps.readFileSync(file, 'utf8'));
-  } catch {
-    return undefined;
+  } catch (err) {
+    if (err instanceof SyntaxError) return undefined;
+    throw err;
   }
 }
 

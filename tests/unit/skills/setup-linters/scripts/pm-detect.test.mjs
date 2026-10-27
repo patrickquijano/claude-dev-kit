@@ -165,6 +165,30 @@ describe('detectPackage', () => {
     // Assert
     assert.equal(result.manager, 'yarn');
   });
+
+  test('treats an invalid package.json as absent and uses the lockfile', () => {
+    // Arrange
+    const deps = fsStub({ '/r/package.json': 'not json', '/r/yarn.lock': '' });
+    // Act
+    const result = detectPackage('/r', '/r', deps);
+    // Assert
+    assert.equal(result.manager, 'yarn');
+    assert.equal(result.source, 'lockfile');
+  });
+
+  test('rethrows a read error that is not a JSON syntax error', () => {
+    // Arrange
+    const deps = {
+      existsSync: () => true,
+      readFileSync: () => {
+        throw Object.assign(new Error('denied'), { code: 'EACCES' });
+      }
+    };
+    // Act
+    const act = () => detectPackage('/r', '/r', deps);
+    // Assert
+    assert.throws(act, { code: 'EACCES' });
+  });
 });
 
 describe('main', () => {
