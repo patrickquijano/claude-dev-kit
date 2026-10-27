@@ -10,7 +10,7 @@ Runs once, before step 0. Unattended (no way to ask) → `Plan mode: skipped (un
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is edited, pushed, or replied.
 - Steps 0–3 run inside plan mode: they only read (`gh`, MCP reads, Read, Grep, Glob), ask with AskUserQuestion, and write no scratch file outside the plan file.
-- At the end of step 3 write the plan file: the triage table (class and `path:line` evidence per item) and, per fixable item, the cause, the approaches, and the chosen fix with the files it touches, then the remote effects: the push to `origin/<head>` (commit count) and the thread replies (count). Call `ExitPlanMode`; approval → step 4 and covers the push and replies.
+- At the end of step 3 write the plan file: the triage table (class and `path:line` evidence per item) and, per fixable item, the cause, the approaches, and the chosen fix with the files it touches, then the remote effects: the push to `origin/<head>` (commit count) and the thread replies (count). Call `ExitPlanMode`; approval → step 4 and covers the first implementation of each item, the push, and the replies; each retry round in `## Iterate` re-enters plan mode.
 - Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 3: plan rejected`.
 - Any end before step 4 (a stop, `nothing-to-do`) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
@@ -57,7 +57,9 @@ Make the smallest change that satisfies the comment and the requirement. Stay in
 
 ## Iterate
 
-A failed check → diagnose the cause, research (repo docs, official docs, the web), retry. At most 3 attempts per item; then revert that item's edits, list it under `Open:`, and continue.
+A failed check → diagnose the cause, research (repo docs, official docs, the web), then retry. At most 3 attempts per item; then revert that item's edits, list it under `Open:`, and continue.
+
+**Plan mode (each round).** Before applying round k's retry, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`. Apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 7: plan rejected`. Declined, unavailable, or unattended → no retry is applied; revert that item's edits and list it under `Open:`.
 
 ## Commit
 
