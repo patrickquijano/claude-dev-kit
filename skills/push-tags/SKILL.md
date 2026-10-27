@@ -3,7 +3,7 @@ name: push-tags
 description: Pushes local git tags missing on the remote by explicit name after confirming, and reports tags that differ between local and remote. Use when asked to push tags.
 argument-hint: '[repo-path]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * symbolic-ref *) Bash(git -C * config --get *) Bash(git -C * remote get-url *) Bash(node *tag-diff.mjs *)
+allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * symbolic-ref *) Bash(git -C * config --get *) Bash(git -C * remote get-url *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/tag-diff.mjs *)
 ---
 
 # Push Tags
