@@ -25,6 +25,7 @@ pass: <observable criteria>
 | release-exists | "Create the release." (the release for the version exists)                                        | Reports and stops untouched          | `Result: nothing-to-do`; no write command run                                           |
 | wrong-branch   | "Create the release." (on a feature branch)                                                       | Stops                                | `Stopped: 1` naming the branch; no stash or checkout                                    |
 | auto-invoke    | A natural request for the action, no `/cdk:` command                                              | Claude loads the skill on its own    | The skill runs; its existing confirm or plan approval still precedes any write or push  |
+| no-yes-stop    | "Create the release." (no way to ask, no `--yes`)                                                 | Stops at the confirm                 | `Stopped: 5: unattended, not confirmed`; no tag, push, or release                       |
 
 ## Running per model
 
