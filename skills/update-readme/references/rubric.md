@@ -27,7 +27,7 @@ Type: `bin` = full or 0; `ratio` = max × (passing units ÷ total units), floor 
 | F1  | Code blocks & formatting | Unit = code block; fenced with language tag.                                                                                                                           | ratio | 3   |
 | F2  | Code blocks & formatting | Input and output in separate blocks; omissions marked with code comments, not `...`.                                                                                   | bin   | 2   |
 | F3  | Code blocks & formatting | Repo markdown linter passes on README. No safe linter (see scorer) → N/A.                                                                                              | bin   | 3   |
-| L1  | Links                    | Unit = relative link; target file exists, anchor matches heading slug of detected host.                                                                                | ratio | 3   |
+| L1  | Links                    | Unit = relative link; target file exists, anchor matches the lowercase-hyphen heading slug.                                                                            | ratio | 3   |
 | L2  | Links                    | Unit = link; descriptive text, not "here", "link", "click".                                                                                                            | ratio | 2   |
 | C1  | Community & legal        | License: SPDX id, link to actual license file, last section.                                                                                                           | bin   | 4   |
 | C2  | Community & legal        | Contributing/dev setup + support/contact present; links CONTRIBUTING, CODE_OF_CONDUCT if they exist.                                                                   | bin   | 3   |
@@ -63,6 +63,8 @@ Match headings case-insensitive. Synonyms: Install = Installation = Getting star
 | docs        | Title, Description, Contributing, License                       |
 
 License not required when C1 is N/A.
+
+A required section moved to a split file counts as present when the root README keeps its heading and a relative link to it.
 
 ## Sources
 
