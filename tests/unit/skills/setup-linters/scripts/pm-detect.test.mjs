@@ -198,4 +198,34 @@ describe('main', () => {
     // Assert
     assert.equal(code, 2);
   });
+
+  test('returns 2 when --cwd is outside --root', () => {
+    // Arrange
+    const errs = [];
+    const deps = { ...fsStub({}), log: () => {}, error: (t) => errs.push(t) };
+    // Act
+    const code = main(['--root', '/r', '--cwd', '/other'], deps);
+    // Assert
+    assert.equal(code, 2);
+    assert.match(errs[0], /inside --root/);
+  });
+
+  test('returns 2 when --cwd is the parent of --root', () => {
+    // Arrange
+    const deps = { ...fsStub({}), log: () => {}, error: () => {} };
+    // Act
+    const code = main(['--root', '/r/app', '--cwd', '/r'], deps);
+    // Assert
+    assert.equal(code, 2);
+  });
+
+  test('accepts a --cwd below --root', () => {
+    // Arrange
+    const out = [];
+    const deps = { ...fsStub({ '/r/pkg/package.json': '{}' }), log: (t) => out.push(t), error: () => {} };
+    // Act
+    const code = main(['--root', '/r', '--cwd', '/r/pkg'], deps);
+    // Assert
+    assert.equal(code, 0);
+  });
 });

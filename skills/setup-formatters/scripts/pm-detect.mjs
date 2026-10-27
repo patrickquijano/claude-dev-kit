@@ -113,6 +113,11 @@ export function main(argv, deps = {}) {
     d.error('usage: pm-detect.mjs --root <absolute git root> [--cwd <absolute dir>]');
     return 2;
   }
+  const rel = path.relative(root, cwd);
+  if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
+    d.error('usage: pm-detect.mjs --cwd must be inside --root');
+    return 2;
+  }
   d.log(JSON.stringify({ ok: true, errors: [], ...detectPackage(path.resolve(root), path.resolve(cwd), d) }));
   return 0;
 }
