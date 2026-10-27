@@ -31,11 +31,15 @@ const PARSERS = [
   { cmd: 'ruby', args: ['-ryaml', '-rjson', '-e', 'puts JSON.generate(YAML.safe_load(STDIN.read, aliases: true))'] }
 ];
 
+// Stderr of a converter that cannot run or serialize (missing module, unsupported flag, non-JSON type), not a YAML syntax error.
+const TOOL_ERROR =
+  /No module named|cannot load such file|unrecognized arguments|unknown (shorthand )?flag|^usage:|TypeError|not JSON serializable/im;
+
 // `{ status: 'pass', data }`, `{ status: 'fail', error }`, or `{ status: 'unverified' }` when no converter can run.
 export function parseYaml(text, deps) {
   for (const { cmd, args } of PARSERS) {
     const res = deps.run(cmd, args, { input: text, timeout: TIMEOUT });
-    if (res.error || /No module named|cannot load such file/.test(res.stderr ?? '')) continue;
+    if (res.error || TOOL_ERROR.test(res.stderr ?? '')) continue;
     if (res.status !== 0) return { status: 'fail', error: String(res.stderr ?? '').split('\n')[0] };
     try {
       return { status: 'pass', data: JSON.parse(res.stdout) };

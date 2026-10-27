@@ -49,6 +49,26 @@ describe('parseYaml', () => {
     assert.deepEqual(res, { status: 'fail', error: 'bad' });
   });
 
+  test('falls through a converter that fails for a tool reason', () => {
+    // Arrange
+    const toolError = { status: 1, stdout: '', stderr: 'TypeError: Object of type date is not JSON serializable' };
+    const deps = { run: runner({ python3: toolError, ruby: ok('{"a":1}') }) };
+    // Act
+    const res = parseYaml('a: 2026-01-01', deps);
+    // Assert
+    assert.deepEqual(res, { status: 'pass', data: { a: 1 } });
+  });
+
+  test('falls through a converter that rejects its flags', () => {
+    // Arrange
+    const usage = { status: 2, stdout: '', stderr: 'usage: yq [-h]\nyq: error: unrecognized arguments: -o=json' };
+    const deps = { run: runner({ yq: usage, ruby: ok('{"a":1}') }) };
+    // Act
+    const res = parseYaml('a: 1', deps);
+    // Assert
+    assert.equal(res.status, 'pass');
+  });
+
   test('is unverified without a converter', () => {
     // Arrange
     const deps = { run: runner({}) };
