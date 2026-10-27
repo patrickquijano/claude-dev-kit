@@ -24,7 +24,7 @@ async function runIfMain(metaUrl, fn, label) {
 
 const TIMEOUT = 30_000;
 const AUTH_FAILURE =
-  /401|403|unauthori[sz]ed|authenticat|not logged|no token|could not resolve|connection refused|no such host|not a git|no git remote/i;
+  /\bHTTP[ /]?(?:401|403)\b|\b(?:401|403)\s+(?:unauthori[sz]ed|forbidden)|unauthori[sz]ed|authentication (?:failed|required)|not logged|no token|could not resolve|connection refused|no such host|not a git|no git remote/i;
 const HOST = /^[A-Za-z0-9.-]+$/;
 const SEGMENT = /^[A-Za-z0-9._-]+$/;
 const YAMLLINT_CONFIG = '{extends: relaxed, rules: {line-length: disable}}';
@@ -109,12 +109,13 @@ function tool(d, cmd, args) {
 
 const output = (res) => `${res.stdout ?? ''}${res.stderr ?? ''}`;
 
-async function lintViaApi(d, content) {
+// The token goes only to GITLAB_HOST, or to gitlab.com when the origin is gitlab.com; never to a host named by the origin alone.
+async function lintViaApi(d, root, content) {
   const token = d.env.GITLAB_TOKEN;
   if (!token) return null;
-  const remote = d.run('git', ['remote', 'get-url', 'origin']);
+  const remote = d.run('git', ['-C', root, 'remote', 'get-url', 'origin']);
   const parsed = remote?.status === 0 ? parseRemote(remote.stdout) : null;
-  const host = d.env.GITLAB_HOST || parsed?.host;
+  const host = d.env.GITLAB_HOST || (parsed?.host === 'gitlab.com' ? 'gitlab.com' : null);
   if (!host || !HOST.test(host) || !parsed) return null;
   let res;
   try {
@@ -173,7 +174,7 @@ export async function main(argv, deps = {}) {
       }
     }
 
-    const api = await lintViaApi(d, content);
+    const api = await lintViaApi(d, root, content);
     if (api) {
       d.log(`method=api\n${api.body}`);
       return api.valid ? 0 : 1;

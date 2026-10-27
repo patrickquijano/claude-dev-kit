@@ -467,6 +467,63 @@ describe('main', () => {
     assert.deepEqual(s.logs, []);
   });
 
+  test('rejects an image name that starts with a dash or has a .. segment', async () => {
+    // Arrange
+    const s = setup({ table: { crane: ok('1.0.0') } });
+    // Act
+    const codes = [await main(['--insecure'], s.deps), await main(['org/../app'], s.deps)];
+    // Assert
+    assert.deepEqual(codes, [1, 1]);
+    assert.deepEqual(s.logs, []);
+  });
+
+  test('follows the Docker Hub next page to find the highest stable tag', async () => {
+    // Arrange
+    const next = 'https://hub.docker.com/v2/repositories/library/nginx/tags?page=2&page_size=100&name=.';
+    const s = setup({
+      fetch: async (url) =>
+        String(url).includes('page=2')
+          ? { ok: true, text: async () => '{"results":[{"name":"2.0.0"}],"next":null}' }
+          : { ok: true, text: async () => JSON.stringify({ results: [{ name: '1.0.0' }], next }) }
+    });
+    // Act
+    const code = await main(['nginx'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(JSON.parse(s.logs[0]).tag, '2.0.0');
+    assert.equal(s.urls[1], next);
+  });
+
+  test('does not follow a Docker Hub next link to another host', async () => {
+    // Arrange
+    const s = setup({
+      fetch: async () => ({
+        ok: true,
+        text: async () => '{"results":[{"name":"1.0.0"}],"next":"https://evil.example/v2/x"}'
+      })
+    });
+    // Act
+    const code = await main(['nginx'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(s.urls.length, 1);
+  });
+
+  test('exits 2 when a later Docker Hub page fails, rather than answering from a partial list', async () => {
+    // Arrange
+    const next = 'https://hub.docker.com/v2/repositories/library/nginx/tags?page=2';
+    const s = setup({
+      fetch: async (url) =>
+        String(url).includes('page=2')
+          ? { ok: false, status: 500 }
+          : { ok: true, text: async () => JSON.stringify({ results: [{ name: '1.0.0' }], next }) }
+    });
+    // Act
+    const code = await main(['nginx'], s.deps);
+    // Assert
+    assert.equal(code, 2);
+  });
+
   test('rejects a bad variant and a wrong argument count', async () => {
     // Arrange
     const s = setup();

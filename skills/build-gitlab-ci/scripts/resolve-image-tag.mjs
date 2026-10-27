@@ -32,7 +32,7 @@ const REGISTRIES = new Set([
   'public.ecr.aws',
   'registry.k8s.io'
 ]);
-const IMAGE = /^[a-z0-9./_-]+$/;
+const IMAGE = /^[a-z0-9][a-z0-9./_-]*$/;
 const VARIANT = /^[a-z0-9._-]+$/;
 const PRERELEASE = /rc|alpha|beta|nightly|dev|preview/i;
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -155,6 +155,26 @@ async function registryTags(registry, repo, d) {
   }
 }
 
+// Docker Hub `tags` pages, following the same-host `next` URL; null on any failure so a partial list never picks a stale tag.
+async function hubTags(repo, variant, d) {
+  let url = `https://hub.docker.com/v2/repositories/${repo}/tags?page_size=100&name=${variant || '.'}`;
+  const tags = [];
+  try {
+    for (let page = 0; url && page < MAX_PAGES; page++) {
+      const res = await d.fetch(url, { signal: AbortSignal.timeout(TIMEOUT) });
+      if (!res.ok) return null;
+      const text = await res.text();
+      tags.push(...tagLines('docker-hub-api', text));
+      const next = JSON.parse(text)?.next;
+      url = typeof next === 'string' && next.startsWith('https://hub.docker.com/') ? next : null;
+    }
+    return tags;
+  } catch (err) {
+    if (err instanceof TypeError || err instanceof SyntaxError || err?.name === 'TimeoutError') return null;
+    throw err;
+  }
+}
+
 // Side effects the CLI needs; tests pass stubs.
 const realDeps = {
   run: (cmd, args) => spawnSync(cmd, args, { encoding: 'utf8', timeout: TIMEOUT }),
@@ -171,7 +191,7 @@ export async function main(argv, deps = {}) {
     return 1;
   }
   const [image, variant = ''] = argv;
-  if (!IMAGE.test(image)) {
+  if (!IMAGE.test(image) || image.includes('..')) {
     d.error('invalid image name');
     return 1;
   }
@@ -205,16 +225,8 @@ export async function main(argv, deps = {}) {
   if (registry === 'docker.io') {
     if (repo.split('/').length === 2) {
       tried.push('docker-hub-api');
-      const url = `https://hub.docker.com/v2/repositories/${repo}/tags?page_size=100&name=${variant || '.'}`;
-      try {
-        const res = await d.fetch(url, { signal: AbortSignal.timeout(TIMEOUT) });
-        if (res.ok) {
-          const tag = pickTag(tagLines('docker-hub-api', await res.text()), variant);
-          if (tag) return emit(tag, 'docker-hub-api');
-        }
-      } catch (err) {
-        if (!(err instanceof TypeError || err?.name === 'TimeoutError')) throw err;
-      }
+      const tag = pickTag((await hubTags(repo, variant, d)) ?? [], variant);
+      if (tag) return emit(tag, 'docker-hub-api');
     }
   } else if (isAllowedRegistry(registry)) {
     tried.push('registry-api');

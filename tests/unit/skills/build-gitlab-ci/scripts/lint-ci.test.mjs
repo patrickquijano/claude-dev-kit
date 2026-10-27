@@ -161,6 +161,130 @@ describe('main', () => {
     assert.match(s.logs[0], /^method=yamllint scope=syntax/);
   });
 
+  test('keeps a glab lint error that merely contains 401 as the final result', async () => {
+    // Arrange
+    const s = setup({ table: { glab: fail('', 'line 401: jobs:unit-test script is invalid\n'), yamllint: ok() } });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.match(s.logs[0], /^method=glab\n/);
+  });
+
+  test('falls back to yamllint on an HTTP 403 from glab', async () => {
+    // Arrange
+    const s = setup({ table: { glab: fail('GET /user: HTTP 403 Forbidden'), yamllint: ok() } });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.match(s.logs[0], /^method=yamllint/);
+  });
+
+  test('falls back to yamllint when glab asks for authentication', async () => {
+    // Arrange
+    const s = setup({ table: { glab: fail('authentication failed'), yamllint: ok() } });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.match(s.logs[0], /^method=yamllint/);
+  });
+
+  test('validates with pyyaml when no other tool exists and exits 0 when it parses', async () => {
+    // Arrange
+    const s = setup({ table: { python3: ok() } });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.match(s.logs[0], /^method=pyyaml scope=syntax/);
+  });
+
+  test('exits 1 with the pyyaml error when the YAML does not parse', async () => {
+    // Arrange
+    const s = setup({
+      table: { python3: (args) => (args[2] === 'import yaml' ? ok() : fail('yaml.scanner.ScannerError')) }
+    });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.match(s.logs[0], /^method=pyyaml scope=syntax\nyaml\.scanner\.ScannerError/);
+  });
+
+  test('never sends the token to an origin host other than gitlab.com when GITLAB_HOST is unset', async () => {
+    // Arrange
+    const calls = [];
+    const s = setup({
+      table: { git: ok('https://attacker.example/g/p.git\n'), yamllint: ok() },
+      env: { GITLAB_TOKEN: 'glpat-secret' },
+      fetch: async (url) => {
+        calls.push(url);
+        return { ok: true, text: async () => '{"valid":true}' };
+      }
+    });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(calls, []);
+    assert.match(s.logs[0], /^method=yamllint/);
+  });
+
+  test('sends the token to GITLAB_HOST when it matches a self-managed origin', async () => {
+    // Arrange
+    const calls = [];
+    const s = setup({
+      table: { git: ok('git@git.corp.example:g/p.git\n') },
+      env: { GITLAB_TOKEN: 't', GITLAB_HOST: 'git.corp.example' },
+      fetch: async (url) => {
+        calls.push(url);
+        return { ok: true, text: async () => '{"valid":true}' };
+      }
+    });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(calls, ['https://git.corp.example/api/v4/projects/g%2Fp/ci/lint']);
+  });
+
+  test('reads the remote of the given repo root', async () => {
+    // Arrange
+    const seen = [];
+    const s = setup({
+      table: {
+        git: (args) => {
+          seen.push(args);
+          return ok('https://gitlab.com/g/p.git\n');
+        }
+      },
+      env: { GITLAB_TOKEN: 't' },
+      fetch: async () => ({ ok: true, text: async () => '{"valid":true}' })
+    });
+    // Act
+    await main(['/r'], s.deps);
+    // Assert
+    assert.deepEqual(seen[0], ['-C', '/r', 'remote', 'get-url', 'origin']);
+  });
+
+  test('falls through to yamllint when the remote cannot be parsed', async () => {
+    // Arrange
+    const s = setup({
+      table: { git: ok('not a url\n'), yamllint: ok() },
+      env: { GITLAB_TOKEN: 't' },
+      fetch: async () => {
+        throw new Error('must not be called');
+      }
+    });
+    // Act
+    const code = await main(['/r'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.match(s.logs[0], /^method=yamllint/);
+  });
+
   test('exits 2 when no validator is available', async () => {
     // Arrange
     const s = setup({ table: { python3: fail() } });
