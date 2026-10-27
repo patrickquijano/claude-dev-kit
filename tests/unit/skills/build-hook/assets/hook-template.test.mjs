@@ -144,7 +144,20 @@ describe('main', () => {
     const code = await main(deps);
     // Assert
     assert.equal(code, 0);
-    assert.deepEqual(JSON.parse(out[0]), { systemMessage: 'Stop: 1 steps ok' });
+    assert.deepEqual(JSON.parse(out[0]), { systemMessage: 'Stop: 1 step ok' });
+  });
+
+  test('pluralizes the step count for several steps', async () => {
+    // Arrange
+    const { out, deps } = makeDeps('{"hook_event_name":"Stop"}', {
+      spawn: stubSpawn([0, 0]).spawn,
+      steps: [step('a'), step('b')]
+    });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(JSON.parse(out[0]), { systemMessage: 'Stop: 2 steps ok' });
   });
 
   test('warns with exit 0 when a step fails and block is off', async () => {

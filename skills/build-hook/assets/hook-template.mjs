@@ -64,7 +64,10 @@ export async function main(deps = {}) {
     d.stderr(`${event}: step ${result.failed} failed: ${result.results.at(-1).detail}\n`);
     return 2;
   }
-  const message = result.ok ? `${event}: ${result.results.length} steps ok` : `${event}: step ${result.failed} failed`;
+  const count = result.results.length;
+  const message = result.ok
+    ? `${event}: ${count} ${count === 1 ? 'step' : 'steps'} ok`
+    : `${event}: step ${result.failed} failed`;
   d.stdout(`${JSON.stringify({ systemMessage: message })}\n`);
   return 0;
 }
