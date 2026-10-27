@@ -4,4 +4,5 @@
 - **Breaking** (mark with `!` after the type or scope; commits are subject-only): a hook that newly blocks, or a change to what it blocks; removing or renaming a skill or subagent; raising the minimum tool versions in Compatibility.
 - A version bump always needs the user's confirmation and happens only for a PR or MR: edit the version in `.claude-plugin/plugin.json` only after the user confirms.
 - Tags: annotated, for the latest `CHANGELOG.md` version, on the verified tip of the default branch; never `--force`, never bump the version while tagging.
+- Publish: a pushed version tag (`vX.Y.Z`) runs `.github/workflows/release.yml`, which publishes the GitHub release from that version's `CHANGELOG.md` section (prerelease for a `-` suffix), so confirming the tag push confirms the release. Use `/cdk:create-github-release` only to edit an existing release or to recover when that workflow run failed.
 - Verify: `npm test`.
