@@ -66,6 +66,15 @@ describe('findRelease', () => {
     assert.equal(result.ok, false);
   });
 
+  test('matches a yanked heading as the newest version', () => {
+    // Arrange
+    const text = '## [1.3.0] - 2026-04-01 [YANKED]\n- bad\n\n## [1.2.0] - 2026-03-01\n- ok\n';
+    // Act
+    const result = findRelease(text);
+    // Assert
+    assert.deepEqual([result.version, result.date], ['1.3.0', '2026-04-01']);
+  });
+
   test('stops on a non-string input', () => {
     // Arrange
     const text = undefined;

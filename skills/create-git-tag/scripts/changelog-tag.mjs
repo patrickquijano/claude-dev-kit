@@ -22,7 +22,7 @@ async function runIfMain(metaUrl, fn, label) {
 // Official SemVer 2.0.0 pattern (semver.org), unanchored for use inside the heading pattern.
 const SEMVER_SRC =
   '(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-(?:(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?:[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?';
-const HEADING = new RegExp(`^## +\\[?(${SEMVER_SRC})\\]? +- +(\\d{4}-\\d{2}-\\d{2}) *$`);
+const HEADING = new RegExp(`^## +\\[?(${SEMVER_SRC})\\]? +- +(\\d{4}-\\d{2}-\\d{2})(?: +\\[YANKED\\])? *$`);
 const LINK_REF = /^\[[^\]]+\]:\s*\S+/;
 
 const fail = (code, message, fix) => ({ ok: false, code, message, fix });
