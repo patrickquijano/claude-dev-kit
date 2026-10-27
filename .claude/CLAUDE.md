@@ -28,7 +28,6 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Order: explicit user request > running `cdk` skill's rules > path-scoped rule > this file > unconditional rules (`principles.md`, `git.md`, `release.md`).
 - Trade-off order: correctness > security > clarity > simplicity > maintainability > testability > measured performance.
 - Conflict between two instructions → ask user; never resolve silently.
-- graphify rules from ancestor `~/CLAUDE.md` do not apply here (no `graphify-out/`).
 
 ## Boundaries
 
