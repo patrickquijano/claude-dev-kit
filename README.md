@@ -28,7 +28,7 @@ Adds guided Git and GitHub workflows (signed atomic commits, rebases, pull reque
 - The project's package manager for `/cdk:upgrade-dependencies`.
 - Docker for `/cdk:build-dockerfile` build checks; `hadolint` optional.
 - `/cdk:build-github-workflow` and `/cdk:build-github-action`: authenticated [`gh`](https://cli.github.com/) optional for action and release lookups; [`actionlint`](https://github.com/rhysd/actionlint) optional for validation; Docker optional for a Docker action's build check.
-- `/cdk:build-gitlab-ci`: authenticated `glab` or a `GITLAB_TOKEN` optional for CI Lint validation; falls back to `yamllint` or Python 3 with `yaml`.
+- `/cdk:build-gitlab-ci`: authenticated `glab` or a `GITLAB_TOKEN` optional for CI Lint validation; the token is sent only to the host in `GITLAB_HOST`, or to gitlab.com when `origin` is gitlab.com, so set `GITLAB_HOST` for a self-managed instance; falls back to `yamllint` or Python 3 with `yaml`.
 - Docker for `/cdk:setup-devcontainer` Compose checks; [`@devcontainers/cli`](https://github.com/devcontainers/cli) optional for `devcontainer read-configuration`.
 - Docker for `/cdk:setup-local-sonarqube` (the generated `compose.sonar.yaml` runs the SonarQube server and scanner as containers; no host install).
 - Development only: Node.js >=22 with npm, `yamllint` and `yamlfmt` on `PATH`; `hadolint` optional (hook lints Dockerfiles when present).
