@@ -1,0 +1,24 @@
+---
+stages:
+  - '<stage-one>'
+  - '<stage-two>'
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH || $CI_COMMIT_TAG'
+
+default:
+  interruptible: true
+  before_script:
+    - !reference ['.<shared-setup>', before_script]
+  after_script:
+    - !reference ['.<shared-cleanup>', after_script]
+
+variables:
+  '<VARIABLE_NAME>': '<value>'
+
+include:
+  - local: '/.gitlab/ci/*.gitlab-ci.yml'
