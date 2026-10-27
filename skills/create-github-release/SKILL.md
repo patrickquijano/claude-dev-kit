@@ -1,10 +1,9 @@
 ---
 name: create-github-release
-description: Creates the annotated tag and GitHub release for the latest CHANGELOG.md version from the default branch, with its section as notes. Use only when the user explicitly asks to create a release or tag.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Creates the annotated tag and GitHub release for the latest CHANGELOG.md version from the default branch, with its section as notes. Use when asked to create a release or tag.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--prefix v|none] [--yes]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-release.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git ls-remote origin *) Bash(git remote) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge --ff-only origin/*) Bash(mktemp -d) Bash(gh --version) Bash(gh auth status) Bash(gh repo view *) Bash(gh release view *) Bash(gh release list *) mcp__plugin_github_github__list_releases
-disable-model-invocation: true
 ---
 
 # Create GitHub Release
