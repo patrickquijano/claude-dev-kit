@@ -3,7 +3,7 @@ name: build-hook
 description: Creates or updates a Claude Code hook at plugin, project, or user scope from a described need, using the live hooks reference. Use when asked to add, write, or change a hook.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[plugin|project|user] [what the hook should do]'
-allowed-tools: Read Glob Grep AskUserQuestion WebFetch(domain:code.claude.com) WebFetch(domain:nodejs.org) WebFetch(domain:cheatsheetseries.owasp.org) Write Edit Bash(node --version)
+allowed-tools: Read Glob Grep AskUserQuestion WebFetch(domain:code.claude.com) WebFetch(domain:nodejs.org) WebFetch(domain:cheatsheetseries.owasp.org) Bash(node --version)
 ---
 
 # Build hook
