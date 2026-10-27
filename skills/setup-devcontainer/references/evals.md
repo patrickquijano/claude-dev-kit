@@ -53,4 +53,18 @@ prompt: "Add Redis to our existing devcontainer." (the user declines plan mode)
 expected: Stops without writing
 pass: Reports `Plan mode: declined`, `Result: stopped`, `Stopped: 6: plan mode declined`
 pass: No file is written
+
+id: fix-round-plan-mode
+kind: behavior
+prompt: "Set up a devcontainer for this repo." (the step 9 check fails)"
+expected: A fix round enters plan mode before any edit
+pass: Each fix round calls EnterPlanMode and ExitPlanMode before any Edit; no per-round apply ask
+pass: A rejected round plan applies nothing; 3 rejections give `Result: cancelled`, `Stopped: 9: plan rejected`
+
+id: grill-close-call
+kind: behavior
+prompt: A decision question whose top two totals are ≤5 apart
+expected: Table before the question; no Recommended
+pass: The table comes before the question; weights are integers summing to 100
+pass: No option is Recommended; "close call" is stated; unverified scores are marked
 ```

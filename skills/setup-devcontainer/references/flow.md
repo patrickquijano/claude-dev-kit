@@ -4,7 +4,7 @@ Details for the SKILL.md steps. Practices: `practices.md`.
 
 ## Contents
 
-- Plan mode (step 1) · Clarify (step 3) · Draft (step 5) · Dockerfile (step 8) · Open items (step 10) · Spawn briefs (step 2)
+- Plan mode (step 1) · Clarify (step 3) · Draft (step 5) · Dockerfile (step 8) · Verify fix rounds (step 9) · Open items (step 10) · Spawn briefs (step 2)
 
 ## Plan mode (step 1)
 
@@ -12,14 +12,14 @@ Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan m
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written (unattended runs skip plan mode and follow the SKILL.md Rules).
 - Steps 2–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyzer, and run the step 4 lookups (`node-probe`, `pick-tag`, WebFetch).
-- At the end of step 6 print the plan, ask the step 6 test question (AskUserQuestion, its answer goes in the plan), then write the plan file: each file with its purpose, the content (a diff for existing files), the handoff arguments, the change list, and the effects (files written; the step 9 test container when confirmed). Call `ExitPlanMode`; approval covers every listed write, then go to step 7.
+- At the end of step 6 print the plan, ask the step 6 test question (AskUserQuestion, its answer goes in the plan), then write the plan file: each file with its purpose, the content (a diff for existing files), the handoff arguments, the change list, and the effects (files written; the step 9 test container when confirmed). Call `ExitPlanMode`; approval covers every listed write of the first pass, then go to step 7; each step 9 fix round re-enters plan mode (`## Verify fix rounds`).
 - Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → print the Output directly with `Result: cancelled`, `Stopped: 6: plan rejected` (nothing was written, so no step 10).
 - Update mode with nothing to add or fix → `Result: nothing-to-do` without `ExitPlanMode`; plan mode stays as it is.
 - Any end before step 7 prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered).
 
 ## Clarify (step 3)
 
-AskUserQuestion, recommended option first with the reason; derivable facts and facts the input gives are never asked.
+Each option question below is a decision question, the Recommended option first in the call. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`. Derivable facts and facts the input gives are never asked.
 
 - Call 1:
   - Services, three multiSelect questions: "Databases" (PostgreSQL, MySQL, MariaDB, MongoDB), "Cache and messaging" (Redis, Valkey, RabbitMQ, Kafka), "Search and dev tools" (OpenSearch, Elasticsearch, Mailpit, LocalStack). Catalog services with analyzer evidence get "(Recommended)" and their evidence; the analyzer's `Other services` are named in the first question's text, to add via "Other". An "Other" service resolves to its official Docker Hub image (none found → call 3). Nothing selected → no services.
@@ -49,6 +49,10 @@ Handoff rule: `SKILL.md` Rules.
 
 - Confirm `build.dockerfile` (or the Compose `app` `build`) points at `<App dir>/Dockerfile`, the path the handoff arguments name; fix the reference when it differs.
 - The Dockerfile does not exist until the user runs the command; list that under `Open:` when the step 9 test needs it (`devcontainer-up` fails without it).
+
+## Verify fix rounds (step 9)
+
+**Plan mode (each round).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 9: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the items go under `Open:`.
 
 ## Open items (step 10)
 

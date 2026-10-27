@@ -48,8 +48,8 @@ Input: $ARGUMENTS
 6. **Plan.** Print each file's content (a diff for existing files), the handoff arguments, the change list, and the effects (files written; the step 9 test container). Update mode with nothing to add or fix → `Result: nothing-to-do`, then step 10. Ask once, before `ExitPlanMode` (the answer goes in the plan): "Run the up + exec test (pulls images, starts and removes a container)?" Yes (Recommended) | Skip; unattended or Skip → step 9 reports `up + exec test: skipped (not confirmed)`.
 7. **Write** the step 5 files (`.env` only when missing). Existing `.gitignore` and `.gitattributes` get only the missing lines. Writing first lets the Dockerfile's `COPY` sources exist when it is reviewed.
 8. **Dockerfile.** When needed, apply the one handoff rule (`flow.md` `## Dockerfile`).
-9. **Verify.** Validate, lint, and test per practices.md `## Checks` (analyzer `CLIs`): JSON (when `node-probe` passes) and `read-configuration`, `compose-config` and `shellcheck-firewall`, then the real `devcontainer-up` smoke test with cleanup. Fix each failure in a file this skill wrote, print the diff, re-run (cap in Rules).
-10. **Open items.** One fix pass over leftovers in files this skill wrote; the rest go in `Open:` (`flow.md` `## Open items`).
+9. **Verify.** Validate, lint, and test per practices.md `## Checks` (analyzer `CLIs`): JSON (when `node-probe` passes) and `read-configuration`, `compose-config` and `shellcheck-firewall`, then the real `devcontainer-up` smoke test with cleanup. Per failure round run the plan-mode step (`flow.md` `## Verify fix rounds`), fix each failure in a file this skill wrote, print the diff, re-run (cap in Rules).
+10. **Open items.** One fix pass over leftovers in files this skill wrote; the rest go in `Open:` (`flow.md` `## Open items`). **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 11. **Report.** Print the Output.
 
 ## Files
@@ -59,6 +59,7 @@ Input: $ARGUMENTS
 - For image, feature, service, Compose, Claude Code, firewall, handoff, and check rules, see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 - To pick the newest stable base image tag, run `${CLAUDE_SKILL_DIR}/scripts/pick-tag.mjs`; it is run, never read.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when step 3 asks a decision question.
 
 ## Output
 
