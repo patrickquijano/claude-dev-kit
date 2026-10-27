@@ -1,0 +1,24 @@
+---
+<job-name>:
+  extends: '.<template-name>'
+  stage: '<stage-one>'
+  image: '<image>:<resolved-tag>'
+  needs: ['<previous-job>']
+  rules:
+    - !reference ['.<rules-template>', rules]
+  timeout: '<duration>'
+  script:
+    - !reference ['.<template-name>', script]
+    - <single-line POSIX command>
+  cache:
+    key:
+      files: ['<lockfile>']
+    paths: ['<cache-path>']
+    policy: pull
+  artifacts:
+    reports:
+      junit: '<report-path>'
+    expire_in: '<duration>'
+  environment:
+    name: '<environment-name>'
+    url: '<environment-url>'
