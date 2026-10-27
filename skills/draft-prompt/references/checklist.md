@@ -8,18 +8,18 @@ Section template, review groups, and two split patterns for a drafted prompt.
 
 ## Section template
 
-| Section     | Must hold                                                                 |
-| ----------- | ------------------------------------------------------------------------- |
-| Context     | Read CLAUDE.md first; stack, files, current state, what was already tried |
-| Task        | One verb plus one object, e.g. "Add retry to `fetchUser` in `[PATH?]`"    |
-| Constraints | Scope lock (touch only the named files), no new dependencies              |
-| Done when   | Checkable items (a command that exits 0) and the report format            |
-| Guardrails  | Plan first, stop and ask on named triggers, stop when done                |
+| Section     | Must hold                                                                                                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| Context     | Read the instruction files confirmed in step 1 by path (or none); stack, files, current state, what was already tried |
+| Task        | One verb plus one object, e.g. "Add retry to `fetchUser` in `[PATH?]`"                                                |
+| Constraints | Scope lock (touch only the named files), no new dependencies                                                          |
+| Done when   | Checkable items (a command that exits 0) and the report format                                                        |
+| Guardrails  | Plan first, stop and ask on named triggers, stop when done                                                            |
 
 ## Review groups
 
 1. **Task definition.** Red flags: vague verb ("improve", "clean up", "fix up"); two tasks in one; no object.
-2. **Context.** Red flags: no stack or file named; no current state; no mention of what failed before; claims not grounded in the repo.
+2. **Context.** Red flags: no stack or file named; no current state; no mention of what failed before; claims not grounded in the repo; an instruction file assumed rather than confirmed.
 3. **Outcome.** Red flags: no checkable done criterion; no report format; "make it good".
 4. **Boundaries.** Red flags: no scope lock; new dependencies allowed by default; files outside the task editable.
 5. **Agent control.** Red flags: no plan-first step; no stop-and-ask trigger (unclear requirement, failing check, destructive action); no stop when done.
