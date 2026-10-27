@@ -251,5 +251,6 @@ describe('main', () => {
     const code = main(['--root', '/r', '--cwd', '/r/pkg'], deps);
     // Assert
     assert.equal(code, 0);
+    assert.equal(JSON.parse(out[0]).pkg, 'pkg');
   });
 });
