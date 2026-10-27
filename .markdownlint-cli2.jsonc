@@ -1,6 +1,7 @@
 {
   // All rules enabled by default; MD007 indent already defaults to 2.
   "config": {
+    "extends": "markdownlint/style/prettier", // Disable rules that conflict with Prettier.
     "default": true, // Enable every rule not listed below.
     "MD013": false, // line-length: allow long lines.
     "MD024": false, // no-duplicate-heading: allow repeated heading text.
@@ -10,5 +11,6 @@
     "MD033": false, // no-inline-html: allow inline HTML.
     "MD041": false // first-line-h1: first line need not be a top-level heading.
   },
-  "gitignore": true // Skip files matched by .gitignore.
+  "gitignore": true, // Skip files matched by .gitignore.
+  "ignores": ["node_modules/", "package-lock.json", ".husky/_/"] // Never lint these paths.
 }
