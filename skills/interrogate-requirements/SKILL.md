@@ -3,7 +3,7 @@ name: interrogate-requirements
 description: Interrogates a rough requirement, task, or spec until every requirement is unambiguous, then outputs a spec with a decisions and assumptions log. Use when asked to clarify or pin down requirements.
 compatibility: Claude Code only. Uses argument-hint; claude.ai and API uploads reject unknown keys.
 argument-hint: '<rough requirement | task | spec path>'
-allowed-tools: Read Grep Glob AskUserQuestion WebSearch WebFetch
+allowed-tools: Read Grep Glob AskUserQuestion WebSearch
 ---
 
 # Interrogate Requirements
