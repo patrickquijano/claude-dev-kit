@@ -1,10 +1,9 @@
 ---
 name: implement-spec
-description: Implements a spec end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use only when the user explicitly asks to implement a spec.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Implements a spec end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use when asked to implement a spec.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] <requirement | spec file | issue text>'
 allowed-tools: Bash(git rev-parse --show-toplevel) Bash(git status *) Bash(git diff *)
-disable-model-invocation: true
 ---
 
 # Implement Spec
@@ -29,8 +28,8 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Lint, type check, test, and build commands come from the project's documented commands (CLAUDE.md `Commands`, then manifest scripts), not from `commands.md`.
 - Add or update tests for every behavior the change touches; never weaken, skip, or delete an existing test.
 - Caps: clarify max 3 rounds; fix max 3 attempts per validate pass (each attempt is an implementer re-spawn plus a fresh verifier run); step 9 max 3 rounds in total; step 3 one explorer spawn; a malformed subagent return is respawned once per spawn; a `Question:` or `blocked` re-spawn max 2 per step. Cap hit → print the Output with what is left under `Open:` and `Stopped: <step>: <reason>`.
-- AskUserQuestion: max 4 questions per batch, recommended option first with a one-line reason, a `Stop` option on every batch, and nothing already answered.
-- `--yes` is unattended: it asks nothing, records each assumption, and picks every recommended option, and continues without plan mode; the flag is the approval for the edits (never to a Dirty path). A `Question:` or `blocked` return from a subagent → record it under `Open:`, skip that goal, and end with `Stopped: <step>: needs input`.
+- Decision questions (step 4 Clarify, step 6 Approaches): max 4 per batch, the Recommended option first, a `Stop` option on every batch, and nothing already answered. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`: unattended takes the highest total and records a close call under `Open:`.
+- `--yes` is unattended: it asks nothing, records each assumption, and picks every recommended option, and continues without plan mode (also in fix rounds); the flag is the approval for the edits (never to a Dirty path). A `Question:` or `blocked` return from a subagent → record it under `Open:`, skip that goal, and end with `Stopped: <step>: needs input`.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 
 ## Workflow
@@ -59,6 +58,7 @@ Every value is literal (root absolute, goal ids, planned file paths). The requir
 - For the verifier, change-set check, evidence, fix loop, and iteration (steps 7–9), see `${CLAUDE_SKILL_DIR}/references/validate.md`.
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For test scenarios, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when step 4 or step 6 asks a decision question.
 
 ## Output
 

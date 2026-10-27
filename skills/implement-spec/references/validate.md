@@ -4,7 +4,7 @@ Detail for steps 7–9: the change-set check, the verifier, the implementer's fi
 
 ## Verify
 
-Spawn the verifier per Spawn briefs in `SKILL.md`, with the changed paths from the implementer's `Changed:`. It reviews the diff, finds the documented checks (CLAUDE.md `Commands`, rules files, manifest scripts), runs them in check mode, and judges each goal; a kind with no documented command comes back `skipped`, never invented.
+Spawn the verifier per Spawn briefs in `SKILL.md`, with the changed paths from the implementer's `Changed:`.
 
 ## Evidence
 
@@ -21,10 +21,9 @@ G2: unmet — <what failed, file:line>
 
 ## Fix
 
+- **Plan mode (each round).** Before each fix round (a fix attempt, or a step 9 re-entry) call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 8: plan rejected`. Declined, unavailable, or unattended (not `--yes`) → no fix is applied; the items go under `Open:`. `--yes` skips it (the flag is the approval, never for a Dirty path).
 - Re-spawn the implementer per Spawn briefs in `SKILL.md` with a fix list of every finding and failed check in files this run changed. Then spawn a fresh verifier on the new changed paths.
-- Up to 3 attempts per pass; each attempt is one implementer re-spawn plus one verifier run.
 - A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
-- Never let a test be weakened, skipped, or deleted to get green; reject such a change and re-send the finding.
 
 ## Change-set check
 
@@ -36,9 +35,9 @@ Run after every implementer return (step 7 and each fix round). Run `status` and
 ## Iterate
 
 - Re-enter step 5 when a goal is unmet or a check still fails after its fix attempts, passing along the evidence.
-- Count each re-entry as a round; round 3 ending with a gap stops the loop.
-- Unattended runs re-enter without asking.
+- Count each re-entry as a round; the cap is in `## Rules`.
+- Unattended runs re-enter without asking; each round's fixes still follow `## Fix` plan mode.
 
 ## Open
 
-List what is left as `<id: severity, reason; recommended fix>`: unmet goals, failed or skipped checks, assumptions made under `--yes`, and failures outside this run's files.
+List in the Output `Open:` format: unmet goals, failed or skipped checks, assumptions made under `--yes`, and failures outside this run's files.

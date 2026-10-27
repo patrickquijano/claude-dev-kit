@@ -4,11 +4,11 @@ Formats and asks for steps 2, 5–6.
 
 ## Plan mode
 
-Step 2 runs once. `--yes` enters nothing, continues without plan mode (the flag is the approval, never for a Dirty path), and records `Plan mode: skipped (--yes)`.
+Step 2 runs once. `--yes` → `Plan mode: skipped (--yes)`; see `## Rules`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 2: plan mode declined`; nothing is edited.
 - Steps 3–6 are read-only and run inside plan mode; the step 6 Pick ask stays.
-- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the Dirty paths the plan names, with no separate ask.
+- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the first write and the Dirty paths the plan names, with no separate ask; each fix round re-enters plan mode.
 - Rejection → revise per the feedback and call `ExitPlanMode` again; each rejection counts toward the clarify cap.
 
 ## Goals
@@ -44,7 +44,7 @@ Ask one AskUserQuestion:
 
 ## Re-entry from step 9
 
-- Re-entry stays in the current mode and never re-enters plan mode.
+- Each re-entry round enters plan mode again before its fixes (`validate.md` `## Fix`).
 - Revise only what the unmet criterion or failed check points at: the goals, the approach, or both.
 - Keep met goals as they are; carry over what was learned into the revised card.
 - A revised approach is asked again as above; an unattended run keeps the recommended one.
