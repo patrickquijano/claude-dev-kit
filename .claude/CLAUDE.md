@@ -37,7 +37,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Never commit or push directly to a protected branch (`.claude/rules/git.md`); work on a Conventional Branch.
 - Never commit secrets or credentials, or read or print the contents of `.env*`, private key, or credential files; read secrets from env vars.
 - Edit `README.md` only through `/cdk:update-readme` and `CHANGELOG.md` only through `/cdk:update-changelog`; no other rule, instruction, skill, or subagent changes them.
-- Ask first before `git push` (branches or tags), publishing a release, creating a merge request or changing its title, description, branches, or merge options, approving, or merging, unless the running skill's `--yes` or unattended rule covers it. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
+- Ask first before `git push` (branches or tags), publishing a release, creating a merge request or changing its title, description, branches, or merge options, approving, or merging, unless the user passed `--yes` to the running skill; an unattended run never covers it. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 
 ## Changes
 
