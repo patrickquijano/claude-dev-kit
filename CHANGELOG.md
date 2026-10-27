@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-27
+
+### Added
+
+- `/cdk:build-github-workflow` creates or updates GitHub Actions workflow files in `.github/workflows` (CI, release, deploy, scheduled, PR automation) with exact-tag pins, and validates them with a bundled checker.
+- `/cdk:build-github-action` creates or updates a custom GitHub Action (composite, JavaScript, or Docker) with `action.yml`, a test workflow, and a README, and validates it with a bundled checker.
+- `/cdk:build-gitlab-ci` creates or updates a GitLab CI/CD pipeline as a thin `.gitlab-ci.yml` plus one file per job in `.gitlab/ci`, with exact image tags, validated through CI Lint.
+- `/cdk:draft-prompt` asks where your project rules live, with a "None" option, and names the confirmed files in the drafted prompt instead of assuming `CLAUDE.md`.
+
+### Changed
+
+- `/cdk:draft-prompt` researches the repo before asking each open field, and allows up to 3 clarify rounds of 4 questions each; it adds a `Rules:` line to its output.
+
+### Removed
+
+- `/cdk:build-github-workflows` is removed (breaking); use `/cdk:build-github-workflow` for workflows or `/cdk:build-github-action` for reusable actions.
+
 ## [0.7.0] - 2026-10-27
 
 ### Added
@@ -298,7 +315,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...v0.5.0
