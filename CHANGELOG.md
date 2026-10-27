@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-27
+
+### Added
+
+- `/cdk:open-gitlab-merge-request` creates a GitLab merge request from the diff, or updates one by IID, URL, or branch, with a Conventional Commits title and the project's template.
+- `/cdk:review-gitlab-merge-request` reviews one GitLab merge request, replies to and resolves addressed threads, and approves when no blocking issue is left.
+- `/cdk:address-gitlab-merge-request-review` fixes open discussions, change requests, and failing pipelines on a GitLab merge request, then commits, pushes, and replies.
+- `/cdk:merge-gitlab-merge-request` squash-merges one GitLab merge request when it is approved and its pipeline is green, and never bypasses protection.
+- `/cdk:create-git-tag` creates a local annotated tag at HEAD from the newest dated `CHANGELOG.md` version, without pushing it.
+- `/cdk:push-tags` pushes local tags missing on the remote by name after you confirm, and reports tags that differ between local and remote.
+
+### Changed
+
+- `/cdk:create-github-release` takes a tag, release URL, or release ID instead of `--prefix` and `--yes`, and writes only after you approve its plan.
+- `/cdk:create-github-release` asks weighted tag and draft-or-publish questions, and creates a missing tag on GitHub from the default branch instead of tagging locally.
+- `/cdk:create-github-release` updates an existing release, merging the `CHANGELOG.md` section into its notes and setting its draft or pre-release state.
+
+### Removed
+
+- `/cdk:publish-tag` is removed; use `/cdk:create-git-tag`, then `/cdk:push-tags`.
+- `/cdk:publish-github-release` is removed; use `/cdk:create-github-release`, which now creates drafts and publishes or updates releases.
+
 ## [0.6.0] - 2026-10-27
 
 ### Added
@@ -276,7 +298,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.0...v0.4.1
