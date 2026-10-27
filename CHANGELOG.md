@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-27
+
+### Added
+
+- `/cdk:build-hook` creates or updates a Claude Code hook at plugin, project, or user scope from the live hooks reference, and writes only after you approve the plan.
+- `/cdk:interrogate-requirements` questions a rough requirement, task, or spec until every requirement is unambiguous, then outputs a spec with a decisions and assumptions log.
+- `/cdk:setup-formatters` sets up one formatter per repo file type at a verified version, with its config and ignore paths, after you approve the plan.
+- `/cdk:setup-linters` sets up linters per repo file type at verified versions, disabling only the rules that a present formatter's docs list.
+- Decision questions show a weighted score table with cited sources and recommend the highest total; a close call (top two within 5 points) recommends nothing.
+- `/cdk:build-skill` asks a scored complexity question in create mode; a non-simple skill it builds enters plan mode first, and a simple one confirms before its first write.
+
+### Changed
+
+- Claude can invoke most skills from a plain request without the slash command; the Spec Kit skills and the `/cdk:setup-*` skills still need the slash command.
+- Every fix or retry round re-enters plan mode for its own approval; a declined or unattended round applies nothing, except in `/cdk:implement-spec --yes` and unattended `/cdk:update-readme` runs.
+- `/cdk:assess-spec-kit-idea`, `/cdk:commit-changes`, `/cdk:fix-spec-kit-bug`, `/cdk:open-github-pull-request`, `/cdk:rebase-onto`, `/cdk:review-github-pull-request`, `/cdk:run-spec-kit`, `/cdk:setup-git`, and `/cdk:setup-spec-kit` enter plan mode first.
+- Plan approval replaces the separate confirmations in `/cdk:assess-spec-kit-idea`, `/cdk:commit-changes`, `/cdk:fix-spec-kit-bug`, `/cdk:run-spec-kit`, `/cdk:setup-git`, and `/cdk:setup-spec-kit`.
+- Unattended `/cdk:fix-spec-kit-bug` and `/cdk:run-spec-kit` runs no longer apply fixes or edits; they list them under `Open:`.
+- `/cdk:update-editorconfig`, `/cdk:update-gitignore`, and `/cdk:update-readme` ask Yes or No before writing instead of entering plan mode.
+- `/cdk:publish-github-release` asks Yes or No before creating a new draft release.
+- `/cdk:review-github-pull-request` requests changes on the threads alone while any thread is open, and runs the full diff review once every thread is settled.
+- `/cdk:review-github-pull-request` replies to every thread it judged, including unaddressed ones and ones only their opener can resolve, before submitting the review.
+- `/cdk:review-github-pull-request` approves with kept suggestions, nitpicks, and unverified items posted as non-blocking, instead of downgrading to a comment.
+- `/cdk:update-readme` finds `README.*` in the root, `.github/`, `.gitlab/`, or `docs/`, detects the host, and edits the file where it is.
+- `/cdk:update-readme` detects one of 9 project types and asks a weighted template question; its argument is now `[type | score]`.
+- `/cdk:update-readme` asks for a maximum length when a README would run past 200 lines, and splits an oversized README into linked files without deleting content.
+- `/cdk:update-readme` writes portable Markdown, converting GitHub alerts and table-of-contents markers, and leaves a `TODO` note for each command or fact it cannot verify.
+- `/cdk:upgrade-dependencies` and `/cdk:address-github-pull-request-review` revert an item's edits when its fix round is declined or unattended.
+- `/cdk:commit-changes` drops the Regroup option; reject the plan with grouping hints to regroup, up to 3 times.
+- `/cdk:commit-changes`, `/cdk:setup-git`, `/cdk:fix-spec-kit-bug`, and `/cdk:run-spec-kit` report a `Plan mode:` line in their output.
+- `/cdk:setup-git` always runs the signing smoke test after you approve the plan; it can no longer be skipped.
+- `/cdk:setup-spec-kit` reinstalls an extension with missing skill directories as part of the approved plan instead of asking.
+- `/cdk:run-spec-kit` no longer asks whether to continue when the working tree has uncommitted changes.
+- `/cdk:update-readme` asks to create a README at the root when none is found.
+- `/cdk:update-readme` checks line counts and relative links after writing and reports them in a `Verify:` line.
+
+### Removed
+
+- Remove `/cdk:setup-format-lint`; use `/cdk:setup-formatters` and `/cdk:setup-linters` instead, which install nothing in unattended runs.
+- Remove the `UserPromptSubmit` hook that asked whether to enter plan mode on each prompt; `#plan` and `#noplan` no longer do anything.
+
 ## [0.5.0] - 2026-10-25
 
 ### Added
@@ -234,7 +275,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.3.0...v0.4.0
