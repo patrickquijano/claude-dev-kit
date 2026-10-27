@@ -28,6 +28,9 @@ pass: <observable criteria>
 | plan-entered          | "Update the rules."                                             | Plan mode before any write                        | Enters plan mode after pre-flight; plan file plus `ExitPlanMode` before the first write; approval is the only confirm                    |
 | plan-declined         | "Update the rules." (the user declines plan mode)               | Stops without writing                             | `Plan mode: declined`, `Result: stopped`, `Stopped: 4: plan mode declined`; nothing written or deleted                                   |
 | delete-in-plan        | "Update the rules." (a tracked file has only duplicate content) | Deletes only a file the plan lists                | The plan lists the file for deletion; no Delete \| Keep question; unattended deletes nothing                                             |
+| fix-round-plan-mode   | "Update the rules." (first score below 95)                      | Improve round enters plan mode first              | `EnterPlanMode` before any improver edit; a rejected plan applies nothing                                                                |
+| auto-invoke           | A natural request for the action, no `/cdk:` command            | Claude loads the skill on its own                 | The skill runs; its existing confirm or plan approval still precedes any write or push                                                   |
+| grill-close-call      | A decision question whose top two totals are ≤5 apart           | Table before the question; no Recommended         | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked                     |
 
 ## Running per model
 
