@@ -91,6 +91,15 @@ describe('section', () => {
     assert.deepEqual(result, { ok: true, notes: '- a' });
   });
 
+  test('ends the section at any h2 heading', () => {
+    // Arrange
+    const text = '## [1.2.3] - 2026-01-01\n### Added\n- a\n\n## Notes\n- other\n';
+    // Act
+    const result = section(text, '1.2.3');
+    // Assert
+    assert.equal(result.notes, '### Added\n- a');
+  });
+
   test('reports a missing section', () => {
     // Arrange
     const version = '1.0.0';

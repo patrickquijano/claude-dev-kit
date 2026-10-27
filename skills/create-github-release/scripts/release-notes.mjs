@@ -72,7 +72,9 @@ export function section(changelog, version) {
   const found = headings(all);
   const at = found.findIndex((h) => h.label.replace(/^v(?=\d)/, '') === wanted);
   if (at < 0) return { ok: false, code: 'no-section' };
-  const body = all.slice(found[at].index + 1, found[at + 1]?.index ?? all.length);
+  const inFence = fenceMap(all);
+  const end = all.findIndex((l, i) => i > found[at].index && !inFence[i] && /^##\s/.test(l));
+  const body = all.slice(found[at].index + 1, end < 0 ? all.length : end);
   while (body.length && (!body[body.length - 1].trim() || LINK_DEF.test(body[body.length - 1]))) body.pop();
   const notes = body.join('\n').trim();
   return notes ? { ok: true, notes } : { ok: false, code: 'empty-section' };
