@@ -34,7 +34,7 @@ const REGISTRIES = new Set([
 ]);
 const IMAGE = /^[a-z0-9][a-z0-9./_-]*$/;
 const VARIANT = /^[a-z0-9._-]+$/;
-const PRERELEASE = /rc|alpha|beta|nightly|dev|preview/i;
+const PRERELEASE = /(^|[.-])(rc|alpha|beta|nightly|dev|preview)/i;
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
 
 const isHigher = (a, b) => {

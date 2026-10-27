@@ -79,6 +79,15 @@ describe('pickTag', () => {
     assert.equal(tag, '2.9.0');
   });
 
+  test('keeps a variant that merely contains a pre-release word', () => {
+    // Arrange
+    const tags = ['1.0.0-windowsservercore-ltsc2022', '1.0.0-rc1', '0.9.0-windowsservercore-ltsc2022'];
+    // Act
+    const tag = pickTag(tags, 'windowsservercore-ltsc2022');
+    // Assert
+    assert.equal(tag, '1.0.0-windowsservercore-ltsc2022');
+  });
+
   test('returns null when nothing matches', () => {
     // Arrange
     const tags = ['latest', '1.2', '1.2.3-alpine'];
