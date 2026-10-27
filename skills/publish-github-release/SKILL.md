@@ -38,7 +38,7 @@ Input: $ARGUMENTS
 3. **Choose.** Several drafts → ask which, with `None of these` and Stop. One → step 4. None, or `None of these` → step 6.
 4. **Options.** `release-view` the draft, run `remote-tag` for its tag, run `notes --version <draft version>` when the changelog has it, then ask the option batches (`flow.md` `## Publish options`). `No, draft a new one` → step 6.
 5. **Publish draft.** Run `publish-latest` or `publish-prerelease` (notes file and `--discussion-category` only when chosen), then `verify-release`; `Keep as draft` runs at most `update-notes` (`flow.md` `## Publish`).
-6. **Draft new.** Run `notes` for `--tag`'s version, else `latest`; require its tag on `origin` and no existing release. **Confirm.** State in at most 3 lines what will change, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`. Then run `create-draft`, then go to step 4 for its options (`flow.md` `## Draft new`).
+6. **Draft new.** Run `notes` for `--tag`'s version, else `latest`; require its tag on `origin` and no existing release. **Confirm.** State in at most 3 lines what will change, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`. Only a user-passed `--yes` skips it; unattended without it → `Stopped: 6: unattended, not confirmed`. Then run `create-draft`, then go to step 4 for its options (`flow.md` `## Draft new`).
 7. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
 ## Files
