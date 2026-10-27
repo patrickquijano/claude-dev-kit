@@ -50,7 +50,7 @@ Batch 2 (only for `Publish`, at most 2 questions):
 
 ## Unattended
 
-`--yes` or an unattended run (no user to answer: headless, `-p`, or scheduled) asks nothing:
+An unattended run (no user to answer: headless, `-p`, or scheduled) without a user-passed `--yes` → `Result: stopped`, `Stopped: 4: unattended, not confirmed`; nothing is published or drafted, and `Open:` lists the draft to publish. A user-passed `--yes` asks nothing:
 
 - One draft (or `--tag`) → publish it, notes kept, no discussion category, no Marketplace listing; `latest`, or `pre-release` for a version with a pre-release label. `remote-tag` empty (publishing would create the tag) → `Stopped: 5: tag-missing: <tag> is not on origin; push it first`, nothing published; `Open:` lists the draft and the push of its tag.
 - Several drafts without `--tag` → `Stopped: 3: ambiguous-drafts: <tags>; pass --tag`.

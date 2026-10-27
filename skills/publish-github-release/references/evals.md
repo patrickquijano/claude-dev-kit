@@ -26,6 +26,7 @@ pass: <observable criteria>
 | already-published      | "Publish the release --tag v1.0.0" (published)            | Stops                                     | `Stopped: 2: not-a-draft`; nothing edited                                                                            |
 | auto-invoke            | A natural request for the action, no `/cdk:` command      | Claude loads the skill on its own         | The skill runs; its existing confirm or plan approval still precedes any write or push                               |
 | grill-close-call       | A decision question whose top two totals are ≤5 apart     | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |
+| unattended-no-yes      | "Publish the release." (no way to ask, no `--yes`)        | Stops without publishing                  | `Stopped: 4: unattended, not confirmed`; the draft stays; nothing published                                          |
 
 ## Running per model
 
