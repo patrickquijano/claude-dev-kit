@@ -4,7 +4,7 @@ Claude Code plugin providing a development kit — skills, custom agents, and ho
 
 Adds guided Git and GitHub workflows (signed atomic commits, rebases, pull requests, reviews, releases) plus skill, README, and CLAUDE.md authoring with scored rubrics, so Claude follows the same conventions in every repository.
 
-> **Status:** pre-1.0 (v0.8.0). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
+> **Status:** pre-1.0 (v0.8.1). This repo changes a lot: skills, agents, and hooks may be renamed or removed in any minor release, so pin a version. Breaking changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 - [Compatibility](#compatibility)
 - [Install](#install)
@@ -148,6 +148,8 @@ Claude scores the existing `README.md` against the 100-point rubric and prints a
 
 User-facing changes need a new `Unreleased` entry in `CHANGELOG.md`. The version level comes from the branch commits: breaking = major, `feat` = minor, otherwise patch. While the major version is 0, a breaking change bumps minor and everything else bumps patch; standard SemVer applies from 1.0.0. A version bump needs your confirmation and happens only for a PR or MR: edit the version in `.claude-plugin/plugin.json`, then run `/cdk:update-changelog`.
 
+Releases: pushing a version tag (`vX.Y.Z`) runs [`.github/workflows/release.yml`](.github/workflows/release.yml), which publishes the GitHub release from that version's `CHANGELOG.md` section (a prerelease when the tag has a `-` suffix).
+
 Breaking changes (mark the commit with `!`): renaming or removing a skill, slash command, or agent; changing a skill's arguments or required inputs, or an agent's `## Return` format callers parse; a hook that newly blocks, or a change to what it blocks; raising the minimum tool versions in Compatibility.
 
 ## Development
@@ -170,6 +172,7 @@ claude --plugin-dir .              # test local checkout
 - Commits: signed, Conventional Commits subject only, ≤72 characters. Husky `commit-msg` runs commitlint; check a message with `npx commitlint --edit <file>`.
 - Branches: `<type>/<short-description>`.
 - Never bypass hooks with `--no-verify`.
+- CI: pull requests to `main` run [`.github/workflows/lint.yml`](.github/workflows/lint.yml) (`npm run lint`, with `yamllint` 1.38.0 and `yamlfmt` v0.21.0).
 - Open pull requests with the [default template](.github/pull_request_template.md).
 
 ## Support

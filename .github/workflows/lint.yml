@@ -1,0 +1,54 @@
+---
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install yamllint
+        run: pipx install yamllint==1.38.0
+
+      - name: Install yamlfmt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          YAMLFMT_VERSION: v0.21.0
+        run: |
+          set -euo pipefail
+          archive="yamlfmt_${YAMLFMT_VERSION#v}_Linux_x86_64.tar.gz"
+          cd "$RUNNER_TEMP"
+          gh release download "$YAMLFMT_VERSION" -R google/yamlfmt \
+            --pattern "$archive" --pattern checksums.txt
+          sha256sum --check --ignore-missing checksums.txt
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/bin" yamlfmt
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Lint
+        run: npm run lint
