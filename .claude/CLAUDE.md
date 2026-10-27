@@ -5,15 +5,17 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Architecture
 
 - Skills: `skills/<name>/SKILL.md` — user-invoked workflows, with `scripts/`, `references/`, and `assets/` beside it.
-- Subagents: `agents/` — read-only workers spawned by skills.
+- Subagents: `agents/` — workers spawned by skills; read-only except the editing agents (`plan-implementer`, `rubric-improver`).
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
 - Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
-- Git hooks (Husky): `.husky/` + `.commitlintrc.json` enforce `.claude/rules/git.md`. Canonical copies and sync rule: `.claude/rules/git-hooks.md`.
+- Git hooks (Husky): `.husky/` + `.commitlintrc.json` enforce `.claude/rules/git.md`; canonical copies in `skills/setup-husky/assets/`, sync rule in `.claude/rules/git-hooks.md`.
 - Release policy: rules `.claude/rules/release.md`.
 
 ## Commands
 
+- Lint: `npm run lint`; format: `npm run format`.
+- Test: `npm test` (`npm run test:unit`, `npm run test:integration` alone); audit: `npm run audit`.
 - Validate plugin: `claude plugin validate --strict .`
 - Test local: `claude --plugin-dir .`
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/post-tool-use.mjs`
@@ -24,7 +26,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Precedence
 
-- Order: explicit user request > path-scoped rule > this file > unconditional rules (`principles.md`, `git.md`, `release.md`).
+- Order: explicit user request > running `cdk` skill's rules > path-scoped rule > this file > unconditional rules (`principles.md`, `git.md`, `release.md`).
 - Trade-off order: correctness > security > clarity > simplicity > maintainability > testability > measured performance.
 - Conflict between two instructions → ask user; never resolve silently.
 - graphify rules from ancestor `~/CLAUDE.md` do not apply here (no `graphify-out/`).
@@ -32,9 +34,10 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Boundaries
 
 - Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files.
-- Never commit or push directly to `main`; work on a Conventional Branch.
-- Never commit secrets or credentials; read them from env vars.
-- Ask first before `git push`, creating a merge request or changing its title, description, branches, or merge options, approving, or merging. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
+- Never commit or push directly to a protected branch (`.claude/rules/git.md`); work on a Conventional Branch.
+- Never commit secrets or credentials, or read or print the contents of `.env*`, private key, or credential files; read secrets from env vars.
+- Edit `README.md` only through `/cdk:update-readme` and `CHANGELOG.md` only through `/cdk:update-changelog`; no other rule, instruction, skill, or subagent changes them.
+- Ask first before `git push` (branches or tags), publishing a release, creating a merge request or changing its title, description, branches, or merge options, approving, or merging, unless the running skill's `--yes` or unattended rule covers it. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 
 ## Changes
 
