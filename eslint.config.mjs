@@ -1,11 +1,13 @@
 import js from '@eslint/js';
+import json from '@eslint/json';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import n from 'eslint-plugin-n';
 import security from 'eslint-plugin-security';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default defineConfig([
-  globalIgnores(['.remember/', 'graphify-out/', '.husky/_/']),
+  globalIgnores(['.remember/', 'graphify-out/', '.husky/_/', 'node_modules/', 'package-lock.json']),
   {
     files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },
@@ -23,5 +25,18 @@ export default defineConfig([
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-object-injection': 'off'
     }
-  }
+  },
+  {
+    files: ['**/*.json'],
+    plugins: { json },
+    language: 'json/json',
+    extends: ['json/recommended']
+  },
+  {
+    files: ['**/*.jsonc'],
+    plugins: { json },
+    language: 'json/jsonc',
+    extends: ['json/recommended']
+  },
+  eslintConfigPrettier
 ]);
