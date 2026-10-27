@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unattended `/cdk:fix-spec-kit-bug` and `/cdk:run-spec-kit` runs no longer apply fixes or edits; they list them under `Open:`.
 - `/cdk:update-editorconfig`, `/cdk:update-gitignore`, and `/cdk:update-readme` ask Yes or No before writing instead of entering plan mode.
 - `/cdk:publish-github-release` asks Yes or No before creating a new draft release.
+- `/cdk:publish-tag`, `/cdk:publish-github-release`, and `/cdk:create-github-release` stop an unattended run unless you pass `--yes`; nothing is tagged, pushed, or published.
 - `/cdk:review-github-pull-request` requests changes on the threads alone while any thread is open, and runs the full diff review once every thread is settled.
 - `/cdk:review-github-pull-request` replies to every thread it judged, including unaddressed ones and ones only their opener can resolve, before submitting the review.
 - `/cdk:review-github-pull-request` approves with kept suggestions, nitpicks, and unverified items posted as non-blocking, instead of downgrading to a comment.
