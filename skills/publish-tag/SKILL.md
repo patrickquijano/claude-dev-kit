@@ -1,10 +1,9 @@
 ---
 name: publish-tag
-description: Creates and pushes the annotated git tag for the latest CHANGELOG.md version from the default branch, no release. Use only when the user explicitly asks to publish, create, or push a version tag.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Creates and pushes the annotated git tag for the latest CHANGELOG.md version from the default branch, no release. Use when asked to publish, create, or push a version tag.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--prefix v|none] [--yes]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/next-tag.mjs *) Bash(git rev-parse *) Bash(git fetch --prune origin) Bash(git fetch origin --tags) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git ls-remote origin *)
-disable-model-invocation: true
 ---
 
 # Publish Tag
