@@ -24,6 +24,7 @@ pass: <observable criteria>
 | title-too-long-fixed           | "Open a PR." (diff whose first title draft is over 72 chars)              | Shortens until `check-title` passes   | Final title `{"ok":true}`; at most 3 `check-title` runs                                 |
 | unpushed-asks                  | "Open a PR." (branch not on the remote)                                   | Asks before pushing                   | One Push · Continue without · Stop question; no push before the answer                  |
 | empty-diff                     | "Open a PR." (branch equals the default branch)                           | Reports nothing to do                 | `Result: nothing-to-do`; no write                                                       |
+| auto-invoke                    | A natural request for the action, no `/cdk:` command                      | Claude loads the skill on its own     | The skill runs; its existing confirm or plan approval still precedes any write or push  |
 
 ## Running per model
 
