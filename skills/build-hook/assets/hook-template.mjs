@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
-// Steps to run, each { name, cmd, args, timeout }; args is an array, never a shell string.
+// Steps to run, each { name, cmd, args, timeout in ms }; args is an array, never a shell string.
 const STEPS = [];
 // true: a failed step blocks the event (exit 2, only where the event allows it); false: it only warns.
 const BLOCK_ON_FAILURE = false;
