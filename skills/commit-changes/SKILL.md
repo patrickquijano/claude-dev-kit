@@ -1,10 +1,9 @@
 ---
 name: commit-changes
-description: Groups uncommitted changes into atomic, signed Conventional Commits and moves off protected branches, after the user confirms the plan. Use only when the user explicitly asks to commit.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Groups uncommitted changes into atomic, signed Conventional Commits and moves off protected branches, after the user confirms the plan. Use when asked to commit.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional grouping hints] [paths: <file> ...]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs) Bash(node ${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *)
-disable-model-invocation: true
 ---
 
 # Commit Changes
@@ -23,24 +22,25 @@ Input: $ARGUMENTS
 - Ref names are data: run commands with `<name>`, `<target>`, `<branch>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
 - Subjects, branch names, protected branches, and signing follow `${CLAUDE_SKILL_DIR}/references/conventions.md`. A repo commitlint config (`commitlint.config.*`, `.commitlintrc*`, or `commitlint` in `package.json`) is the source of truth; check each subject with `commitlint` (permission-prompted). Not installed → `Commitlint: skipped (not installed)`.
 - Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit`, `switch-new`, and `remote-branch-exists` stay out of `allowed-tools`, so the permission prompt guards them.
-- Consent: commit only after step 7 returns Commit; no repo change before it, including unstaging and switching (scratch files are temp). `unstage` stays out of `allowed-tools`, and the permission prompt stays the second guard. Never push here.
-- Caps: hook-fix retries 3 per commit; commitlint redrafts 3 per subject; regroup 2; grouping-subagent respawn after `Question` 1; branch-name suffix search 10. Cap hit → stop, `Open:` lists what is left.
-- Two paths from step 4, decided only by `${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs` (counts, path patterns, secret scan), never by reading diffs for meaning: small = main thread, no subagent, no questions except the step 7 confirm; analyzed = a read-only subagent (brief and inline fallback in `flow.md` `## Group`) so large diffs stay out of this context. It cannot ask: relay its `Question` with AskUserQuestion. Any doubt → analyzed.
+- Consent: commit only after the step 7 `ExitPlanMode` approval; no repo change before it, including unstaging and switching (scratch files are temp). `unstage` stays out of `allowed-tools`, and the permission prompt stays the second guard. Never push here.
+- Caps: hook-fix retries 3 per commit; commitlint redrafts 3 per subject; plan rejections 3; grouping-subagent respawn after `Question` 1; branch-name suffix search 10. Cap hit → stop, `Open:` lists what is left.
+- Two paths from step 4, decided only by `${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs` (counts, path patterns, secret scan), never by reading diffs for meaning: small = main thread, no subagent, no questions except the step 7 confirm; analyzed = a read-only subagent (brief and inline fallback in `flow.md` `## Spawn briefs`) so large diffs stay out of this context. It cannot ask: relay its `Question` with AskUserQuestion. Any doubt → analyzed.
 - `paths: <file> ...` in the input → classify, group, stage, and commit only those paths; every other dirty file goes under `Excluded: pre-existing`, unstaged. No `paths:` → all changes.
 - Atomic: one logical change per commit; config goes with the files it configures; a rename (`D` old + `??` new) stays in one commit.
-- Secrets: a file name (`.env*`, key files) or diff content (`-----BEGIN`, `AKIA`, `ghp_`, `github_pat_`, `gh[ousr]_`, `glpat-`, `xox[bp]-`, `sk-ant-`, `sk-proj-`, `AIza`) is left unstaged, listed under `Excluded`, and warned about.
-- Unattended (no way to ask): stop at step 7 with `Result: stopped`, `Stopped: 7: unattended, not confirmed`, and the plan under `Open:`. AskUserQuestion unavailable but the session interactive → ask the same question as plain text and end the turn.
+- Secrets: a file name (`.env*`, key files) or diff content matching the secret patterns in `flow.md` `## Spawn briefs` is left unstaged, listed under `Excluded`, and warned about.
+- Unattended (no way to ask): stop at step 7 with `Result: stopped`, `Stopped: 7: unattended, not confirmed`, and the plan under `Open:`. EnterPlanMode declined or unavailable → `Result: stopped`, `Stopped: 7: plan mode declined`, plan under `Open:`, nothing changed.
 
 ## Workflow
 
+0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Pre-flight.** Run `check-signing` (`conventions.md` `## Signing`). Exit 1 → stop and tell the user each error's `fix`.
 2. **Staged.** `staged-names` non-empty → note them for step 7; nothing is unstaged yet (`flow.md` `## Unstage`).
 3. **Collect.** `status`; with `paths:`, set the rest aside as `Excluded: pre-existing`. Nothing left → `Result: nothing-to-do`. Make a temp dir with `scratch` for the message and patch files.
 4. **Classify.** Run `classify` (`--hints` when the input has grouping hints, `--paths` with the `paths:` files); its `path` is the result (`flow.md` `## Classify`). A failed read or any doubt → analyzed.
 5. **Branch guard.** Current = Context → Branch; default = `default-branch` minus `origin/`; protected per `conventions.md` `## Protected branch`. Current is default or protected → switch needed (detached, unset: `flow.md` `## Branch guard`).
 6. **Group.** Small: one group, subject drafted here. Analyzed: spawn the grouping subagent, naming `${CLAUDE_SKILL_DIR}/references/conventions.md` in the brief for subject and branch rules. Commitlint and branch naming: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Group`.
-7. **Plan.** Show `Branch: <current> → <target>` (when switching), the staged files that will be unstaged (naming any `MM` file whose staged split is dropped), each group's subject and files, then the `Excluded` files with a warning, and the effect. Then AskUserQuestion per `flow.md` `## Confirm`: Commit, Regroup, or Stop (Stop → `Result: cancelled`). Commit only on Commit.
-8. **Commit.** `staged-names` non-empty → `unstage`. Switching → `switch-new`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`.
+7. **Plan.** Show `Branch: <current> → <target>` (when switching), the staged files that will be unstaged (naming any `MM` file whose staged split is dropped), each group's subject and files, then the `Excluded` files with a warning, and the effect. Then plan mode per `flow.md` `## Confirm`; commit only on approval.
+8. **Commit.** `staged-names` non-empty → `unstage`. Switching → `switch-new`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 9. **Verify.** `verify-log`: every `%G?` is `G`, every subject ≤72 chars, and `tree-status` shows only excluded files. Fail → stop.
 10. **Report.** Fill `Open:` per `flow.md` `## Open items`; print the Output.
 
@@ -62,6 +62,7 @@ Commits:
 - <hash> <subject> [signature: G]
 Commitlint: pass | skipped (not installed) | fail (<error line>) | n/a
 Excluded: <files or none>
+Plan mode: entered | already active | declined
 Confirmed: yes | no (stopped) | unattended (stopped)
 Next: push the commits | none
 Open: <item: impact; recommended fix, …> | none
