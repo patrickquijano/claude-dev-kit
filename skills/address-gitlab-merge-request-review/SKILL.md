@@ -3,7 +3,7 @@ name: address-gitlab-merge-request-review
 description: Addresses open discussions, change requests, and failing pipelines on a GitLab MR: fixes, tests, commits, pushes, replies. Use when asked to address MR review feedback.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[mr-url | group/project!iid | iid] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(glab api --hostname * projects/*/merge_requests/*/discussions?per_page=*) Bash(glab api --hostname * projects/*/merge_requests/*/reviewers) Bash(glab api --hostname * projects/*/merge_requests/*/closes_issues) Bash(glab api --hostname * projects/*/merge_requests/*/pipelines?per_page=*) Bash(glab api --hostname * projects/*/pipelines/*/jobs?scope=failed*) Bash(glab api --hostname * projects/*/jobs/*/trace) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
 ---
 
 # Address GitLab Merge Request Review
@@ -39,6 +39,7 @@ Input: $ARGUMENTS
 ## Files
 
 - For every runnable command and its MCP tool, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the read-only GitLab API wrapper (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs`.
 - For the term map, remote parsing, the MCP host check, and the 403/404 fix, see `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - For plan mode and the detail of steps 0–9, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the MR reference parser (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs`.

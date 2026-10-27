@@ -3,7 +3,7 @@ name: open-gitlab-merge-request
 description: Creates a GitLab merge request from the diff, or updates one by IID, URL, or branch, with a Conventional Commits title and the project's filled template. Use when asked to open or update an MR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[mr-url | iid | branch] [--draft]'
-allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab api --hostname * projects/*/repository/*) Bash(glab api --hostname * projects/*/merge_requests/*/diffs) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__list_repository_tree
+allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__list_repository_tree
 ---
 
 # Open GitLab Merge Request
@@ -37,6 +37,7 @@ Input: $ARGUMENTS
 ## Files
 
 - For every runnable command and its MCP tool, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the read-only GitLab API wrapper (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs`.
 - For the term map, remote parsing, the MCP host check, and the 403/404 fix, see `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - For template selection, filling, the update merge, and the type map, see `${CLAUDE_SKILL_DIR}/references/body.md`.
 - For the fallback templates, read the one the type map names at step 6: `${CLAUDE_SKILL_DIR}/assets/templates/default.md`, `${CLAUDE_SKILL_DIR}/assets/templates/feature.md`, `${CLAUDE_SKILL_DIR}/assets/templates/bugfix.md`, `${CLAUDE_SKILL_DIR}/assets/templates/refactor.md`, `${CLAUDE_SKILL_DIR}/assets/templates/hotfix.md`.

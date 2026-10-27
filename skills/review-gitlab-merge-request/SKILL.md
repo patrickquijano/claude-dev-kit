@@ -3,7 +3,7 @@ name: review-gitlab-merge-request
 description: Reviews one GitLab MR: replies to and resolves addressed threads, re-reviews once every thread is settled, and approves when no blocking issue is left. Use when asked to review a GitLab MR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[mr-url | iid]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) Bash(glab api --hostname * user) Bash(glab api --hostname * projects/*/repository/*) Bash(glab api --hostname * projects/*/merge_requests/*/closes_issues) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
 ---
 
 # Review GitLab Merge Request
@@ -47,6 +47,7 @@ Input: $ARGUMENTS
 ## Files
 
 - For every runnable command and its MCP tool, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the read-only GitLab API wrapper (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs`.
 - For the term map, remote parsing, the MCP host check, and the 403/404 fix, see `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - For pre-flight, MR resolution, and the closed, merged, locked, and draft rules (steps 1–2), see `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 - For thread states, reply templates, the gate, and the request-changes branch (steps 3–4), see `${CLAUDE_SKILL_DIR}/references/threads.md`.

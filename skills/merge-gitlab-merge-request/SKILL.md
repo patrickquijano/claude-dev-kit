@@ -3,7 +3,7 @@ name: merge-gitlab-merge-request
 description: Merges one GitLab MR via the GitLab MCP server (glab fallback): squash when approved and the pipeline is green; never bypasses protection. Use when asked to merge an MR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[mr-url | iid]'
-allowed-tools: mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_commit mcp__plugin_gitlab_gitlab__list_branches Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr list *) Bash(glab api --hostname * projects/* --method GET)
+allowed-tools: mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_commit mcp__plugin_gitlab_gitlab__list_branches Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *)
 ---
 
 # Merge GitLab Merge Request
@@ -40,6 +40,7 @@ One AskUserQuestion call before any merge: Method + Branch cleanup, and its answ
 ## Files
 
 - For every runnable command, its MCP tool, and the `glab` fallback, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
+- For the read-only GitLab API wrapper (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs`.
 - For the term map, remote parsing, the MCP host check, and the 403/404 fix (steps 1–2), see `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - For stop gates, readiness, blocker mapping, method and branch choices, the merge tool, and the post-merge check (steps 4–8), see `${CLAUDE_SKILL_DIR}/references/gates.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
