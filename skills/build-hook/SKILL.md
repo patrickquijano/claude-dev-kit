@@ -24,7 +24,7 @@ Input: $ARGUMENTS
 
 ## Workflow
 
-0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
+0. **Plan mode.** First run the step 1 interact check (a subagent or no `AskUserQuestion` → `Stopped: 1: cannot interact`, before plan mode). Then enter plan mode (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Interact check.** Load `AskUserQuestion` with ToolSearch if deferred; still unavailable, or running as a subagent → `Result: stopped`, `Stopped: 1: cannot interact`.
 2. **Scope.** Take it from the input; absent → ask Plugin | Project | User. Resolve and print the paths per `${CLAUDE_SKILL_DIR}/references/scopes.md`.
 3. **Docs.** WebFetch the hooks reference at <https://code.claude.com/docs/en/hooks>; read on with `offset` until events, matchers, input and output, exit codes, handler types, and the security section are covered. Unreachable → ask for a pasted copy or stop.
