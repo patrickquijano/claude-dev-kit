@@ -173,4 +173,14 @@ describe('main', () => {
     assert.deepEqual(codes, [2, 2, 2]);
     assert.equal(out.errors.length, 3);
   });
+
+  test('exits 2 without a git call for an option-like remote', () => {
+    // Arrange
+    const { out, deps } = harness([]);
+    // Act
+    const code = main(['/r', '--upload-pack=x'], deps);
+    // Assert
+    assert.equal(code, 2);
+    assert.deepEqual(out.calls, []);
+  });
 });

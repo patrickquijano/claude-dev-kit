@@ -59,7 +59,7 @@ const realDeps = {
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
-  if (argv.length !== 2 || !argv[0] || !argv[1]) {
+  if (argv.length !== 2 || !argv[0] || !argv[1] || argv[1].startsWith('-')) {
     d.error('usage: tag-diff.mjs <root> <remote>');
     return 2;
   }
