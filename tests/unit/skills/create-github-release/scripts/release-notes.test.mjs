@@ -82,6 +82,15 @@ describe('section', () => {
     assert.equal(result.notes, '### Fixed\n\n- a bug');
   });
 
+  test('matches a v-prefixed heading', () => {
+    // Arrange
+    const text = '## [v1.2.3] - 2026-01-01\n- a\n';
+    // Act
+    const result = section(text, '1.2.3');
+    // Assert
+    assert.deepEqual(result, { ok: true, notes: '- a' });
+  });
+
   test('reports a missing section', () => {
     // Arrange
     const version = '1.0.0';
