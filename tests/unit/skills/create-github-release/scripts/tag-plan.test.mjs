@@ -275,6 +275,15 @@ describe('planTags', () => {
     assert.equal(result.code, 'bad-today');
   });
 
+  test('rejects an out-of-range CalVer today', () => {
+    // Arrange
+    const input = { tags: ['2026.10.0'], today: '2026-13-45' };
+    // Act
+    const result = planTags(input);
+    // Assert
+    assert.equal(result.code, 'bad-today');
+  });
+
   test('rejects a missing input', () => {
     // Arrange
     const input = undefined;

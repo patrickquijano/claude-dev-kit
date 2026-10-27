@@ -26,6 +26,12 @@ const SEMVER =
 /* eslint-enable security/detect-unsafe-regex */
 const TODAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+// True for a `YYYY-MM-DD` string whose month is 1-12 and day is 1-31.
+function validDay(today) {
+  const t = TODAY.exec(today ?? '');
+  return Boolean(t) && +t[2] >= 1 && +t[2] <= 12 && +t[3] >= 1 && +t[3] <= 31;
+}
+
 const fail = (code, message, fix) => ({ ok: false, code, message, fix });
 
 // `{tag, prefix, version, major, minor, patch, pre}` for a SemVer tag with an optional `v`, else null.
@@ -168,7 +174,7 @@ export function planTags(input) {
     return fail('bad-input', '`tags`, `commits`, `labels`, `changelogVersions` must be arrays', 'pass the JSON shape');
   const names = tags.filter((t) => typeof t === 'string' && t);
   const convention = detectConvention(names);
-  if (convention.scheme === 'calver' && !TODAY.test(today ?? ''))
+  if (convention.scheme === 'calver' && !validDay(today))
     return fail('bad-today', '`today` is not YYYY-MM-DD', 'pass today as YYYY-MM-DD');
   const latest = latestStable(names);
   return {
