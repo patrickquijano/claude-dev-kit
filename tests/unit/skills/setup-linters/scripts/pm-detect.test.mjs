@@ -5,7 +5,7 @@ import {
   main,
   managerFromField,
   sanitizeName
-} from '../../../../../skills/setup-format-lint/scripts/pm-detect.mjs';
+} from '../../../../../skills/setup-linters/scripts/pm-detect.mjs';
 
 // Stub deps over an in-memory file map of absolute path -> content.
 const fsStub = (files) => ({

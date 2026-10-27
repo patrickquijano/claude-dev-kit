@@ -8,9 +8,8 @@
 | `runtime-probe`       | `node --version`, `php --version`, `dotnet --version`, `python3 --version`, `go version` | Runtime for engine checks (fallback)              |
 | `npm-view`            | `npm view <pkg>[@<version>] <fields> --json`                                             | Resolve an npm version (fallback)                 |
 | `registry-fetch`      | WebFetch of the PyPI, Packagist, NuGet, or Go proxy URL in `tools.md`                    | Resolve a non-npm version (fallback)              |
-| `check-tool`          | The tool's check command from `configs.md`, `NO_COLOR=1`                                 | Check run for step 10 (fallback); asks permission |
+| `check-tool`          | The tool's check command from `configs.md`, `NO_COLOR=1`                                 | Check run for step 9 (fallback); asks permission  |
 | `tool-check`          | `command -v <tool>`                                                                      | Check a native binary or package manager exists   |
-| `npm-view-exports`    | `npm view eslint@<version> exports --json`                                               | Check the resolved ESLint exports `./config`      |
 | `npm-add-dev`         | `npm install -D <pkg>@<version> …`                                                       | Install npm dev packages (npm)                    |
 | `pnpm-add-dev`        | `pnpm add -D <pkg>@<version> …`                                                          | Install npm dev packages (pnpm; `-w` at root)     |
 | `yarn-add-dev`        | `yarn add -D <pkg>@<version> …`                                                          | Install npm dev packages (yarn; `-W` yarn 1)      |

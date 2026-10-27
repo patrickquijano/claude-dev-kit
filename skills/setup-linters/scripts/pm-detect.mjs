@@ -1,4 +1,4 @@
-// Package-dir and manager detector for setup-format-lint: resolves the npm package dir, its manager, and the name for a missing package.json.
+// Package-dir and manager detector for setup-linters: resolves the npm package dir, its manager, and the name for a missing package.json.
 // Read-only. CLI: `pm-detect.mjs --root <abs git root> [--cwd <abs dir>]`, JSON on stdout.
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
