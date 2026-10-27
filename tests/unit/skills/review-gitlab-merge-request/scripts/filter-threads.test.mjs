@@ -156,6 +156,24 @@ describe('classifyThreads', () => {
     assert.deepEqual([res.judged, res.unjudged], [[], []]);
   });
 
+  test('reads the flags from the notes of a REST discussion', () => {
+    // Arrange
+    const rest = (id, flags) => ({ id, notes: [note('rev', HEAD, flags), note('dev', HEAD, flags)] });
+    const nodes = [
+      rest('open', { resolvable: true, resolved: false }),
+      rest('done', { resolvable: true, resolved: true }),
+      rest('plain', { resolvable: false })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => t.id),
+      ['open']
+    );
+    assert.deepEqual(res.unjudged, []);
+  });
+
   test('flags a full page as truncated', () => {
     // Arrange
     const nodes = Array.from({ length: 100 }, (_, i) => thread({ id: `t${i}` }));

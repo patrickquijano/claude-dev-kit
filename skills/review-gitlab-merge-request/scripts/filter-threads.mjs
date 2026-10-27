@@ -43,8 +43,12 @@ export function classifyThreads({ nodes, author, self, head }) {
   const judged = [];
   const unjudged = [];
   for (const t of nodes) {
-    if (!t.resolvable || t.resolved) continue;
-    const notes = list(t.notes).filter((n) => !n.system);
+    const all = list(t.notes);
+    // REST discussions carry the flags on their notes; the MCP shape carries them on the thread.
+    const resolvable = t.resolvable ?? all.some((n) => n.resolvable);
+    const resolved = t.resolved ?? all.filter((n) => n.resolvable).every((n) => n.resolved);
+    if (!resolvable || resolved) continue;
+    const notes = all.filter((n) => !n.system);
     if (notes.length === 0) continue;
     const last = notes[notes.length - 1];
     const opener = notes[0].author?.username;
