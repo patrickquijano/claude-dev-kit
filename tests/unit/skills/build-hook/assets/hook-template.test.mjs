@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { main, parseInput, requireField, runSteps } from '../../../../../skills/build-hook/assets/hook-template.mjs';
+import {
+  main,
+  parseInput,
+  readAll,
+  requireField,
+  runSteps
+} from '../../../../../skills/build-hook/assets/hook-template.mjs';
 
 const step = (name) => ({ name, cmd: 'tool', args: [name], timeout: 1000 });
 const stubSpawn = (statuses) => {
@@ -196,5 +202,47 @@ describe('main', () => {
     // Act / Assert
     await assert.rejects(main(bad), SyntaxError);
     await assert.rejects(main(missing), /hook_event_name/);
+  });
+});
+
+describe('readAll', () => {
+  const source = async function* (...chunks) {
+    yield* chunks;
+  };
+
+  test('joins the chunks into one string', async () => {
+    // Arrange
+    const stream = source('{"a":', '1}');
+    // Act
+    const text = await readAll(stream);
+    // Assert
+    assert.equal(text, '{"a":1}');
+  });
+
+  test('returns an empty string for an empty stream', async () => {
+    // Arrange
+    const stream = source();
+    // Act
+    const text = await readAll(stream);
+    // Assert
+    assert.equal(text, '');
+  });
+
+  test('throws when the input passes the cap', async () => {
+    // Arrange
+    const stream = source('abcd', 'efgh');
+    // Act
+    const act = readAll(stream, 6);
+    // Assert
+    await assert.rejects(act, /hook input exceeds 6 bytes/);
+  });
+
+  test('accepts input exactly at the cap', async () => {
+    // Arrange
+    const stream = source('abc', 'def');
+    // Act
+    const text = await readAll(stream, 6);
+    // Assert
+    assert.equal(text, 'abcdef');
   });
 });

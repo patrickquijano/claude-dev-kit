@@ -40,10 +40,16 @@ export function runSteps(steps, deps = {}) {
   return { ok: true, failed: null, results };
 }
 
-async function readAll(stream = process.stdin) {
-  let data = '';
-  for await (const chunk of stream) data += chunk;
-  return data;
+// Reads the whole stream as text; throws once it passes `max` bytes so a runaway input cannot exhaust memory.
+export async function readAll(stream = process.stdin, max = 1024 * 1024) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of stream) {
+    size += Buffer.byteLength(chunk);
+    if (size > max) throw new RangeError(`hook input exceeds ${max} bytes`);
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString('utf8');
 }
 
 // Returns the exit code: 0 allow (one merged JSON line on stdout), 2 block.
