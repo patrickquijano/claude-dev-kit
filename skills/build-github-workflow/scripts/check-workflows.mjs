@@ -109,11 +109,11 @@ export function checkRunners(path, text) {
   return findings;
 }
 
-// `injection`: event data or a head ref interpolated inside a `run:` script.
+// `injection`: event data, a head ref, or a workflow input interpolated inside a `run:` script.
 export function checkInjection(path, text) {
   const findings = [];
   for (const { line, text: code } of runLines(text)) {
-    if (/\$\{\{[^}]*\b(?:github\.event\.|github\.head_ref)/.test(code)) {
+    if (/\$\{\{[^}]*\b(?:github\.event\.|github\.head_ref|inputs\.)/.test(code)) {
       findings.push(finding('injection', path, line, 'untrusted value inside `run:`', 'pass it through step `env:`'));
     }
   }

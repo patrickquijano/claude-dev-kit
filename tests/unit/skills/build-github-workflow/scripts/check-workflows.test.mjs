@@ -173,6 +173,24 @@ describe('checkInjection', () => {
     assert.equal(findings.length, 1);
   });
 
+  test('flags a workflow input inside a run block', () => {
+    // Arrange
+    const text = '      - run: echo "${{ inputs.name }}"\n';
+    // Act
+    const findings = checkInjection(P, text);
+    // Assert
+    assert.equal(findings.length, 1);
+  });
+
+  test('flags a dispatch input inside a run block', () => {
+    // Arrange
+    const text = '      - run: echo "${{ github.event.inputs.name }}"\n';
+    // Act
+    const findings = checkInjection(P, text);
+    // Assert
+    assert.equal(findings.length, 1);
+  });
+
   test('accepts the value passed through env', () => {
     // Arrange
     const text = '      - env:\n          T: ${{ github.event.pull_request.title }}\n        run: echo "$T"\n';
