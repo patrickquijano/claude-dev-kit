@@ -123,6 +123,7 @@ async function lintViaApi(d, root, content) {
       method: 'POST',
       headers: { 'PRIVATE-TOKEN': token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
+      redirect: 'error',
       signal: AbortSignal.timeout(TIMEOUT)
     });
   } catch (err) {

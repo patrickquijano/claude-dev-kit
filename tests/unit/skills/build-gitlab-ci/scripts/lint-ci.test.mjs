@@ -313,6 +313,7 @@ describe('main', () => {
     assert.equal(code, 0);
     assert.equal(calls[0].url, 'https://gitlab.com/api/v4/projects/g%2Fp/ci/lint');
     assert.equal(calls[0].init.headers['PRIVATE-TOKEN'], 'glpat-secret');
+    assert.equal(calls[0].init.redirect, 'error');
     assert.match(s.logs[0], /^method=api\n/);
     assert.ok(![...s.logs, ...s.errors].some((t) => t.includes('glpat-secret')));
   });
