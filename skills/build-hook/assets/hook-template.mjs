@@ -1,5 +1,6 @@
 // Hook script skeleton: reads the event JSON from stdin, runs the steps in order, prints one JSON object.
 import { spawnSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 // Steps to run, each { name, cmd, args, timeout in ms }; args is an array, never a shell string.
@@ -69,7 +70,7 @@ export async function main(deps = {}) {
 }
 
 // The one error boundary: an unexpected error prints one stderr line and exits 1 (non-blocking).
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     process.exitCode = await main();
   } catch (error) {
