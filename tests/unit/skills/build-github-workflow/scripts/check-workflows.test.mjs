@@ -162,6 +162,29 @@ describe('checkInjection', () => {
     assert.deepEqual(findings, []);
   });
 
+  test('accepts env after a block run in the same step', () => {
+    // Arrange
+    const text =
+      '      - run: |\n          echo "$T"\n        env:\n          T: ${{ github.event.pull_request.title }}\n';
+    // Act
+    const findings = checkInjection(P, text);
+    // Assert
+    assert.deepEqual(findings, []);
+  });
+
+  test('still flags the script lines of a block run that is followed by env', () => {
+    // Arrange
+    const text =
+      '      - run: |\n          echo "${{ github.head_ref }}"\n        env:\n          T: ${{ github.event.pull_request.title }}\n';
+    // Act
+    const findings = checkInjection(P, text);
+    // Assert
+    assert.deepEqual(
+      findings.map((f) => f.line),
+      [2]
+    );
+  });
+
   test('accepts a safe context inside run', () => {
     // Arrange
     const text = '      - run: echo ${{ github.sha }}\n';
@@ -234,6 +257,25 @@ describe('runActionlint', () => {
     // Assert
     assert.equal(res.status, 'fail');
     assert.equal(res.findings[0].line, 3);
+  });
+
+  test('fails with the first stderr line when actionlint crashes with empty output', () => {
+    // Arrange
+    const deps = { run: runner({ actionlint: { status: 2, stdout: '', stderr: 'unknown flag\nusage: …' } }) };
+    // Act
+    const res = runActionlint([P], deps);
+    // Assert
+    assert.equal(res.status, 'fail');
+    assert.equal(res.findings[0].message, 'unknown flag');
+  });
+
+  test('passes on empty output with a zero exit', () => {
+    // Arrange
+    const deps = { run: runner({ actionlint: ok('') }) };
+    // Act
+    const res = runActionlint([P], deps);
+    // Assert
+    assert.deepEqual(res, { status: 'pass', findings: [] });
   });
 
   test('reports not installed when the binary is missing', () => {

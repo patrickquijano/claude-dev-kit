@@ -179,6 +179,24 @@ describe('main', () => {
     assert.deepEqual(JSON.parse(out.logs[0]), { ok: true, yaml: 'pass', findings: [] });
   });
 
+  test('exits 0 for a root-level action given as the working directory', () => {
+    // Arrange
+    const files = { '/repo/action.yml': 'x' };
+    // Act
+    const { code } = run(['.'], files, { yq: ok(JSON.stringify(good)) });
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('throws for a sibling directory that only shares the root prefix', () => {
+    // Arrange
+    const argv = ['../repo-other'];
+    // Act
+    const act = () => run(argv, {});
+    // Assert
+    assert.throws(act, /outside the working directory/);
+  });
+
   test('flags a file not named action.yml', () => {
     // Arrange
     const files = { '/repo/act/other.yml': 'x' };

@@ -52,15 +52,16 @@ function runLines(text) {
   const lines = text.split('\n');
   const out = [];
   for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(/^(\s*)(?:- )?run:\s*(.*)$/);
+    const m = lines[i].match(/^(\s*)(- )?run:\s*(.*)$/);
     if (!m) continue;
-    if (!/^[|>][+-]?\d?$/.test(m[2].trim())) {
-      out.push({ line: i + 1, text: m[2] });
+    if (!/^[|>][+-]?\d?$/.test(m[3].trim())) {
+      out.push({ line: i + 1, text: m[3] });
       continue;
     }
+    const keyIndent = m[1].length + (m[2] ? m[2].length : 0);
     for (let j = i + 1; j < lines.length; j++) {
       const indent = lines[j].match(/^\s*/)[0].length;
-      if (lines[j].trim() && indent <= m[1].length) break;
+      if (lines[j].trim() && indent <= keyIndent) break;
       out.push({ line: j + 1, text: lines[j] });
     }
   }
@@ -135,6 +136,10 @@ export function runActionlint(paths, deps) {
   const res = deps.run('actionlint', ['-format', '{{json .}}', ...paths], { timeout: TIMEOUT });
   if (res.error?.code === 'ENOENT') return { status: 'not installed', findings: [] };
   if (res.error) throw res.error;
+  if (!res.stdout && res.status !== 0 && res.status !== 1) {
+    const reason = String(res.stderr ?? '').split('\n')[0] || `exit ${res.status}`;
+    return { status: 'fail', findings: [finding('actionlint', '', 0, reason, '')] };
+  }
   let items;
   try {
     items = JSON.parse(res.stdout || 'null') ?? [];

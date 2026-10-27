@@ -114,7 +114,8 @@ export function main(argv, deps = {}) {
   }
   const root = d.cwd();
   const given = resolve(root, argv[0]);
-  if (!given.startsWith(root + sep)) throw new Error(`path outside the working directory: ${argv[0]}`);
+  if (given !== root && !given.startsWith(root + sep))
+    throw new Error(`path outside the working directory: ${argv[0]}`);
   const isFile = /\.ya?ml$/.test(given);
   const file = isFile ? given : join(given, 'action.yml');
   const findings = [];
