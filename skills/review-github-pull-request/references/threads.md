@@ -1,10 +1,10 @@
 # Threads
 
-Step 3 of `SKILL.md`. Judging writes nothing to GitHub; replies and resolves are posted in step 7 (`post.md`).
+Steps 3–4 of `SKILL.md`. Judging writes nothing to GitHub; replies and resolves are posted in step 8 (`post.md`).
 
 ## Contents
 
-- Digest · States · Replies · Request changes · Spawn briefs
+- Digest · States · Replies · Gate · Request changes · Spawn briefs
 
 ## Digest
 
@@ -22,21 +22,27 @@ Each judged thread gets exactly one state:
 - **Obsolete:** the thread is outdated and the commented code is deleted or refactored at the head so the comment no longer applies.
 - **Open:** the change is missing or incomplete, the thread ends on an unanswered question or disagreement, or the judge is uncertain. A question thread with no code ask resolves only on Accepted.
 
-Fixed, Accepted, and Obsolete are replied to and resolved in step 7 only when `resolvable` is true; a judged thread opened by anyone else is listed under `Open:` for its opener, with its state and reason.
+Fixed, Accepted, and Obsolete threads are replied to in step 8 whatever `resolvable` says, and resolved only when `resolvable` is true; a thread opened by anyone else is left for its opener to resolve and listed under `Open:` with its state and reason.
 
 ## Replies
 
-One short reply per resolved thread, plain English, no attribution:
+One short reply per judged thread, plain English, no attribution:
 
 - Fixed: `**note:** Addressed in <short head SHA> at <path:line>.`
 - Accepted: `**note:** Resolving: the explanation was accepted in this thread.`
 - Obsolete: `**note:** Resolving: the code this thread discussed was <removed | refactored> at <short head SHA> (<path>).`
+- Open (judged): `**note:** Not addressed at <short head SHA>: <what is missing> (<path:line>).`
+- Not `resolvable`: append `Leaving this for the thread's opener to resolve.` and drop the word `Resolving:`.
 
-Open threads get no reply.
+Unjudged threads get no reply: nothing changed since the last comment.
+
+## Gate
+
+The gate passes when no thread is judged Open and none is unjudged; `unresolvable` threads do not block and are listed under `Open:`. A failed gate skips steps 5–6: scope is `threads only`, the verdict is `REQUEST_CHANGES`, and no diff analysis runs. A passed gate means scope `full`.
 
 ## Request changes
 
-An Open thread with a code ask, or an unjudged thread whose ask is still unmet, forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review body lists each by URL with a one-line reason; the thread itself is not duplicated as an inline comment.
+A failed gate forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review body lists each by URL with a one-line reason; the thread itself is not duplicated as an inline comment.
 
 ## Spawn briefs
 
