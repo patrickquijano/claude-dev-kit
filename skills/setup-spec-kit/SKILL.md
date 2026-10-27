@@ -18,21 +18,21 @@ disable-model-invocation: true
 - Edit only linter and formatter configs that already exist; never create a config for a tool the project does not use. Only `.gitignore` may be created (step 4).
 - Extensions and priorities (lower number wins): `agent-context` 10, `assess` 20, `bug` 30. `agent-context` manages the CLAUDE.md context section, so it outranks the workflow extensions.
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
-- Caps: `extension-add` or `extension-set-priority` runs once per extension, no retries; one user-approved reinstall per extension whose skill dirs are missing; one retry pass over skipped ignore edits (step 6).
+- Caps: `extension-add` or `extension-set-priority` runs once per extension, no retries; one plan-approved reinstall per extension whose skill dirs are missing; one retry pass over skipped ignore edits (step 6).
 - `specify extension remove` and `specify extension add` are not in `allowed-tools`; the permission prompt guards them.
 - AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended: ask nothing; take the Recommended option, except the global install (step 1) and `init-here` on a non-empty project (step 2), which stop and are recorded under `Open:`.
-- Confirm once: after reading the state in steps 1-3 and before the first write (init, extension add or priority change, ignore edits), list the planned writes and AskUserQuestion ("Apply" (Recommended), "Stop"). Stop → `Stopped: 2: writes declined`, then the stop rule below. Unattended: apply. The step 1 install and the step 3 reinstall keep their own confirmations.
-- Steps 1-2 stops and cancels: print the Output with `Open:` holding the item recorded at the stop (else `not run`) and end. A later stop still runs step 6 once, then prints the Output with `Result: stopped`.
+- Steps 0-2 stops and cancels: print the Output with `Open:` holding the item recorded at the stop (else `not run`) and end. A later stop still runs step 6 once, then prints the Output with `Result: stopped`.
 - Leftovers (failed extensions, missing skill dirs, skipped ignore edits) go to `Open:` with a recommended fix; never loop past the caps.
 
 ## Workflow
 
-1. **CLI.** `has-specify` succeeds → skip, else confirm and run `install-specify`; record `version`. Missing uv, declined or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
+0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
+1. **CLI.** `has-specify` succeeds → skip, else run `install-specify`; record `version`. Missing uv, declined or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
 2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. Cases, confirmation, and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
 3. **Extensions.** Run `plan-extensions`; per `extensions.adds` run `extension-add`, per `priorityFixes` run `extension-set-priority`. Then read `skills.missing` from the plan for the missing required skill dirs. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append the `gitignore.missing` lines from step 3's plan to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Leave `.specify/.gitignore` alone; `specify init` manages it.
 5. **Lint and format ignores.** Spec Kit overwrites generated files on upgrade, so linting them is noise. Add `.specify/` and `.claude/skills/speckit-*/` to each existing config in that tool's syntax; keep `specs/` linted. Forms per tool: `${CLAUDE_SKILL_DIR}/references/ignores.md`.
-6. **Fix leftovers.** Retry each skipped ignore edit once, only for files this skill writes. A failed CLI install or missing skill dir is only reported with its recommended command.
+6. **Fix leftovers.** Retry each skipped ignore edit once, only for files this skill writes. A failed CLI install or missing skill dir is only reported with its recommended command. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 7. **Report.** Print the Output. Tell the user that `.specify/assessments/` and `.specify/bugs/`, where the assess and bug extensions write, are committed with the work unless added to `.gitignore`.
 
 ## Files
