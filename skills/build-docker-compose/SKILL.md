@@ -1,10 +1,9 @@
 ---
 name: build-docker-compose
-description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use only when the user explicitly asks to write or review Compose.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use when asked to write or review Compose.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '<app description | path | existing compose file>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v docker) Bash(docker info --format *) Bash(node --version) Bash(npm view dclint version) Bash(npm view dclint@* engines --json) Bash(git mv docker-compose.yml compose.yaml) Bash(git mv docker-compose.yaml compose.yaml)
-disable-model-invocation: true
 ---
 
 # Build Docker Compose
@@ -26,12 +25,12 @@ Input: $ARGUMENTS
 - Output form: long (mapping) syntax for every entry that has one, and no key set to its documented default (`practices.md` `## Long syntax`, `## Defaults`).
 - Apply every **Required** item for the chosen mode in `practices.md`; apply a **Recommended** item only when the input or a user answer asks for it. A skipped Required item gets a reason in the Output.
 - Mode: plain Compose or Swarm stack, decided from the input and compose-file signals, else asked (`flow.md` `## Mode`). `deploy:` alone never proves Swarm.
-- Ask every configuration choice (mode, scoped file name, services, ports, volumes, secrets, configs, resource limits, restart and update policy) with AskUserQuestion: recommended option first, one-line reason, max 4 questions per call. Stated in the input or the existing compose file → do not ask.
+- Every configuration choice (mode, scoped file name, services, ports, volumes, secrets, configs, resource limits, restart and update policy) is a decision question; max 4 per call, the Recommended option first in the call. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. Stated in the input or the existing compose file → do not ask.
 - Files: base `compose.yaml`; a scoped or environment file `compose.<scope>.yaml`, the name asked, validated together with `compose.yaml`. Never create `docker-compose.yml` or any `.yml` file.
 - Images: every image pinned to its most specific tag from a Docker Hub lookup; never `latest`, a floating tag, or a guess. Other registry or failed lookup → ask the user.
 - Never write secret values into the file; reference secrets, `env_file`, or `${VAR:?err}`.
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
-- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; unattended → write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask does not count toward the Clarify cap.
+- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval (first write only; each fix round re-enters plan mode, `flow.md` `## Verify`) names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; unattended → write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 - Unattended (no way to ask): ask nothing, list each unanswered choice under `Open:`.
@@ -53,6 +52,7 @@ Input: $ARGUMENTS
 - For pre-flight, plan mode, mode detection, clarify questions, draft order, write naming, and the verify loop, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the Required and Recommended rules per mode, the image tag lookup, and the open gaps, see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when a Clarify step asks a decision question.
 
 ## Output
 

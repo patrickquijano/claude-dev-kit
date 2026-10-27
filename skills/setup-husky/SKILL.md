@@ -26,9 +26,9 @@ disable-model-invocation: true
 - Never overwrite a user file; never pass `--no-verify`.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
-- AskUserQuestion: at most 4 questions per call, 2-4 options, recommended first with its reason; each asked once. Unavailable → take the recommended option and list it under `Open:`. Unattended → same.
+- Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. Unattended → same; a close call has no Recommended and goes under `Open:`.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
-- Approval: nothing is installed or written (package.json, dependencies, init, hooks, config, ignores, rules) before the `ExitPlanMode` approval after step 5 (`plan.md`); the plan names every install, write, and a hook-owner or `core.hooksPath` replacement. Plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: apply, but never replace another hook owner.
+- Approval: nothing is installed or written (package.json, dependencies, init, hooks, config, ignores, rules) before the `ExitPlanMode` approval after step 5 (`plan.md`), which covers the first write only (each step 16 fix round re-enters plan mode); the plan names every install, write, and a hook-owner or `core.hooksPath` replacement. Plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: apply, but never replace another hook owner.
 - Pre-flight stops and a Stop answer: print the Output with `Result: stopped | cancelled`.
 
 ## Workflow
@@ -48,7 +48,7 @@ disable-model-invocation: true
 13. **Line endings.** Append `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root) to root `.gitattributes`, creating it if missing, unless an identical `eol=lf` line exists (CRLF breaks the `sh` stubs).
 14. **Tool ignores.** Add the Husky paths to each existing linter, formatter, npm, and Docker config. `ignores.md`.
 15. **Smoke test.** No commit-msg hook (or a kept user stub not calling `commit-msg.mjs`) → skip. Else `smoke-commit-msg` on valid, past-tense, and 73-char headers. `hooks.md` Smoke test.
-16. **Fix loop.** Repair failing checks on files this run wrote, up to the cap; list the rest under `Open:`.
+16. **Fix loop.** Each round enters plan mode first (`plan.md`). Repair failing checks on files this run wrote, up to the cap; list the rest under `Open:`.
 17. **Report** the Output.
 
 ## Files
@@ -62,6 +62,7 @@ disable-model-invocation: true
 - For merging `scripts.prepare` (step 7), run `${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs`; run it, never read it.
 - Copied into the project (never read): `${CLAUDE_SKILL_DIR}/assets/` (hooks, `commitlintrc.json`, `commit-rules.md`).
 - For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when a step asks a decision question.
 
 ## Output
 

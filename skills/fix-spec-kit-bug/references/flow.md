@@ -22,7 +22,7 @@ Read Result in `test.md`:
 
 ## Iterate
 
-3 passes done → `Result: stopped`, `Stopped: Iterate: 3 passes`; list the failing checks or blockers in `Open:`; repeated misses point to a wrong root cause. Else start the next pass by entry:
+3 passes done → `Result: stopped`, `Stopped: Iterate: 3 passes`; list the failing checks or blockers in `Open:`; repeated misses point to a wrong root cause. Else start the next pass by entry, each fix run preceded by the Rules' plan mode step:
 
 - Re-assess (Deviations say the assessment is wrong) → run third-party `speckit-bug-assess slug=<slug> <extracted evidence> Evidence from .specify/bugs/<slug>/test.md and fix.md`. Verdict `invalid` → `Result: stopped`, `Stopped: Iterate: re-assess verdict invalid`, list failing checks and blockers in `Open:`. Else step 4.
 - Retry (user input collected) → run third-party `speckit-bug-fix slug=<slug> <user input>`, then branch as in `## Fix status`.

@@ -26,6 +26,7 @@ pass: <observable criteria, one per line>
 | nothing-to-do    | "Move to a new branch." (clean tree, no unique commits, no input)     | Does nothing                           | `Result: nothing-to-do`; no analyzer spawn                                                |
 | unattended       | "Create a branch for these edits." (run as a subagent, no way to ask) | Switches, never pushes                 | `Branch: <name> → not pushed`; `Result: done`; no question asked                          |
 | analyzer-failure | "Branch these changes off." (the analyzer spawn is unavailable)       | Derives the name inline                | Name comes from `Type and description`; no second spawn attempt beyond the cap            |
+| auto-invoke      | A natural request for the action, no `/cdk:` command                  | Claude loads the skill on its own      | The skill runs; its existing confirm or plan approval still precedes any write or push    |
 
 ## Running per model
 

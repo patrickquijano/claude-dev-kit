@@ -1,9 +1,8 @@
 ---
 name: address-github-pull-request-review
-description: Addresses open review threads, change requests, and failing checks on a GitHub PR: fixes, tests, commits, pushes, replies. Use only when the user explicitly asks to address PR review feedback.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Addresses open review threads, change requests, and failing checks on a GitHub PR: fixes, tests, commits, pushes, replies. Use when asked to address PR review feedback.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[pr-url | owner/repo#N | number] [--dry-run]'
-disable-model-invocation: true
 allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read
 ---
 
@@ -30,7 +29,7 @@ Input: $ARGUMENTS
 3. **Plan.** Write the plan for each valid item; plan mode active → the plan file and `ExitPlanMode` approval. `## Plan`.
 4. **Implement.** Smallest change that satisfies the comment and the requirement. `## Implement`.
 5. **Verify.** Run the repo's checks and add a test for fixed behavior. `## Verify`.
-6. **Iterate.** On failure diagnose, research, retry (cap 3). `## Iterate`.
+6. **Iterate.** On failure diagnose, research, retry (cap 3). `## Iterate`. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 7. **Commit.** One atomic commit per item. `## Commit`.
 8. **Push.** The approved plan covers it: rebase on the remote head and make one normal push. `## Push`.
 9. **Reply.** After the push, reply on each addressed thread with the short SHA; never resolve. `## Reply`.

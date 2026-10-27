@@ -1,10 +1,9 @@
 ---
 name: build-dockerfile
-description: Writes, improves, or reviews a Dockerfile and .dockerignore per Docker best practices, verified by docker build --check. Use only when the user explicitly asks to write or review a Dockerfile.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Writes, improves, or reviews a Dockerfile and .dockerignore per Docker best practices, verified by docker build --check. Use when asked to write or review a Dockerfile.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '<app description | path | existing Dockerfile>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v docker) Bash(command -v hadolint) Bash(docker build --check -f * *) Bash(hadolint *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/resolve-tag.mjs *) Bash(docker image inspect cdk-build-test:* --format *)
-disable-model-invocation: true
 ---
 
 # Build Dockerfile
@@ -27,7 +26,7 @@ Input: $ARGUMENTS
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
 - Validate with `build-check` and lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error): the reviewer subagent runs them, and step 6 runs them inline when it is unavailable. This skill itself runs the test (`image-build`, then `image-inspect` and `image-remove`; default target) after the `ExitPlanMode` approval; never `docker build` without `--check` or a throwaway tag.
-- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write and the test build need the `ExitPlanMode` approval, whose plan names the files, the test build (it pulls images and runs the Dockerfile's `RUN` commands), and any `tool-probe` (`flow.md` `## Plan mode`); plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: write the files, skip the test build (`skipped (unattended)`), and list it under `Open:`.
+- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write and the test build need the `ExitPlanMode` approval (it covers the first write; each fix round re-enters plan mode, `flow.md` `## Verify`), whose plan names the files, the test build (it pulls images and runs the Dockerfile's `RUN` commands), and any `tool-probe` (`flow.md` `## Plan mode`); plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. Unattended: write the files, skip the test build (`skipped (unattended)`), and list it under `Open:`.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; plan rejections 3 (`flow.md` `## Plan mode`); Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 
@@ -48,6 +47,7 @@ Input: $ARGUMENTS
 - For the Dockerfile rules (Required items, pins, cache, RUN, runtime, devcontainer target), see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 - To resolve a Docker Hub base-image tag (step 4; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/resolve-tag.mjs`.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the Clarify step asks a decision question.
 
 ## Output
 

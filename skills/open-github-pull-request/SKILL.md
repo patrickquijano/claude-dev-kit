@@ -1,9 +1,8 @@
 ---
 name: open-github-pull-request
-description: Creates a GitHub PR from the diff, or updates one by URL or number, with a Conventional Commits title and the repo's filled template. Use only when the user explicitly asks to open or update a PR.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Creates a GitHub PR from the diff, or updates one by URL or number, with a Conventional Commits title and the repo's filled template. Use when asked to open or update a PR.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[pr-url | number] [--draft]'
-disable-model-invocation: true
 allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr list *) Bash(gh api repos/*/contents/*) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__get_file_contents
 ---
 
@@ -24,11 +23,12 @@ Input: $ARGUMENTS
 
 ## Workflow
 
+0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Tooling.** Find the MCP tools for create, update, read, list, and file contents; none → run `auth`. Neither works → `Stopped: 1: no GitHub MCP and no gh auth`.
 2. **Target.** A URL → owner, repo, number. A number → repo from `origin`. None → create, but an open PR from `pr-for-branch` → update that PR. Closed or merged → stop.
 3. **State** (create only). Warn on uncommitted changes. Branch not on the remote or ahead of it → ask: `Push (Recommended)` | `Continue without` | `Stop`.
 4. **Diff.** Create: `diff` and `commits` against `<default>`. Update: `pr-diff` and `pr-files`. Empty → `Result: nothing-to-do`.
-5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds).
+5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds). **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 6. **Body.** Pick and fill the template per `${CLAUDE_SKILL_DIR}/references/body.md`; update → merge with the existing body.
 7. **Confirm.** Show title and body (update: also the change against the current ones). Ask: `Submit (Recommended)` | `Edit` | `Stop`.
 8. **Submit.** `push` if chosen, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report the URL.

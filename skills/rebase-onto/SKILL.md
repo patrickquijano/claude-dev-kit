@@ -1,10 +1,9 @@
 ---
 name: rebase-onto
-description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use only when the user explicitly asks to rebase or sync with main via rebase.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use when asked to rebase or sync with main via rebase.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional target branch]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs *) Bash(git status *) Bash(git rev-parse *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git show *) Bash(git diff *) Bash(git merge-base *) Bash(git rev-list *) Bash(git cherry *) Bash(glab mr list *) Bash(gh pr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests Bash(git rebase --skip) Bash(git -c core.editor=true rebase --continue) Bash(git add *)
-disable-model-invocation: true
 ---
 
 # Rebase Onto
@@ -34,12 +33,13 @@ Input: $ARGUMENTS
 
 ## Workflow
 
+0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Pre-flight.** Context → Branch, `status`, `dirty-tracked`, and `check-signing`; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Remote branches.** `fetch`, then list candidates and the default; stop on failure or none (`flow.md` `## Remote branches`).
 3. **Target.** The named branch, else the default; report `divergence` (`flow.md` `## Target`).
 4. **Check.** Behind = 0 → `Result: nothing-to-do`. `merge-commits` non-empty → rebase with `--rebase-merges`, no question.
 5. **Rebase.** `upstream` = `origin/<current>` → record `upstream-sha` (the lease). Run `rebase`; success → step 7.
-6. **Conflict loop.** Per conflicted commit: analyze each file, ask, resolve, `continue` (`flow.md` `## Conflict loop`).
+6. **Conflict loop.** Per conflicted commit: analyze each file, ask, resolve, `continue` (`flow.md` `## Conflict loop`). **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 7. **Verify and push.** `status` clean and no rebase in progress; `signatures` all `G`. Ask, then push (`flow.md` `## Push`).
 8. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 
@@ -49,6 +49,7 @@ Input: $ARGUMENTS
 - For pre-flight, target selection, the conflict loop and its analysis brief, push, and open items, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the signing check (step 1), run `${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs`; it is run, never read.
 - For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the conflict loop asks a decision question.
 
 ## Output
 

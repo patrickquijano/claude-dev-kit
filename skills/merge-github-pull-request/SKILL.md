@@ -1,9 +1,8 @@
 ---
 name: merge-github-pull-request
-description: 'Merges one GitHub PR via the GitHub MCP server (gh fallback): squash when approved and green; admin bypass only for own PRs after confirmation. Use only when the user explicitly asks to merge a PR.'
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: 'Merges one GitHub PR via the GitHub MCP server (gh fallback): squash when approved and green; admin bypass only for own PRs after confirmation. Use when asked to merge a PR.'
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[pr-url | number]'
-disable-model-invocation: true
 allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh api repos/*/rules/branches/*) Bash(gh api repos/*/branches/*) Bash(gh api repos/*/commits/*) Bash(gh api user *)
 ---
 
@@ -35,13 +34,14 @@ Input: $ARGUMENTS
 
 ## Pre-merge questions
 
-One AskUserQuestion call before any merge, on both paths: standard asks Method + Branch cleanup; bypass adds the bypass confirmation first. A question with one possible answer is skipped; state its value and reason. Each option carries a one-line reason, the Recommended first. Options, recommendations, and fork handling are in `gates.md` (method choice, branch cleanup).
+One AskUserQuestion call before any merge, on both paths: standard asks Method + Branch cleanup; bypass adds the bypass confirmation first. A question with one possible answer is skipped; state its value and reason. The Recommended option goes first in the call. Options, recommendations, and fork handling are in `gates.md` (method choice, branch cleanup). Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 
 ## Files
 
 - For every runnable command, its MCP tool, and the `gh` fallback, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For stop gates, readiness, bypass eligibility, blocker mapping, method and branch choices, the merge tool, and the post-merge check (steps 4–8), see `${CLAUDE_SKILL_DIR}/references/gates.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the pre-merge questions ask a decision question.
 
 ## Output
 

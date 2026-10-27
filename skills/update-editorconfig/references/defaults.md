@@ -14,7 +14,7 @@ trim_trailing_whitespace = true
 
 ## Types
 
-Each row is the type's full target properties; step 5 drops each property equal to the actual `[*]`, and a type with none left gets no section. The base keeps `insert_final_newline = true`; the types with `insert_final_newline = false` are the exception. With `indent_style = tab`, `tab_width` defaults to `indent_size`, so the base `indent_size = 4` shows tabs 4 columns wide.
+Each row is the type's full target properties; step 5 trims them against the actual `[*]`. The base keeps `insert_final_newline = true`; the types with `insert_final_newline = false` are the exception. With `indent_style = tab`, `tab_width` defaults to `indent_size`, so the base `indent_size = 4` shows tabs 4 columns wide.
 
 | Type            | Patterns                                                                                                                                                                     | Properties                                                         | Reason                                                                            |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------- |

@@ -1,10 +1,9 @@
 ---
 name: build-subagent
-description: Creates, updates, or improves a custom subagent in any scope, then checks and scores it against a 100-point rubric. Use only when the user explicitly asks to build, fix, improve, or update a subagent.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Creates, updates, or improves a custom subagent in any scope, then checks and scores it against a 100-point rubric. Use when asked to build, fix, improve, or update a subagent.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[agent name or path] [what it should do]'
 allowed-tools: Read Glob Grep AskUserQuestion WebFetch(domain:code.claude.com) Write Edit Bash(claude plugin validate *) Bash(claude --version) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *)
-disable-model-invocation: true
 ---
 
 # Build subagent
@@ -38,7 +37,7 @@ Input: $ARGUMENTS
 5. **Gate 2 Interview.** Items 1–13 (items 1–2 carry the step 3–4 answer; item 12 is the optional-capabilities question), per `interview.md` `## Items` and `## Protocol`; update and improve per `## Update and improve`.
 6. **Brief.** Put it in the plan file per `interview.md` `## Brief` with `Target: <absolute path>`, then call `ExitPlanMode`; plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`.
 7. **Write.** Create: `Write` per `${CLAUDE_SKILL_DIR}/references/agent-checklist.md` and `${CLAUDE_SKILL_DIR}/assets/agent-template.md`. Update and improve: back up, then `Edit` only the Brief's listed lines. A refresh from step 3 is never written; one that changes a field, enum, or removed-tool fact → `Open: check-agent lists need re-sync (report the changed fact; the skill's own snapshot is updated in its source repo)`. A new agents dir created → `Reload: restart`. A failed write → `Result: stopped`, `Stopped: 7: <error>`.
-8. **Check and score.** Run `check-agent`, then score and fix up to 3 rounds per `score.md` `## Score and fix`.
+8. **Check and score.** Run `check-agent`, then score and fix up to 3 rounds per `score.md` `## Score and fix`. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 9. **Validate.** `validate-agents` and `debug-log-search` once per `score.md` `## Validate`; what cannot run → `Not tested:`.
 10. **Delegation test.** Per `score.md` `## Delegation test`, else `Not tested:`.
 11. **Output.** Print the block below, nothing else.
@@ -54,6 +53,7 @@ Input: $ARGUMENTS
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 - For the mechanical checks, run `${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs`; it is run, never read.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the interview asks a decision question.
 
 ## Output
 

@@ -6,7 +6,7 @@
 
 ## Unstage
 
-Nothing is unstaged before the step 7 confirm. Staged files (`staged-names`) and any path both staged and modified (`MM` in `status`) go in the confirm text: "unstages N staged files; the staged split of <MM files> is dropped". After Commit, step 8 runs `unstage` once. Unattended: the run stops at step 7, so nothing is unstaged.
+Nothing is unstaged before the step 7 approval. Staged files (`staged-names`) and any path both staged and modified (`MM` in `status`) go in the plan: "unstages N staged files; the staged split of <MM files> is dropped". After Commit, step 8 runs `unstage` once. Unattended: the run stops at step 7, so nothing is unstaged.
 
 ## Classify
 
@@ -37,12 +37,10 @@ Grouping subagent (analyzed path, also the commitlint respawn). Brief:
 
 ## Confirm
 
-One AskUserQuestion at step 7. The text names each effect: the unstaging (when any staged files), the branch switch (when any), N signed commits, the files excluded, and "never pushes". One reason line cites the checks: signing ok, `Commitlint:` result, secret-flagged exclusions, `Split` partial staging.
+**Plan mode (each round).** At step 7, call EnterPlanMode (load it with ToolSearch if deferred; already active → `already active`, write to its plan file). The plan names each effect: the unstaging (when any staged files), the branch switch (when any), N signed commits, the files excluded, and "never pushes". One reason line cites the checks: signing ok, `Commitlint:` result, secret-flagged exclusions, `Split` partial staging. Then ExitPlanMode.
 
-- Options: **Commit** · **Regroup** (hints via notes or Other → back to step 6) · **Stop** (`Result: cancelled`, `Confirmed: no (stopped)`).
-- Recommend Stop when commitlint was skipped, or failed with redrafts left, or an included file name matches a secret pattern; else Commit. The recommended option goes first with "(Recommended)".
-- Regroup counts toward the cap of 2; cap hit → offer only Commit and Stop.
-- After Commit, re-run `status`; it differs from step 3 → re-plan and ask again (counts toward the regroup cap).
+- Approval → step 8, only what the plan names. Rejection with feedback (grouping hints) → back to step 6, then ExitPlanMode again; 3 rejections → `Result: cancelled`, `Confirmed: no (stopped)`, `Stopped: 7: plan rejected`.
+- After approval, re-run `status`; it differs from step 3 → re-plan and call ExitPlanMode again (counts toward the 3).
 
 ## Commit failures
 

@@ -13,14 +13,14 @@ Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan m
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 8: plan mode declined`; nothing is written. `ExitPlanMode` unavailable after entering → same stop.
 - Steps 2–7 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the read-only subagents (repo analysis, docs research, version resolution).
 - At step 7 write the plan file: the files with their purpose, the resolved versions table, the diff for existing files, the effects ("Write N files under .github/workflows/", "Write .github/dependabot.yml"), the skipped practices, and the retained constraints. Call `ExitPlanMode`.
-- Approval covers every listed effect → step 8. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the clarify cap) → `Result: cancelled`, `Stopped: 8: plan rejected` (the write step that did not run).
+- Approval covers every listed effect for the first write; each fix round re-enters plan mode (`## Verify and fix loop`) → step 8. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the clarify cap) → `Result: cancelled`, `Stopped: 8: plan rejected` (the write step that did not run).
 - Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
 ## Clarify
 
 Step 3. Derive triggers, jobs, `needs` graph, permissions, environments, inputs, outputs, variables, secrets, containers, services, caching, artifacts, and cleanup from the input and the analyzer. Ask only what stays missing or ambiguous.
 
-- One AskUserQuestion call per round with every question together (max 4; ask the rest in the next round), each with 2-4 options, the recommended one first labeled "(Recommended)", and a justification in its description; the first question also offers Stop (Stop gives `Result: cancelled`).
+- One call per round with every decision question together (max 4; ask the rest in the next round), each with 2-4 options, the Recommended one first labeled "(Recommended)"; the first question also offers Stop (Stop gives `Result: cancelled`). Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`. Naming and pin-form questions below follow it; keep/rename asks that have no scored criteria state the reason in the option.
 - Derivable means no question. Nothing left to change means `Result: nothing-to-do`.
 - Analyzer `Questions` and unverified required checks go here.
 - Pin form: when the analyzer reports `Pinning policy: SHA required (…)`, ask per `versions.md` `## Pin form`.
@@ -44,7 +44,8 @@ Step 6. Per `layout.md` and `practices.md`:
 
 Step 9. Spawn the practices-review subagent (`## Spawn briefs`) and use its `Findings`, `Checks`, and `Tool output`.
 
-- Each `error` or `warning` finding: fix it in a file this run wrote, print the diff, write, and re-run the reviewer. Max 3 attempts. `info` is listed only.
+- Each `error` or `warning` finding: run the plan-mode step below, fix it in a file this run wrote, print the diff, write, and re-run the reviewer. Max 3 attempts. `info` is listed only.
+- **Plan mode (each round).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 9: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the items go under `Open:`.
 - A tool `error` (actionlint, zizmor, or act failed to run) is reported with no fix loop.
 - Cap hit: stop looping, list what is left under `Open:`, and report with `Result: stopped`, `Stopped: 9: verify cap`.
 

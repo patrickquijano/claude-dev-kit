@@ -1,10 +1,9 @@
 ---
 name: update-rules
-description: Creates, updates, or scores CLAUDE.md and .claude/rules against a 100-point rubric, merging input guidelines; plan-approved. Use only when the user explicitly asks to write, improve, or score them.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Creates, updates, or scores CLAUDE.md and .claude/rules against a 100-point rubric, merging input guidelines; plan-approved. Use when asked to write, improve, or score them.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[guidelines text | file paths | score]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/count-context.mjs *)
-disable-model-invocation: true
 ---
 
 # Update Rules
@@ -30,7 +29,7 @@ Input: $ARGUMENTS
 - Conflict → never resolve silently; ask.
 - Unattended (no way to ask): ask nothing; a conflict keeps the existing side, an ambiguous target is `CLAUDE.md`, a deletion is skipped, and an unanswerable gap goes to `Omitted:` (or `Open:` for score deductions).
 - Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only the step 8 improver applies score fixes. Never loop past the cap; list what is left in `Open:`.
-- Write and delete only after the `ExitPlanMode` approval, which lists every file to create, change, or delete and covers this run's improve rounds; plan mode declined or unavailable → `Result: stopped`, `Stopped: 4: plan mode declined`. Unattended: per the line above. Score-only never writes. Formatter runs prompt for permission; expected.
+- Write and delete only after the `ExitPlanMode` approval, which lists every file to create, change, or delete and covers the first write only (each improve round re-enters plan mode); plan mode declined or unavailable → `Result: stopped`, `Stopped: 4: plan mode declined`. Unattended: per the line above. Score-only never writes. Formatter runs prompt for permission; expected.
 
 ## Workflow
 
@@ -45,7 +44,7 @@ Input: $ARGUMENTS
 5. **Write.** After approval, write the files and run `delete-file` for each file the approved plan lists for deletion; for a planned `Known issues` move also write the `feedback` memory and its `MEMORY.md` pointer in the existing auto-memory directory (path from the `MEMORY.md` path in the session's auto-memory context, never guessed; none found → keep it and list it under `Open:`), and list both paths in `Files:`. Then run `format-files`.
 6. **Score.** Spawn a read-only scorer subagent per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Scorer input` and `## Spawn briefs`, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/references/principles.md`.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
-8. **Improve.** <95 and rounds <3 → spawn an improver subagent per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve` and `## Spawn briefs` with the same rubric and principles paths as step 6, then `format-files`, step 6 rescore, step 7.
+8. **Improve.** <95 and rounds <3 → enter plan mode first (`flow.md` `## Improve`), then spawn an improver subagent per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve` and `## Spawn briefs` with the same rubric and principles paths as step 6, then `format-files`, step 6 rescore, step 7.
 9. **Leftovers.** List each leftover deduction in `Open:` with its fix; print the Output.
 
 ## Files
@@ -57,6 +56,7 @@ Input: $ARGUMENTS
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the context line and glob match counts (steps 2 and 4; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/count-context.mjs`.
 - For the CLAUDE.md and rule skeletons filled in create mode, see `${CLAUDE_SKILL_DIR}/assets/template.md`.
+- For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the conflicts step asks a decision question.
 
 ## Output
 

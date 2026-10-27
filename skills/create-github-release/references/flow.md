@@ -12,7 +12,7 @@
 
 ## Sync
 
-A tag clobber error from `fetch-tags` → `Stopped: 2: tag-conflict: <git error>`; any other fetch error → `Stopped: 2: <git error>`. `ff-default` is the only way to move `<default>`: when `head-sha` differs from `origin-tip`, ask `Fast-forward local <default> to origin/<default> (Recommended)` | `Stop` first (Stop → `Result: cancelled`; `--yes` or unattended skips the ask); equal tips → skip it. It fails on diverged history → stop. Local `<default>` ahead of the remote is not a git error, so require `head-sha` = `origin-tip` (that sha is the release commit), else `Stopped: 2: default-not-synced: local <default> has commits the remote lacks`. Never push `<default>`.
+A tag clobber error from `fetch-tags` → `Stopped: 2: tag-conflict: <git error>`; any other fetch error → `Stopped: 2: <git error>`. `ff-default` is the only way to move `<default>`: when `head-sha` differs from `origin-tip`, ask `Fast-forward local <default> to origin/<default> (Recommended)` | `Stop` first (Stop → `Result: cancelled`; a user-passed `--yes` skips the ask; unattended without it → `Stopped: 2: unattended, not confirmed`); equal tips → skip it. It fails on diverged history → stop. Local `<default>` ahead of the remote is not a git error, so require `head-sha` = `origin-tip` (that sha is the release commit), else `Stopped: 2: default-not-synced: local <default> has commits the remote lacks`. Never push `<default>`.
 
 ## Check state
 

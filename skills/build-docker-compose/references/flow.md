@@ -17,7 +17,7 @@ Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
 - Steps 2–5 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the image-tag subagent.
 - At the end of step 5 write the plan file: the compose file path and its purpose, the printed file (a diff when existing), the resolved image tags, the change list, the skipped practices, and the effects: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and "Rename <file> to compose.yaml with git mv" when `compose-rename` was chosen. Call `ExitPlanMode`; unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`.
-- Approval covers every listed effect → step 6. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the Clarify cap) → `Result: cancelled`, `Stopped: 6: plan rejected`.
+- Approval covers every listed effect for the first write; each fix round re-enters plan mode (`## Verify`) → step 6. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections (separate from the Clarify cap) → `Result: cancelled`, `Stopped: 6: plan rejected`.
 - The `compose-rename` ask in pre-flight stays an AskUserQuestion; the rename runs only after the plan is approved.
 - Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
 
@@ -61,8 +61,10 @@ Write only after the `## Plan mode` approval (create or update the named file, r
 1. Run `docker-check`; no docker → `Checks: config skipped (no docker)` and go to the lint.
 2. Plain: run `compose-validate`. Swarm: run `stack-validate`; a scoped file is validated together with `compose.yaml`. A `required variable … is missing` error that comes only from `${VAR:?err}` is not a file fault: re-run `compose-validate-raw` (Swarm: `stack-validate-raw`) and note it. Never print the output.
 3. Lint: review mode (writes nothing) → first AskUserQuestion "Run dclint via npx (downloads the pinned package)": Run | Skip (Recommended: Run); Skip, or unattended → `Checks: dclint skipped (declined)`. Run `dclint-version`, `dclint-engines`, and `node-check`; a Node version below the `engines` minimum → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`. Otherwise run `dclint`, with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` in Swarm mode.
-4. Review mode → report each `error` or `warning` as a finding; never fix the file or run `dclint-fix`. Otherwise each `error` or `warning` → fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
+4. Review mode → report each `error` or `warning` as a finding; never fix the file or run `dclint-fix`. Otherwise each `error` or `warning` → run the plan-mode step below, fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
 5. Leftovers: unfixed findings, skipped practices, a failed or missing check. Review mode lists each with its recommended fix.
+
+**Plan mode (each round, step 4).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 7: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the items go under `Open:`.
 
 ## Spawn briefs
 

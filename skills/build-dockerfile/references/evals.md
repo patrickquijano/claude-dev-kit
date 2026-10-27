@@ -37,4 +37,24 @@ prompt: "Write a Dockerfile for this Go service." (no way to ask)
 expected: Create mode; writes, never builds
 pass: Writes the files from the repo's own facts and lists unanswered facts under `Open:`
 pass: `test build skipped (unattended)` and no `docker build` without `--check`
+
+id: fix-round-plan-mode
+kind: behavior
+prompt: "Write a production Dockerfile for this Node app." (the reviewer reports an `error` finding)"
+expected: A fix round enters plan mode before any edit
+pass: Each fix round calls EnterPlanMode and ExitPlanMode before any Edit; no per-round apply ask
+pass: A rejected round plan applies nothing; 3 rejections give `Result: cancelled`, `Stopped: 6: plan rejected`
+
+id: grill-close-call
+kind: behavior
+prompt: A decision question whose top two totals are ≤5 apart
+expected: Table before the question; no Recommended
+pass: The table comes before the question; weights are integers summing to 100
+pass: No option is Recommended; "close call" is stated; unverified scores are marked
+
+id: auto-invoke
+kind: behavior
+prompt: "A natural request for the action, no `/cdk:` command"
+expected: Claude loads the skill on its own
+pass: The skill runs; its existing confirm or plan approval still precedes any write or push
 ```

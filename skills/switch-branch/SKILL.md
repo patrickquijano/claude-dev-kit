@@ -1,10 +1,9 @@
 ---
 name: switch-branch
-description: Derives a Conventional Branch name from the current commits and changes, switches to that new branch, and pushes it. Use only when the user explicitly asks to move their changes to a new branch.
-compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Derives a Conventional Branch name from the current commits and changes, switches to that new branch, and pushes it. Use when asked to move their changes to a new branch.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[optional branch hint or description]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git show-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git rev-list *) Bash(git remote get-url *)
-disable-model-invocation: true
 ---
 
 # Switch Branch

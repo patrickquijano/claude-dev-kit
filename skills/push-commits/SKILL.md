@@ -1,9 +1,8 @@
 ---
 name: push-commits
-description: Pushes the current branch's pending commits to its origin branch after confirming, and stops with the reason when none are pending. Use only when the user explicitly asks to push commits.
-compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Pushes the current branch's pending commits to its origin branch after confirming, and stops with the reason when none are pending. Use when asked to push commits.
+compatibility: Claude Code only. Uses CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git rev-list --count *) Bash(git log --format=*) Bash(git merge-base --is-ancestor *)
-disable-model-invocation: true
 ---
 
 # Push Commits
