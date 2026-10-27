@@ -18,7 +18,7 @@ Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFe
 
 ## Protocol
 
-- At most 3 questions per batch, 2–4 options plus Other, the recommended option first, worded as a proposal with a one-line reason that cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch.
+- At most 3 questions per batch, 2–4 options plus Other, the Recommended option first, worded as a proposal whose reason cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`.
 - At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including plan rejections. Cap hit before the plan is approved → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
 - Resolved means a user choice or a named file; never an assumption or a default.
 - A vague answer ("whatever", "not sure") or "I don't know" → one follow-up with concrete options, or offer a read-only look-up (Grep, Read) and ask again with its result; still unresolved → stop with `Result: stopped`, never fill the gap.
@@ -117,9 +117,9 @@ Propose the name as a weighted question. Always in create (the user's name is a 
 | Uses the job's domain words                                                      | 15     |
 | Short to @-mention                                                               | 10     |
 
-- Score each candidate 0, 1, or 2 per criterion with evidence (`file:line`, a sibling name, a user quote, or a bundled fact); no evidence → 1 and say so. Total = Σ(weight × score / 2); the highest is Recommended.
-- Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either). A tie goes to the user's or current name, else the shorter.
-- One question: the Recommended name first with a one-line reason and both top totals; each option's `preview` holds its breakdown (criterion, weight, score, evidence). Other → hard-rule check, scored the same way, shown once more. Record the name and its total.
+- Score each candidate 1–5 per criterion on the `grill.md` anchors, with evidence (`file:line`, a sibling name, a user quote, or a bundled fact); no evidence → mark it "unverified". The criteria above are the default criteria, weights fixed integers summing to 100. Total = Σ(weight × score) / 5; Recommended only on the highest total.
+- Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either). Close call (top two ≤5 apart) → no Recommended, say "close call", and the user picks; run the `grill.md` sensitivity check.
+- One question after the printed score table: the Recommended name first (none on a close call; options then alphabetical) with the option descriptions per `grill.md` and both top totals; each option's `preview` holds its breakdown (criterion, weight, score, evidence). Other → hard-rule check, scored the same way, shown once more. Record the name and its total.
 
 ## Model and effort
 

@@ -20,8 +20,10 @@ Improve only: run `check-agent` and spawn the scorer per `## Spawn briefs`, then
 
 1. Spawn the scorer per `## Spawn briefs` and take its score table, `Deductions`, and `Contract`; criteria marked "S" come from the check JSON.
 2. Show the score table and deductions, largest first, each with its concrete fix.
-3. Fix every deduction with `Edit` on the agent file only, then re-run `check-agent` and rescore by respawning the scorer. Rules: score 100 with `check-agent` passing → stop; a round that changes no file or does not raise the score → stop; at most 3 rounds, where a round is one fix pass plus its rescore. Update and improve only: an edit outside the Brief's listed lines → ask once (Apply | Skip | Stop) before applying it; Stop → end the loop, `Result: stopped`, `Stopped: 8: edit declined`. Never edit an agent only to silence a finding, and never invent a fact to gain points.
+3. Fix every deduction with `Edit` on the agent file only, then re-run `check-agent` and rescore by respawning the scorer. Rules: score 100 with `check-agent` passing → stop; a round that changes no file or does not raise the score → stop; at most 3 rounds, where a round is one fix pass plus its rescore. Before each round's edits run the plan-mode step below; it replaces any per-round Apply | Skip | Stop ask, and an edit outside the Brief's listed lines needs the approved plan to name it. Never edit an agent only to silence a finding, and never invent a fact to gain points.
 4. What is left goes to `Open:`.
+
+**Plan mode (each round).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 8: plan rejected`. Declined or unavailable → no fix is applied, `Result: stopped`, `Stopped: 8: edit declined`; the items go under `Open:`.
 
 ## Contract
 
