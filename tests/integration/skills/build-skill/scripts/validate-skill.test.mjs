@@ -39,7 +39,7 @@ describe('validate-skill CLI', () => {
     mkdirSync(caller);
     writeFileSync(
       join(caller, 'SKILL.md'),
-      '---\nname: call-other\ndescription: Calls out. Use when asked.\n---\n\nFirst run `/other:skill`.\n\n## Output\n\n```text\nResult: done\n```\n'
+      '---\nname: call-other\ndescription: Calls out. Use when asked.\n---\n\nNext: `/other:skill`.\n\n## Output\n\n```text\nResult: done\n```\n'
     );
     const dots = join(root, 'dot-files');
     mkdirSync(dots);
@@ -52,7 +52,7 @@ describe('validate-skill CLI', () => {
   });
   after(() => rmSync(root, { recursive: true, force: true }));
 
-  test('exits 1 with skill-reference for a skill that invokes another skill', () => {
+  test('exits 1 with skill-reference for a skill command on a Next line', () => {
     // Arrange
     const dir = join(root, 'call-other');
     // Act

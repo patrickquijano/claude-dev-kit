@@ -21,7 +21,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 
 ## Plan mode
 
-Runs once, right after the root check. Unattended (`--yes`) → `Plan mode: skipped (unattended)`.
+Runs once, right after the root check. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 1: plan mode declined`; nothing is written.
 - Inside plan mode only the root check and a Glob for an existing `compose.sonar.yaml` run: the next steps write.

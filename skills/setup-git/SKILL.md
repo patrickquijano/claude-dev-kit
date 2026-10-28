@@ -4,9 +4,12 @@ description: 'Sets up git for signed commits: identity, SSH or OpenPGP signing, 
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *) Bash(git config --local --get *) Bash(git log -1 *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git cat-file *) Bash(git verify-commit *) Bash(ssh-add -L) Bash(ssh-keygen -l -f *.pub) Bash(gpg --list-secret-keys *) Bash(command -v *)
 disable-model-invocation: true
+argument-hint: '[--yes] [--no-plan]'
 ---
 
 # Setup Git
+
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Context
 
@@ -18,6 +21,7 @@ disable-model-invocation: true
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
+- Flags: `--yes` runs unattended (no plan mode, no questions, recommended options taken, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate or question is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (overwriting a dirty or unnamed file, `git rm --cached`): it is still asked, or skipped and listed under `Open:` when nobody can answer. Unattended below = `--yes` or no way to ask.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: a valid setting in any scope (`true` for the sign keys) or an ignore pattern already present is skipped. An invalid or inconsistent effective value is repaired (step 9). `nothing-to-do` = no config, file, or ignore write happened; the smoke test still runs once confirmed.
 - Writes go to local config (`git config --local`); never `--global` or `--system`. An invalid inherited value is repaired by a local write; a valid one is left alone.
@@ -32,7 +36,7 @@ disable-model-invocation: true
 
 ## Workflow
 
-0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
+0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written. `--no-plan` or `--yes` skips this step and each round's plan mode (`Plan mode: skipped (--no-plan | --yes)`), so the declined rule never applies; `--no-plan` asks the plan's approval with AskUserQuestion (Proceed · Stop) instead, `--yes` takes it as given.
 1. **Pre-flight.** Context Git version `<none>` → stop ("install git"). SSH signing needs git 2.34 or later.
 2. **Repository.** Root `<none>` → `init` in `<cwd>`. Root is not cwd → AskUserQuestion: Use `<root>` (Recommended; git writes local config there) | Stop; unattended: stop. Work from the root.
 3. **Detect.** `config-get` each key: `user.name`, `user.email`, `gpg.format`, `user.signingkey`, `commit.gpgsign`, `tag.gpgsign`, `gpg.ssh.allowedSignersFile`, `gpg.program`, `gpg.ssh.program`, `gpg.x509.program`; `config-local` to see local ones. Unset `gpg.format` = `openpgp`.
@@ -69,7 +73,7 @@ Identity: user.name <value> (<scope | set local>), user.email <value> (<...>)
 Repaired: <key old -> new (reason), ... | none>
 Signing: format <ssh | openpgp | x509> (<...>), key <path | key:: | key id> (<...>), commit.gpgsign <...>, tag.gpgsign <...>
 Allowed signers: <file> (<added | up to date | skipped | n/a>)
-Plan mode: approved | declined
+Plan mode: approved | declined | skipped (--no-plan | --yes)
 Verify: <consistent | inconsistent: <check>>
 Smoke test: ✅ Signed | ✅ Signed (not verifiable locally) | ❌ Signed: <error line>
 Ignores: <file: added paths>, ... | up to date | none needed

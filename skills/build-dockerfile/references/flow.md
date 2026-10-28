@@ -10,7 +10,7 @@ Root = `repo-root`, else cwd. Read the input (text, paths, pasted Dockerfile); a
 
 ## Plan mode
 
-Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; unattended (no way to ask) → `skipped (unattended)`.
+Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; `--no-plan` or `--yes` → `skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 5: plan mode declined`; nothing is written. Unattended → write after the print, no test build.
 - Steps 2–4 run inside plan mode: they only read, ask with AskUserQuestion, and run `resolve-tag`. No `tool-probe` here (it asks for approval): defer it until after approval, before the write; the plan names it. An unknown `COPY --from=<tool>` path prints as `<path pending tool-probe>` in the plan and is filled after approval; the probe runs after the approval, before step 5.
@@ -42,7 +42,7 @@ Spawn the reviewer subagent (brief in `## Spawn briefs`) with the Dockerfile pat
 - Review mode → report findings; write nothing.
 - Create or update → each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). Each fix round first runs the plan-mode step below.
 - **Plan mode (each round).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 6: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the items go under `Open:`. `info` → list only.
-- Create or update, default target, after the review is clean: run the Test check from practices.md `## Checks` (`image-build`, `image-inspect`, `image-remove`) with one `<run id>` for all three: 8 random hex characters chosen once per run; run `docker-check` first; a skip under practices.md is no finding; unattended → `skipped (unattended)`; otherwise a build failure is a finding → fix (plan-mode step) and re-run within the cap. Review mode and devcontainer target never build here.
+- Create or update, default target, after the review is clean: run the Test check from practices.md `## Checks` (`image-build`, `image-inspect`, `image-remove`) with one `<run id>` for all three: 8 random hex characters chosen once per run; run `docker-check` first; a skip under practices.md is no finding; `--yes` → `skipped (--yes)`; any other unattended run → `skipped (unattended)`; otherwise a build failure is a finding → fix (plan-mode step) and re-run within the cap. Review mode and devcontainer target never build here.
 - `Resolution:` = findings the loop fixed as resolved, findings left (the `Open:` entries) as open; `none` when the reviewer reported no `error` or `warning`; `not run` when step 6 never ran.
 - Leftovers: unfixed findings, skipped practices, a failed or missing check (a tool `error` gets no fix loop; skipped hadolint for a heredoc parse error is not a leftover). Review mode lists each with its recommended fix.
 

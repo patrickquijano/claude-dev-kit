@@ -4,7 +4,7 @@ Details plan mode and step 6 of `${CLAUDE_SKILL_DIR}/SKILL.md`.
 
 ## Plan mode
 
-Runs once, right after pre-flight passes. Unattended (subagent or print mode) → `Plan mode: skipped (unattended)`; a pre-flight stop → `skipped (pre-flight stop)`.
+Runs once, right after pre-flight passes. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (subagent or print mode) → `Plan mode: skipped (unattended)`; a pre-flight stop → `skipped (pre-flight stop)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 1: plan mode declined`; nothing is edited or installed.
 - Steps 2–6 run inside plan mode: tool-check, the resolver and researcher spawns, the select and major asks. They only read and ask. The step 7 baseline and every later step run after approval.

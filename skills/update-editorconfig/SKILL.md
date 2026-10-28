@@ -1,11 +1,14 @@
 ---
 name: update-editorconfig
 description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text; confirmed before writing. Use when asked to update EditorConfig.
-compatibility: Claude Code only. Uses CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+argument-hint: '[--yes] [--no-plan]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec) Bash(node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs *)
 ---
 
 # Update EditorConfig
+
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Context
 
@@ -15,7 +18,8 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 
 ## Rules
 
-- Unattended = run by a hook, no AskUserQuestion: record what the input and repo cannot answer.
+- Unattended = `--yes`, or run by a hook with no AskUserQuestion: record what the input and repo cannot answer.
+- Flags: `--yes` runs unattended (no plan mode, no questions, recommended options taken, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate or question is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (removing a stale section): it is still asked, or skipped and listed under `Open:` when nobody can answer. `--no-plan` skips only the step 8 plan mode; the Confirm is still asked.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - No questions except the step 6 stale-removal ask and Confirm: apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
 - Idempotent: a type already configured (step 3) keeps its settings, so a re-run writes nothing new.
@@ -38,7 +42,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 5. **Choose per type.** Keep only the `defaults.md` properties that differ from the actual `[*]`; group identical sets ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 6. **Write.** Print the sections to append and the stale ones to remove, ask the stale-removal question. **Confirm.** State in at most 3 lines what will change, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`. Then write ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write`). Step 4 inserts wait for the Confirm. Unattended: no Confirm, remove nothing, and list stale sections under `Open:`.
 7. **Check.** Run `checker` (or `checker-ec`) from the git root for the first pass and count problems; no checker found → skip ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
-8. **Fix.** Syntax or glob errors in sections this run wrote → enter plan mode per `flow.md` `## Plan mode` (each round), correct the section, and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
+8. **Fix.** Syntax or glob errors in sections this run wrote → enter plan mode per `flow.md` `## Plan mode` (each round; skipped under `--no-plan` or `--yes`), correct the section, and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
 9. **Report** the Output.
 
 ## Files
@@ -52,7 +56,7 @@ allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bas
 ## Output
 
 ```text
-Plan mode: entered | already active | declined | skipped (<reason>)
+Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 File types: <type (count)>, … | uncovered: <types>
 .editorconfig: <created | updated | up to date> (root = true: <present | added>)
 Base [*]: <added | kept>

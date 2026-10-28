@@ -2,7 +2,7 @@
 
 ## Step 2 (Analyze)
 
-Spawn a read-only subagent that analyzes the repo for ignore candidates (tools: Read, Glob, Grep, Bash for `git -C <root> ls-files` and `git -C <root> check-ignore` only).
+Spawn a read-only subagent (fallback: `cdk:repo-analyzer`) that analyzes the repo for ignore candidates (tools: Read, Glob, Grep, Bash for `git -C <root> ls-files` and `git -C <root> check-ignore` only).
 
 Brief:
 

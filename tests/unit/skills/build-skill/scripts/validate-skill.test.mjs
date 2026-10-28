@@ -558,164 +558,79 @@ describe('checkStandalone', () => {
 describe('checkSkillReferences', () => {
   const run = (files, name = 'demo') => checkSkillReferences(Object.keys(files).sort(), '/d', name, makeDeps(files));
 
-  test('errors on the Skill tool', () => {
+  test('allows the Skill tool in prose', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Step 1: use the Skill tool to lint.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['skill-reference']);
-  });
-
-  test('errors on a qualified slash command in a reference', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'x', 'references/a.md': 'Then `/plugin:other` runs.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.equal(found[0].file, 'references/a.md');
-    assert.equal(found[0].line, 1);
-  });
-
-  test('errors on ${CLAUDE_PLUGIN_ROOT}', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'Read `${CLAUDE_PLUGIN_ROOT}/x`.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['skill-reference']);
-  });
-
-  test('errors on a bare slash command after run', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'First run /lint-code.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['skill-reference']);
-  });
-
-  test('allows a line with never', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'Never invoke /plugin:other or the Skill tool.' };
+    const files = { 'SKILL.md': 'Use the Skill tool to lint.' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(found, []);
   });
 
-  test("allows the skill's own name", () => {
+  test('allows a run command in prose', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Invoked as /cdk:demo or run /demo.' };
+    const files = { 'SKILL.md': 'Then run /lint-code.' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(found, []);
   });
 
-  test('allows a fenced example', () => {
+  test('allows a qualified command in prose', () => {
     // Arrange
-    const files = { 'SKILL.md': '```text\nrun /plugin:other\n```' };
+    const files = { 'SKILL.md': 'Or `/plugin:other` runs.' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(found, []);
   });
 
-  test('errors on a plugin-qualified agent name outside a fence', () => {
+  test('allows a plain-language skill call and a plugin-qualified agent name', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Spawn cdk:task-worker for it.', 'references/a.md': 'Ask `cdk:change-analyzer`.' };
+    const files = { 'SKILL.md': 'Run the commit-changes skill.\nSpawn a scorer (fallback: `cdk:rubric-scorer`).' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('errors on ${CLAUDE_PLUGIN_ROOT} in SKILL.md and a reference', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Read `${CLAUDE_PLUGIN_ROOT}/x`.', 'references/a.md': 'See ${CLAUDE_PLUGIN_ROOT}/y.' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(
-      found.map((f) => `${f.id}:${f.file}`),
-      ['agent-name:SKILL.md', 'agent-name:references/a.md']
+      found.map((f) => `${f.id}:${f.file}:${f.line}`),
+      ['skill-reference:SKILL.md:1', 'skill-reference:references/a.md:1']
     );
   });
 
-  test('errors on each agent name when a line holds two', () => {
+  test('errors on a qualified command on a Next line, fenced or not', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Spawn cdk:task-worker or cdk:repo-analyzer.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['agent-name', 'agent-name']);
-  });
-
-  test('allows an agent name in a fence, a never line, the own name, an image tag, or an mcp name', () => {
-    // Arrange
-    const files = {
-      'SKILL.md': [
-        '```text',
-        'cdk:task-worker',
-        '```',
-        'Never spawn cdk:task-worker.',
-        'See demo:demo-run.',
-        'Use node:22-alpine.',
-        'Call mcp:some-tool.'
-      ].join('\n')
-    };
-    // Act
-    const found = run(files, 'demo-run');
-    // Assert
-    assert.deepEqual(found, []);
-  });
-
-  test('allows qualified text without a hyphenated second part', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'Use Server:tool and label:value.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(found, []);
-  });
-
-  test('errors on a qualified command on a fenced Next line', () => {
-    // Arrange
-    const files = { 'SKILL.md': '```text\nNext: /cdk:commit-changes\n```\n```text\n  Next: run /plugin:other\n```' };
+    const files = { 'SKILL.md': 'Next: /plugin:other\n```text\n  Next: run /plugin:other\n```' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(ids(found), ['skill-reference', 'skill-reference']);
   });
 
-  test('allows plain words on a fenced Next line and a qualified example on another fenced line', () => {
+  test('allows plain words on a Next line and the own name', () => {
     // Arrange
-    const files = { 'SKILL.md': '```text\nNext: commit the changes\nSee /plugin:other\nNext: /demo:demo\n```' };
+    const files = { 'SKILL.md': '```text\nNext: commit the changes\nNext: /demo:demo\n```' };
     // Act
     const found = run(files, 'demo');
     // Assert
     assert.deepEqual(found, []);
   });
 
-  test('allows the Skill tool and a bare command on a third-party line', () => {
+  test('allows ${CLAUDE_PLUGIN_ROOT} in a fence or on a never line', () => {
     // Arrange
-    const files = {
-      'SKILL.md': 'Use the Skill tool for the third-party speckit-plan skill.\nThird-party: run /speckit-plan.'
-    };
+    const files = { 'SKILL.md': '```text\n${CLAUDE_PLUGIN_ROOT}/x\n```\nNever use ${CLAUDE_PLUGIN_ROOT}.' };
     // Act
     const found = run(files);
     // Assert
     assert.deepEqual(found, []);
-  });
-
-  test('still errors on a qualified command or plugin root on a third-party line', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'Third-party: run /plugin:other.\nThird-party ${CLAUDE_PLUGIN_ROOT}/skills/x.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['skill-reference', 'skill-reference']);
-  });
-
-  test('errors on the Skill tool without a third-party mention', () => {
-    // Arrange
-    const files = { 'SKILL.md': 'Use the Skill tool for the plan skill.' };
-    // Act
-    const found = run(files);
-    // Assert
-    assert.deepEqual(ids(found), ['skill-reference']);
   });
 });
 

@@ -6,7 +6,7 @@ Copy one skeleton, replace every `<…>`, drop the comments. Field rules: the fr
 ---
 name: <kebab-name>
 description: <What it does, third person>. Use when <trigger words>. # ≤200 chars, no skill names; side effects → end: Use only when the user explicitly asks to <action>.
-argument-hint: '<[arg]>' # task only; omit when no arguments
+argument-hint: '[--yes] [--no-plan] <[arg]>' # task only; keep the flags (drop --no-plan without a plan mode)
 disable-model-invocation: true # per the invocation question; omit when the user picks Allow
 compatibility: Claude Code only. Uses <the Claude Code-only keys>; claude.ai and API uploads reject unknown keys. # required when any Claude Code-only key is set
 allowed-tools: Read <least-privilege tools> # task only
@@ -20,13 +20,14 @@ allowed-tools: Read <least-privilege tools> # task only
 
 <!-- Task: keep every section below. Reference and background-only: drop Input, Workflow, Output; use topic sections. -->
 
-Input: $ARGUMENTS
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Rules
 
 - <Constraint that must hold, most important first.>
+- Flags: `--yes` runs unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts. `--yes` never covers a destructive step: it is asked, or skipped and listed under `Open:`.
 - Loops: at most <n> rounds; then report what is left.
-- <Describe a spawned subagent by its role in plain words, never an agent name, and give it an inline fallback for when it is unavailable.>
+- <Invoke another skill with a plain line ("run the <name> skill"). Describe a spawned subagent by its role in plain words first (a plugin subagent name only as a fallback) and give it an inline fallback.>
 
 ## Workflow
 
@@ -46,6 +47,7 @@ Input: $ARGUMENTS
 ## Output
 
 ```text
+Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 <fixed fields>
 Open: <what is left | none>
 Next: <follow-up in plain words, never a skill command> | none

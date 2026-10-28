@@ -12,7 +12,7 @@ An existing `docker-compose.yml`, `docker-compose.yaml`, or `*.yml` compose file
 
 ## Plan mode
 
-Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; unattended (no way to ask) → `skipped (unattended)`.
+Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; `--no-plan` or `--yes` → `skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
 - Steps 2–5 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the image-tag subagent.

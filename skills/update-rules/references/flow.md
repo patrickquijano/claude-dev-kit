@@ -8,7 +8,7 @@ Branch detail for steps 2, 3, 4, 6, and 8 of `SKILL.md`, plus the fallback and c
 
 ## Fallback
 
-AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print finished files in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 5: write unavailable`. Unattended runs ask nothing: write per the `SKILL.md` Rules, report `Confirmed: unattended` (a deletion is skipped), and list unanswerable items in `Omitted:`.
+AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print finished files in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 5: write unavailable`. Unattended runs follow the `SKILL.md` Rules and report `Confirmed: unattended`.
 
 ## Cancelled
 
@@ -16,7 +16,7 @@ The user dismisses, cancels, or declines an AskUserQuestion this skill needs ans
 
 ## Plan mode
 
-Runs once, right after step 1 passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`; score-only → `skipped (score-only)`.
+Runs once, right after step 1 passes. Report a skip as `Plan mode: skipped (--no-plan | --yes | unattended | score-only)` with the cause.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 4: plan mode declined`, `Confirmed: no (stopped)`; nothing is written or deleted.
 - Steps 2–4 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the read-only analyst.
@@ -28,7 +28,7 @@ Runs once, right after step 1 passes. Unattended (no way to ask) → `Plan mode:
 
 - `derivable` → drop. `duplicate` → keep the copy in the file the placement rules assign, drop the others. List dropped items for step 4.
 - `stale` → fix from facts `Commands` or paths; no match → ask. `vague` → rewrite from facts; else ask with an "Omit" option.
-- Each facts `Conflicts:` item → one decision question: keep A | keep B | merge; criteria include recency and agreement with verified facts. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`. One side unwritable (`CLAUDE.local.md`, ancestor) → options: override in the project file (name the winner) | keep the unwritable side; say it cannot be edited.
+- Each facts `Conflicts:` item → one decision question: keep A | keep B | merge; criteria include recency and agreement with verified facts. Ask per `grill.md` `## Procedure` (decision questions only; gates keep their form). One side unwritable (`CLAUDE.local.md`, ancestor) → options: override in the project file (name the winner) | keep the unwritable side; say it cannot be edited.
 - Each facts `Gaps:` item (architecture, boundaries, focused changes, done, maintenance) → one question with an "Omit" option. A precedence gap → use the template order, no question.
 - `principles` gap → no question; draft from `principles.md`, listed in the step 4 plan. A default requirement with no repo support (e.g. no test runner) → omit and list under `Omitted:`.
 - More than 4 questions → next call. Record omitted items for `Omitted:`. Nothing to ask → skip.
@@ -46,8 +46,8 @@ Spawn the scorer subagent with:
 
 - **Plan mode (each round).** Before applying round k's improvements, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 7: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the deductions go under `Open:`. Put the scorer's deductions and their fixes in the plan; pass the improver only the approved ones.
 - Round counter +1. Spawn the improver subagent with: root, the rubric and principles paths and file paths from `## Scorer input`, the scorer return (table and deductions), the facts block with answers merged, `Omitted:`, the round number, and last round's unresolved items.
-- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. Unattended runs ask nothing: add them to `Omitted:` (`Open:` for score deductions). Its `Blocked:` items go to `Open:`.
-- After it returns, show its `Map:`, `Proactive:`, and `Expected:`, run `format-files` on its `Files changed:`, rescore (step 6), and report (step 7).
+- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers. `--yes` or unattended runs (no one to answer) ask nothing: add them to `Omitted:` (`Open:` for score deductions). Its `Blocked:` items go to `Open:`.
+- After it returns, show its `Map:`, `Proactive:`, and `Expected:`, run `format-files` on its `Files changed:`, rescore (step 6), and report (step 7). Its `Expected:` is never the score (SKILL.md Rules).
 - Cap 3 rounds; deductions left after the cap go to `Open:`, never re-entered.
 
 ## Spawn briefs
@@ -120,4 +120,4 @@ Questions: <fact needed | none>
 Blocked: <ID: reason | none>
 ```
 
-Malformed → keep the files, list each deduction in `Open:`. Subagent unavailable → apply the same fixes inline to the same files only.
+Malformed → keep the files, rescore (step 6), and list the deductions left in `Open:`. Subagent unavailable → apply the same fixes inline to the same files only.

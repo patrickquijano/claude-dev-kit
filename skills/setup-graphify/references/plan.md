@@ -4,7 +4,7 @@ Detail for the plan-mode entry after step 1 of `SKILL.md`.
 
 ## Plan mode
 
-Runs once, right after pre-flight passes. Unattended (no AskUserQuestion) → `Plan mode: skipped (unattended)`.
+Runs once, right after pre-flight passes. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (no AskUserQuestion) → `Plan mode: skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: confirm: plan mode declined`; nothing is installed or written.
 - Inside plan mode run only the read-only state checks of steps 2–5: `has-graphify`, `state` (a pre-check; step 3 runs it again after approval), and `hook-status` (skipped when the CLI is missing; its git hooks are then listed as planned). No install, no write.
