@@ -558,9 +558,27 @@ describe('checkStandalone', () => {
 describe('checkSkillReferences', () => {
   const run = (files, name = 'demo') => checkSkillReferences(Object.keys(files).sort(), '/d', name, makeDeps(files));
 
-  test('allows the Skill tool, a run command, and a qualified command in prose', () => {
+  test('allows the Skill tool in prose', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Use the Skill tool to lint.\nThen run /lint-code.\nOr `/plugin:other` runs.' };
+    const files = { 'SKILL.md': 'Use the Skill tool to lint.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('allows a run command in prose', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Then run /lint-code.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('allows a qualified command in prose', () => {
+    // Arrange
+    const files = { 'SKILL.md': 'Or `/plugin:other` runs.' };
     // Act
     const found = run(files);
     // Assert

@@ -19,8 +19,13 @@ const NO_PLAN_MODE = new Set([
 const hintOf = (content) => content.match(/^argument-hint:\s*(.*)$/m)?.[1] ?? '';
 
 describe('bypass flags', () => {
-  for (const name of readdirSync(skillsDir).sort()) {
+  const names = readdirSync(skillsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+  for (const name of names) {
     const content = readFileSync(join(skillsDir, name, 'SKILL.md'), 'utf8');
+    const body = content.replace(/^---\n[\s\S]*?\n---\n/, '');
 
     test(`${name} argument-hint has --yes`, () => {
       // Arrange
@@ -39,6 +44,24 @@ describe('bypass flags', () => {
       const hasNoPlan = hint.includes('--no-plan');
       // Assert
       assert.equal(hasNoPlan, expected, `argument-hint: ${hint}`);
+    });
+
+    test(`${name} body implements --yes`, () => {
+      // Arrange
+      const text = body;
+      // Act
+      const mentionsYes = text.includes('`--yes`');
+      // Assert
+      assert.ok(mentionsYes, 'body never mentions `--yes`');
+    });
+
+    test(`${name} body implements --no-plan when it has a plan mode`, () => {
+      // Arrange
+      const expected = !NO_PLAN_MODE.has(name);
+      // Act
+      const mentionsNoPlan = body.includes('`--no-plan`');
+      // Assert
+      assert.equal(mentionsNoPlan, expected);
     });
   }
 });
