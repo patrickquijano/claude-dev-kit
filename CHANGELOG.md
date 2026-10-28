@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-10-28
+
+### Added
+
+- Every plugin task skill accepts `--yes` to run unattended, taking recommended options and listing assumptions under `Open:`; destructive steps are still asked or skipped.
+- Skills with a plan mode accept `--no-plan`, which skips plan mode but still asks every question.
+
+### Changed
+
+- Skills may invoke other skills, preferring a plain "run the <name> skill" line, and spawns may name the matching `cdk` subagent as a fallback.
+- `/cdk:build-skill` validation no longer flags Skill tool use, `run /x` lines, or named plugin agents, and still rejects `${CLAUDE_PLUGIN_ROOT}` paths and `Next:` skill commands.
+- `/cdk:build-skill` gives new task skills `--yes` and `--no-plan` flags and a `Plan mode:` output line, and scores them against these rules.
+- `/cdk:build-subagent` always rescores after each fix round before deciding whether to stop.
+
 ## [0.8.3] - 2026-10-28
 
 ### Changed
@@ -334,7 +348,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.3...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...HEAD
+[0.8.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.0...v0.8.1
