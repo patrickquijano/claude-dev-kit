@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-10-29
+
+### Added
+
+- `/cdk:create-github-issue` creates a GitHub issue from the repo's issue template, or updates one by URL or number, filling every field and setting existing labels.
+- `/cdk:create-gitlab-issue` creates a GitLab issue from the project's issue template, or updates one by URL or IID, filling every field and setting existing labels.
+
 ## [0.8.4] - 2026-10-28
 
 ### Added
@@ -348,7 +355,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...HEAD
+[0.8.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.2...v0.8.3
 [0.8.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.1...v0.8.2
