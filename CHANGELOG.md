@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-10-28
+
+### Added
+
+- `/cdk:delete-branches` deletes local, remote, or both git branches you pick from paged lists, never the default, host-protected, current, or worktree branches, and confirms its plan before deleting anything.
+
 ## [0.8.1] - 2026-10-27
 
 ### Added
@@ -323,6 +329,7 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
 [unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.1...HEAD
+[0.8.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.6.0...v0.7.0
