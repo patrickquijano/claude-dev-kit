@@ -93,4 +93,4 @@ Questions: <fact needed | none>
 Blocked: <ID: reason | none>
 ```
 
-Malformed → keep the README, list each deduction in `Open:`. Subagent unavailable → apply the same fixes inline, README set only.
+Malformed → keep the README, rescore (step 13), and list the deductions left in `Open:`. Subagent unavailable → apply the same fixes inline, README set only.

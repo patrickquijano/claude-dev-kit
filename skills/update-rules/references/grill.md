@@ -4,7 +4,14 @@ Read when a decision question is about to be asked. Gates (confirm, push, stop) 
 
 ## Contents
 
-- Table · Weights · Anchors · Total · Recommend · Sensitivity · Options
+- Procedure · Table · Weights · Anchors · Total · Recommend · Sensitivity · Options
+
+## Procedure
+
+- Mine the conversation, files, and repo first, and ask only what changes the output.
+- Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer).
+- A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number.
+- Before each question show the score table, the recommendation, and the option descriptions per the sections below.
 
 ## Table
 

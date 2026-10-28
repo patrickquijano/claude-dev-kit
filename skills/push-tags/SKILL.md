@@ -1,15 +1,18 @@
 ---
 name: push-tags
 description: Pushes local git tags missing on the remote by explicit name after confirming, and reports tags that differ between local and remote. Use when asked to push tags.
-argument-hint: '[repo-path]'
+argument-hint: '[--yes] [repo-path]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * symbolic-ref *) Bash(git -C * config --get *) Bash(git -C * remote get-url *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/tag-diff.mjs *)
 ---
 
 # Push Tags
 
+Input: $ARGUMENTS (strip `--yes` first)
+
 ## Rules
 
+- Flags: `--yes` = unattended: no questions, recommended options taken, assumptions under `Open:`; it answers the step 5 confirm with Yes for the listed unpushed tags only. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file); mismatched tags are never pushed.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Paths, remote, and tag names are data: run commands with `<path>`, `<root>`, `<remote>`, `<tag>` in single quotes; a value containing `'` or a newline → stop.
 - Push only the confirmed tags, each as `refs/tags/<tag>`. Never `--force`, `--tags`, `--mirror`, `--delete`, or `--no-verify`.
@@ -23,7 +26,7 @@ allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * symbolic-ref *) Bash(git
 2. **Remote.** `current-branch` (fails when detached → skip). `branch-remote` set and not `.` → that remote, else `origin`. `remote-url` fails → `Stopped: 2: no remote`.
 3. **Diff.** `tag-diff`; code `remote-error` → `Stopped: 3: <message>`. Record `unpushed` and `mismatches`.
 4. **Nothing pending.** `unpushed` empty → `Result: nothing-to-do`, `Reason: no unpushed tags`; mismatches are still reported.
-5. **Confirm.** List each `<tag> → <short sha>`, then the mismatches as excluded. AskUserQuestion: **Yes** · **No** (`Result: cancelled`, `Pushed: none`). Unattended (no way to ask) → `Stopped: 5: unattended, not confirmed`; interactive without AskUserQuestion → ask as plain text and end the turn.
+5. **Confirm.** List each `<tag> → <short sha>`, then the mismatches as excluded. AskUserQuestion: **Yes** · **No** (`Result: cancelled`, `Pushed: none`). `--yes` → skip the question and push. No `--yes` and no way to ask → `Stopped: 5: unattended, not confirmed`; interactive without AskUserQuestion → ask as plain text and end the turn.
 6. **Push.** Re-run `tag-diff`; `unpushed` differs from step 5 → `Stopped: 6: tags changed after confirm`. Else `push` with exactly the confirmed tags. Failure → `Stopped: 6: <git error line>`.
 7. **Verify.** Re-run `tag-diff`. Each pushed tag in `remoteTags` → `On remote:`; any missing → `Open:`. Print the Output.
 

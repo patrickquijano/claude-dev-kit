@@ -6,7 +6,7 @@
 
 ## Plan mode
 
-Runs once, before step 0. Unattended (no way to ask) → `Plan mode: skipped (unattended)`. `--dry-run` still enters plan mode.
+Runs once, before step 0. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `Plan mode: skipped (unattended)`. `--dry-run` still enters plan mode.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is edited, pushed, or replied.
 - Steps 0–3 run inside plan mode: they only read (`glab` and `git` reads, MCP reads, Read, Grep, Glob), ask with AskUserQuestion, and write no scratch file outside the plan file.
@@ -72,7 +72,7 @@ One commit per item.
 
 ## Push
 
-No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, and `discussion-reply` commands, ask nothing, run none. Plan mode skipped (unattended) → `Stopped: 8: unattended, not approved`; commits stay local. Otherwise run `pull-rebase`, then `push`; the `ExitPlanMode` approval named them. A conflict or rejection → stop and report; no retry, no force.
+No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, and `discussion-reply` commands, ask nothing, run none. `--yes` or plan mode skipped (unattended) → `Stopped: 8: unattended, not approved`; `--no-plan` → ask `Push + reply` | `Stop`; commits stay local. Otherwise run `pull-rebase`, then `push`; the `ExitPlanMode` approval named them. A conflict or rejection → stop and report; no retry, no force.
 
 ## Reply
 

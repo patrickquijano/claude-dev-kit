@@ -29,7 +29,7 @@ Format-only drift in a released section (headings, dates, header, link refs, mar
 
 ## Plan mode
 
-Runs once, right after the step 1 `fetch`. Unattended → `Plan mode: skipped (unattended)`.
+Runs once, right after the step 1 `fetch`. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run → `Plan mode: skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 5: plan mode declined`, `Confirmed: no (stopped)`; nothing is written.
 - Steps 2–5 before the write run inside plan mode: they only read, run `release-candidates.mjs`, and ask. The 50-commit, release version/date, and format-drift asks stay separate and come before the plan.

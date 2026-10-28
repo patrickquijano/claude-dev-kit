@@ -1,12 +1,15 @@
 ---
 name: setup-graphify
 description: Installs graphify, adds its hooks, builds the first code knowledge graph, and writes usage rules. Use only when the user explicitly asks to set up graphify or a code knowledge graph.
+argument-hint: '[--yes] [--no-plan]'
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(command -v graphify) Bash(command -v uv) Bash(command -v pipx) Bash(graphify --version) Bash(graphify hook status) Bash(git rev-parse *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/graphify-state.mjs state *)
 disable-model-invocation: true
 ---
 
 # Setup Graphify
+
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Context
 
@@ -17,6 +20,7 @@ disable-model-invocation: true
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
+- Flags: `--yes` = unattended: no plan mode, no questions, recommended options taken, assumptions under `Open:` (the unattended rules below apply); `--no-plan` skips plan mode only and every gate and question is still asked. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (admin-bypass merge, force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file): it is still asked, and when nobody can answer it is skipped and listed under `Open:`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - Never pass `--strict` (it blocks reads until a query runs) or `--force`.
@@ -26,13 +30,13 @@ disable-model-invocation: true
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them. Never hand-write the `CLAUDE.md` `## graphify` section.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines); the rest of `graphify-out/` holds absolute paths or per-machine state.
 - Pre-flight or CLI (step 2) stop → print the Output with `Stopped: <step>: <reason>` and end. Any later failure → continue with the remaining steps, list it under `Open:`, and set `Result: stopped` only when nothing more can run.
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (no AskUserQuestion): ask nothing; take each question's recommended option, except the global install (step 2: stop, record under `Open:`) and the plan's replacement of an existing `graphify-out/` `.gitignore` line (step 7: keep it, record under `Open:`); both are interactive-only effects.
+- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Unattended (`--yes`, or no AskUserQuestion): ask nothing; take each question's recommended option, except the global install (step 2: stop, record under `Open:`) and the plan's replacement of an existing `graphify-out/` `.gitignore` line (step 7: keep it, record under `Open:`); both are interactive-only effects.
 - `install-uv` and `install-pipx` are global installs, so they run only when the approved plan names the global install; the install is unpinned, so the package index resolves its latest stable release.
-- Approve once: after the pre-flight and the state checks of steps 2-5 and before the first write (the global install, skill, hooks, graph build, `label-missing` (spends LLM tokens, rewrites names in `graphify-out/`), `.gitignore` and any conflicting `graphify-out/` line replacement, ignores, rules, lint and format config edits), the `ExitPlanMode` approval covers the listed writes. Plan mode declined or unavailable → `Result: stopped`, `Stopped: confirm: plan mode declined`. Unattended: apply, except as the unattended rule above says.
+- Approve once: after the pre-flight and the state checks of steps 2-5 and before the first write (the global install, skill, hooks, graph build, `label-missing` (spends LLM tokens, rewrites names in `graphify-out/`), `.gitignore` and any conflicting `graphify-out/` line replacement, ignores, rules, lint and format config edits), the `ExitPlanMode` approval covers the listed writes. Plan mode declined or unavailable → `Result: stopped`, `Stopped: confirm: plan mode declined`. `--no-plan`, `--yes`, or unattended → no plan mode: apply, except as the unattended rule above says.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and step 7. Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan mode`.
+1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and step 7. Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan mode`, unless `--no-plan` or `--yes` skips it.
 2. **CLI.** Install `graphifyy` unless `has-graphify` succeeds; record `version`. Flow and failures: `${CLAUDE_SKILL_DIR}/references/details.md`.
 3. **Skill.** Run `state` once after approval (the plan-mode run is only a pre-check); steps 4-9 read this JSON. `skill` is `project` or `user` → skip. Else run `install-skill` (also does the Claude half of step 4).
 4. **Hooks.**
@@ -59,7 +63,7 @@ disable-model-invocation: true
 ## Output
 
 ```text
-Plan mode: entered | already active | declined | skipped (<reason>)
+Plan mode: entered | already active | declined | skipped (--no-plan | --yes | <reason>)
 CLI: installed <version> | present <version>
 Skill: registered (project) | present (<project | user>)
 Claude hooks: added | present

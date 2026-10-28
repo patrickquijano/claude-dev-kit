@@ -8,7 +8,7 @@ Detail for the steps that branch.
 
 ## Plan mode
 
-Runs first (step 0). Unattended (no AskUserQuestion) → `Plan mode: skipped (unattended)`, `Result: stopped`, `Stopped: 0: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
+Runs first (step 0). `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; no flag and no AskUserQuestion → `Plan mode: skipped (unattended)`, `Result: stopped`, `Stopped: 0: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is installed or written.
 - Steps 1–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.

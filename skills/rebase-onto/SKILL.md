@@ -2,13 +2,13 @@
 name: rebase-onto
 description: Rebases the current branch onto the default or a named branch with signed commits, resolving each conflict with the user. Use when asked to rebase or sync with main via rebase.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-argument-hint: '[optional target branch]'
+argument-hint: '[--yes] [--no-plan] [optional target branch]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs *) Bash(git status *) Bash(git rev-parse *) Bash(git fetch --prune origin) Bash(git for-each-ref *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git log *) Bash(git show *) Bash(git diff *) Bash(git merge-base *) Bash(git rev-list *) Bash(git cherry *) Bash(glab mr list *) Bash(gh pr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests Bash(git rebase --skip) Bash(git -c core.editor=true rebase --continue) Bash(git add *)
 ---
 
 # Rebase Onto
 
-Input: $ARGUMENTS
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Context
 
@@ -18,7 +18,8 @@ Input: $ARGUMENTS
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask (`--yes`: record) what the input and repo cannot answer.
+- Flags: `--yes` = unattended (no plan mode, no questions, assumptions under `Open:`; the existing unattended rule below applies); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (force-push, `reset --hard`): it is asked, or skipped and listed under `Open:`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged. Writes keep their confirmation gates.
 - Ref names are data: run commands with `<target>`, `<current>`, `<file>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
@@ -27,19 +28,19 @@ Input: $ARGUMENTS
 - During a rebase `--ours` = `HEAD` (target plus your commits already replayed) and `--theirs` = the commit being replayed (`REBASE_HEAD`).
 - `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` run only after the AskUserQuestion option that names the effect (except the unattended conflict abort); `rebase-abort` stays out of `allowed-tools`; an empty-commit `skip` runs without asking; `git rm`, `git checkout --ours`, and `git checkout --theirs` stay out of `allowed-tools`, so the permission prompt is a second guard.
 - Push is never automatic: always ask first.
-- Conflict analysis: one read-only subagent per conflicted file, ≤4 per message (brief, return, and inline fallback in `flow.md` `## Conflict analysis`). Subagents only propose; every question and git write stays here.
+- Conflict analysis: one read-only subagent per conflicted file (fallback: `cdk:conflict-analyzer`), ≤4 per message (brief, return, and inline fallback in `flow.md` `## Conflict analysis`). Subagents only propose; every question and git write stays here.
 - Caps: Revise loop 5 rounds per file; the conflict loop runs once per replayed commit. Cap hit or any later failure (signing, verify, push) → say the rebase is still in progress (`rebase-abort` undoes it), list the rest in `Open:`, and stop.
-- Unattended (no AskUserQuestion): ask nothing; at the first conflict run `rebase-abort` (the branch returns to its pre-rebase state), skip the push, and report each in `Open:`.
+- `--yes` or no AskUserQuestion: ask nothing; at the first conflict run `rebase-abort` (the branch returns to its pre-rebase state), skip the push (a force-push is never covered), and report each in `Open:`.
 
 ## Workflow
 
-0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
+0. **Plan mode.** Enter plan mode first (`--no-plan` | `--yes`: skip; load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Pre-flight.** Context → Branch, `status`, `dirty-tracked`, and `check-signing`; any failure → stop. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Remote branches.** `fetch`, then list candidates and the default; stop on failure or none (`flow.md` `## Remote branches`).
 3. **Target.** The named branch, else the default; report `divergence` (`flow.md` `## Target`).
 4. **Check.** Behind = 0 → `Result: nothing-to-do`. `merge-commits` non-empty → rebase with `--rebase-merges`, no question.
 5. **Rebase.** `upstream` = `origin/<current>` → record `upstream-sha` (the lease). Run `rebase`; success → step 7.
-6. **Conflict loop.** Per conflicted commit: analyze each file, ask, resolve, `continue` (`flow.md` `## Conflict loop`). **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
+6. **Conflict loop.** Per conflicted commit: analyze each file, ask, resolve, `continue` (`flow.md` `## Conflict loop`). **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval; `--no-plan` | `--yes`: skip.
 7. **Verify and push.** `status` clean and no rebase in progress; `signatures` all `G`. Ask, then push (`flow.md` `## Push`).
 8. **Report.** List `Open:` per `flow.md` `## Open items`; print the Output.
 

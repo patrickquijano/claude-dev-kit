@@ -4,7 +4,7 @@ Detail for the plan-mode entry after step 1 of `SKILL.md`.
 
 ## Plan mode
 
-Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`.
+Runs once, right after pre-flight passes. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `Plan mode: skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it (→ `entered`). The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 5: plan mode declined`; nothing is installed or written.
 - Steps 2–5 run inside plan mode: they only read, ask with AskUserQuestion, and run the read-only commands (`hooks-path`, package manager detection). The step 4 `package.json` creation moves after approval; a missing one is only noted.

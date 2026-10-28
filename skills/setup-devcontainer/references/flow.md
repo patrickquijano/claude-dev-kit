@@ -8,7 +8,7 @@ Details for the SKILL.md steps. Practices: `practices.md`.
 
 ## Plan mode (step 1)
 
-Runs once, right after pre-flight passes. Unattended (no way to ask) → `Plan mode: skipped (unattended)`.
+Runs once, right after pre-flight passes. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `Plan mode: skipped (unattended)`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written (unattended runs skip plan mode and follow the SKILL.md Rules).
 - Steps 2–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyzer, and run the step 4 lookups (`node-probe`, `pick-tag`, WebFetch).

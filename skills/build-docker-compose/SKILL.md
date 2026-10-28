@@ -2,13 +2,13 @@
 name: build-docker-compose
 description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use when asked to write or review Compose.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-argument-hint: '<app description | path | existing compose file>'
+argument-hint: '[--yes] [--no-plan] <app description | path | existing compose file>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v docker) Bash(docker info --format *) Bash(node --version) Bash(npm view dclint version) Bash(npm view dclint@* engines --json) Bash(git mv docker-compose.yml compose.yaml) Bash(git mv docker-compose.yaml compose.yaml)
 ---
 
 # Build Docker Compose
 
-Input: $ARGUMENTS
+Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Context
 
@@ -19,6 +19,7 @@ Input: $ARGUMENTS
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
+- Flags: `--yes` = unattended: no plan mode, no questions, recommended options taken, assumptions under `Open:` (the unattended rules below apply); `--no-plan` skips plan mode only and every gate and question is still asked. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (admin-bypass merge, force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file): it is still asked, and when nobody can answer it is skipped and listed under `Open:`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Sources: every key and value written comes from the input, an existing compose file, a user answer, or a **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`; nothing else.
 - Scope: read only the input, the paths it names, and compose files at the root (`flow.md` `## Pre-flight`); never scan or read other paths (source, CI, scripts, Dockerfiles, `.env*`) unless the input names them. Edit only the compose file (and the plan file in plan mode); the one allowed rename is `compose-rename`, after the user confirms it.
@@ -30,10 +31,10 @@ Input: $ARGUMENTS
 - Images: every image pinned to its most specific tag from a Docker Hub lookup; never `latest`, a floating tag, or a guess. Other registry or failed lookup → ask the user.
 - Never write secret values into the file; reference secrets, `env_file`, or `${VAR:?err}`.
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
-- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval (first write only; each fix round re-enters plan mode, `flow.md` `## Verify`) names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; unattended → write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask does not count toward the Clarify cap.
+- Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval (first write only; each fix round re-enters plan mode, `flow.md` `## Verify`) names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; `--no-plan`, `--yes`, or unattended → no plan mode, write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask does not count toward the Clarify cap.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. Clarify cap or a failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
-- Unattended (no way to ask): ask nothing, list each unanswered choice under `Open:`.
+- Unattended (`--yes`, or no way to ask): ask nothing, list each unanswered choice under `Open:`.
 
 ## Workflow
 
@@ -41,7 +42,7 @@ Input: $ARGUMENTS
 2. **Analyze.** Collect services, images, ports, env var names, volumes, and Swarm signals from the input and compose files only (`flow.md` `## Analyze`). Review mode → step 3 without asking, then 7, then 8.
 3. **Mode.** Pick plain Compose or Swarm stack from the signals, else ask (`flow.md` `## Mode`).
 4. **Clarify.** Ask only unresolved choices, recommended first with the reason (`flow.md` `## Clarify`).
-5. **Draft and plan.** Resolve image tags with a read-only subagent (brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
+5. **Draft and plan.** Resolve image tags with a read-only subagent that resolves image tags (fallback: `cdk:version-resolver`; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
 6. **Write** the file after the `ExitPlanMode` approval (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
@@ -58,7 +59,7 @@ Input: $ARGUMENTS
 
 ```text
 Mode: create | update | review; plain Compose | Swarm stack (<signal or answer>)
-Plan mode: entered | already active | declined | skipped (<reason>)
+Plan mode: entered | already active | declined | skipped (--no-plan | --yes | <reason>)
 File: <path> (<written | updated | kept>)
 Services: <name: image:tag>, … | none
 Choices: <question: answer>, … | none

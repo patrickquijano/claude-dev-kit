@@ -1,15 +1,18 @@
 ---
 name: create-git-tag
 description: Creates an annotated git tag at HEAD from the newest dated version in CHANGELOG.md, local only and never pushed. Use when asked to tag a release from the changelog.
-argument-hint: '[repo-path]'
+argument-hint: '[--yes] [repo-path]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * tag -l *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs *)
 ---
 
 # Create Git Tag
 
+Input: $ARGUMENTS (strip `--yes` first)
+
 ## Rules
 
+- Flags: `--yes` = unattended: no questions, recommended options taken, assumptions under `Open:`; it answers the step 5 confirm with Yes. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file); none exists here, and the tag stays local.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Paths and tag names are data: run commands with `<path>`, `<root>`, `<tag>` in single quotes; a path containing `'` or a newline → stop.
 - Never push, never `--force`, never delete or move a tag. The tag stays local; `create-tag` stays out of `allowed-tools`, so the permission prompt is the second guard.
@@ -23,7 +26,7 @@ allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * tag -l *) Bash(node ${CL
 2. **Changelog.** `release-json`; code `no-changelog` → `Stopped: 2: no changelog, no tag created`.
 3. **Version.** Code `no-dated-version` → `Stopped: 4: no dated version in CHANGELOG.md`. Else record `version` and `tag`.
 4. **Tag exists.** `tag-exists` non-empty → `Stopped: 6: tag <tag> already exists locally`.
-5. **Confirm.** `head` records the short sha and subject. Show at most 3 lines: the tag, `HEAD <sha> <subject>`, the message title and body line count. Then AskUserQuestion: **Yes** · **No** (`Result: cancelled`). Unattended (no way to ask) → `Stopped: 5: unattended, not confirmed`; interactive without AskUserQuestion → ask as plain text and end the turn.
+5. **Confirm.** `head` records the short sha and subject. Show at most 3 lines: the tag, `HEAD <sha> <subject>`, the message title and body line count. Then AskUserQuestion: **Yes** · **No** (`Result: cancelled`). `--yes` → skip the question and create. No `--yes` and no way to ask → `Stopped: 5: unattended, not confirmed`; interactive without AskUserQuestion → ask as plain text and end the turn.
 6. **Create.** `create-tag`. Failure → `Stopped: 6: <git error line>`.
 7. **Report.** `tag-sha` must equal the step 5 sha, else `Open:` names the mismatch. Print the Output: the tag exists locally and is not pushed.
 

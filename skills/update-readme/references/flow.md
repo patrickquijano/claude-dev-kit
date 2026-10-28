@@ -49,8 +49,8 @@ Below 95 and rounds < 3: rounds + 1.
 
 **Plan mode (each round).** Before applying round k's fixes, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (scorer deduction, cause, chosen fix) and the files each touches (the README set) in the plan, then `ExitPlanMode`. Apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 15: plan rejected`. Declined or unavailable → no fix is applied; the deductions go under `Open:`. Unattended runs skip it and follow `## Fallback`. Then spawn the improver subagent (brief per `SKILL.md` step 15) with root, rubric path, README path, archetype, the chosen max, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits the README and its split files only, each at most the max.
 
-- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers, in the same round. Unattended runs ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
-- Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 11), then score again (step 13) and report (step 14).
+- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers, in the same round. `--yes` or unattended runs (no one to answer) ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
+- Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 11), then always rescore (step 13; SKILL.md Rules) and report (step 14); its `Expected:` is never the score.
 
 ## Leftovers
 
