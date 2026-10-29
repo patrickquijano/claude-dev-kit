@@ -20,7 +20,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Under `--yes`, a missing optional field becomes `N/A` and is listed under `Open:`; a missing required field stops (`Stopped: 5: missing <field>`), because filling it would be an assumption.
 - Host ops, MCP first: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab work item`, `gitlab label`, `gitlab repository`). Use MCP only when the host check in `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md` passes; use `glab` for each operation MCP lacks (label create) and report it under `Tool:`. A 403, a 404, or neither tool working → stop with the fix from that file.
 - Never print tokens; never use `--show-token`.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Create and update calls are deliberately not in `allowed-tools`, so the permission prompt guards each write.
 - Questions follow `${CLAUDE_SKILL_DIR}/references/questions.md`: weighted options, cited evidence or "unverified", one Recommended, none on a close call.
 - Loops: question rounds at most 5 and the title/body revise loop at most 3; then report what is left.
 - No step spawns a subagent.
@@ -60,7 +60,7 @@ Type: <type | none>
 Tool: mcp | glab | mcp+glab:<ops on glab>
 Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 Open: <item: reason> | none
-Next: none (run the update-readme and update-changelog skills to record the new skill)
+Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
