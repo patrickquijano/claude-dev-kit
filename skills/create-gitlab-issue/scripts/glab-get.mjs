@@ -52,7 +52,9 @@ export function main(argv, deps = {}) {
   }
   const res = d.run(['api', '--hostname', argv[0], argv[1]]);
   if (res.status !== 0) {
-    d.error((res.stderr.split('\n').find((l) => l.trim()) ?? `glab exited ${res.status}`).trim().slice(0, 300));
+    d.error(
+      (res.stderr.split('\n').find((l) => l.trim()) ?? `glab exited ${res.status ?? 'signal'}`).trim().slice(0, 300)
+    );
     return 1;
   }
   d.write(res.stdout);

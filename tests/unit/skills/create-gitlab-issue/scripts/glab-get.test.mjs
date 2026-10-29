@@ -90,6 +90,27 @@ describe('main', () => {
     assert.deepEqual(out.writes, ['{"ok":1}']);
   });
 
+  test('prints an empty body and exits 0 when glab succeeds with no output', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com:8443', OK[1]], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(out.calls, [['api', '--hostname', 'gitlab.example.com:8443', OK[1]]]);
+    assert.deepEqual(out.writes, ['']);
+  });
+
+  test('exits 1 with the exit status when glab fails with empty stderr', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 1, stdout: '', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[0]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.deepEqual(out.errors, ['glab exited 1']);
+  });
+
   test('exits 1 with the first stderr line when glab fails', () => {
     // Arrange
     const { out, deps } = harness({ status: 1, stdout: '', stderr: '\n403 Forbidden\nmore' });
