@@ -3,7 +3,7 @@ name: create-github-issue
 description: Creates a GitHub issue from the repo's template, or updates one by URL or number, filling every field and setting labels. Use when asked to open, file, or update an issue.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [issue-url | number] [change]'
-allowed-tools: mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__search_issues mcp__plugin_github_github__list_issue_types mcp__plugin_github_github__get_label Read Bash(git remote get-url *) Bash(gh auth status) Bash(gh issue view *) Bash(gh issue list *) Bash(gh label list *) Bash(gh api repos/*/contents/*)
+allowed-tools: mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__search_issues mcp__plugin_github_github__list_issue_types mcp__plugin_github_github__get_label Read Bash(git remote get-url *) Bash(gh auth status) Bash(gh issue view *) Bash(gh issue list *) Bash(gh label list *)
 ---
 
 # Create GitHub Issue
@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Flags: `--yes` = unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (creating a label, overwriting a dirty or unnamed file): it is asked, or skipped and listed under `Open:`.
 - Under `--yes`, a missing optional field becomes `N/A` and is listed under `Open:`; a missing required field stops (`Stopped: 5: missing <field>`), because filling it would be an assumption.
 - Host ops, MCP first: every GitHub operation goes through the GitHub MCP server, found at runtime with ToolSearch (`github issue`, `github label`, `github file contents`). Use `gh` only for an operation whose MCP tool is unavailable, and report each use under `Tool:`. Neither works → stop. The only local commands are `origin` and, as a fallback check, `auth`.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Create and update calls are deliberately not in `allowed-tools`, so the permission prompt guards each write.
 - Questions follow `${CLAUDE_SKILL_DIR}/references/questions.md`: weighted options, cited evidence or "unverified", one Recommended, none on a close call.
 - Loops: question rounds at most 5 and the title/body revise loop at most 3; then report what is left.
 - No step spawns a subagent.
