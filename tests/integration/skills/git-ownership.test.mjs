@@ -9,15 +9,15 @@ const SWITCHER = 'switch-branch';
 const COMMITTER = 'commit-changes';
 const REBASE_EXEMPT = new Set(['rebase-onto']);
 
-// A command starts at a backtick or a line start (fenced); "Never `git ...`" (any case) is a prohibition.
-// BRANCH_SWITCH: `git switch|checkout` (not --ours, --theirs, --), `git branch <name>` (not an option), `gh pr checkout`, `glab mr checkout`.
+// A command starts at a backtick, a line start, `&& `, `; `, `$ `, or `Bash(`; "Never `git ...`" or "**Never** `git ...`" (any case) is a prohibition.
+// BRANCH_SWITCH: `git switch|checkout` (not --ours, --theirs, the `--` separator), `git branch <name>` (not an option), `gh pr checkout`, `glab mr checkout`.
 const BRANCH_SWITCH =
-  /(?<!never )(?:`|^[ \t]*)(?:git (?:switch|checkout(?! --ours| --theirs| --)|branch [^-\s`])|gh pr checkout|glab mr checkout)/im;
+  /(?<!never |never\*\* )(?:`|^[ \t]*|&& |; |\$ |Bash\()(?:git (?:switch|checkout(?! --ours| --theirs| -- )|branch [^-\s`])|gh pr checkout|glab mr checkout)/im;
 // COMMIT: `git commit` not followed by `-` (commit-tree).
-const COMMIT = /(?<!never )(?:`|^[ \t]*)git commit(?!-)/im;
+const COMMIT = /(?<!never |never\*\* )(?:`|^[ \t]*|&& |; |\$ |Bash\()git commit(?!-)/im;
 
-// `git -C <path> <cmd>` is matched as `git <cmd>`.
-const matches = (pattern, text) => pattern.test(text.replaceAll(/ -C \S+/g, ''));
+// `git -C <path>` and `git -c <key=value>` are dropped, so the command is matched as `git <cmd>`.
+const matches = (pattern, text) => pattern.test(text.replaceAll(/ -C \S+/g, '').replaceAll(/ -c \S+/g, ''));
 
 // Scope: markdown only (SKILL.md and references/ recursively); scripts and assets are not scanned.
 const filesOf = (name) => {
@@ -37,9 +37,14 @@ describe('git ownership patterns', () => {
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git branch feat/x`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`gh pr checkout 5`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`glab mr checkout 5`'],
+    ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --detach x`'],
+    ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --orphan x`'],
+    ['BRANCH_SWITCH', BRANCH_SWITCH, 'cd x && git switch y'],
     ['COMMIT', COMMIT, '`git commit -S -F msg`'],
     ['COMMIT', COMMIT, '`git -C <root> commit -m x`'],
-    ['COMMIT', COMMIT, '```\ngit commit -S\n```']
+    ['COMMIT', COMMIT, '```\ngit commit -S\n```'],
+    ['COMMIT', COMMIT, '`git -c k=v commit`'],
+    ['COMMIT', COMMIT, 'allowed-tools: Bash(git commit *)']
   ];
   const allowed = [
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --ours -- f`'],
@@ -52,7 +57,8 @@ describe('git ownership patterns', () => {
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git branch --list`'],
     ['COMMIT', COMMIT, '`git commit-tree -S`'],
     ['COMMIT', COMMIT, 'Never `git commit`'],
-    ['COMMIT', COMMIT, 'never `git commit`']
+    ['COMMIT', COMMIT, 'never `git commit`'],
+    ['COMMIT', COMMIT, '**Never** `git commit`']
   ];
 
   for (const [label, pattern, text] of violating) {
@@ -90,6 +96,7 @@ describe('git ownership', () => {
     if (name !== SWITCHER) {
       test(`${name} never switches a branch`, () => {
         // Arrange
+        assert.ok(files.length > 0);
         const hits = [];
         // Act
         for (const file of files) {
@@ -103,6 +110,7 @@ describe('git ownership', () => {
     if (name !== COMMITTER) {
       test(`${name} never commits`, () => {
         // Arrange
+        assert.ok(files.length > 0);
         const hits = [];
         // Act
         for (const file of files) {

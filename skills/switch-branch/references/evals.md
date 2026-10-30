@@ -33,6 +33,7 @@ pass: <observable criteria, one per line>
 | input-clean-tree   | "Switch to feat/add-login." (clean tree, no unique commits)           | Proceeds on the input                  | Not `nothing-to-do`; name `feat/add-login`; confirm shown                                 |
 | input-alias        | "Switch to bugfix: login crash." (dirty tree)                         | Maps the alias to a fix/ name          | Name starts `fix/`, not `bugfix/`; verb-first description; no analyzer spawn              |
 | input-unknown-type | "Switch to wip/foo." (dirty tree)                                     | Whole input becomes a description      | No `wip/` name is made; the description is the input, the type is set by diffs            |
+| input-inner-slash  | "Switch to feat/add/login." (dirty tree)                              | Maps the inner slash to a hyphen       | Name is `feat/add-login`; the reason shows the normalization; no analyzer spawn           |
 | input-unclear-yes  | "Branch this off for it." (dirty tree, run with --yes)                | Stops without asking                   | `Result: stopped`; no question asked; no unstage, switch, or push                         |
 | auto-invoke        | A natural request for the action, no `/cdk:` command                  | Claude loads the skill on its own      | The skill runs; its existing confirm or plan approval still precedes any write or push    |
 

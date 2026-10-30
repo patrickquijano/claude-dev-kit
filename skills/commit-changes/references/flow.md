@@ -16,7 +16,7 @@ Nothing is unstaged before the step 7 approval. Staged files (`staged-names`) an
 
 `HEAD` (detached) → `detached@<sha>` from `short-head`, protected. `default-branch` unset → `main`.
 
-Step 8 runs the switch-branch skill with `--yes` semantics: `Switch only`, never push, no second confirmation (the step 7 approval covers it). Its input is a short description built from the first group's type and subject (for example `feat: add login form`), so it names the branch inline from the commits, not from all diffs.
+Step 8 runs the switch-branch skill with `--yes` semantics: `Switch only`, never push, no second confirmation (the step 7 approval covers it). Its input is a short description built from the highest-weight group's type and subject (type rule `feat` > `fix` > most frequent, as in the switch-branch skill's `## Type and description`; not the first group; for example `feat: add login form`), so it names the branch inline from the commits, not from all diffs.
 
 ## Group
 
