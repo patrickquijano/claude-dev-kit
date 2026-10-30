@@ -37,9 +37,9 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 1. **Pre-flight.** Check `auth-status`, `origin` is `github.com`, then `repo-view`; failure → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`.
 3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 read-only subagents per `threads.md` `## Spawn briefs`.
-4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → skip to step 7 with `REQUEST_CHANGES` and scope `threads only`; otherwise continue with scope `full`.
+4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → the gate fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way, scope `full`.
 5. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
-6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return.
+6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep per `analyze.md`.
 7. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
 8. **Post.** Show the verdict, counts, scope, and writes, ask once (Post · Stop; `--yes` → Post), then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
 9. **Report.** Print the Output; list what is left under `Open:`.
@@ -49,7 +49,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - For every runnable command and its MCP tool, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For pre-flight, PR resolution, and the closed, merged, and draft rules (steps 1–2), see `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 - For thread states, reply templates, the gate, and the request-changes branch (steps 3–4), see `${CLAUDE_SKILL_DIR}/references/threads.md`.
-- For scratch files, the four reviewer subagents, findings, and the verdict table (steps 5–7), see `${CLAUDE_SKILL_DIR}/references/analyze.md`.
+- For scratch files, the four reviewer subagents, findings, the coverage check, the sweep, and the verdict table (steps 5–7), see `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 - For the confirmation, head-SHA check, pending review, errors, and the report (steps 8–9), see `${CLAUDE_SKILL_DIR}/references/post.md`.
 - For the thread classifier (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
@@ -61,7 +61,8 @@ Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 PR: #<n> <url> (<head ref> → <base ref>) @ <full head SHA>
 Path: argument url | argument number | branch match
 Threads: <r> resolved (<f> fixed, <a> accepted, <o> obsolete), <p> replied not resolved, <x> replied not addressed, <k> left open, <u> unjudged
-Review scope: full | threads only (<k> open)
+Review scope: full (<k> open threads)
+Coverage: <files reviewed>/<files changed> files, <batches> batches
 Verdict: REQUEST_CHANGES | COMMENT | APPROVE (<reason>)
 Findings: <b> blocking, <s> suggestions, <n> nitpicks, <d> dropped (<already open | duplicate | unverified>)
 Review: posted <review url> (<n> inline, <m> in body) | not posted (<reason: declined | unattended | stopped>)

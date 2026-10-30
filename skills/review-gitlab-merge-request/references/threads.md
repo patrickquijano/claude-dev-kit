@@ -38,11 +38,11 @@ Unjudged threads get no reply: nothing changed since the last note.
 
 ## Gate
 
-The gate passes when no thread is judged Open and none is unjudged. A failed gate skips steps 5–6: scope is `threads only`, the verdict is `REQUEST_CHANGES`, and no diff analysis runs. A passed gate means scope `full`.
+The gate passes when no thread is judged Open and none is unjudged. A failed gate only forces the verdict `REQUEST_CHANGES`: steps 5–6 still run and the scope is always `full`.
 
 ## Request changes
 
-A failed gate forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review summary lists each by URL with a one-line reason; the thread itself is not duplicated as an inline comment.
+A failed gate forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review summary lists each open thread by URL with a one-line reason, next to the findings; the thread itself is not duplicated as an inline comment.
 
 ## Spawn briefs
 
