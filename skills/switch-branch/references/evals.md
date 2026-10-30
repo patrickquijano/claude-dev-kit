@@ -26,6 +26,11 @@ pass: <observable criteria, one per line>
 | nothing-to-do    | "Move to a new branch." (clean tree, no unique commits, no input)     | Does nothing                           | `Result: nothing-to-do`; no analyzer spawn                                                |
 | unattended       | "Create a branch for these edits." (run as a subagent, no way to ask) | Switches, never pushes                 | `Branch: <name> → not pushed`; `Result: done`; no question asked                          |
 | analyzer-failure | "Branch these changes off." (the analyzer spawn is unavailable)       | Derives the name inline                | Name comes from `Type and description`; no second spawn attempt beyond the cap            |
+| input-full-name  | "Switch to feat/add-login." (dirty tree)                              | Uses the name verbatim, no analyzer    | Confirm shows `feat/add-login`; reason `from input`; no analyzer spawn                    |
+| input-normalized | "Switch to Feature/Add Login." (dirty tree)                           | Normalizes the name                    | Name is `feat/add-login`; the reason shows the normalization; no analyzer spawn           |
+| input-typed      | "Branch off to fix the null crash on save." (dirty tree)              | Names inline with a `fix/` type        | Name starts `fix/`, verb-first description; no analyzer spawn                             |
+| input-untyped    | "Branch off for the login page." (dirty tree)                         | Input description, diffs set type      | Analyzer gets `input=<text>`; reason `from input + changes (type)`                        |
+| input-clean-tree | "Switch to feat/add-login." (clean tree, no unique commits)           | Proceeds on the input                  | Not `nothing-to-do`; name `feat/add-login`; confirm shown                                 |
 | auto-invoke      | A natural request for the action, no `/cdk:` command                  | Claude loads the skill on its own      | The skill runs; its existing confirm or plan approval still precedes any write or push    |
 
 ## Running per model
