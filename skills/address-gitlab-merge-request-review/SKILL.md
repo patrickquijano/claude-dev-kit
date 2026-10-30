@@ -3,7 +3,7 @@ name: address-gitlab-merge-request-review
 description: Addresses open discussions, review-body items, and failing pipelines on a GitLab MR: fixes, tests, commits, pushes, replies. Use when asked to address MR review feedback.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [mr-url | group/project!iid | iid] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -- *) Bash(git diff -- *) Bash(git diff --stat -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
 ---
 
 # Address GitLab Merge Request Review
@@ -22,7 +22,6 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Run `glab <command> --help` before its first use.
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only when `get_project` on the project path succeeds and its `web_url` host equals the remote host (`${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`); otherwise, or when a row's MCP tool is `—` or errors, run the row's Command unchanged. A 403, a 404, or neither tool working → stop with the fix from that file.
 - Never print tokens; never use `--show-token`.
-- `git log` and `git diff` are allowed wide for flexible read-only use; they stay read-only and never get `--output`.
 
 ## Workflow
 

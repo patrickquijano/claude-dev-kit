@@ -3,7 +3,7 @@ name: address-github-pull-request-review
 description: Addresses unresolved review threads, review-body items, and failing checks on a GitHub PR: fixes, tests, commits, pushes, replies. Use when asked to address PR review feedback.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [pr-url | owner/repo#N | number] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff) Bash(git diff -- *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_me
 ---
 
 # Address GitHub Pull Request Review
@@ -21,7 +21,6 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - `--dry-run`: commits stay local; print the `pull-rebase`, `push`, `thread-reply`, and `pr-comment` commands instead of running them.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
-- `git log` and `git diff` are allowed wide for flexible read-only use; they stay read-only and never get `--output`.
 
 ## Workflow
 
