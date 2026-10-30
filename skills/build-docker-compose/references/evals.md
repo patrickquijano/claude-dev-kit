@@ -94,7 +94,6 @@ kind: behavior
 prompt: "Write a Compose Deploy file for my backend API with Postgres and Redis."
 expected: Does not ask what the input states
 pass: Target, app type, SQL, and Cache are not asked; Search engine, Messaging, and the other backing services still are
-pass: `--yes` takes each Recommended answer and lists it under `Open:`
 
 id: backing-service-healthcheck-depends-on
 kind: behavior
@@ -123,7 +122,7 @@ id: yes-ports-secrets-least-exposed
 kind: behavior
 prompt: "--yes Write a Compose file for my Node service."
 expected: Unattended run takes the least exposed answers
-pass: Backing services answer `None`; the Recommended answers are listed under `Open:`
+pass: Backing services answer `None`, so no backing service is added; the Recommended answers are listed under `Open:`
 pass: No data-store port is published and secrets are used over env vars
 pass: An undetectable app type stays `App: unset (<reason>)`
 
