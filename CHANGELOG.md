@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` also handle outdated threads and review-body findings in any review state, answered in one summary comment.
 - Both address skills fix suggestions and nits too, fixing the root cause and its sibling occurrences, then re-read the full diff for regressions.
 - Both address skills reply to invalid items with evidence and to unclear items with one question, and still never resolve a thread.
+- `/cdk:address-gitlab-merge-request-review` fixes a note only when its author is a project member with Developer access or higher, and `/cdk:address-github-pull-request-review` applies the same rule to non-collaborators; other authors get a clarifying question.
+- Both address skills skip an item already answered by the authenticated user, including their earlier summary comment.
+- `/cdk:build-docker-compose` asks each Clarify group across as many calls as needed, at most 4 questions per call.
 - Both address skills commit through `/cdk:commit-changes` and end with a `Ledger:` line that accounts for every item.
 - `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` always review the full diff; open threads still force `REQUEST_CHANGES`.
 - Both review skills split large diffs into up to 4 batches, let reviewers read callers and tests, sweep for missed findings, and report a `Coverage:` line.
