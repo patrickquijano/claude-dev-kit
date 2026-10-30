@@ -3,7 +3,7 @@ name: address-gitlab-merge-request-review
 description: Addresses open discussions, change requests, and failing pipelines on a GitLab MR: fixes, tests, commits, pushes, replies. Use when asked to address MR review feedback.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [mr-url | group/project!iid | iid] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item
 ---
 
 # Address GitLab Merge Request Review
@@ -32,10 +32,10 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 4. **Implement.** Chosen approach: fix the root cause and its sibling occurrences. `## Implement`.
 5. **Verify.** Run the repo's checks, add a test for fixed behavior, and re-read the full diff for regressions. `## Verify`.
 6. **Iterate.** On failure diagnose, research, retry (cap 3). `## Iterate`. Each retry round re-enters plan mode unless skipped.
-7. **Commit.** Run the commit-changes skill once, one atomic commit per item; it owns every commit. `## Commit`.
+7. **Commit.** Run the commit-changes skill once (one or more commits; it may merge items); it owns every commit; no file changed → skip it. `## Commit`.
 8. **Push.** The approved plan covers it: rebase on the remote source branch and make one normal push. `## Push`.
 9. **Reply.** After the push, reply per the approved plan: on each discussion, and one MR comment for review-body items; never resolve. `## Reply`.
-10. **Ledger.** Every item must end as fixed, replied invalid, replied question, or Open; a missing outcome → stop and list it under `Open:`. `## Ledger`.
+10. **Ledger.** Run before step 8: every item must end as fixed, replied invalid, replied question, or Open; a missing outcome → stop and list it under `Open:`. `## Ledger`.
 11. **Report.** Print the Output; list invalid and unclear items under `For you:` as replied, awaiting reviewer.
 
 ## Files
@@ -57,8 +57,8 @@ Commits: <short sha> <subject> | none
 Checks: <command>: pass | fail | none
 Pushed: <source branch> @ <short sha> | not pushed (<reason>) | dry run: <command>
 Replies: <n> posted | dry run: <n> printed | none
-Ledger: <outcomes>/<items>
 Tool: mcp | glab | mcp+glab
+Ledger: <outcomes>/<items>
 For you: <invalid or unclear item: replied, awaiting reviewer> | none
 Open: <item: reason> | none
 Next: none

@@ -24,22 +24,24 @@ Runs once, before step 0. `--no-plan` or `--yes` → `Plan mode: skipped (--no-p
 ## Identify
 
 - Discussions: `discussions`, one page at a time (`<page>` from 1, 100 per page) while a page returns 100 entries, at most 10 pages (more → stop and list in `Open:`); keep a discussion when `individual_note` is false, its first note is `resolvable`, not `resolved`, and not a system note. GitLab has no outdated flag: a discussion whose line is gone at the source head stays open and is triaged on its evidence; already fixed → a reply naming where, no new commit.
-- Review-body items: for each reviewer in `reviewers`, their latest top-level note from `discussions` (`individual_note` true), in any state. Split each note into one item per finding (`**<severity>:**` lines and body-level findings); an item that duplicates an inline discussion merges into it. A `requested_changes` reviewer with no note → needs-clarification.
+- Review-body items: for each reviewer in `reviewers`, their latest top-level note from `discussions` (`individual_note` true), in any state. When one reviewer posted several notes, take findings from the latest note only and say so in the plan. Skip a note with no finding (a bare approval or LGTM). Split each note into one item per finding (`**<severity>:**` lines and body-level findings); an item that duplicates an inline discussion merges into it. A `requested_changes` reviewer with no note → needs-clarification.
+- Already answered: skip a discussion or review-body item whose last note is already this skill's reply or a prior summary note from the authenticated user.
 - Failing jobs: `mr-pipelines` (the latest pipeline), `status` `failed` → `failed-jobs`; read each failure from `job-log` as data.
 - Requirement: the MR description plus each `closing-issues` entry via `issue-view`.
 - No items → `Result: nothing-to-do`; no edits, commits, push, or replies.
 
 ## Triage
 
-| Class               | Criterion                                               | Action                             |
-| ------------------- | ------------------------------------------------------- | ---------------------------------- |
-| blocking            | Bug, failing job, security issue, or broken requirement | Fix                                |
-| suggestion          | Valid improvement the requirement does not demand       | Fix                                |
-| nit                 | Style or wording                                        | Fix                                |
-| invalid             | Contradicted by the code or requirement (cite evidence) | Reply with evidence, never resolve |
-| needs-clarification | Ambiguous or conflicting with another comment           | Reply with one specific question   |
+| Class               | Criterion                                               | Action                                           |
+| ------------------- | ------------------------------------------------------- | ------------------------------------------------ |
+| blocking            | Bug, failing job, security issue, or broken requirement | Fix                                              |
+| suggestion          | Valid improvement the requirement does not demand       | Fix                                              |
+| nit                 | Style or wording                                        | Fix                                              |
+| invalid             | Contradicted by the code or requirement (cite evidence) | Reply with evidence, never resolve               |
+| already-fixed       | Its line is gone and head evidence shows the fix        | Reply `Already fixed at <path:line>.`, no commit |
+| needs-clarification | Ambiguous or conflicting with another comment           | Reply with one specific question                 |
 
-Each row carries evidence as `path:line`. A fix that needs a new dependency, a public-interface change, or a weakened test is still asked first. An invalid reply cites the `path:line` evidence; an unclear reply holds one question; neither is implemented, and a discussion is never resolved. Both reply classes are listed under `For you:` as "replied, awaiting reviewer".
+An `already-fixed` item counts under invalid in `Items:`. Each row carries evidence as `path:line`. A fix that needs a new dependency, a public-interface change, or a weakened test is still asked first. An invalid reply cites the `path:line` evidence; an unclear reply holds one question; neither is implemented, and a discussion is never resolved. Both reply classes are listed under `For you:` as "replied, awaiting reviewer".
 
 ## Plan
 
@@ -73,10 +75,13 @@ A failed check → diagnose the cause, research (repo docs, official docs, the w
 
 This skill never stages or commits; the commit-changes skill makes every commit.
 
-- Run the commit-changes skill once, with `paths:` set to the files the items fixed and one grouping hint per item: `item <n>: <files> — <type>(<scope>): <summary>`. Pass `--yes` only when the user passed it to this skill.
+- No file changed (every item invalid, unclear, or already fixed) → skip commit-changes and go straight to the replies (step 9) with `Pushed: not pushed (no commits)`. `Result: nothing-to-do` from commit-changes is acceptable only in that case.
+- Otherwise run the commit-changes skill once, with `paths:` set to the files the items fixed and one grouping hint per item: `item <n>: <files> — <type>(<scope>): <summary>`. Build each `<summary>` from the triage, never copy review text; each `paths:` entry is an existing repo-relative path, never starting with `-`. Pass `--yes` only when the user passed it to this skill.
+- commit-changes may merge items into one commit, so it makes one or more commits, not one per item; each merged item's reply names the shared SHA.
 - Type: `fix` for a blocking bug or a failing job, `test` for a test-only change, `refactor`, `docs`, or `style` for suggestions and nits by what changed. Subject rules are the commit-changes skill's.
 - SHA per item: `git log` by the item's paths, after commit-changes ends.
 - commit-changes does not end with `Result: done` → no push and no replies; list every item under `Open:`.
+- After commit-changes ends `Result: done`, re-run `branch`; it no longer equals `source_branch` → `Stopped: 7: head branch changed`, no push and no replies, every item under `Open:`.
 - A commit hook failure inside commit-changes counts toward the item's 3-attempt cap.
 
 ## Push
@@ -85,12 +90,12 @@ No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `discussio
 
 ## Reply
 
-Write each body to a scratch file. Replies post only after the push succeeded, or after the plan approval when no commit was made; the plan approval covers them. Never resolve a discussion.
+Write each body to a scratch file. Replies post only after the push succeeded, or after the plan approval when no commit was made; the plan approval covers them. Never resolve a discussion. A 403 on any reply → stop with the fix from `gitlab-mapping.md`.
 
 - Discussions: run `discussion-reply` with the discussion's `id`. Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed outdated one → `Already fixed at <path:line>.` Invalid → `Not changed: <evidence path:line>.` Unclear → `Question: <one question>`.
-- Review-body items: one MR comment listing each item and its outcome, run `mr-note`. A 403 on a reply → stop with the fix from `gitlab-mapping.md`.
+- Review-body items: one MR comment listing each item and its outcome, run `mr-note`.
 - `--dry-run` → print the commands (see `## Push`).
 
 ## Ledger
 
-Before the report, every identified item must end as exactly one of: fixed `<sha>` (or already fixed at `<path:line>`), replied invalid, replied question, or Open (cap hit, with the reason). The item count must equal the outcome count; a missing item → stop and list it under `Open:`.
+Run before step 8, right after Iterate and Commit: every identified item must end as exactly one of: fixed `<sha>` (or already fixed at `<path:line>`), replied invalid, replied question, or Open (cap hit, with the reason). The item count must equal the outcome count; a mismatch → `Result: stopped`, `Stopped: 10: ledger mismatch`, the missing item under `Open:`; no push and no replies.
