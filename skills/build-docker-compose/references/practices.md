@@ -31,6 +31,8 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
 
 - **Required** never write a key whose value equals its documented default; a key the syntax requires (`type`, `target`, `condition`) stays (<https://docs.docker.com/reference/compose-file/services/>, <https://docs.docker.com/reference/compose-file/deploy/>, <https://docs.docker.com/reference/compose-file/networks/>).
 - **Required** confirmed defaults, omitted when equal: `restart: no`; port `protocol: tcp`; Swarm port `mode: ingress`; `read_only: false`; `depends_on` `required: true`, `restart: false`; `env_file` `required: true`; `internal: false`; `attachable: false`; `external: false`; `healthcheck` `interval: 30s`, `timeout: 30s`, `retries: 3`, `start_period: 0s`; Swarm `replicas: 1`, `update_config` `order: stop-first` and `failure_action: pause`; secret `target: /run/secrets/<source>`.
+- **Required** Compose Deploy defaults, omitted when equal (<https://docs.docker.com/reference/compose-file/deploy/>): `mode: replicated`; `restart_policy` `condition: any`, `delay: 0`; `rollback_config` and `update_config` `failure_action: pause`, `monitor: 0s`, `order: stop-first`; `rollback_config` `delay: 0s`, `max_failure_ratio: 0`. Keys with no documented default (`parallelism`, `endpoint_mode`, `replicas`) follow the next item.
+- **Required** Compose / DevContainer files carry no `deploy` placement or update keys (`placement`, `update_config`, `rollback_config`); those belong to Compose Deploy.
 - **Required** a default not listed here and not confirmed on the reference pages → keep the key as stated and list it under `Open:`; never judge it from memory.
 
 ## Image tags
