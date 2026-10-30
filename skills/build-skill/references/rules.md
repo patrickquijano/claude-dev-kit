@@ -22,6 +22,7 @@ MUST
 - **Skill calls**: the skill may invoke another skill. Prefer a plain-language line ("run the commit-changes skill"); the Skill tool or a `/plugin:name` command is a fallback. Never a skill command on a `Next:` line.
 - **Subagent calls**: a spawn first describes the role in plain words ("spawn a read-only scorer subagent"); naming the plugin subagent (`cdk:rubric-scorer`) is allowed as a fallback beside it when the role does not route. Each spawn has an inline fallback for when no subagent is available. Never spawn the generic built-ins `Explore` or `general-purpose`.
 - **Bypass flags**: a task skill accepts `--yes` (unattended: no plan mode, no questions, recommended options taken, assumptions under `Open:`) and, when it has a plan mode, `--no-plan` (skips plan mode only; every gate is still asked). Only a flag the user passed counts; a skill never adds one itself. `--yes` never covers a destructive step (admin-bypass merge, force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file): it is still asked, and when nobody can answer it is skipped and listed under `Open:`.
+- **Git ownership**: A skill other than `switch-branch` never switches, creates, or checks out a branch. A skill other than `commit-changes` never commits. Either one may run the owning skill in plain language. Exceptions: `rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `setup-git` are not branch switches or commits.
 - Fully qualified MCP names (Server:tool).
 - At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases (should-be-skill, should-be-subagent, should-be-neither, hybrid) when the skill makes a fit decision.
 
@@ -140,6 +141,7 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 13. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
 14. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn describes the role in plain words (a named subagent only as a fallback beside it) and has an inline fallback (judgment-only: the script does not check it).
 15. [Q2] A task skill's `argument-hint` has `[--yes]` (and `[--no-plan]` when it has a plan mode); `Input:` strips them; a Rules bullet states that `--yes` never covers a destructive step (judgment-only).
+16. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
 
 ## Sources
 

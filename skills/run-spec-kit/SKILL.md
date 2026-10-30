@@ -17,6 +17,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - The only spawn is the open-items classifier of step 10, a read-only subagent (fallback: `cdk:speckit-open-items-analyzer`).
 - Invoke each speckit skill (a third-party skill installed by `specify init`) with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
 - Relay every question a speckit skill asks to the user with AskUserQuestion. Pre-approved exceptions: accept the analyze remediation offer for non-CRITICAL findings only (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
+- Never switches branches; a branch that the Spec Kit git hook created is reported, never made here.
 - Never edit `.specify/` templates or third-party `.claude/skills/speckit-*/`; Spec Kit overwrites them on upgrade.
 - Loops: analyze runs at most twice (step 9); implement, converge, address runs at most 5 rounds (step 10), one classifier per round, re-spawned at most once per round after it returns `Question:`.
 - The classifier only finds and classifies open items and proposes approaches; this skill owns every AskUserQuestion, edit, `tasks.md` change, and speckit call.

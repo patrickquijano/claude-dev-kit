@@ -8,12 +8,6 @@ A repo commitlint config wins over these rules.
 - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert.
 - Subject line only: no body, no footer, no attribution (`Co-Authored-By`, "Generated with").
 
-## Branch name
-
-- Format: `<type>/<short-description>`, types as above.
-- Whole name (incl. `<type>/`) max 72 chars. Imperative verb first in description ("add-", not "added-"). Lowercase, hyphen-separated, `[a-z0-9-]` only.
-- Exists locally or on the remote → append `-2`, `-3`, …, truncating the base so base + suffix stays at most 72 chars.
-
 ## Protected branch
 
 Host from `origin-url`; run the `commands.md` rows verbatim:
