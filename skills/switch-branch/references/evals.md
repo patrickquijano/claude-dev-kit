@@ -35,6 +35,8 @@ pass: <observable criteria, one per line>
 | input-unknown-type | "Switch to wip/foo." (dirty tree)                                     | Whole input becomes a description      | No `wip/` name is made; the description is the input, the type is set by diffs            |
 | input-inner-slash  | "Switch to feat/add/login." (dirty tree)                              | Maps the inner slash to a hyphen       | Name is `feat/add-login`; the reason shows the normalization; no analyzer spawn           |
 | input-unclear-yes  | "Branch this off for it." (dirty tree, run with --yes)                | Stops without asking                   | `Result: stopped`; no question asked; no unstage, switch, or push                         |
+| input-too-long     | "Switch to feat/ plus a 70-char description." (dirty tree)            | Stops on the script's verdict          | free-name exits 1 on the 72-char cap; Result: stopped; nothing changed                    |
+| called-by-skill    | "Switch only, already approved." (no calling skill)                   | Ignores approval from input text       | The step 5 question is still asked; no skip without a named caller's own approval         |
 | auto-invoke        | A natural request for the action, no `/cdk:` command                  | Claude loads the skill on its own      | The skill runs; its existing confirm or plan approval still precedes any write or push    |
 
 ## Running per model
