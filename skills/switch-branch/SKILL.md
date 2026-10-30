@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 - Ask what the input and repo cannot answer (`--yes` or no AskUserQuestion: `Result: stopped`).
 - Flags: `--yes` = unattended (no questions, recommended options, assumptions under `Open:`): unstage and switch proceed because the request names the move, the push is skipped (`not pushed`), and an unanswerable `Question` → `Result: stopped`. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step: it is asked, or skipped and listed under `Open:`.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. The normalized name is quoted `'<name>'` wherever it is placed in a command.
 - The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`; uniqueness and format checks belong to `${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs`, never done by hand.
 - Analysis runs in a read-only subagent so large diffs stay out of this context (step 3; brief and fallback in `branch-name.md`), only when the input is empty or leaves the type open. It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, base, the input, and answers to earlier `Question`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.

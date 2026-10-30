@@ -11,7 +11,7 @@ A repo commitlint config wins over these rules.
 
 ## Input
 
-- Full name `<type>/<desc>`: lowercase, spaces and underscores → hyphens, strip other chars; aliases `feature` → `feat`, `bugfix`/`hotfix` → `fix`, `doc` → `docs`; an unknown type → treat the whole input as a description. Any normalization is shown in the step 5 reason.
+- Full name `<type>/<desc>`: input matching `^[A-Za-z]+/\S+$`. Normalize: lowercase, underscores → hyphens, strip other chars; aliases `feature` → `feat`, `bugfix`/`hotfix` → `fix`, `doc` → `docs`. The result must match `^[a-z]+/[a-z0-9-]+$` before any command runs, else (including an unknown type) treat the whole input as a description. Any normalization is shown in the step 5 reason.
 - Description: the input's intent becomes an imperative, verb-first `<short-description>` (drop filler, keep issue numbers). Type: an explicit word or a clear intent ("fix", "bug", "crash" → `fix`; "docs", "README" → `docs`; and so on), else open.
 - Never let diffs override the input's description; diffs only fill an open type, by the `## Type and description` rule.
 

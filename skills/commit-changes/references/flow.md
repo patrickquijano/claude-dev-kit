@@ -16,6 +16,8 @@ Nothing is unstaged before the step 7 approval. Staged files (`staged-names`) an
 
 `HEAD` (detached) → `detached@<sha>` from `short-head`, protected. `default-branch` unset → `main`.
 
+Step 8 runs the switch-branch skill with `--yes` semantics: `Switch only`, never push, no second confirmation (the step 7 approval covers it). Its input is a short description built from the first group's type and subject (for example `feat: add login form`), so it names the branch inline from the commits, not from all diffs.
+
 ## Group
 
 Small path: one group of every changed file, no `Split`, no `Excluded`. Draft the subject here per `conventions.md`: type from paths (`docs` for `*.md` or docs only, `test` for test files only, `ci` for CI files, `build` for manifests or build config only, `chore` for other config, else `feat` for added functionality or `fix` for corrective changes judged from file names and numstat; unsure → `chore`), an optional single-area scope, and an imperative summary.
@@ -42,7 +44,7 @@ Grouping subagent (analyzed path, also the commitlint respawn). Brief:
 
 ## Commit failures
 
-- The switch-branch skill does not end with `Result: done` on a non-protected branch → `Stopped: 8: still on protected branch`; nothing is committed.
+- The switch-branch skill does not end with `Result: done` on a non-protected branch → `Stopped: 8: still on protected branch`; nothing is committed, and the switch-branch skill's own `Result:` and `Stopped:` text goes in the `Open:` item.
 - Signing fails → stop per `conventions.md` `## Signing`; never retry unsigned.
 - Other hook failure → diagnose the root cause, fix it, re-stage, commit again (cap 3 per commit); cap hit → stop.
 
@@ -53,7 +55,7 @@ Collect these into `Open:` with the impact and the user's recommended fix; stage
 - `Excluded:` secret-flagged files.
 - `Commitlint:` skipped or failed.
 - Unattended stop at step 7: the plan (switch, groups, excluded files).
-- A `Stopped: 8: still on protected branch`: the uncommitted groups.
+- A `Stopped: 8: still on protected branch`: the uncommitted groups and the switch-branch skill's own `Result:` and `Stopped:` text.
 - Any stop from step 6 onward (commitlint cap, step 8 or 9 failure), on what is left.
 
 No item → `Open: none`.

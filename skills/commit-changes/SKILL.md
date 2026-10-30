@@ -3,7 +3,7 @@ name: commit-changes
 description: Groups uncommitted changes into atomic, signed Conventional Commits, running the switch-branch skill first on a protected branch, after the user confirms the plan. Use when asked to commit.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [optional grouping hints] [paths: <file> ...]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs) Bash(node ${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected) Bash(git show-ref *)
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs) Bash(node ${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---
 
 # Commit Changes
@@ -40,15 +40,15 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 4. **Classify.** Run `classify` (`--hints` when the input has grouping hints, `--paths` with the `paths:` files); its `path` is the result (`flow.md` `## Classify`). A failed read or any doubt → analyzed.
 5. **Branch guard.** Current = Context → Branch; default = `default-branch` minus `origin/`; protected per `conventions.md` `## Protected branch`. Current is default or protected → the switch-branch skill runs at step 8 (detached, unset: `flow.md` `## Branch guard`).
 6. **Group.** Small: one group, subject drafted here. Analyzed: spawn the grouping subagent (fallback: `cdk:change-analyzer`), naming `${CLAUDE_SKILL_DIR}/references/conventions.md` in the brief for subject rules. Commitlint: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Group`.
-7. **Plan.** Show `Branch: <current> → switch-branch skill picks a new branch` (when on a protected branch), the staged files that will be unstaged (naming any `MM` file whose staged split is dropped), each group's subject and files, then the `Excluded` files with a warning, and the effect. Then plan mode per `flow.md` `## Confirm` (flags: step 0); commit only on approval.
-8. **Commit.** `staged-names` non-empty → `unstage`. Protected branch → run the switch-branch skill; it must end with `Result: done` on a non-protected branch, else stop with `Stopped: 8: still on protected branch` and list the commits under `Open:`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
+7. **Plan.** Show `Branch: <current> → new branch from the first group (switch-branch skill, no push)` (when on a protected branch), the staged files that will be unstaged (naming any `MM` file whose staged split is dropped), each group's subject and files, then the `Excluded` files with a warning, and the effect. Then plan mode per `flow.md` `## Confirm` (flags: step 0); commit only on approval.
+8. **Commit.** `staged-names` non-empty → `unstage`. Protected branch → run the switch-branch skill with `--yes` semantics (`Switch only`, never push, no second confirmation: the step 7 approval covers it), its input a short description built from the first group's type and subject, so it names the branch inline from the commits; it must end with `Result: done` on a non-protected branch, else stop with `Stopped: 8: still on protected branch` and list the commits and the switch-branch skill's own `Result:` and `Stopped:` text under `Open:`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`. **Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
 9. **Verify.** `verify-log`: every `%G?` is `G`, every subject ≤72 chars, and `tree-status` shows only excluded files. Fail → stop.
 10. **Report.** Fill `Open:` per `flow.md` `## Open items`; print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For subject, branch name, protected-branch, and signing rules, see `${CLAUDE_SKILL_DIR}/references/conventions.md`.
+- For subject, protected-branch, and signing rules, see `${CLAUDE_SKILL_DIR}/references/conventions.md`.
 - For the small/analyzed limits, grouping, commit failures, and the `Open:` items (steps 2, 4, 5, 6, 7, 8, 10), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the signing check (step 1) and the small or analyzed decision (step 4), run `${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs` and `${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs`; they are run, never read.
 - For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
