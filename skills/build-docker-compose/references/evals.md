@@ -96,6 +96,36 @@ expected: Does not ask what the input states
 pass: Target, app type, SQL, and Cache are not asked; Search engine, Messaging, and the other backing services still are
 pass: `--yes` takes each Recommended answer and lists it under `Open:`
 
+id: backing-service-healthcheck-depends-on
+kind: behavior
+prompt: "Write a Compose file for my Node backend API with Postgres."
+expected: The backing service has a healthcheck and the app waits for it
+pass: The Postgres service carries a `healthcheck` whose `test` comes from its official docs page fetched at run time
+pass: The app's `depends_on` entry for Postgres has `condition: service_healthy`
+pass: Credentials come via `secrets` or `${VAR:?err}`, never inline; no data-store port is published unless asked
+
+id: review-mode-asks-nothing
+kind: behavior
+prompt: "Review the compose.yaml in this repo." (input silent on target and app)
+expected: Review mode asks no Target or App question
+pass: No Target or App question is asked
+pass: Output shows `Target:` and `App:` as a signal-based value or `unset (<reason>)`, with the gap under `Open:`
+
+id: compose-no-deploy-keys
+kind: behavior
+prompt: "Write a Compose / DevContainer file for my API with resource limits."
+expected: Compose / DevContainer files carry no deploy placement or update keys
+pass: No `placement`, `update_config`, or `rollback_config` key is written
+pass: No per-service deploy question is asked
+
+id: yes-ports-secrets-least-exposed
+kind: behavior
+prompt: "--yes Write a Compose file for my Node backend API."
+expected: Unattended run takes the least exposed answers
+pass: Backing services answer `None`; the Recommended answers are listed under `Open:`
+pass: No data-store port is published and secrets are used over env vars
+pass: An undetectable app type stays `App: unset (<reason>)`
+
 id: grill-close-call
 kind: behavior
 prompt: A decision question whose top two totals are ≤5 apart

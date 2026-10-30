@@ -2,13 +2,9 @@
 
 Candidate pools for the Backend API questions in `flow.md` `## Clarify`. Each question offers the 3 top-scored candidates plus **None (not set up)**; the rest stay reachable through Other. Popularity, maintenance status, and licence are researched at run time with one web search per topic and never stored here. Image tags are resolved per `practices.md` `## Image tags`; an image outside Docker Hub is asked per the Images rule.
 
-## Contents
-
-- Pools
-
 ## Pools
 
-| Topic          | Candidate      | Official image                       | Docs                                                                                 |
+| Topic          | Candidate      | Image                                | Docs                                                                                 |
 | -------------- | -------------- | ------------------------------------ | ------------------------------------------------------------------------------------ |
 | SQL            | PostgreSQL     | `postgres` (Docker Hub)              | <https://hub.docker.com/_/postgres>                                                  |
 | SQL            | MySQL          | `mysql` (Docker Hub)                 | <https://hub.docker.com/_/mysql>                                                     |
@@ -35,4 +31,4 @@ Candidate pools for the Backend API questions in `flow.md` `## Clarify`. Each qu
 | Object storage | LocalStack     | `localstack/localstack`              | <https://hub.docker.com/r/localstack/localstack>                                     |
 | Object storage | SeaweedFS      | `chrislusf/seaweedfs`                | <https://hub.docker.com/r/chrislusf/seaweedfs>                                       |
 
-An image name above is a lookup target, not a pinned tag; confirm it exists on the cited page at run time and never write a tag from memory.
+An image name above is a lookup target, not a pinned tag; confirm it exists on the cited page at run time and never write a tag from memory. Elasticsearch, MinIO, and MailHog candidates are checked against their docs page at run time, and a deprecated or dormant one is dropped.

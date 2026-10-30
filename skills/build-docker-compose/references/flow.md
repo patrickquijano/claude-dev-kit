@@ -33,11 +33,11 @@ Applies to create and update. The input or an existing compose file states it (`
 - Only `deploy:` with resource limits, or no signal → Compose / DevContainer Recommended.
 - Update or review mode → keep the existing target unless the file contradicts it. Review mode asks nothing: with no clear signal, take Compose / DevContainer and note it under `Open:`.
 
-Print the chosen target with its signal or answer.
+Print the chosen target with its signal or answer; a review or unattended run with no answer prints `Target: unset (<reason>)`.
 
 ## App
 
-Applies to create and update; review mode asks nothing. The input states it, or an existing compose file does (a published API port with a database dependency, a static or SSR front end) → do not ask. Otherwise AskUserQuestion: **Backend API** | **Frontend UI**, with the grill table. A backend gets the backing-service questions; a frontend gets only the Dockerfile question.
+Applies to create and update; review mode asks nothing. The input states it, or an existing compose file does (a published API port with a database dependency, a static or SSR front end) → do not ask. Otherwise AskUserQuestion: **Backend API** | **Frontend UI**, with the grill table. A backend gets the backing-service questions; a frontend gets only the Dockerfile question. Recommended: the app type a signal shows (a published API port with a database dependency → Backend API; a static or SSR front end → Frontend UI); no signal → no Recommended option, and under `--yes` leave it unset. A review or unattended run with no answer prints `App: unset (<reason>)` and lists it under `Open:`.
 
 ## Clarify
 
@@ -49,11 +49,13 @@ Skip questions the input or an existing compose file already answers. One AskUse
 4. **Common choices**: remaining services and images; ports to publish; volumes for persistent data; secrets vs env vars; configs; resource limits and restart policy (Compose / DevContainer); profiles for optional services (Compose / DevContainer). Ask a value only when the input and compose files leave it unstated; never offer a default as a choice.
 5. **Per-service deploy** (Compose Deploy only). For each service, two calls of at most 4 questions each: call one asks mode (`replicated` | `global`), placement, replicas (skipped when `global`), and resources; call two asks restart policy, rollback config, and update config. Never offer a documented default as a choice (`practices.md` `## Defaults`).
 
-Unattended → `--yes` takes each Recommended answer and lists it under `Open:`; otherwise write only stated values and list each unanswered choice under `Open:`.
+Update mode asks the backing-service and per-service deploy groups only when the input asks for them.
+
+Unattended → `--yes` takes each Recommended answer and lists it under `Open:`; otherwise write only stated values and list each unanswered choice under `Open:`. Under `--yes` the Recommended answer for backing services is `None`; for published ports and secrets it is the least exposed one (no published data-store port, secrets over env vars).
 
 ## Draft
 
-Build the file from `practices.md` in this order: top-level `name` (plain only) → `services` (backing services from Clarify included, each with a `healthcheck`, and a `depends_on` `condition` of `service_healthy` on the services the app needs; keys per service in this order: image, build, ports, environment, secrets, configs, volumes, networks, depends_on, healthcheck, restart or deploy) → `networks` → `volumes` → `secrets` → `configs`.
+Build the file from `practices.md` in this order: top-level `name` (Compose / DevContainer only) → `services` (backing services from Clarify included, each with a `healthcheck`, and a `depends_on` `condition` of `service_healthy` on the services the app needs; keys per service in this order: image, build, ports, environment, secrets, configs, volumes, networks, depends_on, healthcheck, restart or deploy) → `networks` → `volumes` → `secrets` → `configs`.
 
 - Resolve each image tag through the image-tag subagent spawn (`## Spawn briefs`, procedure in `practices.md` `## Image tags`); an `Unresolved` image is asked once. Review mode skips the spawn (step 5 does not run) and reports each non-exact tag as a finding.
 - Update mode → keep intent (service names, volumes, networks, ports) and fix only what breaks a practice, a short-syntax entry, or a redundant default; list each change with its reason.

@@ -1,6 +1,6 @@
 ---
 name: build-docker-compose
-description: Writes, improves, or reviews a Docker Compose file for plain Compose or a Swarm stack, with exact image tags, validated and linted. Use when asked to write or review Compose.
+description: Writes, improves, or reviews a Docker Compose file for Compose / DevContainer or Compose Deploy, with exact image tags, validated and linted. Use when asked to write or review Compose.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] <app description | path | existing compose file>'
 allowed-tools: Bash(git rev-parse *) Bash(command -v docker) Bash(docker info --format *) Bash(node --version) Bash(npm view dclint version) Bash(npm view dclint@* engines --json) Bash(git mv docker-compose.yml compose.yaml) Bash(git mv docker-compose.yaml compose.yaml)
@@ -34,7 +34,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Validate and lint after writing; never start containers (no `docker compose up`, `run`, or `stack deploy`). Never print or log `config` output: it can hold resolved secrets.
 - Writes and AskUserQuestion happen here only. Before the Write, print the file (a diff when existing); the `ExitPlanMode` approval (first write only; each fix round re-enters plan mode, `flow.md` `## Verify`) names each effect: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and the `compose-rename` `git mv` when chosen (`flow.md` `## Plan mode`). Plan mode declined or unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`; `--no-plan`, `--yes`, or unattended → no plan mode, write and report. Review mode writes nothing, so it asks only the dclint effect before the lint (`flow.md` `## Verify`); that ask is outside the question groups.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
-- Caps: one AskUserQuestion call per question group, each question asked once; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. A failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
+- Caps: at most 4 questions per AskUserQuestion call; a group may span several calls; each question asked once; plan rejections 3, then `Result: cancelled`; Verify-fix 3 attempts. A failure before a draft exists → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 - Unattended (`--yes`, or no way to ask): ask nothing; `--yes` takes each Recommended answer and lists it under `Open:`; with no Recommended option (close call, no signal) the choice stays unset and is listed under `Open:`.
 
 ## Workflow
@@ -42,7 +42,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 1. **Pre-flight.** Root = Context, else cwd; read the input and find existing compose files; mode: review | update | create (`flow.md` `## Pre-flight`). Then enter plan mode per `flow.md` `## Plan mode`.
 2. **Analyze.** Collect services, images, ports, env var names, volumes, and Swarm signals from the input and compose files only (`flow.md` `## Analyze`). Review mode → step 3 without asking, then 7, then 8.
 3. **Target and app.** Ask Compose / DevContainer or Compose Deploy, then Backend API or Frontend UI, unless stated (`flow.md` `## Target`, `## App`).
-4. **Clarify.** Ask the Dockerfile, backing-service, and per-service deploy questions, then the rest, recommended first with the reason (`flow.md` `## Clarify`).
+4. **Clarify.** Ask the Dockerfile, backend-service, scoped-file, common, and per-service deploy questions in that order, recommended first with the reason (`flow.md` `## Clarify`).
 5. **Draft and plan.** Resolve image tags with a read-only subagent that resolves image tags (fallback: `cdk:version-resolver`; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
 6. **Write** the file after the `ExitPlanMode` approval (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
@@ -61,8 +61,8 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ```text
 Mode: create | update | review
-Target: Compose / DevContainer | Compose Deploy (<signal or answer>)
-App: Backend API | Frontend UI (<signal or answer>)
+Target: Compose / DevContainer | Compose Deploy (<signal or answer>) | unset (<reason>)
+App: Backend API | Frontend UI (<signal or answer>) | unset (<reason>)
 Plan mode: entered | already active | declined | skipped (--no-plan | --yes | <reason>)
 File: <path> (<written | updated | kept>)
 Services: <name: image:tag>, … | none
