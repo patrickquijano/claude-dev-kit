@@ -12,7 +12,7 @@ const REBASE_EXEMPT = new Set(['rebase-onto']);
 // A command starts at a backtick, a line start, `&& `, `; `, `$ `, or `Bash(`; "Never `git ...`" or "**Never** `git ...`" (any case) is a prohibition.
 // BRANCH_SWITCH: `git switch|checkout` (not --ours, --theirs, the `--` separator), `git branch <name>` (not an option), `gh pr checkout`, `glab mr checkout`.
 const BRANCH_SWITCH =
-  /(?<!never |never\*\* )(?:`|^[ \t]*|&& |; |\$ |Bash\()(?:git (?:switch|checkout(?! --ours| --theirs| -- )|branch [^-\s`])|gh pr checkout|glab mr checkout)/im;
+  /(?<!never |never\*\* )(?:`|^[ \t]*|&& |; |\$ |Bash\()(?:git (?:switch|checkout(?! --ours| --theirs| --(?:\s|`|$))|branch [^-\s`])|gh pr checkout|glab mr checkout)/im;
 // COMMIT: `git commit` not followed by `-` (commit-tree).
 const COMMIT = /(?<!never |never\*\* )(?:`|^[ \t]*|&& |; |\$ |Bash\()git commit(?!-)/im;
 
@@ -49,6 +49,8 @@ describe('git ownership patterns', () => {
   const allowed = [
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --ours -- f`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --theirs -- f`'],
+    ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout -- f`'],
+    ['BRANCH_SWITCH', BRANCH_SWITCH, '`git checkout --`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, 'Never `git switch`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, 'NEVER `git checkout`'],
     ['BRANCH_SWITCH', BRANCH_SWITCH, '`git branch -d x`'],
@@ -96,13 +98,11 @@ describe('git ownership', () => {
     if (name !== SWITCHER) {
       test(`${name} never switches a branch`, () => {
         // Arrange
-        assert.ok(files.length > 0);
-        const hits = [];
+        const pattern = BRANCH_SWITCH;
         // Act
-        for (const file of files) {
-          if (matches(BRANCH_SWITCH, readFileSync(file, 'utf8'))) hits.push(file);
-        }
+        const hits = files.filter((file) => matches(pattern, readFileSync(file, 'utf8')));
         // Assert
+        assert.ok(files.length > 0);
         assert.deepEqual(hits, []);
       });
     }
@@ -110,13 +110,11 @@ describe('git ownership', () => {
     if (name !== COMMITTER) {
       test(`${name} never commits`, () => {
         // Arrange
-        assert.ok(files.length > 0);
-        const hits = [];
+        const pattern = COMMIT;
         // Act
-        for (const file of files) {
-          if (matches(COMMIT, readFileSync(file, 'utf8'))) hits.push(file);
-        }
+        const hits = files.filter((file) => matches(pattern, readFileSync(file, 'utf8')));
         // Assert
+        assert.ok(files.length > 0);
         assert.deepEqual(hits, []);
       });
     }
