@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-10-31
+
+### Added
+
+- `/cdk:build-docker-compose` asks whether the app is a Backend API or Frontend UI, and which existing Dockerfile to build from, or suggests `/cdk:build-dockerfile`.
+- For a Backend API, `/cdk:build-docker-compose` offers SQL, NoSQL, search, cache, messaging, SMTP testing, and object storage services, each with a healthcheck the app waits on.
+- For a Swarm stack, `/cdk:build-docker-compose` asks each service's mode, placement, replicas, resources, and restart, rollback, and update policy, and omits documented defaults.
+
+### Changed
+
+- `/cdk:build-docker-compose` asks for a Compose / DevContainer or Compose Deploy target and reports `Target:` and `App:` lines; `Mode:` no longer names plain Compose or Swarm.
+- `/cdk:build-docker-compose --yes` takes each recommended answer and lists it under `Open:` instead of leaving every choice unset.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` also handle outdated threads and review-body findings in any review state, answered in one summary comment.
+- Both address skills fix suggestions and nits too, fixing the root cause and its sibling occurrences, then re-read the full diff for regressions.
+- Both address skills reply to invalid items with evidence and to unclear items with one question, and still never resolve a thread.
+- Both address skills commit through `/cdk:commit-changes` and end with a `Ledger:` line that accounts for every item.
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` always review the full diff; open threads still force `REQUEST_CHANGES`.
+- Both review skills split large diffs into up to 4 batches, let reviewers read callers and tests, sweep for missed findings, and report a `Coverage:` line.
+- `/cdk:review-gitlab-merge-request` reports a `Plan mode:` line.
+- `/cdk:commit-changes` runs `/cdk:switch-branch` to leave a protected branch instead of creating the branch itself.
+- `/cdk:switch-branch` uses a given branch name or description directly, and reads the changes only when the input leaves the branch type open.
+- Only `/cdk:switch-branch` switches branches and only `/cdk:commit-changes` commits, apart from named exceptions; `/cdk:build-skill` checks new skills against this rule.
+
 ## [0.8.5] - 2026-10-29
 
 ### Added
@@ -355,7 +378,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...HEAD
+[0.8.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...v0.8.6
 [0.8.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.3...v0.8.4
 [0.8.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.2...v0.8.3

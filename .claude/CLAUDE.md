@@ -4,7 +4,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Architecture
 
-- Skills: `skills/<name>/SKILL.md` — workflows invoked by the user or another skill, with `scripts/`, `references/`, and `assets/` beside it; flags and skill-call rules in `.claude/rules/skills.md`.
+- Skills: `skills/<name>/SKILL.md` — workflows invoked by the user or another skill, with `scripts/`, `references/`, and `assets/` beside it; flags, skill-call, and git-ownership rules in `.claude/rules/skills.md`.
 - Project skills: `.claude/skills/<name>/SKILL.md` — repo tooling, not shipped; `release-plugin` runs the full release (`.claude/rules/release.md`).
 - Subagents: `agents/` — workers spawned by skills; read-only except the editing agents (`plan-implementer`, `rubric-improver`).
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
