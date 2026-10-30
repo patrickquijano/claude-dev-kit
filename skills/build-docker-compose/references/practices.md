@@ -1,12 +1,12 @@
 # Practices
 
-Sources are Docker docs unless noted. **Required** = always applied for the mode; **Recommended** = applied when it fits, else skipped with a reason. `dclint` rule names are from <https://github.com/zavoloklom/docker-compose-linter/blob/main/docs/rules.md>.
+Sources are Docker docs unless noted. **Required** = always applied for the target; **Recommended** = applied when it fits, else skipped with a reason. `dclint` rule names are from <https://github.com/zavoloklom/docker-compose-linter/blob/main/docs/rules.md>.
 
 ## Contents
 
-- Mode signals · File names · Long syntax · Defaults · Image tags · Plain Compose · Swarm stack · Swarm lint triage · Gaps
+- Target signals · File names · Long syntax · Defaults · Image tags · Plain Compose · Swarm stack · Swarm lint triage · Gaps
 
-## Mode signals
+## Target signals
 
 Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`; `deploy:` with `replicas`, `placement`, `update_config`, or `rollback_config`; external `secrets` or `configs`; an `overlay` network. `deploy:` alone, or only resource limits, is not Swarm: the section is ignored where it is not implemented and the file stays valid (<https://docs.docker.com/reference/compose-file/services/>). `swarm-state` prints `inactive` outside a swarm (verified locally; the active value is the `LocalNodeState` field).
 
@@ -49,6 +49,8 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
 
 ## Plain Compose
 
+Plain Compose = target Compose / DevContainer.
+
 - **Required** no top-level `version:`; it is obsolete and Compose warns (<https://docs.docker.com/reference/compose-file/version-and-name/>); `dclint` rule `no-version-field`.
 - **Required** `depends_on` conditions only `service_started`, `service_healthy`, or `service_completed_successfully`; `service_healthy` needs a `healthcheck` on the dependency (<https://docs.docker.com/reference/compose-file/services/>).
 - **Required** `healthcheck.test` starts with `NONE`, `CMD`, or `CMD-SHELL`; a string means `CMD-SHELL` (same page).
@@ -74,6 +76,8 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
 
 ## Swarm stack
 
+Swarm stack = target Compose Deploy.
+
 Deploy command: `docker stack deploy -c <file> <stack>` from a manager; repeat `-c` to merge a base file and overrides; `--with-registry-auth` for private registries; the deploy is detached by default (<https://docs.docker.com/reference/cli/docker/stack/deploy/>).
 
 - **Required** images come from a registry; `build:` is ignored ("Ignoring unsupported options: build"), so build, tag with the registry address, and push first (<https://docs.docker.com/engine/swarm/stack-deploy/>).
@@ -96,7 +100,7 @@ Deploy command: `docker stack deploy -c <file> <stack>` from a manager; repeat `
 
 ## Swarm lint triage
 
-`dclint` has no Swarm mode (unconfirmed: its docs and rules page name none; schema validation always runs and cannot be disabled). In Swarm mode run it with `--disable-rule` for each rule that contradicts a Required Swarm item above, and list each disabled rule under `Skipped practices:` with its reason:
+`dclint` has no Swarm mode (unconfirmed: its docs and rules page name none; schema validation always runs and cannot be disabled). For Compose Deploy run it with `--disable-rule` for each rule that contradicts a Required Swarm item above, and list each disabled rule under `Skipped practices:` with its reason:
 
 - `require-project-name-field`: a Swarm file has no top-level `name:` (verified: `docker stack config` rejects it).
 - `no-unbound-port-interfaces`: `ingress` publishes on every node; whether `stack deploy` honors a host IP is not confirmed, so the rule is disabled and the choice is reported.
@@ -105,6 +109,6 @@ A schema finding on a key the Required items allow (for example `deploy`) → re
 
 ## Gaps
 
-- The full list of keys `docker stack deploy` ignores is not documented in the pages read: only `build`, `links`, and `extends` are confirmed. `depends_on`, `container_name`, and `restart` are not stated for Swarm; do not claim they are ignored, and prefer the Swarm-native form (`deploy.restart_policy`, no `container_name`).
+- The full list of keys `docker stack deploy` ignores is not documented in the pages read: only `build`, `links`, and `extends` are confirmed. `depends_on` is not stated for Swarm, so do not claim it is ignored and set no `depends_on` condition for Compose Deploy; `container_name` and `restart` are not stated for Swarm, so do not claim they are ignored, and prefer the Swarm-native form (`deploy.restart_policy`, no `container_name`).
 - The minimum Docker version for `docker stack config` is not stated in its docs.
 - Exact `dclint` exit-code numbers and `--fix` coverage are not documented; the auto-fixable count appears in its output.

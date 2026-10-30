@@ -109,7 +109,8 @@ kind: behavior
 prompt: "Review the compose.yaml in this repo." (input silent on target and app)
 expected: Review mode asks no Target or App question
 pass: No Target or App question is asked
-pass: Output shows `Target:` and `App:` as a signal-based value or `unset (<reason>)`, with the gap under `Open:`
+pass: Output shows `Target: Compose / DevContainer (assumed: <reason>)` with no clear signal, noted under `Open:`; never `Target: unset`
+pass: Output shows `App:` as a signal-based value or `unset (<reason>)`, with the gap under `Open:`
 
 id: compose-no-deploy-keys
 kind: behavior
@@ -120,7 +121,7 @@ pass: No per-service deploy question is asked
 
 id: yes-ports-secrets-least-exposed
 kind: behavior
-prompt: "--yes Write a Compose file for my Node backend API."
+prompt: "--yes Write a Compose file for my Node service."
 expected: Unattended run takes the least exposed answers
 pass: Backing services answer `None`; the Recommended answers are listed under `Open:`
 pass: No data-store port is published and secrets are used over env vars

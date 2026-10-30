@@ -24,7 +24,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Sources: every key and value written comes from the input, an existing compose file, a user answer, or a **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`; nothing else.
 - Scope: read only the input, the paths it names, and compose files at the root (`flow.md` `## Pre-flight`); never scan or read other paths (source, CI, scripts, `.env*`) unless the input names them; the one exception is a Glob on `**/Dockerfile*` and `**/*.Dockerfile` for file names only, never their contents. Edit only the compose file (and the plan file in plan mode); the one allowed rename is `compose-rename`, after the user confirms it.
 - Output form: long (mapping) syntax for every entry that has one, and no key set to its documented default (`practices.md` `## Long syntax`, `## Defaults`).
-- Apply every **Required** item for the chosen mode in `practices.md`; apply a **Recommended** item only when the input or a user answer asks for it. A skipped Required item gets a reason in the Output.
+- Apply every **Required** item for the chosen target in `practices.md`; apply a **Recommended** item only when the input or a user answer asks for it. A skipped Required item gets a reason in the Output.
 - Target: **Compose / DevContainer** (plain Compose) or **Compose Deploy** (Swarm stack, Deploy spec); asked unless the input or an existing compose file states it, with signals only setting the Recommended option (`flow.md` `## Target`). `deploy:` alone never proves Swarm.
 - App: **Backend API** or **Frontend UI**, asked unless the input states it (`flow.md` `## App`). Both app types get the Dockerfile question; only a backend gets the backing-service questions (`references/services.md`); only Compose Deploy gets the per-service deploy questions (`flow.md` `## Clarify`).
 - Every configuration choice (target, app type, Dockerfile, backing services, scoped file name, services, ports, volumes, secrets, configs, and per-service deploy settings) is a decision question; max 4 per call, the Recommended option first in the call. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions with cited sources per `${CLAUDE_SKILL_DIR}/references/grill.md`; this holds for every question in `flow.md` `## Target`, `## App`, and `## Clarify`. Stated in the input or the existing compose file → do not ask.
@@ -45,14 +45,14 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 4. **Clarify.** Ask the Dockerfile, backend-service, scoped-file, common, and per-service deploy questions in that order, recommended first with the reason (`flow.md` `## Clarify`).
 5. **Draft and plan.** Resolve image tags with a read-only subagent that resolves image tags (fallback: `cdk:version-resolver`; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
 6. **Write** the file after the `ExitPlanMode` approval (`flow.md` `## Write`).
-7. **Verify.** Validate and lint with the commands for the mode; fix up to the cap (`flow.md` `## Verify`).
+7. **Verify.** Validate and lint with the commands for the target; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For pre-flight, plan mode, target and app questions, clarify questions, draft order, write naming, and the verify loop, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
-- For the Required and Recommended rules per mode, the image tag lookup, and the open gaps, see `${CLAUDE_SKILL_DIR}/references/practices.md`.
+- For the Required and Recommended rules per target, the image tag lookup, and the open gaps, see `${CLAUDE_SKILL_DIR}/references/practices.md`.
 - For the backing-service candidate pools with official images and docs URLs, see `${CLAUDE_SKILL_DIR}/references/services.md`.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 - For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when a Clarify step asks a decision question.
