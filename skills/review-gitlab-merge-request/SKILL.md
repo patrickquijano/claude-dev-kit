@@ -1,6 +1,6 @@
 ---
 name: review-gitlab-merge-request
-description: Reviews one GitLab MR: replies to and resolves addressed threads, re-reviews once every thread is settled, and approves when no blocking issue is left. Use when asked to review a GitLab MR.
+description: Reviews one GitLab MR in full: replies to and resolves addressed threads, then posts one review that approves when no blocking issue is left. Use when asked to review a GitLab MR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [mr-url | iid]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
@@ -30,7 +30,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Run `glab <command> --help` before its first use.
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only when `get_project` on the project path succeeds and its `web_url` host equals the remote host; otherwise use `glab`. Call the row's MCP tool first; error or `—` → run the Command unchanged.
 - Never print tokens; never use `--show-token`.
-- Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, malformed-return respawn 1. A cap hit → report it under `Errors:` and continue or stop as the reference says.
+- Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
 ## Workflow
 
@@ -40,7 +40,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 3. **Threads.** Digest open discussions and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 read-only subagents per `threads.md` `## Spawn briefs`.
 4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → the gate fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way, scope `full`.
 5. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
-6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep per `analyze.md`.
+6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep (once per batch) per `analyze.md`; an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
 7. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
 8. **Post.** Show the verdict, counts, scope, and writes, ask once (Post · Stop; `--yes`: post without asking), then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
 9. **Report.** Print the Output; list what is left under `Open:`.

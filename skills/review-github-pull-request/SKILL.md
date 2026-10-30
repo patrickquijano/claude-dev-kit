@@ -1,6 +1,6 @@
 ---
 name: review-github-pull-request
-description: Reviews one GitHub PR: replies to and resolves addressed threads, re-reviews once every thread is settled, and approves when no blocking issue is left. Use when asked to review a GitHub PR.
+description: Reviews one GitHub PR in full: replies to and resolves addressed threads, then posts one review that approves when no blocking issue is left. Use when asked to review a GitHub PR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan] [pr-url | number]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr diff *) Bash(git remote get-url *) Bash(git branch --show-current) mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__issue_read
@@ -29,7 +29,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Orchestrator vs subagents: only this skill talks to the user and the host; at most 4 read-only subagents per parallel turn, over scratch copies, spawned per `## Spawn briefs` in the reference of the step, each with an inline fallback.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
-- Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, malformed-return respawn 1. A cap hit → report it under `Errors:` and continue or stop as the reference says.
+- Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
 ## Workflow
 
@@ -39,7 +39,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 read-only subagents per `threads.md` `## Spawn briefs`.
 4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → the gate fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way, scope `full`.
 5. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
-6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep per `analyze.md`.
+6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep (once per batch) per `analyze.md`; an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
 7. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
 8. **Post.** Show the verdict, counts, scope, and writes, ask once (Post · Stop; `--yes` → Post), then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
 9. **Report.** Print the Output; list what is left under `Open:`.
