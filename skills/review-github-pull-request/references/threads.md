@@ -38,7 +38,7 @@ Unjudged threads get no reply: nothing changed since the last comment.
 
 ## Gate
 
-The gate passes when no thread is judged Open and none is unjudged; `unresolvable` threads do not block and are listed under `Open:`. A failed gate only forces the verdict `REQUEST_CHANGES`: steps 5–6 still run and the scope is always `full`.
+The gate passes when no thread is judged Open and none is unjudged; `unresolvable` threads do not block and are listed under `Open:`. A failed gate only forces the verdict `REQUEST_CHANGES`: steps 5–6 still run.
 
 ## Request changes
 

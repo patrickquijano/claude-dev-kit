@@ -39,7 +39,7 @@ Each reviewer returns blocks in `Findings:`:
 - `file` and `line` are the head-SHA path and the new-side line inside a `diff.patch` hunk; a finding outside a hunk or with no line goes to the body.
 - `evidence` quotes the head code from `<Scratch>/head/`; `fix` is concrete. A finding without evidence is `Unverified`: never inline, never Blocking, listed under `Unverified:`.
 - Never include a secret's value.
-- Report every occurrence: a finding that recurs lists every `file:line` site in the diff, one block per site.
+- Report every occurrence: a finding that recurs lists every `file:line` site in the diff, one block per site. Sites beyond the inline Nitpick cap (`post.md`) go in the body.
 - Each reviewer also returns `Coverage:`, one line per changed file in the batch: `path | hunks <n> | findings <n>`; a file with no findings is still listed.
 
 ## Priority
@@ -52,11 +52,11 @@ The parent, after step 6: every changed file in the batch (not under `Skipped:`)
 
 ## Sweep
 
-`<Scratch>/findings.md` holds every validated finding of all batches, before the `## Verdict` filter. After the coverage check of every batch, the parent runs one read-only sweep subagent per batch (cap 1 per batch, inline fallback) with `diff.patch`, the head files, `findings.md`, and that batch's `batch-<n>.txt`; it ignores `Skipped:` paths and hunts for misses: a checklist item not applied to a hunk, more sites of a found pattern, issues that span areas. It returns findings in the `## Findings` format and `Covered:` the batches or paths it read. Its findings go through the same `## Verdict` re-verify and dedupe. A sweep that stays unfinished after the inline fallback is noted under `Errors:` and, like an incomplete area, makes the verdict `COMMENT`.
+`<Scratch>/findings.md` holds every validated finding of all batches, before the `## Verdict` filter. After the coverage check of every batch, the parent runs one read-only sweep subagent per batch (cap 1 per batch, inline fallback) with `diff.patch`, the head files, `findings.md`, and that batch's `batch-<n>.txt`; it ignores `Skipped:` paths and hunts for misses: a checklist item not applied to a hunk, more sites of a found pattern, issues that span areas. It returns findings in the `## Findings` format and `Covered:` the batches or paths it read; a `Covered:` that misses a path in the batch list leaves the sweep unfinished: respawn it once, then sweep that batch inline. Its findings go through the same `## Verdict` re-verify and dedupe. A sweep that stays unfinished after the inline fallback is noted under `Errors:` and, like an incomplete area, makes the verdict `COMMENT`.
 
 ## Verdict
 
-Before the table, the parent re-reads each `Blocking` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an open thread (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`).
+Before the table, the parent re-reads each `Blocking` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an open thread (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
 
 | Condition                                                                                                                                                                 | Event             |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |

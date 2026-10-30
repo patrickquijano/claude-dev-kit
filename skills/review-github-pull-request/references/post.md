@@ -8,7 +8,7 @@ Steps 8–9 of `SKILL.md`. The only question is the Confirm below; everything af
 
 ## Confirm
 
-Before any write, print the verdict, the review scope, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. AskUserQuestion once: **Post** (submits the thread writes and the review; Recommended when every area completed) · **Stop** (`Result: cancelled`, `Review: not posted (declined)`, nothing written). Any `Skipped` file, incomplete area, incomplete sweep, or coverage gap makes Stop Recommended, with that as the reason. No way to ask → `Result: stopped`, `Stopped: post: unattended, not confirmed`, `Review: not posted (unattended)`; interactive without AskUserQuestion → ask as plain text and end the turn.
+Before any write, print the verdict, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. AskUserQuestion once: **Post** (submits the thread writes and the review; Recommended when every area completed) · **Stop** (`Result: cancelled`, `Review: not posted (declined)`, nothing written). Any `Skipped` file, incomplete area, incomplete sweep, or coverage gap makes Stop Recommended, with that as the reason. No way to ask → `Result: stopped`, `Stopped: post: unattended, not confirmed`, `Review: not posted (unattended)`; interactive without AskUserQuestion → ask as plain text and end the turn.
 
 ## Head check
 
@@ -23,7 +23,7 @@ Right after the head check and before the review: per judged thread, write the r
 1. Write `<Scratch>/review.json` with `commit_id` = the full head SHA, `body`, and no `event`.
 2. `review-create` → a pending review pinned to that SHA.
 3. `add-comment` for each inline finding: Blocking and Suggestion findings plus at most 5 inline Nitpicks (the highest risk first); each body is `**<severity>:** <why> Fix: <fix>` in plain English. Every other finding goes in the body by area.
-4. The body holds: the verdict line, the review scope, the `Coverage:` line, counts, the Open threads with URLs, body-level findings, `Skipped:` and `Unverified:` items. No attribution.
+4. The body holds: the verdict line, the `Coverage:` line, counts, the Open threads with URLs, body-level findings, `Skipped:` and `Unverified:` items. No attribution.
 5. `review-submit` with the verdict event. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
 
 ## Own PR

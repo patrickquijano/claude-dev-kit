@@ -8,7 +8,7 @@ Steps 8–9 of `SKILL.md`. The only question is the Confirm below; everything af
 
 ## Confirm
 
-Before any write, print the verdict, the review scope, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. AskUserQuestion once: **Post** (submits the thread writes and the review; Recommended when every area completed) · **Stop** (`Result: cancelled`, `Review: not posted (declined)`, nothing written). Any `Skipped` file, incomplete area, incomplete sweep, or coverage gap makes Stop Recommended, with that as the reason. No way to ask → `Result: stopped`, `Stopped: post: unattended, not confirmed`, `Review: not posted (unattended)`; interactive without AskUserQuestion → ask as plain text and end the turn.
+Before any write, print the verdict, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. AskUserQuestion once: **Post** (submits the thread writes and the review; Recommended when every area completed) · **Stop** (`Result: cancelled`, `Review: not posted (declined)`, nothing written). Any `Skipped` file, incomplete area, incomplete sweep, or coverage gap makes Stop Recommended, with that as the reason. No way to ask → `Result: stopped`, `Stopped: post: unattended, not confirmed`, `Review: not posted (unattended)`; interactive without AskUserQuestion → ask as plain text and end the turn.
 
 ## Head check
 
@@ -22,7 +22,7 @@ Right after the head check and before the review: per judged thread, write the r
 
 GitLab has no pending review to pin: the head check above is the pin, and every inline comment carries the head SHA.
 
-1. Write `<Scratch>/review.md` (the summary) with the verdict line, the review scope, the `Coverage:` line, counts, the Open threads with URLs, body-level findings, and `Skipped:` and `Unverified:` items. No attribution, and no line starting with `/`.
+1. Write `<Scratch>/review.md` (the summary) with the verdict line, the `Coverage:` line, counts, the Open threads with URLs, body-level findings, and `Skipped:` and `Unverified:` items. No attribution, and no line starting with `/`.
 2. Verdict `APPROVE` → run `approve` with the full head SHA first; a refusal follows `## Own MR`.
 3. `review-post` (glab fallback: `inline-comment` per comment, then `review-summary`): inline comments for Blocking and Suggestion findings plus at most 5 inline Nitpicks (the highest risk first); each body is `**<severity>:** <why> Fix: <fix>` in plain English. Every other finding goes in the summary by area. MCP posts at most 20 comments per call: split them, and send the summary and verdict only with the last call. The summary begins with the verdict word `REQUEST_CHANGES`, `COMMENT`, or `APPROVE`.
 4. Run `head-sha` once more; a head that differs from the posted SHA is reported under `Errors:`. For `APPROVE`, the approval is verified through `mr-view`; a missing approval is reported under `Errors:`.

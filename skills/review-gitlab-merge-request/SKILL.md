@@ -34,15 +34,15 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Workflow
 
-0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written. `--no-plan` or `--yes` skips this step, so the declined rule never applies.
+0. **Plan mode.** `--no-plan` or `--yes` → skip it (`Plan mode: skipped (--no-plan | --yes)`); the declined stop does not apply. Otherwise enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
 1. **Pre-flight.** Parse `origin` into host and project path, run the MCP host check or `auth-status`, then `self`; no GitLab remote or no working tool → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md` and `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 2. **Resolve.** Match a URL, IID, or the branch's open MR; no match → `Result: nothing-to-do`. Closed, merged, or locked stops; draft blocks `APPROVE`.
 3. **Threads.** Digest open discussions and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 read-only subagents per `threads.md` `## Spawn briefs`.
-4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → the gate fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way, scope `full`.
+4. **Gate.** Any thread judged Open or left unjudged (`threads.md` `## Gate`) → the gate fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way.
 5. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 6. **Analyze.** Spawn the four read-only reviewer subagents in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep (once per batch) per `analyze.md`; an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
 7. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
-8. **Post.** Show the verdict, counts, scope, and writes, ask once (Post · Stop; `--yes`: post without asking), then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
+8. **Post.** Show the verdict, counts, and writes, ask once (Post · Stop; `--yes`: post without asking), then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
 9. **Report.** Print the Output; list what is left under `Open:`.
 
 ## Files
@@ -65,7 +65,6 @@ MR: !<iid> <url> (<source branch> → <target branch>) @ <full head SHA>
 Path: argument url | argument iid | branch match
 Tool: mcp | glab | mcp+glab
 Threads: <r> resolved (<f> fixed, <a> accepted, <o> obsolete), <p> replied not resolved, <x> replied not addressed, <k> left open, <u> unjudged
-Review scope: full (<k> open threads)
 Coverage: <files reviewed>/<files changed> files, <batches> batches
 Verdict: REQUEST_CHANGES | COMMENT | APPROVE (<reason>)
 Findings: <b> blocking, <s> suggestions, <n> nitpicks, <d> dropped (<already open | duplicate | unverified>)
@@ -78,3 +77,5 @@ Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
+
+`<files reviewed>` is the changed files minus those under `Skipped:`.
