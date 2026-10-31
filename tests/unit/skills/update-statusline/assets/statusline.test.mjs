@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterEach, describe, test } from 'node:test';
+import { describe, test } from 'node:test';
 import {
   formatTimeLeft,
   formatTokens,
@@ -11,7 +11,11 @@ import {
 } from '../../../../../skills/update-statusline/assets/statusline.mjs';
 
 const ESC = String.fromCharCode(27);
+const CSI = String.fromCharCode(0x9b);
+const BIDI = String.fromCharCode(0x202e);
 const BOLD = `${ESC}[1m`;
+const CYAN = `${ESC}[36m`;
+const BLUE = `${ESC}[34m`;
 const MAGENTA = `${ESC}[35m`;
 const RESET = `${ESC}[0m`;
 const BRANCH = `${ESC}[38;5;205m`;
@@ -21,124 +25,86 @@ const ORANGE = `${ESC}[38;5;208m`;
 const RED = `${ESC}[31m`;
 const INPUT = { cwd: '/work/app', model: { display_name: 'Model' } };
 const NOW = 1_000;
+const PLAIN = { NO_COLOR: '1' };
 
-const renderWith = (name, input = INPUT) => render(input, { nowSeconds: NOW, branch: () => name });
+const renderWith = (name, input = INPUT, env = {}) => render(input, { nowSeconds: NOW, branch: () => name, env });
 
-describe('NO_COLOR handling', () => {
-  const noColor = process.env.NO_COLOR;
+describe('paint', () => {
+  test('wraps text in the styles and a reset', () => {
+    // Act
+    const text = paint('hi', [BOLD, GREEN], {});
 
-  afterEach(() => {
-    if (noColor === undefined) {
-      delete process.env.NO_COLOR;
-    } else {
-      process.env.NO_COLOR = noColor;
-    }
+    // Assert
+    assert.equal(text, `${BOLD}${GREEN}hi${RESET}`);
   });
 
-  describe('paint', () => {
-    test('wraps text in the styles and a reset', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
+  test('wraps text in a reset alone without styles', () => {
+    // Act
+    const text = paint('hi', [], {});
 
-      // Act
-      const text = paint('hi', BOLD, GREEN);
-
-      // Assert
-      assert.equal(text, `${BOLD}${GREEN}hi${RESET}`);
-    });
-
-    test('wraps text in a reset alone without styles', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
-
-      // Act
-      const text = paint('hi');
-
-      // Assert
-      assert.equal(text, `hi${RESET}`);
-    });
-
-    test('returns the plain text when NO_COLOR is set', () => {
-      // Arrange
-      process.env.NO_COLOR = '1';
-
-      // Act
-      const text = paint('hi', BOLD);
-
-      // Assert
-      assert.equal(text, 'hi');
-    });
-
-    test('does not treat an empty NO_COLOR as set', () => {
-      // Arrange
-      process.env.NO_COLOR = '';
-
-      // Act
-      const text = paint('hi', BOLD);
-
-      // Assert
-      assert.equal(text, `${BOLD}hi${RESET}`);
-    });
+    // Assert
+    assert.equal(text, `hi${RESET}`);
   });
 
-  describe('render branch segment', () => {
-    test('emphasizes the branch name with bold and the branch color', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
+  test('returns the plain text when NO_COLOR is set', () => {
+    // Act
+    const text = paint('hi', [BOLD], PLAIN);
 
-      // Act
-      const line = renderWith('feat/x');
+    // Assert
+    assert.equal(text, 'hi');
+  });
 
-      // Assert
-      assert.ok(line.includes(`${BOLD}${BRANCH}feat/x${RESET}`));
-    });
+  test('does not treat an empty NO_COLOR as set', () => {
+    // Act
+    const text = paint('hi', [BOLD], { NO_COLOR: '' });
 
-    test('keeps the git( and ) wrapper in its own color', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
+    // Assert
+    assert.equal(text, `${BOLD}hi${RESET}`);
+  });
+});
 
-      // Act
-      const line = renderWith('main');
+describe('render branch segment', () => {
+  test('emphasizes the branch name with bold and the branch color', () => {
+    // Act
+    const line = renderWith('feat/x');
 
-      // Assert
-      assert.ok(line.includes(`${MAGENTA}git(${RESET}`));
-      assert.ok(line.includes(`${MAGENTA})${RESET}`));
-    });
+    // Assert
+    assert.ok(line.includes(`${BOLD}${BRANCH}feat/x${RESET}`));
+  });
 
-    test('prints no escapes when NO_COLOR is set', () => {
-      // Arrange
-      process.env.NO_COLOR = '1';
+  test('keeps the git( and ) wrapper in its own color', () => {
+    // Act
+    const line = renderWith('main');
 
-      // Act
-      const line = renderWith('main');
+    // Assert
+    assert.ok(line.includes(`${MAGENTA}git(${RESET}`));
+    assert.ok(line.includes(`${MAGENTA})${RESET}`));
+  });
 
-      // Assert
-      assert.equal(line.includes(ESC), false);
-      assert.ok(line.includes('git(main)'));
-    });
+  test('prints no escapes when NO_COLOR is set', () => {
+    // Act
+    const line = renderWith('main', INPUT, PLAIN);
 
-    test('omits the branch segment without a branch', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
+    // Assert
+    assert.equal(line.includes(ESC), false);
+    assert.ok(line.includes('git(main)'));
+  });
 
-      // Act
-      const line = renderWith(null);
+  test('omits the branch segment without a branch', () => {
+    // Act
+    const line = renderWith(null);
 
-      // Assert
-      assert.equal(line.includes('git('), false);
-    });
+    // Assert
+    assert.equal(line.includes('git('), false);
+  });
 
-    test('leaves the other segments unchanged', () => {
-      // Arrange
-      delete process.env.NO_COLOR;
+  test('leaves the other segments unchanged', () => {
+    // Act
+    const line = renderWith('main');
 
-      // Act
-      const line = renderWith('main');
-
-      // Assert
-      assert.ok(line.includes(paint('app', `${ESC}[1m`, `${ESC}[36m`)));
-      assert.ok(line.includes(paint('Model', `${ESC}[1m`, `${ESC}[34m`)));
-    });
+    // Assert
+    assert.ok(line.includes(paint('app', [BOLD, CYAN], {})));
+    assert.ok(line.includes(paint('Model', [BOLD, BLUE], {})));
   });
 });
 
@@ -349,23 +315,12 @@ describe('gitBranch', () => {
 });
 
 describe('render', () => {
-  const noColor = process.env.NO_COLOR;
-
-  afterEach(() => {
-    if (noColor === undefined) {
-      delete process.env.NO_COLOR;
-    } else {
-      process.env.NO_COLOR = noColor;
-    }
-  });
-
   test('prints the token count and context percentage computed from the window size', () => {
     // Arrange
-    process.env.NO_COLOR = '1';
     const input = { context_window: { total_input_tokens: 12_345, context_window_size: 100_000 } };
 
     // Act
-    const line = renderWith(null, input);
+    const line = renderWith(null, input, PLAIN);
 
     // Assert
     assert.equal(line, '12.3k │ 12%');
@@ -373,11 +328,10 @@ describe('render', () => {
 
   test('prefers the reported context percentage', () => {
     // Arrange
-    process.env.NO_COLOR = '1';
     const input = { context_window: { total_input_tokens: 1_000, used_percentage: 42.4 } };
 
     // Act
-    const line = renderWith(null, input);
+    const line = renderWith(null, input, PLAIN);
 
     // Assert
     assert.equal(line, '1.00k │ 42%');
@@ -385,11 +339,10 @@ describe('render', () => {
 
   test('prints the rate-limit usage and the time left', () => {
     // Arrange
-    process.env.NO_COLOR = '1';
     const input = { rate_limits: { five_hour: { used_percentage: 50, resets_at: NOW + 3_660 } } };
 
     // Act
-    const line = renderWith(null, input);
+    const line = renderWith(null, input, PLAIN);
 
     // Assert
     assert.equal(line, '5h 50% 1h 1m');
@@ -397,11 +350,10 @@ describe('render', () => {
 
   test('drops a rate-limit window past its reset', () => {
     // Arrange
-    process.env.NO_COLOR = '1';
     const input = { rate_limits: { seven_day: { used_percentage: 90, resets_at: NOW - 1 } } };
 
     // Act
-    const line = renderWith(null, input);
+    const line = renderWith(null, input, PLAIN);
 
     // Assert
     assert.equal(line, '');
@@ -416,27 +368,67 @@ describe('render', () => {
   });
 
   test('ignores a directory that is not a string', () => {
-    // Arrange
-    process.env.NO_COLOR = '1';
-
     // Act
-    const line = renderWith(null, { cwd: 42, workspace: { current_dir: { path: '/x' } } });
+    const line = renderWith(null, { cwd: 42, workspace: { current_dir: { path: '/x' } } }, PLAIN);
 
     // Assert
     assert.equal(line, '');
   });
 
+  test('falls back to cwd when current_dir is empty', () => {
+    // Arrange
+    const input = { cwd: '/work/app', workspace: { current_dir: '' } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, 'app');
+  });
+
+  test('prefers current_dir over cwd', () => {
+    // Arrange
+    const input = { cwd: '/work/app', workspace: { current_dir: '/work/lib' } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, 'lib');
+  });
+
   test('strips control characters from payload text', () => {
     // Arrange
-    process.env.NO_COLOR = '1';
     const input = { cwd: '/work/app', model: { display_name: `Mo${ESC}[2Jdel` } };
 
     // Act
-    const line = renderWith(`ma${ESC}in`, input);
+    const line = renderWith(`ma${ESC}in`, input, PLAIN);
 
     // Assert
     assert.equal(line.includes(ESC), false);
     assert.ok(line.includes('git(main)'));
     assert.ok(line.includes('Mo[2Jdel'));
+  });
+
+  test('strips C1 characters and bidi overrides from payload text', () => {
+    // Arrange
+    const input = { cwd: '/work/a', model: { display_name: `Mo${CSI}d${BIDI}el` } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, 'a │ Model');
+  });
+
+  test('strips control characters from the directory and the effort level', () => {
+    // Arrange
+    const input = { cwd: `/work/ap${ESC}p`, effort: { level: `hi${ESC}gh` } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, 'app │ high');
   });
 });

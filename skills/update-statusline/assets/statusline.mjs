@@ -29,11 +29,12 @@ const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 
 /**
  * @param {string} text
- * @param {...string} styles
+ * @param {string[]} [styles]
+ * @param {Record<string, string | undefined>} [env]
  * @returns {string}
  */
-export function paint(text, ...styles) {
-  if (process.env.NO_COLOR) {
+export function paint(text, styles = [], env = process.env) {
+  if (env.NO_COLOR) {
     return text;
   }
 
@@ -57,7 +58,7 @@ function isObject(value) {
 }
 
 /**
- * Drops C0/C1 control characters so payload text cannot inject terminal escapes.
+ * Drops C0/C1 control characters and bidi overrides so payload text cannot inject terminal escapes or reorder output.
  *
  * @param {unknown} value
  * @returns {string}
@@ -67,7 +68,10 @@ function clean(value) {
     .filter((character) => {
       const code = character.codePointAt(0);
 
-      return code > 31 && !(code >= 127 && code <= 159);
+      const isControl = code <= 31 || (code >= 127 && code <= 159);
+      const isBidi = (code >= 0x202a && code <= 0x202e) || (code >= 0x2066 && code <= 0x2069);
+
+      return !isControl && !isBidi;
     })
     .join('');
 }
@@ -217,9 +221,10 @@ export function gitBranch(directory, run = execFileSync) {
  * @param {string} label
  * @param {boolean} allowDays
  * @param {number} nowSeconds
+ * @param {(text: string, ...styles: string[]) => string} color
  * @returns {string[]}
  */
-function rateLimitSegments(window, label, allowDays, nowSeconds) {
+function rateLimitSegments(window, label, allowDays, nowSeconds, color) {
   const segments = [];
 
   // A window past its reset carries a stale percentage, so drop it entirely.
@@ -228,10 +233,10 @@ function rateLimitSegments(window, label, allowDays, nowSeconds) {
   }
   if (isNumber(window?.used_percentage)) {
     const percentage = window.used_percentage;
-    segments.push(paint(`${label} ${Math.round(percentage)}%`, COLOR.bold, usageColor(percentage)));
+    segments.push(color(`${label} ${Math.round(percentage)}%`, COLOR.bold, usageColor(percentage)));
   }
   if (isNumber(window?.resets_at)) {
-    segments.push(paint(formatTimeLeft(window.resets_at - nowSeconds, allowDays), COLOR.dim));
+    segments.push(color(formatTimeLeft(window.resets_at - nowSeconds, allowDays), COLOR.dim));
   }
 
   return segments.length > 0 ? [segments.join(' ')] : segments;
@@ -239,30 +244,32 @@ function rateLimitSegments(window, label, allowDays, nowSeconds) {
 
 /**
  * @param {Record<string, any>} input
- * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null }} [options]
+ * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null, env?: Record<string, string | undefined> }} [options]
  * @returns {string}
  */
-export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBranch } = {}) {
+export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBranch, env = process.env } = {}) {
   const payload = isObject(input) ? input : {};
   const segments = [];
-  const candidate = payload.workspace?.current_dir ?? payload.cwd;
-  const directory = typeof candidate === 'string' && candidate !== '' ? candidate : undefined;
+  const color = (text, ...styles) => paint(text, styles, env);
+  const directory = [payload.workspace?.current_dir, payload.cwd].find(
+    (candidate) => typeof candidate === 'string' && candidate !== ''
+  );
 
   if (directory) {
-    segments.push(paint(clean(basename(directory)), COLOR.bold, COLOR.cyan));
+    segments.push(color(clean(basename(directory)), COLOR.bold, COLOR.cyan));
   }
 
   const branchName = branch(directory);
   if (branchName) {
     segments.push(
-      `${paint('git(', COLOR.magenta)}${paint(clean(branchName), COLOR.bold, COLOR.branch)}${paint(')', COLOR.magenta)}`
+      `${color('git(', COLOR.magenta)}${color(clean(branchName), COLOR.bold, COLOR.branch)}${color(')', COLOR.magenta)}`
     );
   }
 
   const contextWindow = isObject(payload.context_window) ? payload.context_window : {};
   const tokens = contextWindow.total_input_tokens;
   if (isNumber(tokens)) {
-    segments.push(paint(formatTokens(tokens), COLOR.bold, tokenColor(tokens)));
+    segments.push(color(formatTokens(tokens), COLOR.bold, tokenColor(tokens)));
   }
 
   let contextPercentage = contextWindow.used_percentage;
@@ -270,25 +277,25 @@ export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBra
     contextPercentage = (tokens / contextWindow.context_window_size) * 100;
   }
   if (isNumber(contextPercentage)) {
-    segments.push(paint(`${Math.round(contextPercentage)}%`, tokenColor(tokens ?? 0)));
+    segments.push(color(`${Math.round(contextPercentage)}%`, tokenColor(tokens ?? 0)));
   }
 
   if (payload.model?.display_name) {
-    segments.push(paint(clean(payload.model.display_name), COLOR.bold, COLOR.blue));
+    segments.push(color(clean(payload.model.display_name), COLOR.bold, COLOR.blue));
   }
   if (payload.effort?.level) {
-    segments.push(paint(clean(payload.effort.level), COLOR.dim));
+    segments.push(color(clean(payload.effort.level), COLOR.dim));
   }
 
   const limits = [
-    ...rateLimitSegments(payload.rate_limits?.five_hour, '5h', false, nowSeconds),
-    ...rateLimitSegments(payload.rate_limits?.seven_day, '7d', true, nowSeconds)
+    ...rateLimitSegments(payload.rate_limits?.five_hour, '5h', false, nowSeconds, color),
+    ...rateLimitSegments(payload.rate_limits?.seven_day, '7d', true, nowSeconds, color)
   ];
   if (limits.length > 0) {
     segments.push(limits.join(' | '));
   }
 
-  return segments.join(` ${paint('│', COLOR.dim)} `);
+  return segments.join(` ${color('│', COLOR.dim)} `);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
