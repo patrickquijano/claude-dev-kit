@@ -585,9 +585,12 @@ describe('checkSkillReferences', () => {
     assert.deepEqual(found, []);
   });
 
-  test('allows a plain-language skill call and a plugin-qualified agent name', () => {
+  test('allows a name-first skill call and spawn', () => {
     // Arrange
-    const files = { 'SKILL.md': 'Run the commit-changes skill.\nSpawn a scorer (fallback: `cdk:rubric-scorer`).' };
+    const files = {
+      'SKILL.md':
+        'Invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill).\nSpawn the `cdk:rubric-scorer` subagent (fallback: a subagent that scores the skill).'
+    };
     // Act
     const found = run(files);
     // Assert

@@ -1,11 +1,16 @@
 {
   "moderate": true, // Same threshold as npm audit --audit-level=moderate.
   "report-type": "summary",
-  // braces stack overflow: maintainer disputes it, no patch (micromatch/braces#85); only markdownlint-cli2 (dev) uses braces.
-  // The entries are path-limited to the two paths audit-ci reports, so the advisory stays reported on any other path.
-  // Remove once the advisory is withdrawn or a patched braces ships; audit-ci then reports it as not found.
+  // minimatch DoS: no 10.x patch; eslint (dev) requires ^10 and matches only trusted config and CLI globs.
+  // The entries are path-limited to the paths audit-ci reports, so the advisory stays reported on any other path.
+  // Remove once eslint and @eslint/config-array require minimatch >=11.0.1 (eslint/eslint#21463).
   "allowlist": [
-    "GHSA-vfj7-8cjw-p6xm|markdownlint-cli2>globby>fast-glob>micromatch>braces",
-    "GHSA-vfj7-8cjw-p6xm|micromatch>braces>"
+    "GHSA-g3hv-75wg-m249|@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch>",
+    "GHSA-g3hv-75wg-m249|@eslint/js>eslint>@eslint/config-array>minimatch",
+    "GHSA-g3hv-75wg-m249|eslint-compat-utils>eslint>@eslint/config-array>minimatch>",
+    "GHSA-g3hv-75wg-m249|eslint-config-prettier>eslint>@eslint/config-array>minimatch",
+    "GHSA-g3hv-75wg-m249|eslint-plugin-n>eslint-plugin-es-x>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch",
+    "GHSA-g3hv-75wg-m249|eslint>@eslint/config-array>minimatch>",
+    "GHSA-g3hv-75wg-m249|minimatch>"
   ]
 }

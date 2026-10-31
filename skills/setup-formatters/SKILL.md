@@ -20,7 +20,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
-- Flags: `--yes` is unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every question is still asked. Only a flag the user passed counts. `--yes` never covers a native-tool install or overwriting an existing config: those are still asked, or skipped and listed under `Open:`.
+- Flags: `--yes` is unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every question is still asked, including one `Go` | `Stop` gate naming each install and write before step 6 (`${CLAUDE_SKILL_DIR}/references/flow.md` `## Install`). Only a flag the user passed counts. `--yes` never covers a native-tool install or overwriting an existing config: those are still asked, or skipped and listed under `Open:`.
 - Spawn only the subagents named in the steps; briefs in `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Analysis in subagents: the `cdk:format-lint-analyzer` subagent (fallback: a read-only repo analyst) detects (step 2) and checks (step 9), and the `cdk:version-resolver` subagent (fallback: a read-only version resolver) resolves packages (step 5). They cannot ask or install; relay their `Gaps` and an `unknown` manager with AskUserQuestion. Each spawn has an inline fallback, so no step stops on an unavailable subagent.
@@ -40,10 +40,10 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Workflow
 
-0. **Plan mode.** `--no-plan` or `--yes` → skip it (`Plan mode: skipped (--no-plan | --yes)`; the plan is printed and the work follows it; the declined stop does not apply). Otherwise enter plan mode first per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode`; steps 1-5 run inside it. Before any install or file write, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is installed or written.
+0. **Plan mode.** Skip on `--no-plan` or `--yes`; otherwise follow `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode` (steps 1-5 run inside it, and nothing is installed or written before `ExitPlanMode` approval); declined → `Stopped: 0: plan mode declined`.
 1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
 2. **Detect.** Spawn the analyst (detect); keep `File types`, `Unknown types`, `Lists`, `Filled roles`, `Unfilled roles`, `Package`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`). A filled formatter role keeps its tool; a type absent from `tools.md` → ask for a tool name.
-3. **Choose formatter.** One candidate → use it; several → the first, no question (`flow.md` `## Choose tools`).
+3. **Choose formatter.** Per `flow.md` `## Choose tools`.
 4. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`; a missing `package.json` is created after approval (`package-manager.md`).
 5. **Versions.** Only for tools to install or version-dependent configs; spawn the version resolver; `Unverified` → skip that tool. Unavailable or malformed → resolve inline (`flow.md` `## Spawn briefs`). At its end write the plan file and call `ExitPlanMode` (`flow.md` `## Plan mode`).
 6. **Install.** After approval, create a missing `package.json`, then install missing formatters only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools run the command the plan names (`flow.md` `## Install`).

@@ -311,7 +311,7 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
           'B8',
           'SKILL.md',
           i + 1,
-          'spawns Explore or general-purpose: describe the role in plain words instead of naming an agent'
+          'spawns Explore or general-purpose: name a plugin agent first with a plain-words fallback'
         )
       );
     }

@@ -41,6 +41,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
    - Split input: existing file paths → `Input files:`; the rest → `Input text:`.
 2. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only instructions analyst subagent) with root, `Target:`, `Input files:`, `Input text:`, per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`; keep its facts block.
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
+   Also ask per repeated-instruction candidate: Add rule | Build a skill | Omit, per `${CLAUDE_SKILL_DIR}/references/repeats.md`.
 4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/assets/template.md`; update → edit in place. Place each instruction per rubric `## Placement rules` and principles per `${CLAUDE_SKILL_DIR}/references/principles.md` `## Placement`. Always-loaded non-blank lines stay <200; overflow → path-scoped rules.
    - Show file list (new | changed | deleted), outline, dropped and moved items (including a `Known issues` move), suggested hooks, and each diff in the plan file for `ExitPlanMode` (`${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode`). A tracked file to delete is listed in it.
 5. **Write.** After approval, write the files and run `delete-file` for each file the approved plan lists for deletion; for a planned `Known issues` move also write the `feedback` memory and its `MEMORY.md` pointer in the existing auto-memory directory (path from the `MEMORY.md` path in the session's auto-memory context, never guessed; none found → keep it and list it under `Open:`), and list both paths in `Files:`. Then run `format-files`.
@@ -52,6 +53,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Files
 
 - For plan mode, combine rules, the unattended fallback, cancel handling, the scorer input, the improve loop, and spawn briefs, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For the repeat step (sources, thresholds, the ask, unattended), read `${CLAUDE_SKILL_DIR}/references/repeats.md` at step 3.
 - For the engineering principles, their placement, and the default requirements, see `${CLAUDE_SKILL_DIR}/references/principles.md`.
 - For the 100-point rubric and placement rules, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
@@ -71,7 +73,7 @@ Rounds: <improve rounds>
 Omitted: <items the user chose to omit | none>
 Confirmed: yes | no (stopped) | unattended | n/a (score-only or stopped earlier)
 Open: <criterion, lost pts, fix, ... | none>
-Next: commit the changed files | none
+Next: commit the changed files | build a skill for <repeated workflow> | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```

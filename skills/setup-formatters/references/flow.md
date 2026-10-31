@@ -12,7 +12,7 @@ Runs first (step 0). `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan |
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is installed or written.
 - Steps 1–5 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
-- At the end of step 5 write the plan file: the formatters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write or overwrite, each with its purpose and effects. Nothing to install or write → a one-line plan file saying so, then `ExitPlanMode`, so step 9 runs after approval. Call `ExitPlanMode`; approval covers every listed effect of the first write, then go to step 6; each step 10 fix round re-enters plan mode.
+- At the end of step 5 write the plan file: the formatters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write or overwrite, each with its purpose and effects. Nothing to install or write → a one-line plan file saying so, then `ExitPlanMode`, so the install and write steps run after approval. Call `ExitPlanMode`; approval covers every listed effect of the first write, then go to step 6; each step 10 fix round re-enters plan mode.
 - After approval the missing `package.json` is created first, then the install runs, native tools included.
 - Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 0: plan rejected`.
 - Any end before step 6 prints the Output with `Plan mode:` as reached.
@@ -23,7 +23,7 @@ One candidate → use it. Several formatters → the catalog's first, no questio
 
 ## Install
 
-- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question.
+- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question. `--no-plan` without `--yes` → no `ExitPlanMode`: ask one gate (`Go` | `Stop`) naming the same effects before any install or write; `Stop` → `Result: cancelled`, `Stopped: 0: gate stopped`.
 - Approved → create the missing `package.json` first (`package-manager.md`), then install.
 - Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>` (workspace-root flag per `package-manager.md`).
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. .NET tools → `dotnet-manifest` when needed, then `dotnet-tool-install`; missing prerequisite → skip the tool with the reason.
