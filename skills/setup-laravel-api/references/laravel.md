@@ -44,5 +44,5 @@
 
 ## Index
 
-- `/` returns `response()->noContent()` (204); the welcome view is removed per the plan.
+- `/` returns `response()->noContent()` (204); the welcome view is removed or listed under `Open:` per the L4 choice.
 - Accept: `/` returns 204 with an empty body.

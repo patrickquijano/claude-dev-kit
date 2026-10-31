@@ -23,6 +23,8 @@ pass: <observable criteria, one per line>
 | red-flag-round   | "Set up .NET." (main path)                                    | Red-flag pass in plan mode                   | Table with ID, cause, options, chosen, source; `EnterPlanMode` before the fixes; checks re-run                                        |
 | no-source        | "Set up .NET." (research sources unreachable)                 | Marks `unverified`, applies nothing silently | Each unsourced item listed under `Open:`; none applied                                                                                |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended    | Weights sum to 100; "close call" stated; unverified scores marked                                                                     |
+| cannot-interact  | "Set up .NET." (no way to ask, no `--yes`)                    | Writes nothing                               | Nothing written; `Result: stopped`, `Stopped: 0: cannot interact`                                                                     |
+| no-plan          | "Set up .NET --no-plan."                                      | No plan mode, every question still asked     | `Plan mode: skipped (--no-plan)`; plan printed, `Apply` \| `Stop` ask before the first write; every question asked                    |
 
 ## Running per model
 

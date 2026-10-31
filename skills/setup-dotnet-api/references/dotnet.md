@@ -49,7 +49,7 @@ tests/IntegrationTests.csproj
 
 - ULID primary keys through an EF value converter and convention; `created_at` and `updated_at` columns at precision 6, set by a `SaveChanges` interceptor.
 - Snake_case names through the cited convention package, or manual mapping (D5).
-- Accept: a migration or model snapshot shows the ULID key and precision 6 columns.
+- Accept: inspection only: the ULID value converter and the precision 6 column configuration are present in the model code.
 
 ## JSON:API
 

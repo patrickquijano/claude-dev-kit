@@ -3,7 +3,7 @@ name: setup-dotnet-api
 description: Sets up a .NET Clean Architecture Web API with the latest stable SDK: EF Core, Scalar, ULID, Serilog, FluentValidation, tests, JSON:API. Use only when the user explicitly asks to set up a .NET API.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan]'
-allowed-tools: Read Bash(git rev-parse *) Bash(dotnet --list-sdks) Bash(dotnet package search *) Bash(curl -fsS https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json)
+allowed-tools: Read Bash(git rev-parse *) Bash(dotnet --list-sdks) Bash(dotnet package search *) Bash(curl -fsS https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json) Bash(mktemp -d)
 disable-model-invocation: true
 ---
 
@@ -35,7 +35,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Workflow
 
 1. **Pre-flight.** Repo root or SDK list `<none>` → stop (name the missing tool). An existing `*.slnx` or `*.sln` → configure-only (skip the scaffold; add what is missing). Enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` (`--no-plan` | `--yes`: skip).
-2. **Resolve versions.** The SDK from the releases index and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path.
+2. **Resolve versions.** The SDK from the releases index (a failed `releases` command → `Result: stopped`, `Stopped: 1: curl or network`) and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path.
 3. **Research.** Recommended configuration per `research.md` through `cdk:topic-researcher` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/research.md` and `${CLAUDE_SKILL_DIR}/references/red-flags.md` by those paths, cited by URL; spawned in the same message as step 2 (independent).
 4. **Questions.** One multi-select question each for SQL, NoSQL, Search Engine, Cache, Messaging, SMTP, Object Storage; then the CQRS dispatcher and the API style, per `options.md`.
 5. **Plan.** Resolve each step-4 pick through `cdk:version-resolver` with the version brief, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path; write the plan (`plan.md`); `ExitPlanMode`.
