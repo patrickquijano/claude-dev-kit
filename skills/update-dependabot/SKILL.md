@@ -3,7 +3,7 @@ name: update-dependabot
 description: Creates or updates .github/dependabot.yaml from the repo's package ecosystems and directories, merged in place and schema-checked. Use when asked to set up, add, or update Dependabot.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan]'
-allowed-tools: Read Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v uvx) Bash(command -v pipx) Bash(uvx check-jsonschema *) Bash(pipx run check-jsonschema *)
+allowed-tools: Read Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v uvx) Bash(command -v pipx)
 ---
 
 # Update Dependabot
@@ -13,9 +13,9 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Context
 
 - Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
-- Existing config: !`git ls-files .github/dependabot.yml .github/dependabot.yaml 2>/dev/null || echo '<none>'`
+- Existing config: !`git ls-files --cached --others --exclude-standard -- .github/dependabot.yml .github/dependabot.yaml 2>/dev/null || echo '<none>'`
 
-`<none>` = that read failed or found nothing. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
+`<none>` = that read failed; for Existing config, empty output also = `<none>` (the command exits 0 when nothing matches), and untracked files count. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 

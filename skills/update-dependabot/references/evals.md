@@ -23,6 +23,9 @@ pass: <observable criteria, one per line>
 | both-files       | "Update Dependabot." (both `.yml` and `.yaml` exist)                      | Asks which to keep                        | One question; the other file untouched                                                                               |
 | stale-key        | "Update Dependabot." (file uses a removed key)                            | Fixes it with a cited reason              | Plan names the key and the URL; fix round in plan mode                                                               |
 | no-manifests     | "Set up Dependabot." (no manifests)                                       | Stops                                     | `Result: nothing-to-do`; no write                                                                                    |
+| cannot-interact  | "Set up Dependabot." (no way to ask, no `--yes`)                          | Writes nothing                            | `Result: stopped`, `Stopped: 0: cannot interact`; no write                                                           |
+| plan-rejected-3x | "Set up Dependabot." (the user rejects the plan 3 times)                  | Cancels without writing                   | `Result: cancelled`; no write                                                                                        |
+| not-a-repo       | "Set up Dependabot." (repo root is `<none>`)                              | Stops at pre-flight                       | "not a git repository"; `Result: stopped`; no write                                                                  |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart             | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked                                                    |
 
 ## Running per model

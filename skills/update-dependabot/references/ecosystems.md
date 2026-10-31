@@ -8,28 +8,28 @@ Detect from tracked files; confirm each value against the options reference fetc
 
 ## Map
 
-| Tracked file (basename or glob)                                          | `package-ecosystem`                      |
-| ------------------------------------------------------------------------ | ---------------------------------------- |
-| `package.json`                                                           | `npm` (pnpm and Yarn lockfiles included) |
-| `bun.lock`                                                               | `bun`                                    |
-| `composer.json`                                                          | `composer`                               |
-| `Gemfile`                                                                | `bundler`                                |
-| `requirements*.txt`, `pyproject.toml`, `Pipfile`, `setup.py`             | `pip`                                    |
-| `uv.lock`                                                                | `uv`                                     |
-| `Cargo.toml`                                                             | `cargo`                                  |
-| `go.mod`                                                                 | `gomod`                                  |
-| `pom.xml`                                                                | `maven`                                  |
-| `build.gradle`, `build.gradle.kts`                                       | `gradle`                                 |
-| `*.csproj`, `*.fsproj`, `*.vbproj`, `Directory.Packages.props`           | `nuget`                                  |
-| `global.json`                                                            | `dotnet-sdk`                             |
-| `Dockerfile`, `Dockerfile.*`                                             | `docker`                                 |
-| `docker-compose*.yml`, `compose*.yaml`                                   | `docker-compose`                         |
-| `.github/workflows/*.yml`, `.github/workflows/*.yaml`, root `action.yml` | `github-actions`                         |
-| `devcontainer.json`                                                      | `devcontainers`                          |
-| `*.tf`                                                                   | `terraform`                              |
-| `.pre-commit-config.yaml`                                                | `pre-commit`                             |
-| `.gitmodules`                                                            | `gitsubmodule`                           |
-| `Chart.yaml`                                                             | `helm`                                   |
+| Tracked file (basename or glob)                                                | `package-ecosystem`                      |
+| ------------------------------------------------------------------------------ | ---------------------------------------- |
+| `package.json`                                                                 | `npm` (pnpm and Yarn lockfiles included) |
+| `bun.lock`                                                                     | `bun`                                    |
+| `composer.json`                                                                | `composer`                               |
+| `Gemfile`                                                                      | `bundler`                                |
+| `requirements*.txt`, `pyproject.toml`, `Pipfile`, `setup.py`                   | `pip`                                    |
+| `uv.lock`                                                                      | `uv`                                     |
+| `Cargo.toml`                                                                   | `cargo`                                  |
+| `go.mod`                                                                       | `gomod`                                  |
+| `pom.xml`                                                                      | `maven`                                  |
+| `build.gradle`, `build.gradle.kts`                                             | `gradle`                                 |
+| `*.csproj`, `*.fsproj`, `*.vbproj`, `Directory.Packages.props`                 | `nuget`                                  |
+| `global.json`                                                                  | `dotnet-sdk`                             |
+| `Dockerfile`, `Dockerfile.*`                                                   | `docker`                                 |
+| `docker-compose*.yml`, `docker-compose*.yaml`, `compose*.yml`, `compose*.yaml` | `docker-compose`                         |
+| `.github/workflows/*.yml`, `.github/workflows/*.yaml`, root `action.yml`       | `github-actions`                         |
+| `devcontainer.json`                                                            | `devcontainers`                          |
+| `*.tf`                                                                         | `terraform`                              |
+| `.pre-commit-config.yaml`                                                      | `pre-commit`                             |
+| `.gitmodules`                                                                  | `gitsubmodule`                           |
+| `Chart.yaml`                                                                   | `helm`                                   |
 
 A manifest type missing from the fetched reference is dropped and listed under `Open:`.
 

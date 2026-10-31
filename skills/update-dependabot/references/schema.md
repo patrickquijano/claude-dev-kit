@@ -6,7 +6,7 @@
 
 ## Check
 
-`uvx-check` succeeds → `schema-uvx`; else `pipx-check` → `schema-pipx`; neither → the manual checklist. The tool downloads and runs a package; the plan names it. Exit 0 = pass.
+`uvx-check` succeeds → `schema-uvx`; else `pipx-check` → `schema-pipx`; neither → the manual checklist. The tool downloads and runs an unpinned PyPI package, so the run is not pre-allowed: the permission prompt guards it, and the plan names it. Exit 0 = pass.
 
 ## Manual checklist
 

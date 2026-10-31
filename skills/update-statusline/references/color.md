@@ -7,7 +7,7 @@
 ## Candidates
 
 - Inventory every color the script uses (grep the color table and each `paint` call). A candidate is a color no other segment uses.
-- Offer candidates such as bold bright white, bold bright magenta, a 256-color pink; keep only those unused. In the bundled asset the used colors are cyan, magenta, blue, green, yellow, orange, red, and dim.
+- Offer candidates such as bold bright white, bold bright magenta; keep only those unused. In the bundled asset the used colors are cyan, magenta, blue, green, yellow, orange, red, dim, and `branch` (256-color pink, `38;5;205`).
 
 ## Question
 
@@ -17,7 +17,7 @@ Cite a source or say `unverified` for each score; terminal support cites the ter
 
 ## Edit
 
-- Add a `branch` entry to the color table when the script has one; else inline the escape.
+- Color table present: set the `branch` entry (the bundled asset already has one, so the create flow replaces its value rather than adding an entry); else inline the escape.
 - Replace the branch segment so `git(` and `)` keep their wrapper color and the name is `paint(<name>, bold, <chosen>)`.
 - Preserve the script's quoting, trailing commas, and formatting style.
 - Inline command: apply the same change to the command string, escaping per its shell.
