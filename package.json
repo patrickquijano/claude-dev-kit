@@ -26,7 +26,6 @@
     "prettier": "^3.9.10"
   },
   "overrides": {
-    "smol-toml": "^1.9.0",
     "katex": "^0.18.2",
     "re2js": "^2.8.8"
   },
