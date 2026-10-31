@@ -11,7 +11,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Tests: `tests/unit/` and `tests/integration/`. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
 - Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` enforce `.claude/rules/git.md`; canonical copies in `skills/setup-husky/assets/`, sync rule in `.claude/rules/git-hooks.md`.
-- CI: `.github/workflows/`: `lint.yml` runs `npm run lint` on PRs to `main`, and `release.yml` publishes the GitHub release on a version tag (`vX.Y.Z`) push.
+- CI: `.github/workflows/`: `lint.yml` runs `npm run lint` on PRs to `main`, and `release.yml` publishes the GitHub release on a version tag (`vX.Y.Z`) push; `.github/dependabot.yaml` opens weekly npm (`chore(deps)`) and GitHub Actions (`ci(deps)`) update PRs.
 - Release policy: rules `.claude/rules/release.md`.
 
 ## Commands

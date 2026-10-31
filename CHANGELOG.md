@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-10-31
+
+### Added
+
+- `/cdk:setup-dotnet-api` sets up a .NET Clean Architecture Web API on the latest stable SDK with EF Core, Scalar, ULID, Serilog, FluentValidation, tests, and JSON:API.
+- `/cdk:setup-laravel-api` sets up a Laravel API at the latest stable versions with data stores, Scalar docs, Pint, Pest, Boost, IDE Helper, ULID migrations, and JSON:API.
+- `/cdk:setup-nextjs-app` sets up a Next.js app at the latest stable versions with Tailwind CSS, Vitest, Playwright, Orval, Zod, MSW, and Faker at 80% coverage.
+- `/cdk:update-dependabot` creates or updates `.github/dependabot.yaml` from the repo's package ecosystems and directories, merged in place and checked against the schema.
+- `/cdk:update-statusline` creates or updates the user-scoped Claude Code status line, giving the git branch name a distinct bold color.
+- `/cdk:update-rules` offers each instruction repeated twice or more as a rule, and three or more times also as a skill to build, or lets you omit it.
+
+### Changed
+
+- `/cdk:build-skill` and `/cdk:build-subagent` apply rubric fixes through the `cdk:rubric-improver` subagent, falling back to inline edits when it is unavailable.
+- `cdk:rubric-scorer` gives each deduction an exact fix at `file:line` with its source, using web search or fetch for official docs, or marks it unverified.
+- `cdk:rubric-improver` re-reads the cited evidence before each edit, lists fixes it cannot confirm under `Blocked:`, and needs the spawning skill path only when the user names one.
+- `/cdk:setup-linters` writes yamllint `quoted-strings` as only-when-needed and reports needlessly quoted strings under `Open:` without auto-fixing them.
+- `/cdk:setup-formatters` sets yamlfmt `force_quote_style` to match an existing yamllint `quote-type` of `single` or `double`.
+- `/cdk:setup-formatters --no-plan` asks one Go or Stop gate naming each install and write before making them.
+
 ## [0.8.7] - 2026-10-31
 
 ### Added
@@ -393,7 +413,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...HEAD
+[0.8.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...v0.8.7
 [0.8.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...v0.8.6
 [0.8.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...v0.8.5
