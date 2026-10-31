@@ -37,7 +37,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → cwd. Search for the README per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight` and edit it where it is. Relative `.md` links from it to split files belong to the README set and are read too.
 2. **Host.** Run `remote-url`; map it per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Host`.
-3. **Analyze.** Spawn a read-only repo analyst subagent (fallback: `cdk:repo-analyzer`) with the repo root, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Keep its facts block for steps 6, 7, 13.
+3. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Keep its facts block for steps 6, 7, 13.
 4. **Detect type.** Read `## Signals` in `${CLAUDE_SKILL_DIR}/references/templates.md`, Glob and Read them against the repo, and score points per type. A tie for the top or all-zero scores → list the signals found inside the step 5 question; all-zero → offer `minimal` plus the partial matches.
 5. **Template question.** Input names a type → use it, no question. Else ask per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Questions` with `## Weights` and `## Justifications` from `templates.md`. Stop and wait.
 6. **Clarify.** Each analyst `Gaps:` item → one question with an "Omit" option (max 4 per call); record omissions as `Omitted:`.
@@ -51,9 +51,9 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 10. **Idempotence.** The draft equals every current file in the README set → skip steps 11 and 12 and go to step 13; `Result: nothing-to-do` when the score is ≥95.
 11. **Confirm.** List each file to create or modify (path, create or modify, line count) and each syntax conversion, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`. Write the files, then run `format-readme` on each written file when facts `Formatter` is not none.
 12. **Verify.** Run `count-lines` on every written file and check every relative link per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Verify`; report both.
-13. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Score-only treats `Visibility: unknown` as Omit, no question. Spawn a read-only scorer subagent (fallback: `cdk:rubric-scorer`) per `${CLAUDE_SKILL_DIR}/references/spawns.md` with the README path, split files, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), and `Omitted:` list.
+13. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Score-only treats `Visibility: unknown` as Omit, no question. Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only scorer subagent) per `${CLAUDE_SKILL_DIR}/references/spawns.md` with the README path, split files, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), and `Omitted:` list.
 14. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or total ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 14: below 95 after 3 rounds`.
-15. **Improve.** Below 95 and rounds <3 → spawn an improver subagent (fallback: `cdk:rubric-improver`) per `${CLAUDE_SKILL_DIR}/references/spawns.md` and `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, passing the max, then step 11 format, step 12 verify, step 13 rescore, step 14.
+15. **Improve.** Below 95 and rounds <3 → spawn the `cdk:rubric-improver` subagent (fallback: an improver subagent) per `${CLAUDE_SKILL_DIR}/references/spawns.md` and `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve round`, passing the max, then step 11 format, step 12 verify, step 13 rescore, step 14.
 16. **Leftovers.** Always runs, after the loop ends or when step 14 reports `done`: list leftovers per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Leftovers`, then print the Output.
 
 ## Files

@@ -14,7 +14,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 - Ask (unattended: record) what the input and repo cannot answer.
 - Flags: `--yes` = unattended: no plan mode, no questions, recommended options taken, assumptions under `Open:` (the unattended rules below apply); `--no-plan` skips plan mode only and every gate and question is still asked. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (admin-bypass merge, force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file): it is still asked, and when nobody can answer it is skipped and listed under `Open:`.
-- The only spawn is the open-items classifier of step 10, a read-only subagent (fallback: `cdk:speckit-open-items-analyzer`).
+- The only spawn is the open-items classifier of step 10, the `cdk:speckit-open-items-analyzer` subagent (fallback: a read-only subagent that classifies open items).
 - Invoke each speckit skill (a third-party skill installed by `specify init`) with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
 - Relay every question a speckit skill asks to the user with AskUserQuestion. Pre-approved exceptions: accept the analyze remediation offer for non-CRITICAL findings only (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
 - Never switches branches; a branch that the Spec Kit git hook created is reported, never made here.

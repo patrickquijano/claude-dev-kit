@@ -4,7 +4,7 @@ Detail for steps 7–9: the change-set check, the verifier, the implementer's fi
 
 ## Verify
 
-Spawn the verifier per Spawn briefs in `SKILL.md`, with the changed paths from the implementer's `Changed:`.
+Spawn the verifier (step 8), with the changed paths from the implementer's `Changed:`.
 
 ## Evidence
 
@@ -34,7 +34,7 @@ Run after every implementer return (step 7 and each fix round). Run `status` and
 
 ## Iterate
 
-- Re-enter step 5 when a goal is unmet or a check still fails after its fix attempts, passing along the evidence.
+- Re-enter when a goal is unmet or a check still fails after its fix attempts: re-spawn the planner with the evidence (`SKILL.md` `## Spawn briefs`), then step 5.
 - Count each re-entry as a round; the cap is in `## Rules`.
 - Unattended runs re-enter without asking; each round's fixes still follow `## Fix` plan mode.
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-10-31
+
+### Added
+
+- The read-only `implementation-planner` subagent.
+
+### Changed
+
+- `/cdk:implement-spec` plans through `cdk:implementation-planner` and re-plans when a goal stays unmet.
+- Skills invoke and spawn by their `cdk:` name first, with a plain-words fallback, and never spawn `Explore` or `general-purpose`.
+- `/cdk:build-skill` writes name-first calls and spawns, and deducts when plain words alone replace a matching component.
+
 ## [0.8.6] - 2026-10-31
 
 ### Added
@@ -381,7 +393,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...HEAD
+[0.8.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...v0.8.7
 [0.8.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...v0.8.6
 [0.8.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.4...v0.8.5
 [0.8.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.3...v0.8.4

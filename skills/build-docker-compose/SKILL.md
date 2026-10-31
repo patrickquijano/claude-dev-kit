@@ -43,7 +43,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 2. **Analyze.** Collect services, images, ports, env var names, volumes, and Swarm signals from the input and compose files only (`flow.md` `## Analyze`). Review mode → step 3 without asking, then 7, then 8.
 3. **Target and app.** Ask Compose / DevContainer or Compose Deploy, then Backend API or Frontend UI, unless stated (`flow.md` `## Target`, `## App`).
 4. **Clarify.** Ask the Dockerfile, backend-service, scoped-file, common, and per-service deploy questions in that order, recommended first with the reason (`flow.md` `## Clarify`).
-5. **Draft and plan.** Resolve image tags with a read-only subagent that resolves image tags (fallback: `cdk:version-resolver`; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
+5. **Draft and plan.** Resolve image tags with the `cdk:version-resolver` subagent (fallback: a read-only subagent that resolves image tags; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list (`flow.md` `## Draft`).
 6. **Write** the file after the `ExitPlanMode` approval (`flow.md` `## Write`).
 7. **Verify.** Validate and lint with the commands for the target; fix up to the cap (`flow.md` `## Verify`).
 8. **Review and report.** Check the file against every Required item, list leftovers under `Open:`, print the Output.
