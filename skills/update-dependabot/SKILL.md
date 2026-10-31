@@ -26,7 +26,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Existing file: merge in place, keep its extension and every user entry; change only invalid or stale keys, each named in the plan. Idempotent: a re-run changes nothing.
 - Never run git write commands; never create a branch or commit.
 - Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Grill: mine the repo first, ask only what changes the output, never fill a gap with an assumption. Use the structured-question tool (unavailable → take the Recommended and list it under `Open:`). Before each question show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md`; a close call has no Recommended and goes under `Open:`.
-- Approval: nothing is written before the `ExitPlanMode` approval after step 5 (`plan.md`); each step 7 fix round re-enters plan mode. Plan mode declined → `Result: stopped`, `Stopped: 0: plan mode declined`; 3 rejections → `Result: cancelled`. `--no-plan` replaces approval with an ask `Apply` | `Stop`.
+- Approval: nothing is written before the `ExitPlanMode` approval after step 5 (`plan.md`); each step 7 fix round re-enters plan mode. Plan mode declined → `Result: stopped`, `Stopped: 0: plan mode declined`; 3 rejections → `Result: cancelled`, `Stopped: <step>: plan rejected` (`plan.md`). `--no-plan` replaces approval with an ask `Apply` | `Stop`.
 - No way to ask and no `--yes` → write nothing, `Stopped: 0: cannot interact`.
 - Cap: fix loop 3 rounds; leftovers go under `Open:`.
 
