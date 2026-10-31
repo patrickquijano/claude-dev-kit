@@ -69,7 +69,7 @@ function clean(value) {
       const code = character.codePointAt(0);
 
       const isControl = code <= 31 || (code >= 127 && code <= 159);
-      const isBidi =
+      const isBidiOrSeparator =
         (code >= 0x202a && code <= 0x202e) ||
         (code >= 0x2066 && code <= 0x2069) ||
         code === 0x200e ||
@@ -78,7 +78,7 @@ function clean(value) {
         code === 0x2028 ||
         code === 0x2029;
 
-      return !isControl && !isBidi;
+      return !isControl && !isBidiOrSeparator;
     })
     .join('');
 }
