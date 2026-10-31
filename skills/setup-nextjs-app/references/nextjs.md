@@ -1,4 +1,4 @@
-# Nextjs
+# Next.js
 
 ## Contents
 

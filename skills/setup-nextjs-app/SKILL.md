@@ -3,11 +3,11 @@ name: setup-nextjs-app
 description: Sets up a Next.js app at the latest stable versions with Tailwind CSS, Vitest, Playwright, Orval, Zod, MSW, and Faker at 80% coverage. Use only when the user explicitly asks to set up a Next.js app.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan]'
-allowed-tools: Read Bash(git rev-parse *) Bash(node --version) Bash(npm view *) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun)
+allowed-tools: Read Bash(git rev-parse *) Bash(node --version) Bash(npm view *) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(mktemp -d)
 disable-model-invocation: true
 ---
 
-# Setup Nextjs App
+# Setup Next.js App
 
 Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
@@ -34,7 +34,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Workflow
 
-1. **Pre-flight.** Repo root or Node version `<none>` → stop (name the missing tool). Node older than Next.js `engines.node` (from `npm view next engines`) → stop with both versions. An existing `next` dependency → configure-only (skip the scaffold). Enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` (`--no-plan` | `--yes`: skip).
+1. **Pre-flight.** Repo root or Node version `<none>` → stop (name the missing tool). `pm-check` with `<pm>` = `npm` fails → stop, `Stopped: 1: npm not found`. Node older than Next.js `engines.node` (from `npm view next engines`) → stop with both versions. An existing `next` dependency → configure-only (skip the scaffold). Enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` (`--no-plan` | `--yes`: skip).
 2. **Resolve versions.** Every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path, never from memory.
 3. **Research.** Recommended configuration per `research.md` through `cdk:topic-researcher` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/research.md` and `${CLAUDE_SKILL_DIR}/references/red-flags.md` by those paths, cited by URL; spawned in the same message as step 2 (independent).
 4. **Questions.** Package manager, linter (ESLint or Biome), `src/` directory, and the Orval API client mode, per `options.md`, each with the grill table.
@@ -46,7 +46,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 10. **Playwright.** `tests/e2e` against a production build. `nextjs.md` Playwright.
 11. **Orval, Zod, MSW, Faker.** Generated client, schemas, mocks. `nextjs.md` Orval.
 12. **Sample tests.** Enough for coverage to pass. `nextjs.md` Samples.
-13. **Verify.** Run lint, typecheck, `vitest --coverage`, and `playwright test` from `commands.md`; repair what this run wrote, up to the cap, each round in plan mode.
+13. **Verify.** Run `lint`, `typecheck`, `unit`, and `e2e` from `commands.md`; repair what this run wrote, up to the cap, each round in plan mode.
 14. **Red flags.** Review per `red-flags.md`; fix up to the cap, each round in plan mode, then re-run the step 13 checks.
 15. **Report** the Output.
 

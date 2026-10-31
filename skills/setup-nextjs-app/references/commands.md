@@ -9,6 +9,7 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `next-engines` | `npm view next engines`                                 | Minimum Node for Next.js                               |
 | `latest`       | `npm view <pkg> dist-tags.latest`                       | Latest stable version; fallback registry row           |
 | `pm-check`     | `command -v <pm>`                                       | Fails when the package manager is missing              |
+| `scratch`      | `mktemp -d`                                             | Scratch dir for the scaffold                           |
 | `create-app`   | `<exec> create-next-app@latest <scratch> --disable-git` | Scaffold into a scratch dir; flags per research        |
 | `add`          | `<pm> add <pkg>`                                        | Dependencies; `-D` for dev tools (`npm install -D`)    |
 | `lint`         | `<pm> run lint`                                         | ESLint CLI or Biome per the pick                       |
