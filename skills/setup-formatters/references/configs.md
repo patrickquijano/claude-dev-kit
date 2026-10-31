@@ -44,5 +44,6 @@ The yamlfmt file has line length off. It starts with `---` (the form yamlfmt enf
 
 - `.yamlfmt.yaml`: `formatter:` with `include_document_start: true`, `pad_line_comments: 2`, `line_ending: lf` (its default is `crlf` on Windows), `eof_newline: true`, `trim_trailing_whitespace: true`, `retain_line_breaks_single: true`; never `max_line_length` (unset = no wrapping).
 - A `.yamllint*` file exists → read its indent, comment padding, document start, and sequence indent, and write the `formatter` block to match it; a value it cannot match is an `Open:` item naming the key.
+- Quoting is not a formatter key (neither yamlfmt nor Prettier has an "only when needed" option): yamllint enforces it and the formatter leaves quotes as written. A `.yamllint*` file exists with `quoted-strings.quote-type` `single` or `double` → write yamlfmt `force_quote_style` with that value; any other value writes no key.
 - Prettier formats YAML (fallback) → no yamlfmt file is written.
 - An existing `.yamlfmt.yaml` differing from these values → the `Overwrite` | `Keep` ask applies; never merge silently.

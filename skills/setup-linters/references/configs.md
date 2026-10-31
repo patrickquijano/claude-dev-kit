@@ -41,7 +41,7 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 
 yamllint is written to agree with the repo's YAML formatter on every setting the formatter controls, with line length off. The file starts with `---`, then one comment line, and uses flow mappings without inner spaces (`{key: value}`). Check each key against the yamllint rules docs before writing.
 
-- `.yamllint.yaml`: `extends: default`, then `rules:` with `line-length: disable`, `truthy: {check-keys: false}` (GitHub Actions `on:` passes), `indentation: {spaces: 2}`; `document-start` (present), `comments` (2 spaces), `indent-sequences` (true), `new-lines` (unix), and `empty-lines` (max 2) stay at their defaults and are not written.
+- `.yamllint.yaml`: `extends: default`, then `rules:` with `line-length: disable`, `truthy: {check-keys: false}` (GitHub Actions `on:` passes), `indentation: {spaces: 2}`, `quoted-strings: {required: only-when-needed}` (quote a string only when needed; a plain string in quotes becomes a `--strict` error the skill reports under `Open:` and never auto-fixes); `document-start` (present), `comments` (2 spaces), `indent-sequences` (true), `new-lines` (unix), and `empty-lines` (max 2) stay at their defaults and are not written.
 - A `.yamlfmt*` file exists → derive the values from it (indent, `pad_line_comments`, `include_document_start`, `line_ending`); a conflict between the two files → never overwrite; add an `Open:` item naming the key and the fix.
 - Prettier formats YAML (no yamlfmt) → add `document-start: disable` and `comments: {min-spaces-from-content: 1}`, which is what Prettier writes (both differ from the yamllint defaults).
 - A kept config with a line-length limit (`line-length` rule not `disable`) → `Open:` item to disable it.
