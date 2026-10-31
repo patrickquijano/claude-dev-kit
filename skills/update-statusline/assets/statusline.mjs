@@ -49,6 +49,30 @@ function isNumber(value) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {value is Record<string, any>}
+ */
+function isObject(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Drops C0/C1 control characters so payload text cannot inject terminal escapes.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+function clean(value) {
+  return [...String(value)]
+    .filter((character) => {
+      const code = character.codePointAt(0);
+
+      return code > 31 && !(code >= 127 && code <= 159);
+    })
+    .join('');
+}
+
+/**
  * Formats a token count: 999, 1.23k, 12.3k, 123k, 1.23m, 12.3m.
  * Each tier is chosen on the rounded value so 9_999 renders as 10.0k, not 10.00k.
  *
@@ -143,16 +167,27 @@ export function formatTimeLeft(secondsLeft, allowDays) {
 }
 
 /**
+ * A missing git, a timeout, or a non-zero git exit means "no branch here".
+ *
+ * @param {any} error
+ * @returns {boolean}
+ */
+function isGitUnavailable(error) {
+  return error?.code === 'ENOENT' || error?.code === 'ETIMEDOUT' || typeof error?.status === 'number';
+}
+
+/**
  * @param {string | undefined} directory
+ * @param {typeof execFileSync} [run]
  * @returns {string | null}
  */
-function gitBranch(directory) {
+export function gitBranch(directory, run = execFileSync) {
   if (!directory) {
     return null;
   }
 
   const git = (...args) =>
-    execFileSync('git', ['-C', directory, '--no-optional-locks', ...args], {
+    run('git', ['-C', directory, '--no-optional-locks', ...args], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
       timeout: 1_000
@@ -160,12 +195,20 @@ function gitBranch(directory) {
 
   try {
     return git('symbolic-ref', '--short', 'HEAD');
-  } catch {
-    try {
-      return git('rev-parse', '--short', 'HEAD');
-    } catch {
-      return null;
+  } catch (error) {
+    if (!isGitUnavailable(error)) {
+      throw error;
     }
+  }
+
+  try {
+    return git('rev-parse', '--short', 'HEAD');
+  } catch (error) {
+    if (!isGitUnavailable(error)) {
+      throw error;
+    }
+
+    return null;
   }
 }
 
@@ -200,21 +243,23 @@ function rateLimitSegments(window, label, allowDays, nowSeconds) {
  * @returns {string}
  */
 export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBranch } = {}) {
+  const payload = isObject(input) ? input : {};
   const segments = [];
-  const directory = input.workspace?.current_dir ?? input.cwd;
+  const candidate = payload.workspace?.current_dir ?? payload.cwd;
+  const directory = typeof candidate === 'string' && candidate !== '' ? candidate : undefined;
 
   if (directory) {
-    segments.push(paint(basename(directory), COLOR.bold, COLOR.cyan));
+    segments.push(paint(clean(basename(directory)), COLOR.bold, COLOR.cyan));
   }
 
   const branchName = branch(directory);
   if (branchName) {
     segments.push(
-      `${paint('git(', COLOR.magenta)}${paint(branchName, COLOR.bold, COLOR.branch)}${paint(')', COLOR.magenta)}`
+      `${paint('git(', COLOR.magenta)}${paint(clean(branchName), COLOR.bold, COLOR.branch)}${paint(')', COLOR.magenta)}`
     );
   }
 
-  const contextWindow = input.context_window ?? {};
+  const contextWindow = isObject(payload.context_window) ? payload.context_window : {};
   const tokens = contextWindow.total_input_tokens;
   if (isNumber(tokens)) {
     segments.push(paint(formatTokens(tokens), COLOR.bold, tokenColor(tokens)));
@@ -228,16 +273,16 @@ export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBra
     segments.push(paint(`${Math.round(contextPercentage)}%`, tokenColor(tokens ?? 0)));
   }
 
-  if (input.model?.display_name) {
-    segments.push(paint(input.model.display_name, COLOR.bold, COLOR.blue));
+  if (payload.model?.display_name) {
+    segments.push(paint(clean(payload.model.display_name), COLOR.bold, COLOR.blue));
   }
-  if (input.effort?.level) {
-    segments.push(paint(input.effort.level, COLOR.dim));
+  if (payload.effort?.level) {
+    segments.push(paint(clean(payload.effort.level), COLOR.dim));
   }
 
   const limits = [
-    ...rateLimitSegments(input.rate_limits?.five_hour, '5h', false, nowSeconds),
-    ...rateLimitSegments(input.rate_limits?.seven_day, '7d', true, nowSeconds)
+    ...rateLimitSegments(payload.rate_limits?.five_hour, '5h', false, nowSeconds),
+    ...rateLimitSegments(payload.rate_limits?.seven_day, '7d', true, nowSeconds)
   ];
   if (limits.length > 0) {
     segments.push(limits.join(' | '));
@@ -250,7 +295,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let input = {};
   try {
     input = JSON.parse(readFileSync(0, 'utf8') || '{}');
-  } catch {
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) {
+      throw error;
+    }
     // Render whatever is derivable from an empty payload rather than crash the status line.
   }
   process.stdout.write(render(input));
