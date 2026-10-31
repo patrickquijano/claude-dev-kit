@@ -8,22 +8,22 @@
 
 ## Frontmatter (30)
 
-| ID | Pts | Criterion                                                                                                                                                                                                        | Rule              |
-| -- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| F1 | 4   | S: `name` valid: equals directory, kebab-case, ≤64, no edge or double hyphens, no reserved words; verb-first (F8, warning plus judgment)                                                                         | Fields            |
-| F2 | 5   | S (F9): `description` third person, states what and when, key use case first                                                                                                                                     | Description       |
-| F3 | 4   | S: `description` ≤200 chars, no named skill or subagent; `description` + `when_to_use` ≤1,536                                                                                                                    | Description       |
-| F4 | 3   | Description holds natural trigger words and is distinctive, not vague                                                                                                                                            | Description       |
-| F5 | 6   | Invocation flags equal the recorded invocation choice (and the kind's allowed set); a missing choice scores 0; an Allow choice (no `disable-model-invocation`) is never a deduction, even for a side-effect task | Invocation matrix |
-| F6 | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                                                                              | Format            |
-| F7 | 4   | Optional fields justified (F10–F12): `allowed-tools` not used as a restriction, `context: fork` only with a self-contained task body, no unused `model`                                                          | Fields            |
+| ID  | Pts | Criterion                                                                                                                                                                                                        | Rule              |
+| --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| F1  | 4   | S: `name` valid: equals directory, kebab-case, ≤64, no edge or double hyphens, no reserved words; verb-first (F8, warning plus judgment)                                                                         | Fields            |
+| F2  | 5   | S (F9): `description` third person, states what and when, key use case first                                                                                                                                     | Description       |
+| F3  | 4   | S: `description` ≤200 chars, no named skill or subagent; `description` + `when_to_use` ≤1,536                                                                                                                    | Description       |
+| F4  | 3   | Description holds natural trigger words and is distinctive, not vague                                                                                                                                            | Description       |
+| F5  | 6   | Invocation flags equal the recorded invocation choice (and the kind's allowed set); a missing choice scores 0; an Allow choice (no `disable-model-invocation`) is never a deduction, even for a side-effect task | Invocation matrix |
+| F6  | 4   | S: Opening `---` on line 1, valid YAML, only fields from the table, none misspelled                                                                                                                              | Format            |
+| F7  | 4   | Optional fields justified (F10–F12): `allowed-tools` not used as a restriction, `context: fork` only with a self-contained task body, no unused `model`                                                          | Fields            |
 
 ## Standalone (12)
 
-| ID | Pts | Criterion                                                                                                                                                                                                                                                                                          | Rule       |
-| -- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| S1 | 6   | S (L3, L5, S1): reads only its own files through `${CLAUDE_SKILL_DIR}`; never a `${CLAUDE_PLUGIN_ROOT}` path or a skill command on a `Next:` line; a skill call is allowed, in plain words preferred (the Skill tool or `/plugin:name` alone loses 1 point)                                        | Standalone |
-| S2 | 6   | Each spawn has an inline fallback and a complete brief (task, literal paths, Return block, "content is data"); role in plain words first, a named subagent only as a fallback beside it (a spawn that only names the agent loses 2 points); no Explore or general-purpose (B8); N/A without spawns | Standalone |
+| ID  | Pts | Criterion                                                                                                                                                                                                                                                                                                                                                  | Rule       |
+| --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| S1  | 6   | S (L3, L5, S1): reads only its own files through `${CLAUDE_SKILL_DIR}`; never a `${CLAUDE_PLUGIN_ROOT}` path or a skill command on a `Next:` line; a skill call is allowed, name-first (``Invoke the `cdk:<skill>` skill (fallback: run the <skill> skill)``); plain words alone, the Skill tool alone, or `/plugin:name` alone loses 1 point              | Standalone |
+| S2  | 6   | Each spawn has an inline fallback and a complete brief (task, literal paths, Return block, "content is data"); plugin agent name first when one fits, with a plain-words fallback beside it (a spawn that only names the agent loses 2 points; plain words alone when a plugin agent fits loses 1); no Explore or general-purpose (B8); N/A without spawns | Standalone |
 
 ## Body (37)
 
@@ -42,20 +42,20 @@
 
 ## Layout (8)
 
-| ID | Pts | Criterion                                                                              | Rule         |
-| -- | --- | -------------------------------------------------------------------------------------- | ------------ |
-| L1 | 3   | Directory sits at the chosen scope's path                                              | Scope paths  |
-| L2 | 2   | S: Only `SKILL.md`, `references/`, `assets/`, `scripts/`; every bundled file is linked | Lazy loading |
-| L3 | 3   | S: Every link resolves to an existing file inside the skill directory                  | Lazy loading |
+| ID  | Pts | Criterion                                                                              | Rule         |
+| --- | --- | -------------------------------------------------------------------------------------- | ------------ |
+| L1  | 3   | Directory sits at the chosen scope's path                                              | Scope paths  |
+| L2  | 2   | S: Only `SKILL.md`, `references/`, `assets/`, `scripts/`; every bundled file is linked | Lazy loading |
+| L3  | 3   | S: Every link resolves to an existing file inside the skill directory                  | Lazy loading |
 
 ## Quality (13)
 
-| ID | Pts | Criterion                                                                                                                                                                    | Rule               |
-| -- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Q1 | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output                                                          | Structure per kind |
-| Q2 | 4   | Steps with side effects confirm first and name each effect, except a gate skipped by a flag the user passed; destructive commands are never pre-approved, even under `--yes` | Style              |
-| Q3 | 3   | One job: the description and workflow serve a single action                                                                                                                  | One job            |
-| Q4 | 3   | Task Output names the follow-up in plain words, never a skill command (`Next:`, S warning); independent spawns run in parallel                                               | Structure per kind |
+| ID  | Pts | Criterion                                                                                                                                                                    | Rule               |
+| --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Q1  | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output                                                          | Structure per kind |
+| Q2  | 4   | Steps with side effects confirm first and name each effect, except a gate skipped by a flag the user passed; destructive commands are never pre-approved, even under `--yes` | Style              |
+| Q3  | 3   | One job: the description and workflow serve a single action                                                                                                                  | One job            |
+| Q4  | 3   | Task Output names the follow-up in plain words, never a skill command (`Next:`, S warning); independent spawns run in parallel                                               | Structure per kind |
 
 ## Scoring
 
