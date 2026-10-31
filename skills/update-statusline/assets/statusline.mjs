@@ -58,7 +58,7 @@ function isObject(value) {
 }
 
 /**
- * Drops C0/C1 control characters and bidi overrides so payload text cannot inject terminal escapes or reorder output.
+ * Drops C0/C1 control characters, bidi marks and overrides, and line separators so payload text cannot inject terminal escapes or reorder output.
  *
  * @param {unknown} value
  * @returns {string}
@@ -69,7 +69,14 @@ function clean(value) {
       const code = character.codePointAt(0);
 
       const isControl = code <= 31 || (code >= 127 && code <= 159);
-      const isBidi = (code >= 0x202a && code <= 0x202e) || (code >= 0x2066 && code <= 0x2069);
+      const isBidi =
+        (code >= 0x202a && code <= 0x202e) ||
+        (code >= 0x2066 && code <= 0x2069) ||
+        code === 0x200e ||
+        code === 0x200f ||
+        code === 0x061c ||
+        code === 0x2028 ||
+        code === 0x2029;
 
       return !isControl && !isBidi;
     })

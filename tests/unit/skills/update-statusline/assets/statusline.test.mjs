@@ -421,6 +421,33 @@ describe('render', () => {
     assert.equal(line, 'a │ Model');
   });
 
+  test('strips every bidi and separator code point at the range edges', () => {
+    // Arrange
+    const stripped = [0x200e, 0x200f, 0x061c, 0x2028, 0x2029, 0x202a, 0x202e, 0x2066, 0x2069];
+    const input = {
+      cwd: '/work/a',
+      model: { display_name: `M${stripped.map((code) => String.fromCodePoint(code)).join('')}x` }
+    };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, 'a │ Mx');
+  });
+
+  test('keeps characters just outside the bidi ranges', () => {
+    // Arrange
+    const kept = [0x200d, 0x2027, 0x202f, 0x2065, 0x206a].map((code) => String.fromCodePoint(code)).join('');
+    const input = { cwd: '/work/a', model: { display_name: `M${kept}x` } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, `a │ M${kept}x`);
+  });
+
   test('strips control characters from the directory and the effort level', () => {
     // Arrange
     const input = { cwd: `/work/ap${ESC}p`, effort: { level: `hi${ESC}gh` } };
