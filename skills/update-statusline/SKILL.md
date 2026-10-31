@@ -3,7 +3,7 @@ name: update-statusline
 description: Creates or updates the user-scoped Claude Code status line, giving the git branch name a distinct emphasized color. Use only when the user explicitly asks to update the status line.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan]'
-allowed-tools: Read Bash(node --version) Bash(cp ${CLAUDE_SKILL_DIR}/assets/statusline.mjs ~/.claude/*) Bash(cp ~/.claude/statusline.mjs ~/.claude/statusline.mjs.bak-*) Bash(date +*) Bash(chmod +x ~/.claude/*) Bash(printf *) Bash(node ~/.claude/statusline.mjs) Bash(NO_COLOR=1 node ~/.claude/statusline.mjs)
+allowed-tools: Read Bash(node --version) Bash(cp ${CLAUDE_SKILL_DIR}/assets/statusline.mjs ~/.claude/statusline.mjs) Bash(cp ~/.claude/statusline.mjs ~/.claude/statusline.mjs.bak-*) Bash(date +*) Bash(chmod +x ~/.claude/statusline.mjs) Bash(printf '%s' *) Bash(node ~/.claude/statusline.mjs) Bash(NO_COLOR=1 node ~/.claude/statusline.mjs)
 disable-model-invocation: true
 ---
 
@@ -37,7 +37,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 1. **Pre-flight.** Node version `<none>` → stop ("install Node.js"). Enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` (`--no-plan` | `--yes`: skip).
 2. **Classify.** Read `statusLine` from `~/.claude/settings.json`: a command naming a script file → update that file; an inline command → update the command string; none → create from `assets/statusline.mjs`. Not `type: command` → stop and report.
-3. **Locate** the branch segment (the `paint` call that prints `git(<name>)`). Not found → stop and report; never guess another segment.
+3. **Locate** the branch segment (the styled call that prints `git(<name>)`). Not found → stop and report; never guess another segment.
 4. **Color.** Ask the color question per `color.md` with the grill table.
 5. **Plan.** Show the diff, the backup path, and (create only) the `statusLine` object to add; `ExitPlanMode`.
 6. **Write.** Back up, then edit per the Rules; create → copy the asset, set the chosen color, `chmod-exec`, add `statusLine`.
