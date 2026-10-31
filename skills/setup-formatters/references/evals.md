@@ -32,6 +32,7 @@ pass: <observable criteria>
 | fix-round-plan-mode | "Set up formatters." (a config this run wrote is invalid)                                    | Fix round enters plan mode first                              | `EnterPlanMode` before any fix edit; a rejected plan applies nothing                                                                             |
 | yaml-quote-style    | "Set up formatters." (yamlfmt, `.yamllint.yaml` with `quoted-strings: {quote-type: single}`) | Maps the quote type to `force_quote_style`                    | `.yamlfmt.yaml` has `force_quote_style: single`; `quote-type: any` or no `quoted-strings` writes no key; no quoting key is invented for Prettier |
 | grill-close-call    | A decision question whose top two totals are ≤5 apart                                        | Table before the question; no Recommended                     | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked                             |
+| no-plan-stop        | "Set up formatters --no-plan." (JS files, `package.json`, no config)                         | Asks Go or Stop before any write, no plan mode                | `Plan mode: skipped`; one ask `Go` or `Stop` naming the effects; `Stop` gives `Result: cancelled`, `Stopped: 0: gate stopped`; nothing written   |
 
 ## Running per model
 

@@ -23,7 +23,7 @@ One candidate → use it. Several formatters → the catalog's first, no questio
 
 ## Install
 
-- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question. `--no-plan` without `--yes` → no `ExitPlanMode`: ask one gate (`Go` | `Stop`) naming the same effects before any install or write; `Stop` → `Result: cancelled`.
+- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question. `--no-plan` without `--yes` → no `ExitPlanMode`: ask one gate (`Go` | `Stop`) naming the same effects before any install or write; `Stop` → `Result: cancelled`, `Stopped: 0: gate stopped`.
 - Approved → create the missing `package.json` first (`package-manager.md`), then install.
 - Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>` (workspace-root flag per `package-manager.md`).
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. .NET tools → `dotnet-manifest` when needed, then `dotnet-tool-install`; missing prerequisite → skip the tool with the reason.
