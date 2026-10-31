@@ -20,7 +20,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
-- Spawn only the research subagent of step 4 (fallback: `cdk:topic-researcher`), with a complete brief (task, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Spawn only the `cdk:topic-researcher` subagent (fallback: a research subagent of step 4), with a complete brief (task, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Setup only: write `compose.sonar.yaml`, `.vscode/tasks.json`, `.env.sonar`, and a `.gitignore` entry at the repo root; start `sonarqube` only to configure it and stop it afterwards unless it was already running; never scan, fix, or remove volumes.
 - Exact tags: the images are pinned to the tags `compose` resolves (looked up at most once per day); never `latest`, never a host install.
@@ -35,7 +35,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Then enter plan mode (skipped under `--no-plan` or `--yes`) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode`. The `ExitPlanMode` approval names every effect (list in `flow.md` `## Pre-flight`). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Write.** Run `compose` with `--root <root>`; an `ask` (two build tools) → AskUserQuestion, then re-run with `--stack <choice>`. Detail: `flow.md` `## Stack`.
 3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → the approved plan named the overwrite → re-run `compose` with `--force`; else record it under `Open:` and stop (`Result: stopped`). Unattended: record it under `Open:` and stop. Detail: `flow.md` `## Exists`.
-4. **Unsupported stack.** Any other `stop` except `invalid sonar.projectKey` → spawn a research subagent (fallback: `cdk:topic-researcher`; inline research when it is unavailable); its answer and sources go under `Open:`. Detail: `flow.md` `## Unsupported stack`.
+4. **Unsupported stack.** Any other `stop` except `invalid sonar.projectKey` → spawn the `cdk:topic-researcher` subagent (fallback: a research subagent; inline research when it is unavailable); its answer and sources go under `Open:`. Detail: `flow.md` `## Unsupported stack`.
 5. **Validate.** `docker-info` succeeds → run `compose-check`; else `Validate: skipped (no Docker)`. Detail: `flow.md` `## Validate`.
 6. **Configure.** Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
 7. **Report.** Print the Output block; tell the user how to run it (`flow.md` `## Running it`).

@@ -16,13 +16,13 @@ Nothing is unstaged before the step 7 approval. Staged files (`staged-names`) an
 
 `HEAD` (detached) → `detached@<sha>` from `short-head`, protected. `default-branch` unset → `main`.
 
-Step 8 runs the switch-branch skill with `--yes` semantics: `Switch only`, never push, no second confirmation (the step 7 approval covers it). Its input is a short description built from the highest-weight group's type and subject (type rule `feat` > `fix` > most frequent, as in the switch-branch skill's `## Type and description`; not the first group; for example `feat: add login form`), so it names the branch inline from the commits, not from all diffs.
+Step 8 invokes the `cdk:switch-branch` skill (fallback: run the switch-branch skill) with `--yes` semantics: `Switch only`, never push, no second confirmation (the step 7 approval covers it). Its input is a short description built from the highest-weight group's type and subject (type rule `feat` > `fix` > most frequent, as in the switch-branch skill's `## Type and description`; not the first group; for example `feat: add login form`), so it names the branch inline from the commits, not from all diffs.
 
 ## Group
 
 Small path: one group of every changed file, no `Split`, no `Excluded`. Draft the subject here per `conventions.md`: type from paths (`docs` for `*.md` or docs only, `test` for test files only, `ci` for CI files, `build` for manifests or build config only, `chore` for other config, else `feat` for added functionality or `fix` for corrective changes judged from file names and numstat; unsure → `chore`), an optional single-area scope, and an imperative summary.
 
-Analyzed path: spawn a read-only subagent that splits the changes into atomic commit groups (tools: Read, Grep, Bash; Bash only for read-only `git -C <root>` status, diff, log, rev-parse, ls-files, rev-list). `Question` returned → AskUserQuestion, then respawn once with the answers. One file mixes unrelated changes (`Split`) → write group `<n>`'s hunks of `diff-file` to `<scratch>/<n>.patch` using the returned `@@` headers; stage nothing yet (step 8 applies it). Brief and fallback: `## Spawn briefs`.
+Analyzed path: spawn the `cdk:change-analyzer` subagent (fallback: a read-only subagent that splits the changes into atomic commit groups; tools: Read, Grep, Bash; Bash only for read-only `git -C <root>` status, diff, log, rev-parse, ls-files, rev-list). `Question` returned → AskUserQuestion, then respawn once with the answers. One file mixes unrelated changes (`Split`) → write group `<n>`'s hunks of `diff-file` to `<scratch>/<n>.patch` using the returned `@@` headers; stage nothing yet (step 8 applies it). Brief and fallback: `## Spawn briefs`.
 
 Commitlint config exists → per subject write `<scratch>/msg` and run `commitlint`; a failure → redraft from the error lines (analyzed: respawn the grouping subagent with the prior `Groups`, `Split`, `Excluded`, and the error lines, so only failing subjects change). Cap 3 per subject. Write `.patch` files only after every subject passes.
 

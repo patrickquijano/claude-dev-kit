@@ -14,7 +14,7 @@ Runs once, right after pre-flight passes. `--no-plan` or `--yes` → `Plan mode:
 
 ## Step 6
 
-1. Spawn one read-only researcher subagent per selected major (and minor with breaking changes), at most 4 per message, in batches until all are done. Scope: the `Breaking:` URLs and `Affects:` hits. Its `Answer:` is the required edit per file.
+1. Spawn one `cdk:topic-researcher` subagent (fallback: a read-only researcher subagent) per selected major (and minor with breaking changes), at most 4 per message, in batches until all are done. Scope: the `Breaking:` URLs and `Affects:` hits. Its `Answer:` is the required edit per file.
 2. Check each edit against Grep hits for the package's API in the repo. Drop an edit with no hit or one that targets another file; print the rest.
 3. Patch and minor edits apply without asking.
 4. Each major's edits → the plan file marks it Apply and the user edits it to Skip at approval; there is no separate question. Skipped → `Skipped:` and `Open:`.

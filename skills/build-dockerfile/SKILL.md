@@ -38,7 +38,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 3. **Clarify.** Ask only missing facts; apply the defaults without asking. Devcontainer → skip (`flow.md` `## Clarify`).
 4. **Draft and plan.** Resolve image tags with `resolve-tag` only for an image without an exact tag; build `Dockerfile` and `.dockerignore` from practices.md; print them (a diff when existing) and the change list (`flow.md` `## Draft`).
 5. **Write**, once the plan is approved (`--yes`: right after the print), `Dockerfile` in the app dir and `.dockerignore` at the context root (existing → append only missing entries).
-6. **Verify.** Spawn a read-only reviewer subagent (fallback: `cdk:practices-reviewer`; brief in `flow.md` `## Spawn briefs`), fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
+6. **Verify.** Spawn the `cdk:practices-reviewer` subagent (fallback: a read-only reviewer subagent; brief in `flow.md` `## Spawn briefs`), fix `error` and `warning` findings, up to the cap (`flow.md` `## Verify`).
 7. **Report** leftovers under `Open:`, then print the Output.
 
 ## Files

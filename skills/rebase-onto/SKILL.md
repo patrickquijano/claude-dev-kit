@@ -28,7 +28,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - During a rebase `--ours` = `HEAD` (target plus your commits already replayed) and `--theirs` = the commit being replayed (`REBASE_HEAD`).
 - `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` run only after the AskUserQuestion option that names the effect (except the unattended conflict abort); `rebase-abort` stays out of `allowed-tools`; an empty-commit `skip` runs without asking; `git rm`, `git checkout --ours`, and `git checkout --theirs` stay out of `allowed-tools`, so the permission prompt is a second guard.
 - Push is never automatic: always ask first.
-- Conflict analysis: one read-only subagent per conflicted file (fallback: `cdk:conflict-analyzer`), ≤4 per message (brief, return, and inline fallback in `flow.md` `## Conflict analysis`). Subagents only propose; every question and git write stays here.
+- Conflict analysis: one `cdk:conflict-analyzer` subagent per conflicted file (fallback: a read-only subagent), ≤4 per message (brief, return, and inline fallback in `flow.md` `## Conflict analysis`). Subagents only propose; every question and git write stays here.
 - Caps: Revise loop 5 rounds per file; the conflict loop runs once per replayed commit. Cap hit or any later failure (signing, verify, push) → say the rebase is still in progress (`rebase-abort` undoes it), list the rest in `Open:`, and stop.
 - `--yes` or no AskUserQuestion: ask nothing; at the first conflict run `rebase-abort` (the branch returns to its pre-rebase state), skip the push (a force-push is never covered), and report each in `Open:`.
 

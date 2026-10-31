@@ -42,7 +42,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Workflow
 
 1. **Pre-flight.** Root = Context → Repo root, `<none>` → cwd. Update mode when `.devcontainer/devcontainer.json`, `.devcontainer.json`, or `.devcontainer/*/devcontainer.json` exists, else create; update → read each config and the files it references fully. Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan mode` (`--no-plan` | `--yes`: skip).
-2. **Analyze.** Spawn a read-only analyzer subagent (fallback: `cdk:repo-analyzer`) with the root only (brief in `flow.md` `## Spawn briefs`); it unavailable or malformed → collect the same facts inline. Use the result for every later step.
+2. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only analyzer subagent) with the root only (brief in `flow.md` `## Spawn briefs`); it unavailable or malformed → collect the same facts inline. Use the result for every later step.
 3. **Clarify.** Ask services and Claude Code first, then only the questions that apply (including the host extensions from the analyzer's `Host extensions`, filtered to the stacks and tools), then only the gaps left. Recommended option first; derivable facts are never asked (`flow.md` `## Clarify`).
 4. **Look up** the base image tag, feature majors, and each service's tag, port, data directory, env vars, and health command (practices.md). Run the `node-probe` first: the base image tag comes from `pick-tag` when node exists, else the WebFetch lookup in practices.md. Failure → call 3; call 3 spent → step 10, then stop.
 5. **Draft.** devcontainer.json, Compose files, the `.gitattributes` LF rule, the firewall script, and the Dockerfile handoff arguments (`flow.md` `## Draft`).

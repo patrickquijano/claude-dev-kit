@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 4. **Implement.** Chosen approach: fix the root cause and its sibling occurrences. `## Implement`.
 5. **Verify.** Run the repo's checks, add a test for fixed behavior, and re-read the full diff for regressions. `## Verify`.
 6. **Iterate.** On failure diagnose, research, retry (cap 3). `## Iterate`. Each retry round re-enters plan mode unless skipped.
-7. **Commit.** Run the commit-changes skill once (one or more commits; it may merge items); it owns every commit; no file changed → skip it. `## Commit`.
+7. **Commit.** Invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill) once (one or more commits; it may merge items); it owns every commit; no file changed → skip it. `## Commit`.
 8. **Ledger.** Run before step 9: every item must end as fixed, replied invalid, replied question, or Open; a missing outcome → stop and list it under `Open:`. `## Ledger`.
 9. **Push.** The approved plan covers it: rebase on the remote head and make one normal push. `## Push`.
 10. **Reply.** After the push, reply per the approved plan: on each thread, and one PR comment for review-body items; never resolve. `## Reply`.
