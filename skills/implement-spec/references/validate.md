@@ -21,7 +21,7 @@ G2: unmet — <what failed, file:line>
 
 ## Fix
 
-- **Plan mode (each round).** Before each fix round (a fix attempt, or a step 9 re-entry) call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 8: plan rejected`. Declined, unavailable, or no one can answer and no `--yes` → no fix is applied; the items go under `Open:`. `--yes` skips it (the flag is the approval, never for a Dirty path).
+- **Plan mode (each round).** Before each fix round (a fix attempt, or a step 9 re-entry) call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 8: plan rejected`. Declined, unavailable, or unattended (not `--yes`) → no fix is applied; the items go under `Open:`. `--yes` skips it (the flag is the approval, never for a Dirty path).
 - Re-spawn the implementer per Spawn briefs in `SKILL.md` with a fix list of every finding and failed check in files this run changed. Then spawn a fresh verifier on the new changed paths.
 - A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
 

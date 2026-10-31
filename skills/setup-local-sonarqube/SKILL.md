@@ -20,7 +20,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
-- Spawn only the `cdk:topic-researcher` subagent (fallback: a research subagent of step 4), with a complete brief (task, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
+- Spawn only the `cdk:topic-researcher` subagent (fallback: a read-only research subagent), with a complete brief (task, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Setup only: write `compose.sonar.yaml`, `.vscode/tasks.json`, `.env.sonar`, and a `.gitignore` entry at the repo root; start `sonarqube` only to configure it and stop it afterwards unless it was already running; never scan, fix, or remove volumes.
 - Exact tags: the images are pinned to the tags `compose` resolves (looked up at most once per day); never `latest`, never a host install.

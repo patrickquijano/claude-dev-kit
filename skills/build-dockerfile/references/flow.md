@@ -37,7 +37,7 @@ Build the `Dockerfile` by applying practices.md sections in this order: Structur
 
 ## Verify
 
-Spawn the reviewer subagent (brief in `## Spawn briefs`) with the Dockerfile path(s), `.dockerignore` path (or none), the practices file, build context dir, and target (default | devcontainer). Use its `Findings`, `Checks`, `Tool output`.
+Spawn the `cdk:practices-reviewer` subagent (brief in `## Spawn briefs`) with the Dockerfile path(s), `.dockerignore` path (or none), the practices file, build context dir, and target (default | devcontainer). Use its `Findings`, `Checks`, `Tool output`.
 
 - Review mode → report findings; write nothing.
 - Create or update → each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). Each fix round first runs the plan-mode step below.

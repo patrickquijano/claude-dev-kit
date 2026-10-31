@@ -4,7 +4,7 @@
 
 Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only subagent) that analyzes the repo for ignore candidates (tools: Read, Glob, Grep, Bash for `git -C <root> ls-files` and `git -C <root> check-ignore` only).
 
-Brief:
+Brief (kind `gitignore`):
 
 - Task: the root is the absolute repo root, and the signals file path (absolute, passed by step 2) holds the categories, confidence, and the never-ignore list.
 - Inventory: tracked (`git -C <root> ls-files`), untracked (`git -C <root> ls-files --others --exclude-standard --directory`), ignored (`git -C <root> ls-files --others --ignored --exclude-standard --directory`), and the root `.gitignore` if present.

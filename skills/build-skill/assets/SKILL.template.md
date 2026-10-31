@@ -27,7 +27,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - <Constraint that must hold, most important first.>
 - Flags: `--yes` runs unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts. `--yes` never covers a destructive step: it is asked, or skipped and listed under `Open:`.
 - Loops: at most <n> rounds; then report what is left.
-- <Invoke another skill as `Invoke the `cdk:<skill>` skill (fallback: run the <skill> skill)`. Spawn a subagent as `Spawn the `cdk:<agent>` subagent (fallback: a read-only subagent that <role>)` (role in plain words only when no plugin agent fits) and give it an inline fallback.>
+- <Invoke another skill as ``Invoke the `cdk:<skill>` skill (fallback: run the <skill> skill)``. Spawn a subagent as ``Spawn the `cdk:<agent>` subagent (fallback: a read-only subagent that <role>)`` (role in plain words only when no plugin agent fits) and give it an inline fallback.>
 
 ## Workflow
 
