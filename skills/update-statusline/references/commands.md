@@ -9,3 +9,5 @@
 | `chmod-exec`   | `chmod +x <target>`                                     | Optional, for a script run directly       |
 | `smoke`        | `printf '%s' '<json>' \| node <script>`                 | Render with a sample session              |
 | `smoke-plain`  | `printf '%s' '<json>' \| NO_COLOR=1 node <script>`      | Render without color                      |
+
+- `allowed-tools` pins the default `~/.claude/statusline.mjs`; a status line script at another path (backup, `chmod-exec`, smoke) runs through a permission prompt.

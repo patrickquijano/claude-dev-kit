@@ -3,7 +3,7 @@ name: update-statusline
 description: Creates or updates the user-scoped Claude Code status line, giving the git branch name a distinct emphasized color. Use only when the user explicitly asks to update the status line.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--no-plan]'
-allowed-tools: Read Bash(node --version) Bash(cp ${CLAUDE_SKILL_DIR}/assets/statusline.mjs ~/.claude/*) Bash(cp ~/.claude/*) Bash(date +*) Bash(chmod +x ~/.claude/*) Bash(printf *) Bash(node ~/.claude/*)
+allowed-tools: Read Bash(node --version) Bash(cp ${CLAUDE_SKILL_DIR}/assets/statusline.mjs ~/.claude/*) Bash(cp ~/.claude/statusline.mjs ~/.claude/statusline.mjs.bak-*) Bash(date +*) Bash(chmod +x ~/.claude/*) Bash(printf *) Bash(node ~/.claude/statusline.mjs) Bash(NO_COLOR=1 node ~/.claude/statusline.mjs)
 disable-model-invocation: true
 ---
 
@@ -29,7 +29,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Idempotent: a branch segment already using the chosen color is skipped.
 - Never branch or commit; the user scope is outside the repo.
 - Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Mine the script first. Use the structured-question tool (unavailable → take the Recommended and list it under `Open:`). Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` first; a close call has no Recommended and goes under `Open:`.
-- Approval: nothing is written before the `ExitPlanMode` approval after step 5 (`plan.md`); each step 7 fix round re-enters plan mode. Declined → `Result: stopped`, `Stopped: 0: plan mode declined`; 3 rejections → `Result: cancelled`, `Stopped: 5: plan rejected`. `--no-plan` replaces approval with an ask `Apply` | `Stop`.
+- Approval: nothing is written before the `ExitPlanMode` approval after step 5 (`plan.md`); each step 7 fix round re-enters plan mode. Declined → `Result: stopped`, `Stopped: 0: plan mode declined`; 3 rejections → `Result: cancelled`, `Stopped: <step>: plan rejected` (5 for the plan, 7 for a fix round). `--no-plan` replaces approval with an ask `Apply` | `Stop`.
 - No way to ask and no `--yes` → write nothing, `Stopped: 0: cannot interact`.
 - Cap: fix loop 3 rounds; leftovers go under `Open:`.
 
