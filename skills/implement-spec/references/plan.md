@@ -8,12 +8,12 @@ Step 2 runs once. `--yes` → `Plan mode: skipped (--yes)`; see `## Rules`.
 
 - Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 2: plan mode declined`; nothing is edited.
 - Steps 3–6 are read-only and run inside plan mode; the step 6 Pick ask stays.
-- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the first write and the Dirty paths the plan names, with no separate ask; each fix round re-enters plan mode.
+- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, the planner's `Steps` and `Risks`, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the first write and the Dirty paths the plan names, with no separate ask; each fix round re-enters plan mode.
 - Rejection → revise per the feedback and call `ExitPlanMode` again; each rejection counts toward the clarify cap.
 
 ## Goals
 
-Print each goal as a numbered line with one acceptance criterion:
+Print the planner's `Goals` and `Non-goals` in this format, keeping the asks; print each goal as a numbered line with one acceptance criterion:
 
 ```text
 G1: <outcome, one line>
@@ -26,7 +26,7 @@ G1: <outcome, one line>
 
 ## Approaches
 
-Print 2–3 approach cards, the recommended one first:
+Print the planner's `Approaches` as 2–3 cards in this format, the recommended one first; the `Pick` ask stays in the main thread:
 
 ```text
 A1 (recommended): <summary, one line>
@@ -45,6 +45,7 @@ Ask one AskUserQuestion:
 ## Re-entry from step 9
 
 - Each re-entry round enters plan mode again before its fixes (`validate.md` `## Fix`).
+- Re-spawn the planner first (`validate.md` `## Iterate`).
 - Revise only what the unmet criterion or failed check points at: the goals, the approach, or both.
 - Keep met goals as they are; carry over what was learned into the revised card.
 - A revised approach is asked again as above; an unattended run keeps the recommended one.
