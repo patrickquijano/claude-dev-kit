@@ -17,7 +17,7 @@ Syntax every host renders, and how to convert what is not.
 | Front matter (`---` block)               | Keep; list under `Open:`                        |
 | Diagram block (mermaid, plantuml, ...)   | Keep; list under `Open:`                        |
 
-No content is deleted. List each conversion in the Confirm and in `Converted:`.
+No content is deleted. List each conversion in the printed file list and in `Converted:`.
 
 ## Table of contents
 

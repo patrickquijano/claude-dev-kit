@@ -107,6 +107,6 @@ Each item pass or fail in the review loop:
 3. Duplicates: no two bullets describe the same change.
 4. Classification: type matches the change; only the six sections.
 5. Ordering, header, format, links: run `node ${CLAUDE_SKILL_DIR}/scripts/check-changelog.mjs check --changelog <changelog path>`; any finding fails. Also check blank lines, one-sentence entries, and flag each tag missing from `git tag --list` under `Open:`.
-6. Released sections (present in the base branch's changelog) change only by approved format fixes (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and approved fixes.
+6. Released sections (present in the base branch's changelog) change only by format fixes chosen in the format-drift ask (non-release; tracked file only): `git diff` shows hunks only in Unreleased, link references, and those fixes.
 7. Repository consistency: formatter and linter configs accept the file; terminology matches README and skill names.
 8. Idempotency: re-deriving entries from the same inputs against the written file produces no change.

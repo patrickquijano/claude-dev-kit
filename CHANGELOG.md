@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2026-11-01
+
+### Changed
+
+- Skills no longer enter plan mode or wait for a confirmation; each prints its plan or summary and proceeds.
+- `/cdk:push-commits`, `/cdk:push-tags`, and `/cdk:create-git-tag` print what they will do and then run, with no Yes or Stop question.
+- `/cdk:commit-changes` prints its commit groups and then commits, with no approval step.
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` print the verdict and then post the review without asking first.
+- `/cdk:create-github-release` creates or edits the release without a plan approval step.
+- `/cdk:merge-github-pull-request` and `/cdk:merge-gitlab-merge-request` ask only for the method and branch cleanup, then merge, and report a refused merge with the host's exact error.
+- Both merge skills still stop, without asking, on a closed, merged, draft, or conflicting change and when the head moved since it was read; they never merge a different head.
+- `/cdk:merge-github-pull-request` uses admin bypass only when your input asks for it and you own the PR, and reports the blockers otherwise; `/cdk:merge-gitlab-merge-request` never bypasses protection.
+- `/cdk:switch-branch` asks only whether to push and no longer offers a Stop option.
+- `/cdk:delete-branches` never force-deletes; a branch that is not fully merged is reported as `Local skipped: <branch@sha> not fully merged`.
+- `/cdk:rebase-onto` pushes a rebased branch only with a pinned `--force-with-lease` when the upstream is `origin/<branch>`, and otherwise stops without pushing.
+- `/cdk:push-commits` stops on an unsigned commit; `/cdk:create-github-issue` and `/cdk:create-gitlab-issue` stop on a closed issue unless your input names it; `/cdk:upgrade-dependencies` stops on a dirty tree.
+- `setup-*` skills never overwrite a file they did not create, rotate a token, or delete a `.gitignore` line; `/cdk:setup-husky` stops on another hook owner or a custom `core.hooksPath`. Each lists what it left under `Open:`.
+- `/cdk:fix-spec-kit-bug` re-runs only local checks, and `/cdk:implement-spec` lists unplanned paths under `Open:` instead of reverting them.
+- `/cdk:delete-branches --yes` selects no branch and reports that a person must choose.
+- `--yes` runs unattended for every skill: no questions, recommended options taken, assumptions listed under `Open:`.
+- Skill reports no longer include `Plan mode:` or `Confirmed:` lines, and `Result: cancelled` is gone from skills that no longer ask to confirm.
+
+### Removed
+
+- The `--no-plan` flag is removed from every skill that had it; pass `--yes` for an unattended run, or none to answer questions.
+
+### Security
+
+- Development dependency `minimatch` is pinned to 11.0.3 to clear a denial-of-service advisory; the audit allowlist for it is removed.
+
 ## [0.8.8] - 2026-10-31
 
 ### Added
@@ -413,7 +443,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...HEAD
+[0.8.9]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...v0.8.7
 [0.8.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.5...v0.8.6

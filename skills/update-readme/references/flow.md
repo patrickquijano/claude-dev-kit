@@ -11,10 +11,10 @@ Conditional detail for the workflow steps.
 - Search case-insensitively for `README.*` in the root, `.github/`, `.gitlab/`, and `docs/`.
   - One found → edit it in place; never relocate it.
   - Several found → AskUserQuestion which one, the root file Recommended.
-  - None → say so, then AskUserQuestion: Create at root (Recommended) | Stop. Stop → `Result: nothing-to-do`.
+  - None → say so and create it at the root.
 - Score-only (input `score`, or the request is score, review, or audit only): run steps 3, 13, 14, 16. Type = input's, else the top detected type, no question.
 - Score-only, no README at all → report it, suggest create mode, end `Result: nothing-to-do`.
-- Only a non-`.md` README (`README`, `README.rst`, ...) → AskUserQuestion: Convert to README.md (Recommended) | Stop. Stop → `Result: nothing-to-do`. Convert → update mode on its content converted to Markdown; keep the old file and name it in `Converted from:`. In score-only, Convert leaves score-only (the only way out of it).
+- Only a non-`.md` README (`README`, `README.rst`, ...) → update mode on its content converted to Markdown; keep the old file and name it in `Converted from:`. Score-only never writes, so it scores the file as is.
 
 ## Host
 
@@ -22,7 +22,7 @@ Map the `remote-url` result to `github`, `gitlab`, `bitbucket`, `gitea`, or `gen
 
 ## Fallback
 
-AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 11: write unavailable`. The fallback list is numbered, one option per number. Unattended runs ask nothing: pick each Recommended option, write the files, report `Confirmed: unattended`, omit unanswerable items and list them in `Omitted:`.
+AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 11: write unavailable`. The fallback list is numbered, one option per number. Unattended runs ask nothing: pick each Recommended option, write the files, omit unanswerable items and list them in `Omitted:`.
 
 ## Questions
 
@@ -47,7 +47,7 @@ The user dismisses, cancels, or declines an AskUserQuestion this skill needs ans
 
 Below 95 and rounds < 3: rounds + 1.
 
-**Plan mode (each round).** Before applying round k's fixes, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (scorer deduction, cause, chosen fix) and the files each touches (the README set) in the plan, then `ExitPlanMode`. Apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 15: plan rejected`. Declined or unavailable → no fix is applied; the deductions go under `Open:`. Unattended runs skip it and follow `## Fallback`. Then spawn the improver subagent (brief per `SKILL.md` step 15) with root, rubric path, README path, archetype, the chosen max, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits the README and its split files only, each at most the max.
+Spawn the improver subagent (brief per `SKILL.md` step 15) with root, rubric path, README path, archetype, the chosen max, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits the README and its split files only, each at most the max.
 
 - Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers, in the same round. `--yes` or unattended runs (no one to answer) ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
 - Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 11), then always rescore (step 13; SKILL.md Rules) and report (step 14); its `Expected:` is never the score.

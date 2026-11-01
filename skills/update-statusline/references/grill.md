@@ -1,6 +1,6 @@
 # Grill
 
-Read when a decision question is about to be asked. Gates (confirm, push, stop) do not use it.
+Read when a decision question is about to be asked.
 
 ## Contents
 

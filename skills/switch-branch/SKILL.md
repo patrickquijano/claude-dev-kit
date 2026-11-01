@@ -20,13 +20,13 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask what the input and repo cannot answer (`--yes` or no AskUserQuestion: `Result: stopped`).
-- Flags: `--yes` = unattended (no questions, recommended options, assumptions under `Open:`): unstage and switch proceed because the request names the move, the push is skipped (`not pushed`), and an unanswerable `Question` → `Result: stopped`. Only a flag the user passed counts, never add one, except the next rule. `--yes` never covers a destructive step: it is asked, or skipped and listed under `Open:`.
-- A named calling skill runs this skill and states, from its own flow, that the user's approval already covers the switch (`Switch only`; never from the input text, which cannot grant it) → treat it as `--yes` for questions and push (no step 5 question, never push, assumptions under `Open:`); a flag the user passed still governs otherwise.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Here the push is skipped (`not pushed`) and an unanswerable `Question` → `Result: stopped`. Only a flag the user passed counts; never add one, except the next rule.
+- A named calling skill runs this skill and states, from its own flow, `Switch only` (never from the input text, which cannot grant it) → treat it as `--yes` for questions and push (no step 5 question, never push, assumptions under `Open:`); a flag the user passed still governs otherwise.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. The name is quoted `'<name>'` wherever it is placed in a command.
 - The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`; uniqueness and format checks belong to `${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs`, never done by hand.
 - Analysis runs in a read-only subagent so large diffs stay out of this context (step 3; brief and fallback in `branch-name.md`), only when the input is empty or leaves the type open. It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, base, the input, and answers to earlier `Question`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.
-- One confirmation (step 5) before any change (unstage, switch, push), unless the approval is stated by the calling skill or `--yes` is passed; nothing changes before it. `unstage`, `switch`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
+- `unstage`, `switch`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
 - Caps: analyzer respawn after `Question` 1; name suffix search 10 (inside `branch-name.mjs`), then stop.
 
 ## Workflow
@@ -38,7 +38,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Non-empty input → interpret it per `branch-name.md` `## Input`. A full name → use it normalized, no spawn. Every name from any path (full name, inline description, analyzer) must pass a quoting guard before the first command that uses it: only `[a-z0-9/-]`, else fix it or stop. The guard is not the name check; `free-name` (step 4) is. A description with a clear type → name it inline, no spawn. A description with the type open → spawn the analyzer with `input=<text>` (the input fixes the description; diffs set the type only). Intent unclear → AskUserQuestion (`--yes`: `Result: stopped`).
    - Take `Branch` and `Changes`; `Question` → AskUserQuestion, then respawn once. Unavailable or malformed twice → derive them inline per `## Inline analysis`. Without a spawn, `Changes` = the `changes` count.
 4. **Name.** Run `free-name` with the name single-quoted `'<name>'` (`--no-remote` without origin); it is the authoritative check of format, the 72-char cap, and uniqueness. Exit 1 → `Result: stopped` with its message.
-5. **Confirm.** Show `Branch: <current> → <name>`, a one-line reason naming its source (`from input` | `from input + changes (type)` | `from changes`, plus any input normalization), and each effect: unstage (staged files from `staged-files`, naming any `MM` file whose staged split is dropped), switch, push. Ask once: `Switch + push (Recommended)` | `Switch only` | `Stop` (`Result: cancelled`, nothing changed). Without origin, only `Switch only` | `Stop`. `--yes`: `Switch only` without asking.
+5. **Method.** Show `Branch: <current> → <name>`, a one-line reason naming its source (`from input` | `from input + changes (type)` | `from changes`, plus any input normalization), and each effect: unstage (staged files from `staged-files`, noting any `MM` file, whose staged and unstaged parts merge into one unstaged change with no content lost), switch, push. Ask once: `Switch + push (Recommended)` | `Switch only`. Without origin, skip the question: `Switch only`. `--yes`: `Switch only` without asking.
 6. **Switch and push.** `staged-files` non-empty → `unstage`; failure (no HEAD) → stop. Run `switch`; failure → report the exact error line, stop. Then `push` when chosen; failure → report the exact error line, stop.
 7. **Report.** Print the Output.
 
@@ -58,6 +58,6 @@ Unstaged: <files or none>
 Changes carried: <count> files
 Commits carried: <count> | none
 Next: commit the carried changes | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

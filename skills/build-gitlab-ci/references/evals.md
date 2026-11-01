@@ -27,11 +27,11 @@ pass: <observable criteria, one per line>
 ## Behavior cases
 
 - `create-node`: "Write a GitLab pipeline for this Node repo." (no pipeline yet)
-  - Expected: Discovers commands, resolves images, plans, writes
-  - Pass: Plan mode first; thin root with one flat `local` include; one file per job; every `image:` has a resolved full tag; no `latest`
+  - Expected: Discovers commands, resolves images, writes
+  - Pass: Thin root with one flat `local` include; one file per job; every `image:` has a resolved full tag; no `latest`
 - `update-minimal`: "Add a lint job to .gitlab-ci.yml." (existing pipeline)
   - Expected: Minimal diff
-  - Pass: Existing includes, variables, and job names unchanged; diff shown in the plan
+  - Pass: Existing includes, variables, and job names unchanged; diff printed before the write
 - `defaults-omitted`: "Add a test job with caching."
   - Expected: Only non-default keys
   - Pass: No `cache:policy: pull-push`, no `when: on_success`; `expire_in` on report artifacts
@@ -44,12 +44,12 @@ pass: <observable criteria, one per line>
 - `dotnet-registry-image`: "Write a GitLab pipeline for this .NET repo." (no crane, skopeo, or regctl)
   - Expected: Pins `mcr.microsoft.com/dotnet/sdk` from the script's registry API
   - Pass: The script ran for that image; the `image:` carries the resolved full tag, no `latest`; no tag is recalled
-- `plan-declined`: "Write CI." (plan mode declined)
-  - Expected: Writes nothing
-  - Pass: `Result: stopped`, `Stopped: 0: plan mode declined`
+- `no-approval-step`: "Write a GitLab pipeline for this Node repo."
+  - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
+  - Pass: The only questions are missing-fact choices (stages, runners, deploy target); the files are printed and then written in the same turn with no "Proceed?" prompt
 - `fix-cap`: "Write CI." (a lint finding persists)
   - Expected: Stops after 3 rounds
-  - Pass: Each round enters plan mode before any edit; finding under `Open:`
+  - Pass: Each round fixes with no approval prompt; a finding left after the cap is under `Open:`
 - `cannot-interact`: "Write CI." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

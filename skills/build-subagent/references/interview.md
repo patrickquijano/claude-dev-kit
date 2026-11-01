@@ -1,25 +1,15 @@
 # Interview
 
-Steps 3–6 of `SKILL.md` (plan mode, Gate 2): ask only what the input and repo cannot answer, then gate the write on the approved plan. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
+Steps 3–6 of `SKILL.md` (preflight, interview, Brief): ask only what the input and repo cannot answer, then print the Brief and write. Rules for the built agent: `agent-checklist.md`; field facts: `docs-snapshot.md`.
 
 ## Contents
 
-- Plan mode · Protocol · Items · Optional capabilities · Fit · Several jobs · Update and improve · Scope · Name · Model and effort · Color · Brief
-
-## Plan mode
-
-Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFetch` only reads; a refresh stays in memory and is never written) and the Baseline, so `nothing-to-do` and any earlier stop never enter it (`Plan mode: skipped (<reason>)`).
-
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
-- Steps 5–6 run inside plan mode: they only read and ask with AskUserQuestion. The interview runs as in `## Protocol`.
-- At step 6 write the plan file: the Brief per `## Brief` (target, mode, items 1–13, diff, `Unverified:`) and the effects (the backup path, the file written or edited, and any changed doc fact from the freshness read). Call `ExitPlanMode`.
-- Approval → step 7. Rejection with feedback = Revise: reopen only the changed items, and it counts toward the 8 batches; cap hit → `Result: stopped`, `Stopped: 6: batch cap`. A rejection that asks to stop → `Result: cancelled`, write nothing. A rejection with no feedback → ask Revise | Stop (Stop → `Result: cancelled`); after Revise, reopen the items the user names and call `ExitPlanMode` again. This ask is a rejection follow-up, not a write gate.
-- The backup and the write come only after approval.
+- Protocol · Items · Optional capabilities · Fit · Several jobs · Update and improve · Scope · Name · Model and effort · Color · Brief
 
 ## Protocol
 
-- At most 3 questions per batch, 2–4 options plus Other, the Recommended option first, worded as a proposal whose reason cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`.
-- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including plan rejections. Cap hit before the plan is approved → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
+- At most 3 questions per batch, 2–4 options plus Other, the Recommended option first, worded as a proposal whose reason cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`.
+- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including revisions. Cap hit before the Brief is printed → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
 - Resolved means a user choice or a named file; never an assumption or a default.
 - A vague answer ("whatever", "not sure") or "I don't know" → one follow-up with concrete options, or offer a read-only look-up (Grep, Read) and ask again with its result; still unresolved → stop with `Result: stopped`, never fill the gap.
 - Any change at the brief reopens only the items it touches (counts toward the 8 batches).
@@ -35,7 +25,7 @@ Runs once at the end of step 4 (Mode), after the snapshot freshness read (`WebFe
 | 5   | Triggers               | The situations that must make the parent delegate; whether Claude should delegate on its own (yes and the agent works from a plain request: the parent can fill every input of at least one kind from its own context → `Use proactively` in `description`; else, or when it needs skill-supplied structured inputs, a plain trigger) |
 | 6   | Inputs                 | Each input the parent passes in the delegation prompt                                                                                                                                                                                                                                                                                 |
 | 7   | Tools, with the reason | An explicit minimal list; each tool tied to a Task step                                                                                                                                                                                                                                                                               |
-| 8   | Writes                 | Files it edits or creates, or read-only; a writer gets the review gate (`agent-checklist`)                                                                                                                                                                                                                                            |
+| 8   | Writes                 | Files it edits or creates, or read-only; a writer returns what it changed (`agent-checklist`)                                                                                                                                                                                                                                         |
 | 9   | Model and effort       | `## Model and effort` (one batch)                                                                                                                                                                                                                                                                                                     |
 | 10  | Return                 | The fixed fields the parent uses, and which caller reads each                                                                                                                                                                                                                                                                         |
 | 11  | Boundaries             | Out of scope, and the stop condition or cap for any loop                                                                                                                                                                                                                                                                              |
@@ -60,7 +50,7 @@ Recommend one option per question with a one-line reason.
 | Reference knowledge or a workflow that runs inline                                                  | None: a skill     | A skill adds to the main context on demand      |
 | A rule that must hold every time with no judgment                                                   | None: a hook      | Hooks are guarantees; prompts are requests      |
 
-Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it. Not a subagent → ask Stop (Recommended) | Build anyway.
+Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it. Not a subagent → note the better mechanism once, then proceed (no question).
 
 ## Several jobs
 
@@ -170,11 +160,11 @@ A domain color wins over the generic one (security red and test blue beat review
 
 ## Brief
 
-Step 6, before any write: put the Brief in the `## Plan mode` plan file (at most 40 lines of diff inline; a longer diff goes to the plan file's end), then call `ExitPlanMode`.
+Step 6, before any write: print the Brief (at most 40 lines of diff inline; a longer diff goes at its end), with no wait.
 
 - `Target: <absolute path>` and `Mode:`.
 - Doc facts that differ from `docs-snapshot.md` after a due freshness read (in memory only), when any.
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
-- Rejection with feedback → reopen only the changed items; a rejection that asks to stop or no answer → write nothing, `Result: cancelled`. A timed-out answer is never approval.
+- The Brief never waits for an answer; a change the user sends after it is a new update run, and only the changed items are reopened.

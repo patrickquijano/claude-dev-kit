@@ -6,7 +6,7 @@
 
 ## Check
 
-`uvx-check` succeeds → `schema-uvx`; else `pipx-check` → `schema-pipx`; neither → the manual checklist. The tool downloads and runs an unpinned PyPI package, so the run is not pre-allowed: the permission prompt guards it, and the plan names it. Exit 0 = pass.
+`uvx-check` succeeds → `schema-uvx`; else `pipx-check` → `schema-pipx`; neither → the manual checklist. The tool downloads and runs an unpinned PyPI package, so the run is not pre-allowed: the permission prompt guards it, and the summary names it. Exit 0 = pass.
 
 ## Manual checklist
 
@@ -22,4 +22,4 @@ Quote the evidence for each line against the fetched options reference.
 
 ## Fix loop
 
-Fix only keys this run wrote or named in the plan, up to 3 rounds, each in plan mode. A failure in a user-kept key goes under `Open:` with the line.
+Fix only keys this run wrote or named in the printed summary, up to 3 rounds. A failure in a user-kept key goes under `Open:` with the line.

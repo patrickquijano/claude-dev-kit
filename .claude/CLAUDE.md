@@ -4,7 +4,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Architecture
 
-- Skills: `skills/<name>/SKILL.md` — workflows invoked by the user or another skill, with `scripts/`, `references/`, and `assets/` beside it; flags, skill-call, and git-ownership rules in `.claude/rules/skills.md`.
+- Skills: `skills/<name>/SKILL.md` — workflows invoked by the user or another skill, with `scripts/`, `references/`, and `assets/` beside it.
 - Project skills: `.claude/skills/<name>/SKILL.md` — repo tooling, not shipped; `release-plugin` runs the full release (`.claude/rules/release.md`).
 - Subagents: `agents/` — workers spawned by skills; read-only except the editing agents (`plan-implementer`, `rubric-improver`).
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
@@ -33,11 +33,11 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Boundaries
 
-- Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files.
+- Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files, except where a running `cdk` skill's own step does it, and that step still obeys the skill's safety stops (a fact check that refuses, such as an unmerged branch).
 - Never commit or push directly to a protected branch (`.claude/rules/git.md`); work on a Conventional Branch.
 - Never commit secrets or credentials, or read or print the contents of `.env*`, private key, or credential files; read secrets from env vars.
 - Edit `README.md` only through `/cdk:update-readme` and `CHANGELOG.md` only through `/cdk:update-changelog` or `release-plugin` applying their instructions; no other rule, instruction, skill, or subagent changes them.
-- Ask first before `git push` (branches or tags), publishing a release, creating or updating an issue, creating a merge request or changing its title, description, branches, or merge options, approving, or merging, unless the user passed `--yes` to the running skill; an unattended run without `--yes` never covers it. A version tag push publishes its release via `release.yml`, so one confirmation covers both. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
+- Ask first before `git push` (branches or tags), publishing a release, creating or updating an issue, creating a merge request or changing its title, description, branches, or merge options, approving, or merging. A running `cdk` skill's own step covers its push, merge, issue, and release actions with no ask, but never past that skill's safety stops (moved head, protected target, foreign-owned file); the ask applies to actions Claude takes outside a skill. A version tag push publishes its release via `release.yml`, so one confirmation covers both. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 
 ## Changes
 

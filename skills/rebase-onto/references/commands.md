@@ -34,4 +34,3 @@
 | `open-mr`          | `glab mr list --source-branch <current> -F json`                                                   | Open MR for the branch                                | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
 | `open-pr`          | `gh pr list --head <current> --state open --json number,url`                                       | Open GitHub PR for the branch                         | `mcp__plugin_github_github__list_pull_requests`  |
 | `push-lease`       | `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>` | Rewritten history                                     | —                                                |
-| `push-upstream`    | `git push -u origin HEAD:<current>`                                                                | Set upstream, no force                                | —                                                |

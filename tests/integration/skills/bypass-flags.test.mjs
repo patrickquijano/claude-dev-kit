@@ -5,18 +5,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const skillsDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'skills');
-// Skills with no plan mode take `--yes` only.
-const NO_PLAN_MODE = new Set([
-  'create-git-tag',
-  'draft-prompt',
-  'merge-github-pull-request',
-  'merge-gitlab-merge-request',
-  'push-commits',
-  'push-tags',
-  'switch-branch'
-]);
+// The docs snapshot records Claude Code's own tool names, which a subagent never gets.
+const DOC_FACTS = join('build-subagent', 'references', 'docs-snapshot.md');
+const REMOVED = [/--no-plan/i, /EnterPlanMode/, /ExitPlanMode/, /plan mode/i];
 
 const hintOf = (content) => content.match(/^argument-hint:\s*(.*)$/m)?.[1] ?? '';
+
+const filesUnder = (dir) =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? filesUnder(join(dir, entry.name)) : [join(dir, entry.name)]
+  );
 
 describe('bypass flags', () => {
   const names = readdirSync(skillsDir, { withFileTypes: true })
@@ -36,16 +34,6 @@ describe('bypass flags', () => {
       assert.ok(hasYes, `argument-hint: ${hint}`);
     });
 
-    test(`${name} argument-hint has --no-plan when it has a plan mode`, () => {
-      // Arrange
-      const hint = hintOf(content);
-      const expected = !NO_PLAN_MODE.has(name);
-      // Act
-      const hasNoPlan = hint.includes('--no-plan');
-      // Assert
-      assert.equal(hasNoPlan, expected, `argument-hint: ${hint}`);
-    });
-
     test(`${name} body implements --yes`, () => {
       // Arrange
       const text = body;
@@ -55,13 +43,18 @@ describe('bypass flags', () => {
       assert.ok(mentionsYes, 'body never mentions `--yes`');
     });
 
-    test(`${name} body implements --no-plan when it has a plan mode`, () => {
+    test(`${name} has no plan mode or --no-plan`, () => {
       // Arrange
-      const expected = !NO_PLAN_MODE.has(name);
+      const files = filesUnder(join(skillsDir, name)).filter(
+        (file) => /\.(md|mjs|txt|ya?ml)$/.test(file) && !file.endsWith(DOC_FACTS)
+      );
       // Act
-      const mentionsNoPlan = body.includes('`--no-plan`');
+      const hits = files.flatMap((file) => {
+        const text = readFileSync(file, 'utf8');
+        return REMOVED.filter((pattern) => pattern.test(text)).map((pattern) => `${file}: ${pattern}`);
+      });
       // Assert
-      assert.equal(mentionsNoPlan, expected);
+      assert.deepEqual(hits, []);
     });
   }
 });

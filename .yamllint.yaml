@@ -1,10 +1,20 @@
 ---
+# Aligned with .yamlfmt.yaml and the .prettierrc.json YAML override.
 extends: default
 
-ignore-from-file: .gitignore
+# Replaces ignore-from-file: .gitignore so untracked scratch dirs are skipped without a .gitignore dependency.
+ignore: |
+  node_modules/
+  package-lock.json
+  .husky/_/
+  .remember/
+  .claude/prompts/
+  evals/results/
 
 rules:
-  line-length:
-    max: 120
-  truthy:
-    check-keys: false
+  # Skill evals and generated compose files carry long lines that yamlfmt does not wrap.
+  line-length: disable
+  # GitHub Actions uses `on:` as a key.
+  truthy: {check-keys: false}
+  # Same 2-space indent that yamlfmt writes.
+  indentation: {spaces: 2}

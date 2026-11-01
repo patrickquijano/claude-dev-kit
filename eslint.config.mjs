@@ -7,7 +7,15 @@ import security from 'eslint-plugin-security';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default defineConfig([
-  globalIgnores(['.remember/', 'graphify-out/', '.husky/_/', 'node_modules/', 'package-lock.json']),
+  globalIgnores([
+    '.remember/',
+    'graphify-out/',
+    '.husky/_/',
+    'node_modules/',
+    'package-lock.json',
+    '.claude/prompts/',
+    'evals/results/'
+  ]),
   {
     files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },

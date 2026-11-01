@@ -14,13 +14,13 @@
 ## Push
 
 - Never bare `--force`; never force-push `main`.
-- Rewritten history: push only with `--force-with-lease=<branch>:<pre-rewrite sha> --force-if-includes`, only when the upstream is `origin/<branch>`, after explicit confirmation.
+- Rewritten history: push only with `--force-with-lease=<branch>:<pre-rewrite sha> --force-if-includes`, only when the upstream is `origin/<branch>`, after explicit confirmation, unless a running `cdk` skill's step does it, and then only with the same lease form.
 - A rejected or failed push: report its exact error line; never retry or force it.
 
 ## Pull requests
 
 - Title: `<type>(<scope>)[!]: <description>`; body fills `.github/pull_request_template.md`. No attribution and no mention of AI or tools in title or body.
-- Merge: squash when allowed; admin bypass only for your own PR, with `ADMIN`, after the user confirms.
+- Merge: squash when allowed; admin bypass only for your own PR, with `ADMIN`, after the user confirms, or when the input to the running merge skill names admin bypass (the word `admin` or the flag the skill documents); a bare `--yes` never asks for it.
 
 ## Git hooks
 

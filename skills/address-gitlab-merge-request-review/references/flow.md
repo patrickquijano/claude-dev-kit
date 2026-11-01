@@ -2,17 +2,7 @@
 
 ## Contents
 
-- Plan mode · Input · Identify · Triage · Plan · Implement · Verify · Iterate · Commit · Ledger · Push · Reply
-
-## Plan mode
-
-Runs once, before step 0. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `Plan mode: skipped (unattended)`. `--dry-run` still enters plan mode.
-
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is edited, pushed, or replied.
-- Steps 0–3 run inside plan mode: they only read (`glab` and `git` reads, MCP reads, Read, Grep, Glob), ask with AskUserQuestion, and write no scratch file outside the plan file.
-- At the end of step 3 write the plan file: the triage table (class and `path:line` evidence per item) and, per fixable item, the cause, the approaches, and the chosen fix with the files it touches, then the remote effects: the push to `origin/<head>` (commit count) and the replies (each invalid and unclear reply verbatim, plus the one review-body summary comment). Call `ExitPlanMode`; approval → step 4 and covers the first implementation of each item, the push, and the replies; each retry round in `## Iterate` re-enters plan mode.
-- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 3: plan rejected`.
-- Any end before step 4 (a stop, `nothing-to-do`) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
+- Input · Identify · Triage · Plan · Implement · Verify · Iterate · Commit · Ledger · Push · Reply
 
 ## Input
 
@@ -53,7 +43,7 @@ Per fixable item, record:
 - at least 2 approaches scored on correctness, root-cause fit, consistency with repo patterns, and risk or scope;
 - the chosen approach and why.
 
-The plan also lists every invalid and unclear reply verbatim and the one review-body summary comment. Plan mode active (entered or already active) → this is the plan file (`## Plan mode`).
+The plan also lists the triage table (class and `path:line` evidence per item), the push to `origin/<head>` (commit count), every invalid and unclear reply verbatim, and the one review-body summary comment. Print it and go on to step 4; nothing waits on approval.
 
 ## Implement
 
@@ -70,14 +60,12 @@ Apply the chosen approach: fix the root cause and every sibling occurrence in th
 
 A failed check → diagnose the cause, research (repo docs, official docs, the web), then retry. At most 3 attempts per item; then revert that item's edits, list it under `Open:`, and continue.
 
-**Plan mode (each round).** Before applying round k's retry, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`. Apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 6: plan rejected`. Declined, unavailable, or unattended → no retry is applied; revert that item's edits and list it under `Open:`.
-
 ## Commit
 
 This skill never stages or commits; the commit-changes skill makes every commit.
 
-- No file changed (every item invalid, unclear, or already fixed) → skip commit-changes, `Pushed: not pushed (no commits)`. Replies by flag: `--yes` posts no replies and stops at step 9 (`Stopped: 9: unattended, not approved`); `--no-plan` asks `Reply` | `Stop` before step 10; an interactive plan approval covers the replies; `--dry-run` prints them.
-- Otherwise invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill) once, with `paths:` set to the files the items fixed and one grouping hint per item: `item <n>: <files> — <type>(<scope>): <summary>`. Build each `<summary>` from the triage, never copy review text; each `paths:` entry is an existing repo-relative path, never starting with `-`. This skill's plan approval covers the fixes, the push, and the replies; pass `--no-plan` through to commit-changes (it then asks its own Commit · Stop) and `--yes` only when the user passed it to this skill.
+- No file changed (every item invalid, unclear, or already fixed) → skip commit-changes, `Pushed: not pushed (no commits)`. Replies still post at step 10 (`--dry-run` prints them).
+- Otherwise invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill) once, with `paths:` set to the files the items fixed and one grouping hint per item: `item <n>: <files> — <type>(<scope>): <summary>`. Build each `<summary>` from the triage, never copy review text; each `paths:` entry is an existing repo-relative path, never starting with `-`. Pass `--yes` through only when the user passed it to this skill.
 - commit-changes may merge items into one commit, so it makes one or more commits, not one per item; each merged item's reply names the shared SHA.
 - Type: `fix` for a blocking bug or a failing job, `test` for a test-only change, `refactor`, `docs`, or `style` for suggestions and nits by what changed. Subject rules are the commit-changes skill's.
 - SHA per item: `git log` by the item's paths, after commit-changes ends.
@@ -91,11 +79,11 @@ Run before step 9, right after Iterate and Commit: every identified item must en
 
 ## Push
 
-No commits → skip (`## Commit` sets the replies by flag). `--dry-run` → print the `pull-rebase`, `push`, `discussion-reply`, and `mr-note` commands, ask nothing, run none. `--yes` or plan mode skipped (unattended) → `Stopped: 9: unattended, not approved`; `--no-plan` → ask `Push + reply` | `Stop`; commits stay local. Otherwise run `pull-rebase`, then `push`; the `ExitPlanMode` approval named them. A conflict or rejection → stop and report; no retry, no force.
+No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `discussion-reply`, and `mr-note` commands, ask nothing, run none. Otherwise run `pull-rebase`, then `push`. A conflict or rejection → stop and report; no retry, no force.
 
 ## Reply
 
-Write each body to a scratch file. Replies post only after the push succeeded, or, when no commit was made, as `## Commit` says for the flag; the plan approval covers them. Never resolve a discussion. Every reply starts with `**note:**`. A 403 on any reply → stop with the fix from `gitlab-mapping.md`.
+Write each body to a scratch file. Replies post only after the push succeeded, or, when no commit was made, as `## Commit` says. Never resolve a discussion. Every reply starts with `**note:**`. A 403 on any reply → stop with the fix from `gitlab-mapping.md`.
 
 - Discussions: run `discussion-reply` with the discussion's `id`. Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed one (line gone at the source head) → `Already fixed at <path:line>.` Invalid → `Not changed: <evidence path:line>.` Unclear → `Question: <one question>`.
 - Review-body items: one MR comment starting `**note:** Review feedback summary:` and listing each item and its outcome, run `mr-note`.

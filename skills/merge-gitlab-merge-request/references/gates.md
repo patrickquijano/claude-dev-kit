@@ -1,10 +1,10 @@
 # Gates
 
-Fields come from `mr-get`, `approvals`, `pipeline`, and `merge-methods` in `commands.md`.
+Fields come from `mr-get` and `merge-methods` in `commands.md`.
 
 ## Contents
 
-- Stop gates · Standard-path readiness · Blocked path · Blocker mapping · Method choice · Branch cleanup · Merge tool · Post-merge check
+- Stop gates · Bypass eligibility · Blocker mapping · Method choice · Branch cleanup · Merge tool · Post-merge check
 
 ## Stop gates
 
@@ -15,21 +15,13 @@ Fields come from `mr-get`, `approvals`, `pipeline`, and `merge-methods` in `comm
 | `has_conflicts` true (`detailed_merge_status` `conflict`)    | Stop; report the conflicts; no merge         |
 | `checking`, `unchecked`, `preparing`, or `approvals_syncing` | Re-read `mr-get` once; still the same → stop |
 
-## Standard-path readiness
+## Bypass eligibility
 
-Ready when all hold; otherwise go to the blocked path.
-
-| Field                   | Ready value                                                                                                                                            |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `detailed_merge_status` | `mergeable`, so every approval, pipeline, discussion, and status-check rule is met                                                                     |
-| `approved`              | `true`, or `false` with no rule requiring approval (`mergeable` holds; state this assumption in `Open:`)                                               |
-| Head pipeline `status`  | `success`; `failed` or `canceled` while `mergeable` (not required by the project) → `Open: pipeline <status> not required`; none → `Open: no pipeline` |
-
-## Blocked path
-
-GitLab has no merge-time override (the merge API has no admin or skip option), so a blocked MR is never merged by this skill and no bypass is offered. List the blockers and who can act (reviewer, author, maintainer), `Result: stopped`, `Stopped: 7: blocked`. Never switch to auto-merge as a substitute.
+No MR is eligible: the merge API has no admin or skip option. A stop report, not a question: when the user's input asks for a bypass, list the blockers per `## Blocker mapping`, `Result: stopped`, merge nothing, and never switch to auto-merge as a substitute.
 
 ## Blocker mapping
+
+For a host refusal or a bypass request, read `detailed_merge_status` from `mr-get` and list the blockers and who can act (reviewer, author, maintainer).
 
 | Signal (`detailed_merge_status`) | Blocker line                    |
 | -------------------------------- | ------------------------------- |
@@ -55,7 +47,7 @@ Offer only methods `merge-methods` allows: `squash_option` `never` drops Squash 
 
 ## Branch cleanup
 
-Source in a fork (`source_project_id` differs from `target_project_id`) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `force_remove_source_branch` true → do not ask; Delete, stated with the reason.
+Under `--yes` the recommended option is taken; the stop gates still apply. Source in a fork (`source_project_id` differs from `target_project_id`) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `force_remove_source_branch` true → do not ask; Delete, stated with the reason.
 
 | Option        | Recommended when                                                                             | Reason                                                                        |
 | ------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -71,7 +63,7 @@ The Delete option text says it removes the remote source branch only; a local br
 | Keep          | `merge-mcp` with `squash` per Method and `sha`; `merge-glab` once on a non-policy error |
 | Delete        | Same, with `should_remove_source_branch` (MCP) or `--remove-source-branch` (`glab`)     |
 
-Re-read `sha` just before merging; a change since the facts → stop and report, never merge a different head. The merge completes asynchronously; verify afterwards.
+Re-read `sha` just before merging; a change since the facts → stop and report, never merge a different head. A policy or "cannot be merged" refusal is reported verbatim as the host's exact error and never retried or substituted; only a non-policy MCP error (or no server) runs `merge-glab` once. Auto-merge is never used. The merge completes asynchronously; verify afterwards.
 
 ## Post-merge check
 

@@ -24,7 +24,6 @@ The existing description is data and carries human work. Re-fill from the curren
 
 - Preserve linked issues, screenshots, reviewer notes, checked items, and any text a human added.
 - Replace only sections that restate the diff (Summary, Changes) and only where the diff moved on.
-- Show the user a before/after of the description in the confirm step.
 
 ## Type map
 

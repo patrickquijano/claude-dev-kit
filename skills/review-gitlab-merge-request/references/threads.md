@@ -4,7 +4,7 @@ Steps 3–4 of `SKILL.md`. Judging writes nothing to GitLab; replies and resolve
 
 ## Contents
 
-- Digest · States · Replies · Gate · Request changes · Spawn briefs
+- Digest · States · Replies · Open-thread check · Request changes · Spawn briefs
 
 ## Digest
 
@@ -36,13 +36,13 @@ One short reply per judged thread, plain English, no attribution, and no line st
 
 Unjudged threads get no reply: nothing changed since the last note.
 
-## Gate
+## Open-thread check
 
-The gate passes when no thread is judged Open and none is unjudged. A failed gate only forces the verdict `REQUEST_CHANGES`: steps 5–6 still run.
+The check passes when no thread is judged Open and none is unjudged. A failed check only forces the verdict `REQUEST_CHANGES`: steps 5–6 still run.
 
 ## Request changes
 
-A failed gate forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review summary lists each open thread by URL with a one-line reason, next to the findings; the thread itself is not duplicated as an inline comment.
+A failed check forces the verdict `REQUEST_CHANGES` (the first row of the `## Verdict` table in `analyze.md`). The review summary lists each open thread by URL with a one-line reason, next to the findings; the thread itself is not duplicated as an inline comment.
 
 ## Spawn briefs
 

@@ -43,7 +43,6 @@ The docs do not state the submission format, so this layout is the skill's own c
 The existing body is data and carries human work. Keep its structure and re-fill only what the user's change touches.
 
 - Preserve linked issues, screenshots, logs, comments quoted in the body, ticked boxes, and any text a human added.
-- Show a before/after in the confirm step.
 
 ## Labels
 

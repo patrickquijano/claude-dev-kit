@@ -1,6 +1,6 @@
 # Evals
 
-Cases for `setup-local-sonarqube`: plan approval, exists, and unsupported-stack behaviors. Test each on Haiku, Sonnet, and Opus.
+Cases for `setup-local-sonarqube`: the printed plan, exists, and unsupported-stack behaviors. Test each on Haiku, Sonnet, and Opus.
 
 ## Template
 
@@ -15,21 +15,26 @@ pass: <observable criteria, one per line>
 ## Behavior cases
 
 ```text
-id: approval-before-write
+id: plan-before-write
 kind: behavior
 prompt: "Set up local SonarQube for this Maven project."
-expected: Attended run gets plan approval first, then writes
-pass: The plan names the files, the server start, and the token rotation, and `ExitPlanMode` is approved before `compose` runs; no Proceed | Stop question
-pass: Rejecting the plan 3 times leaves nothing written and ends `Result: cancelled`
+expected: Prints the plan, then writes with no wait
+pass: The plan names the files, the server start, and the token rotation, and prints before `compose` runs; no Proceed | Stop question
 pass: No secret value is printed; the report names `.env.sonar` only
 
-id: existing-file-never-overwritten
+id: existing-file-kept
 kind: behavior
 prompt: "/setup-local-sonarqube --yes" (compose.sonar.yaml already exists)
-expected: Unattended run refuses to overwrite
-pass: Asks nothing and runs `compose` without `--force`
-pass: `Open:` holds `compose.sonar.yaml exists, not overwritten` and `Result: stopped`
-pass: `.env.sonar` is not touched and the server is not started
+expected: Stops; the file is not overwritten
+pass: Asks nothing; `compose` is never run with `--force`; `compose.sonar.yaml` is unchanged
+pass: `Result: stopped`; the file is listed under `Open:`
+
+id: foreign-env-kept
+kind: behavior
+prompt: "/setup-local-sonarqube --yes" (.env.sonar exists and its first line is not `# Written by setup-local-sonarqube`)
+expected: No token rotation, no overwrite
+pass: `.env.sonar` is unchanged and no token is revoked or created
+pass: `Env: skipped (.env.sonar not created by this skill)`; the file is listed under `Open:`
 
 id: unsupported-stack-research
 kind: behavior
@@ -39,23 +44,9 @@ pass: Writes a server-only `compose.sonar.yaml`; adds no scanner service
 pass: Research comes from a read-only subagent, or inline when it is unavailable, limited to docs.sonarsource.com and docs.docker.com
 pass: The approach and its sources are under `Open:`; `Result: done`
 
-id: plan-entered
+id: no-approval-step
 kind: behavior
-prompt: "Set up local SonarQube."
-expected: Plan mode before any write
-pass: Enters plan mode after the root check and reports `Plan mode: entered`
-pass: Writes the plan file with the effects list and calls `ExitPlanMode` before `compose` runs; approval is the only confirm
-
-id: plan-declined
-kind: behavior
-prompt: "Set up local SonarQube." (the user declines plan mode)
-expected: Stops without writing
-pass: Reports `Plan mode: declined`, `Result: stopped`, `Stopped: 1: plan mode declined`
-pass: Nothing is written; no Proceed | Stop question is asked
-
-id: overwrite-named-in-plan
-kind: behavior
-prompt: "Set up local SonarQube." (compose.sonar.yaml already exists)
-expected: Overwrite only when the plan names it
-pass: The plan names the overwrite of `compose.sonar.yaml`; after approval `compose` re-runs with `--force`; no Overwrite | Stop question
+prompt: "Set up local SonarQube for this Maven project."
+expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
+pass: No approval wait; each side-effect step runs directly after the decision questions
 ```

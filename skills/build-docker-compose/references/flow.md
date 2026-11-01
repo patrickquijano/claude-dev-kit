@@ -2,24 +2,13 @@
 
 ## Contents
 
-- Pre-flight · Plan mode · Analyze · Target · App · Clarify · Draft · Write · Verify · Spawn briefs
+- Pre-flight · Analyze · Target · App · Clarify · Draft · Write · Verify · Spawn briefs
 
 ## Pre-flight
 
 Root = `repo-root`, else cwd. Read the input (text, paths, pasted compose file). Find existing compose files at the root, and in a directory only when the input names it: `compose.yaml`, `compose.*.yaml`, `docker-compose.yml`, `docker-compose.yaml`. Read no other path. Mode: input asks only to review, score, or audit → review (writes nothing); a target compose file exists → update; else create. Review mode with no compose file → report it, suggest create mode, `Result: nothing-to-do`.
 
-An existing `docker-compose.yml`, `docker-compose.yaml`, or `*.yml` compose file → AskUserQuestion: Rename to `compose.yaml` with `compose-rename` (Recommended: the Compose Specification's preferred name) | Keep the name and update in place. Keep → list it under `Skipped practices:`. Review mode asks nothing and lists it as a finding. Unattended → keep the name, list under `Skipped practices:`. This ask is outside the question groups.
-
-## Plan mode
-
-Runs once, right after pre-flight passes. Review mode (writes nothing) → `Plan mode: skipped (review)`; `--no-plan` or `--yes` → `skipped (--no-plan | --yes)`; any other unattended run (no way to ask) → `skipped (unattended)`.
-
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 6: plan mode declined`; nothing is written.
-- Steps 2–5 run inside plan mode: they only read, ask with AskUserQuestion, and spawn the image-tag subagent.
-- At the end of step 5 write the plan file: the compose file path and its purpose, the printed file (a diff when existing), the resolved image tags, the change list, the skipped practices, and the effects: "Create <file>" or "Update <file> in place", then "run dclint via npx (downloads the pinned package)", and "Rename <file> to compose.yaml with git mv" when `compose-rename` was chosen. Call `ExitPlanMode`; unavailable → `Result: stopped`, `Stopped: 6: plan mode declined`.
-- Approval covers every listed effect for the first write; each fix round re-enters plan mode (`## Verify`) → step 6. Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 6: plan rejected`.
-- The `compose-rename` ask in pre-flight stays an AskUserQuestion; the rename runs only after the plan is approved.
-- Any end before the write (a stop, `nothing-to-do`, a cap) prints the Output with `Plan mode:` as reached (`skipped (<reason>)` when never entered); plan mode stays as it is.
+An existing `docker-compose.yml`, `docker-compose.yaml`, or `*.yml` compose file → AskUserQuestion: Rename to `compose.yaml` with `compose-rename` (Recommended: the Compose Specification's preferred name) | Keep the name and update in place. Keep → list it under `Skipped practices:`. Review mode asks nothing and lists it as a finding. Unattended → keep the name, list under `Skipped practices:`. This ask is outside the question groups. The rename runs right after the answer.
 
 ## Analyze
 
@@ -64,17 +53,15 @@ Build the file from `practices.md` in this order: top-level `name` (Compose / De
 
 ## Write
 
-Write only after the `## Plan mode` approval (create or update the named file, run `dclint` via `npx`); unattended → write and report; rejected 3 times → `Result: cancelled`. Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Run `compose-rename` first when chosen, then edit `compose.yaml`; otherwise an existing file → edit in place. Write no other file except the plan file.
+Write right after the printed file and change list; no wait follows. Name the file per `practices.md` `## File names` (scope from the Clarify answer) at the compose root. Run `compose-rename` first when chosen, then edit `compose.yaml`; otherwise an existing file → edit in place. Write no other file.
 
 ## Verify
 
 1. Run `docker-check`; no docker → `Checks: config skipped (no docker)` and go to the lint.
 2. Compose / DevContainer: run `compose-validate`. Compose Deploy: run `stack-validate`; a scoped file is validated together with `compose.yaml`. A `required variable … is missing` error that comes only from `${VAR:?err}` is not a file fault: re-run `compose-validate-raw` (Compose Deploy: `stack-validate-raw`) and note it. Never print the output.
-3. Lint: review mode (writes nothing) → first AskUserQuestion "Run dclint via npx (downloads the pinned package)": Run | Skip (Recommended: Run); Skip, or unattended → `Checks: dclint skipped (declined)`. Run `dclint-version`, `dclint-engines`, and `node-check`; a Node version below the `engines` minimum → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`. Otherwise run `dclint`, with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` for Compose Deploy.
-4. Review mode → report each `error` or `warning` as a finding; never fix the file or run `dclint-fix`. Otherwise each `error` or `warning` → run the plan-mode step below, fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
+3. Lint: run `dclint-version`, `dclint-engines`, and `node-check`; a Node version below the `engines` minimum → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`. Otherwise run `dclint` pinned to the `dclint-version` result (`npx --yes dclint@<version>`, never bare `npx dclint`), with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` for Compose Deploy.
+4. Review mode → report each `error` or `warning` as a finding; never fix the file or run `dclint-fix`. Otherwise each `error` or `warning` → fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
 5. Leftovers: unfixed findings, skipped practices, a failed or missing check. Review mode lists each with its recommended fix.
-
-**Plan mode (each round, step 4).** Before applying round k's fixes, call EnterPlanMode (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then ExitPlanMode; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call ExitPlanMode again, at most 3 times → `Result: cancelled`, `Stopped: 7: plan rejected`. Declined, unavailable, or unattended → no fix is applied; the items go under `Open:`.
 
 ## Spawn briefs
 

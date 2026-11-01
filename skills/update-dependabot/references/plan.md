@@ -1,14 +1,9 @@
-# Plan mode
+# Plan
 
-Detail for the plan-mode entry in step 1 of `SKILL.md`.
+Detail for the printed summary at the end of step 5 of `SKILL.md`.
 
-## Plan mode
+## Printed summary
 
-Runs once, after pre-flight. `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; any other unattended run → `Plan mode: skipped (unattended)`.
+Print it once, then write with no wait. It holds the target path, the diff against the existing file (or the whole new file), each stale or invalid key fixed and why, and the research URLs.
 
-- Plan mode already active → `already active`. Otherwise load `EnterPlanMode` with ToolSearch if deferred, then call it. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
-- Steps 2-5 run inside plan mode: they read, ask, and research only.
-- End of step 5: write the plan file with the target path, the diff against the existing file (or the whole new file), each stale or invalid key fixed and why, and the research URLs. `ExitPlanMode` approval covers the write.
-- **Each fix round.** Before applying round k, enter plan mode, list the failing checks, the cause, and the fix per file, then `ExitPlanMode`; apply only what was approved. Declined or unattended → no fix; failures go under `Open:`.
-- Rejection → revise and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: <step>: plan rejected` with the step of that gate (5 for the plan, 7 for a fix round).
-- Any end before step 6 prints the Output with `Plan mode:` as reached.
+- Each fix round (step 7): print the failing checks, the cause, and the fix per file, then apply them.

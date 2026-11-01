@@ -1,16 +1,4 @@
 {
   "moderate": true, // Same threshold as npm audit --audit-level=moderate.
-  "report-type": "summary",
-  // minimatch DoS: no 10.x patch; eslint (dev) requires ^10 and matches only trusted config and CLI globs.
-  // The entries are path-limited to the paths audit-ci reports, so the advisory stays reported on any other path.
-  // Remove once eslint and @eslint/config-array require minimatch >=11.0.1 (eslint/eslint#21463).
-  "allowlist": [
-    "GHSA-g3hv-75wg-m249|@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch>",
-    "GHSA-g3hv-75wg-m249|@eslint/js>eslint>@eslint/config-array>minimatch",
-    "GHSA-g3hv-75wg-m249|eslint-compat-utils>eslint>@eslint/config-array>minimatch>",
-    "GHSA-g3hv-75wg-m249|eslint-config-prettier>eslint>@eslint/config-array>minimatch",
-    "GHSA-g3hv-75wg-m249|eslint-plugin-n>eslint-plugin-es-x>@eslint-community/eslint-utils>eslint>@eslint/config-array>minimatch",
-    "GHSA-g3hv-75wg-m249|eslint>@eslint/config-array>minimatch>",
-    "GHSA-g3hv-75wg-m249|minimatch>"
-  ]
+  "report-type": "summary"
 }

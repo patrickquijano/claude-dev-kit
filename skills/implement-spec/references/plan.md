@@ -1,19 +1,10 @@
 # Plan
 
-Formats and asks for steps 2, 5–6.
-
-## Plan mode
-
-Step 2 runs once. `--yes` → `Plan mode: skipped (--yes)`; see `## Rules`.
-
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 2: plan mode declined`; nothing is edited.
-- Steps 3–6 are read-only and run inside plan mode; the step 6 Pick ask stays.
-- After the pick, write the plan file (restatement, goals with criteria, non-goals, chosen approach, the planner's `Steps` and `Risks`, and each Dirty path the approach must edit, or none) and call `ExitPlanMode`. Approval → step 7; it covers the first write and the Dirty paths the plan names, with no separate ask; each fix round re-enters plan mode.
-- Rejection → revise per the feedback and call `ExitPlanMode` again; each rejection counts toward the clarify cap.
+Formats and asks for steps 4–5.
 
 ## Goals
 
-Print the planner's `Goals` and `Non-goals` in this format, keeping the asks; print each goal as a numbered line with one acceptance criterion:
+Print the planner's `Goals` and `Non-goals` in this format; print each goal as a numbered line with one acceptance criterion:
 
 ```text
 G1: <outcome, one line>
@@ -22,7 +13,7 @@ G1: <outcome, one line>
 
 - A criterion names something that can be run or observed; "works well" is not one.
 - Add `Non-goals:` with what the change will not do, one line each.
-- A goal without a checkable criterion → rewrite it or ask in step 4.
+- A goal without a checkable criterion → rewrite it or ask in step 3.
 
 ## Approaches
 
@@ -42,9 +33,12 @@ Ask one AskUserQuestion:
 - Only one workable approach → print it with why no other fits, and skip the ask.
 - `--yes` picks the recommended approach and records it. `Stop` → `Result: cancelled`.
 
-## Re-entry from step 9
+## Printed plan
 
-- Each re-entry round enters plan mode again before its fixes (`validate.md` `## Fix`).
+After the pick, print the plan (restatement, goals with criteria, non-goals, chosen approach, the planner's `Steps` and `Risks`, and each Dirty path the approach must edit, or none), then go to step 6 with no wait.
+
+## Re-entry from step 8
+
 - Re-spawn the planner first (`validate.md` `## Iterate`).
 - Revise only what the unmet criterion or failed check points at: the goals, the approach, or both.
 - Keep met goals as they are; carry over what was learned into the revised card.

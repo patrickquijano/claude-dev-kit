@@ -1,16 +1,13 @@
 {
-  // All rules enabled by default; MD007 indent already defaults to 2.
   "config": {
-    "extends": "markdownlint/style/prettier", // Disable rules that conflict with Prettier.
-    "default": true, // Enable every rule not listed below.
-    "MD013": false, // line-length: allow long lines.
-    "MD024": false, // no-duplicate-heading: allow repeated heading text.
-    "MD025": false, // single-h1: allow multiple top-level headings.
-    "MD031": false, // blanks-around-fences: no blank line required around code fences.
-    "MD032": false, // blanks-around-lists: no blank line required around lists.
-    "MD033": false, // no-inline-html: allow inline HTML.
-    "MD041": false // first-line-h1: first line need not be a top-level heading.
+    "MD013": false, // long lines are fine in prose and tables
+    "MD024": false, // changelog and eval files repeat headings
+    "MD025": false, // templates hold more than one H1
+    "MD031": false, // compact fenced blocks inside lists
+    "MD032": false, // compact lists under a label line
+    "MD033": false, // inline HTML in README badges
+    "MD041": false, // files start with front matter
+    "MD047": false // .editorconfig exempts Markdown from the final newline
   },
-  "gitignore": true, // Skip files matched by .gitignore.
-  "ignores": ["node_modules/", "package-lock.json", ".husky/_/"] // Never lint these paths.
+  "ignores": ["node_modules/", "package-lock.json", ".husky/_/", ".remember/", ".claude/prompts/", "evals/results/"]
 }

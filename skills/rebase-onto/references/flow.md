@@ -23,7 +23,7 @@ No question. Input names a branch → try `origin/<input>` first (listed or `ver
 
 - Files: `conflicted-files`; commit: `replayed-commit`; ancestor: `merge-base`.
 - Analysis: one read-only subagent per file (`## Conflict analysis`, ≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block.
-- Decision question per file (≤4 per batch), options scored from the analysis; Recommended only on the highest total, none on a close call. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`:
+- Decision question per file (≤4 per batch), options scored from the analysis; Recommended only on the highest total, none on a close call. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`:
   - Merge both: combine the hunks (analyzer `combined` text or by hand); show the proposed hunk in the question; choosing it writes it and continues to `stage-file`. A Revise option (max 5 rounds) lets the user edit it, then re-asks.
   - Keep target: `keep-target`; discards all your changes to the file from this commit.
   - Keep mine: `keep-mine`; discards all target changes to the file.
@@ -44,9 +44,8 @@ Spawn, per conflicted file, the `cdk:conflict-analyzer` subagent (fallback: a re
 ## Push
 
 - `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
-- Upstream = `origin/<current>` → ask: Push with lease (Recommended; the remote holds the pre-rebase history) | Skip. Lease → `push-lease`.
-- Upstream is another branch (e.g. `origin/main`) → never force; ask: Skip (Recommended) | Push -u to `origin/<current>` (no force; rejected if it holds other history) → `push-upstream`.
-- No upstream → ask: Push -u (Recommended) | Skip → `push-upstream`.
+- Upstream = `origin/<current>` → `push-lease` with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`; see `.claude/rules/git.md` Push).
+- Any other upstream, or none → stop with no push: `Pushed: no`, and `Open:` names the push the user must run.
 - Failure → report the exact error line, stop.
 
 ## Open items
