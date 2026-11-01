@@ -24,11 +24,11 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - No hard-coded or assumed version or configuration. Every version comes from the `cdk:version-resolver` subagent (fallback: a read-only subagent that resolves latest stable versions; inline fallback: the `commands.md` rows). Every recommended configuration comes from the `cdk:topic-researcher` subagent (fallback: a read-only research subagent; inline fallback: WebSearch and WebFetch of the `research.md` URLs), cited by URL; no source → `unverified`, never applied silently.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
-- Existing repo: scaffold into a scratch dir and move files in; never overwrite a tracked or user file without a plan entry. An existing Next.js app → configure-only; re-runs change nothing.
+- Existing repo: scaffold into a scratch dir and move files in; never overwrite or delete a tracked or user file (one this run did not create), even `--yes`: keep it and list it under `Open:` with the change it would take. An existing Next.js app → configure-only; re-runs change nothing.
 - Never write `.env` contents or read secrets; `.env.example` holds keys only.
 - Git ownership: never branch or commit; `Next:` says "commit the changes" in plain words.
 - Decision questions: at most 4 per call; each `options.md` question offers the top 3 scored options plus **Skip** (the full table lists every candidate; Other picks any); each asked once. Mine the repo first, ask only what changes the output. Use the structured-question tool (unavailable → take the Recommended and list it under `Open:`). Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` with the fixed criteria from `options.md` before each question; a close call has no Recommended and goes under `Open:`.
-- Plan: step 5 prints the plan naming every install, write, overwrite, and backup, then step 6 starts with no wait (`plan.md`). Each fix round prints its items, then applies them.
+- Plan: step 5 prints the plan naming every install, write, and backup, then step 6 starts with no wait (`plan.md`). Each fix round prints its items, then applies them.
 - No way to ask and no `--yes` → write nothing, `Stopped: 0: cannot interact`.
 - Caps: verify loop 3 rounds; red-flag pass 3 rounds; install 1 attempt per package. Leftovers go under `Open:`.
 

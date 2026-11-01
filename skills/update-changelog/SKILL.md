@@ -20,7 +20,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask (unattended: record) what the input and repo cannot answer.
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. Where an ask has no recommended option, act per `flow.md` `## Fallback`.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. An ask listed in `flow.md` `## Fallback` takes that row's action instead of its Recommended option, and so does an ask with no recommended option.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
 - Format, exclusions, bad practices, and the review checklist: `${CLAUDE_SKILL_DIR}/references/format.md`; read it fully in step 1.

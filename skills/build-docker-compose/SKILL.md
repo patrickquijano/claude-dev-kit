@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask (`--yes`: record) what the input and repo cannot answer.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Sources: every key and value written comes from the input, an existing compose file, a user answer, or a **Required** item in `${CLAUDE_SKILL_DIR}/references/practices.md`; nothing else.

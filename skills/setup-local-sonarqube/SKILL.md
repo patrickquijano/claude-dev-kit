@@ -26,7 +26,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Exact tags: the images are pinned to the tags `compose` resolves (looked up at most once per day); never `latest`, never a host install.
 - One scanner per stack: the scanner is the one the detected stack needs (`maven`, `gradle`, or `cli`); an unsupported or undetected stack gets a server-only file and a researched approach, never a guess.
 - Secrets: they live only in `.env.sonar` (mode 600, gitignored), which the scanner service reads; `compose.sonar.yaml` and the tasks hold none. Never print, quote, or commit one.
-- Before the first write, print the plan naming every effect (the files, an existing `compose.sonar.yaml` overwrite, starting the server, rotating the analysis token), then continue with no wait; never overwrite a file the plan does not name. Never commit, push, or stash.
+- Before the first write, print the plan naming every effect (the files, starting the server, rotating the analysis token), then continue with no wait. Never overwrite a file this skill did not create, never rotate a token in a `.env.sonar` it did not write (its first line is `# Written by setup-local-sonarqube`), and never pass `--force`; list such files under `Open:`. Never commit, push, or stash.
 - Only this skill talks to the user.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 
@@ -34,16 +34,16 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop (`not a git repo`). Then print the plan per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Plan`; it names every effect (list in `flow.md` `## Pre-flight`). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Write.** Run `compose` with `--root <root>`; an `ask` (two build tools) → AskUserQuestion, then re-run with `--stack <choice>`. Detail: `flow.md` `## Stack`.
-3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → the plan named the overwrite → re-run `compose` with `--force`. Detail: `flow.md` `## Exists`.
+3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → the file has no skill marker, so it is not treated as skill-created: stop with `Result: stopped`, list the file under `Open:` (rename or remove it to re-run). Detail: `flow.md` `## Exists`.
 4. **Unsupported stack.** Any other `stop` except `invalid sonar.projectKey` → spawn the `cdk:topic-researcher` subagent (fallback: a research subagent; inline research when it is unavailable); its answer and sources go under `Open:`. Detail: `flow.md` `## Unsupported stack`.
 5. **Validate.** `docker-info` succeeds → run `compose-check`; else `Validate: skipped (no Docker)`. Detail: `flow.md` `## Validate`.
-6. **Configure.** Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
+6. **Configure.** `.env.sonar` exists without the first-line marker → `Env: skipped (.env.sonar not created by this skill)`, list it under `Open:`. Else, Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
 7. **Report.** Print the Output block; tell the user how to run it (`flow.md` `## Running it`).
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For pre-flight, the plan, stack handling, the overwrite, unsupported stacks, validation, and configuring the server, and running the result (steps 1–7), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For pre-flight, the plan, stack handling, the existing-file stop, unsupported stacks, validation, and configuring the server, and running the result (steps 1–7), see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the file contents, `${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs` renders them through `compose` in `commands.md`; it is run, never read.
 - For test cases, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
@@ -64,4 +64,4 @@ Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an unresolved image tag, or a failed validation ended the run.
+`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an existing `compose.sonar.yaml`, an unresolved image tag, or a failed validation ended the run.

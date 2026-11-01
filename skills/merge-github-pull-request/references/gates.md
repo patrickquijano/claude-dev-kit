@@ -1,10 +1,42 @@
-# Merge choices
+# Gates
 
-Fields come from `pr-get`, `pr-gaps`, `merge-methods`, and `rules` in `commands.md`.
+Fields come from `pr-get`, `pr-gaps`, `permission`, `reviews`, `checks-required`, `merge-methods`, and `rules` in `commands.md`.
 
 ## Contents
 
-- Method choice · Branch cleanup · Merge tool · Post-merge check
+- Stop gates · Bypass eligibility · Blocker mapping · Method choice · Branch cleanup · Merge tool · Post-merge check
+
+## Stop gates
+
+| Condition                                              | Action                                         |
+| ------------------------------------------------------ | ---------------------------------------------- |
+| State closed or merged                                 | Stop; `Result: nothing-to-do` for merged       |
+| Draft                                                  | Stop; report that it must be marked ready      |
+| `mergeable` `CONFLICTING` or `mergeable_state` `dirty` | Stop; report the conflicts; no bypass          |
+| `mergeable` `UNKNOWN`                                  | Re-read `pr-gaps` once; still `UNKNOWN` → stop |
+
+## Bypass eligibility
+
+A stop report, not a question: bypass still runs only when the user's input asks for it. Eligible only when all three hold:
+
+1. PR author equals `self`.
+2. Permission is `ADMIN` (compared upper-case; MCP `role_name` `admin` counts).
+3. Only protection blocks the merge: not conflicts, not draft, not a closed or merged state.
+
+Not eligible → read `reviews` and `checks-required`, report the blockers and the failed condition, `Result: stopped`, merge nothing.
+
+## Blocker mapping
+
+For the stop report and for a host refusal.
+
+| Signal                                                  | Blocker line                       |
+| ------------------------------------------------------- | ---------------------------------- |
+| `mergeStateStatus` `BLOCKED`                            | Branch protection not satisfied    |
+| `mergeStateStatus` `BEHIND`                             | Head behind base                   |
+| `reviewDecision` `REVIEW_REQUIRED`                      | Required review missing            |
+| `reviewDecision` `CHANGES_REQUESTED`                    | Changes requested                  |
+| A `checks-required` row failing or pending              | Required check `<name>`: `<state>` |
+| A `rules` entry (for example `required_linear_history`) | Ruleset rule `<type>`              |
 
 ## Method choice
 
@@ -18,7 +50,7 @@ Offer only methods `merge-methods` allows; drop Merge when `rules` has `required
 
 ## Branch cleanup
 
-Head in a fork (`isCrossRepository` true) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior.
+Under `--yes` the recommended option is taken; the stops above still apply. Head in a fork (`isCrossRepository` true) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior.
 
 | Option        | Recommended when                                                                                                       | Reason                                                                        |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -35,7 +67,7 @@ The Delete option text says it deletes the remote and local branch and may move 
 | Standard     | Delete        | `merge-gh` with `--delete-branch`; `Fallbacks: merge: MCP lacks delete-branch`               |
 | Admin bypass | Either        | `merge-admin`, `--delete-branch` only for Delete; `Fallbacks: merge: MCP lacks bypass`       |
 
-Admin bypass runs only when the user's input asks for it. Re-read `head.sha` just before merging and merge that head. A refusal (policy, "not mergeable", or any other error) is reported verbatim as the host's exact error; the merge is not retried or substituted.
+Admin bypass runs only when the user's input asks for it and eligibility holds. Re-read `head.sha` just before merging; a change since the facts → stop and report, never merge a different head. A policy or "not mergeable" refusal is reported verbatim as the host's exact error and never retried or substituted; only a non-policy MCP error (or no server) runs `merge-gh` once.
 
 ## Post-merge check
 

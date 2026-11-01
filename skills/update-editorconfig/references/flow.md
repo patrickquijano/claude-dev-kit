@@ -19,7 +19,7 @@
 ## Write (step 6)
 
 - Stale section = an existing section whose every pattern matches no file from step 2; never `[*]`. Its `# <Types>` comment goes with it. Run `node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs --root <git root>` and read `stale` from its JSON (`ok: false` or a section with `note` → judge it by hand and keep it).
-- Removal follows the step 6 stale-removal answer. Kept → list under `Kept:`. Unattended → remove nothing, list each under `Open:` as "stale section: <glob>; remove it by hand or re-run interactively".
+- Removal follows the step 6 stale-removal answer. A dismissed or unanswered question counts as keep. Kept → list under `Kept:`. Unattended → remove nothing, list each under `Open:` as "stale section: <glob>; remove it by hand or re-run interactively".
 - Append one section per group, after a blank line and a `# <Types>` comment, with only its differing properties.
 - Glob: one pattern as is (`[*.php]`); several → one top-level brace list (`[{*.sh,*.bash,Makefile,*.mk}]`).
 - Line endings follow the file's `end_of_line`; the file's own final newline follows the `.editorconfig` type (none), not whichever section comes last.

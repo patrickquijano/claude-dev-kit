@@ -16,7 +16,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 ## Pre-flight
 
 - Parse arguments; only `--yes` is known, anything else is ignored.
-- Before any write, the printed plan names each effect: `compose.sonar.yaml` and `.vscode/tasks.json` written (an existing tasks file is merged by label), the server started when it is not running, the admin password set on a first run, the analysis token revoked and regenerated (a rerun rotates the old one), `.env.sonar` and the `.gitignore` entry written, and an existing `compose.sonar.yaml` overwritten (checked with Glob).
+- Before any write, the printed plan names each effect: `compose.sonar.yaml` and `.vscode/tasks.json` written (an existing tasks file is merged by label), the server started when it is not running, the admin password set on a first run, the analysis token revoked and regenerated (a rerun rotates the old one), `.env.sonar` and the `.gitignore` entry written. An existing `compose.sonar.yaml` or a `.env.sonar` without the skill's first-line marker is checked with Glob and never overwritten.
 - Nothing is written before `compose` runs; it is the only step that writes, and it writes only `compose.sonar.yaml` and `.vscode/tasks.json` under `<root>`; `configure` later writes `.env.sonar` and the `.gitignore` entry.
 
 ## Plan
@@ -24,7 +24,7 @@ Conditional detail for the steps of `SKILL.md`. Commands: `commands.md`.
 Runs once, right after the root check.
 
 - Before it, only the root check and a Glob for an existing `compose.sonar.yaml` run: the next steps write.
-- Print the plan with the effects list from `## Pre-flight`: the files written, the server start, the first-run admin password, the analysis token rotation, `.env.sonar` and the `.gitignore` entry, and the overwrite when `compose.sonar.yaml` exists. Then go to step 2 with no wait. The step 2 two-build-tools ask comes after the plan, because `compose` detects it while writing.
+- Print the plan with the effects list from `## Pre-flight`: the files written, the server start, the first-run admin password, the analysis token rotation, `.env.sonar` and the `.gitignore` entry. Then go to step 2 with no wait. The step 2 two-build-tools ask comes after the plan, because `compose` detects it while writing.
 
 ## Stack
 
@@ -35,7 +35,7 @@ Runs once, right after the root check.
 
 ## Exists
 
-- `stop` = `compose.sonar.yaml exists` → nothing was written. The printed plan named the overwrite → re-run `compose` with `--force` (it also re-merges the sonar tasks by label and keeps every other task).
+- `stop` = `compose.sonar.yaml exists` → nothing was written. The file carries no marker, so it is not skill-created: `Result: stopped`, `Stopped: 3: compose.sonar.yaml exists`, and `Open:` names it with the fix (rename or remove it, then re-run). Never re-run `compose` with `--force`.
 
 ## Unsupported stack
 
@@ -52,6 +52,7 @@ Runs once, right after the root check.
 
 ## Configure
 
+- `.env.sonar` exists and its first line is not `# Written by setup-local-sonarqube` → `Env: skipped (.env.sonar not created by this skill)`; `Open:` names it, no token is revoked or written.
 - Skip with `Env: skipped (no Docker)` or `Env: skipped (validation failed)`; a `compose` `stop` for an unsupported stack still configures (server-only, global token).
 - `server-state` empty → run `server-up` (`Server state: stopped` at the end); an id → leave the server running (`Server state: left running (was running)`). `server-up` non-zero exit → `Env: skipped (server did not start)` and `Open:` gets the first stderr line.
 - `configure` reads the host port from the running container (`docker compose port`), waits for `UP`, sets the admin password (first run) or reuses `SONAR_ADMIN_PASSWORD` from `.env.sonar`, creates the project when the stack has a key, then revokes and regenerates the token named `cdk-setup-local-sonarqube` (project token, or global for a server-only file). A rerun rotates it.

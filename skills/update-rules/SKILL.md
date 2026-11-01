@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Unattended (no way to ask): ask nothing; a conflict keeps the existing side, an ambiguous target is `CLAUDE.md`, and an unanswerable gap goes to `Omitted:` (or `Open:` for score deductions).
 - Pass score = 95/100. Improve rounds max 3 (counter starts at 0, +1 per improve round); only the step 8 improver applies score fixes. Never loop past the cap; list what is left in `Open:`.
 - Always rescore (step 6) with a fresh scorer after every improve round, including the last and one with a malformed improver return; score every criterion from the current files, never carry a prior score or the improver's `Expected:` forward or assume a pass. The pass check and the cap are judged only on that rescore.
-- Write and delete only the files listed at step 4; step 5 runs with no wait. Score-only never writes. Formatter runs prompt for permission; expected.
+- Write only the files listed at step 4; never delete a tracked file; step 5 runs with no wait. Score-only never writes. Formatter runs prompt for permission; expected.
 
 ## Workflow
 
@@ -42,8 +42,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 3. **Combine.** Merge input and existing instructions per facts `Instructions`; ask conflicts and gaps (max 4 per call). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Combine`.
    Also ask per repeated-instruction candidate: Add rule | Build a skill | Omit, per `${CLAUDE_SKILL_DIR}/references/repeats.md`.
 4. **Draft.** Create → fill `${CLAUDE_SKILL_DIR}/assets/template.md`; update → edit in place. Place each instruction per rubric `## Placement rules` and principles per `${CLAUDE_SKILL_DIR}/references/principles.md` `## Placement`. Always-loaded non-blank lines stay <200; overflow → path-scoped rules.
-   - Print the file list (new | changed | deleted), outline, dropped and moved items (including a `Known issues` move), suggested hooks, and each diff; no wait follows. A tracked file to delete is listed in it.
-5. **Write.** Write the files and run `delete-file` for each file listed for deletion; for a listed `Known issues` move also write the `feedback` memory and its `MEMORY.md` pointer in the existing auto-memory directory (path from the `MEMORY.md` path in the session's auto-memory context, never guessed; none found → keep it and list it under `Open:`), and list both paths in `Files:`. Then run `format-files`.
+   - Print the file list (new | changed), outline, dropped and moved items (including a `Known issues` move), suggested hooks, and each diff; no wait follows. A tracked file that looks redundant is not deleted: list it under `Open:` with the reason.
+5. **Write.** Write the files; for a listed `Known issues` move also write the `feedback` memory and its `MEMORY.md` pointer in the existing auto-memory directory (path from the `MEMORY.md` path in the session's auto-memory context, never guessed; none found → keep it and list it under `Open:`), and list both paths in `Files:`. Then run `format-files`.
 6. **Score.** Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only scorer subagent) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Scorer input` and `## Spawn briefs`, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, principles path `${CLAUDE_SKILL_DIR}/references/principles.md`.
 7. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 7: below 95 after 3 rounds`.
 8. **Improve.** <95 and rounds <3 → spawn the `cdk:rubric-improver` subagent (fallback: an improver subagent) per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Improve` and `## Spawn briefs` with the same rubric and principles paths as step 6, then `format-files`, step 6 rescore, step 7.
@@ -64,7 +64,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Output
 
 ```text
-Files: <path — created | updated | deleted | scored, ...>
+Files: <path — created | updated | scored, ...>
 Always-loaded lines: <project n> + <ancestor n>
 Score: <n>/100 (pass | below 95) | n/a
 Rounds: <improve rounds>

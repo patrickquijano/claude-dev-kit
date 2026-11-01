@@ -26,8 +26,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Never assume how to install a tool or package: research the vendor's official method and apply it (practices.md Install approach). Every `ARG` has a default value; no image digest anywhere.
 - Never put secrets in `ARG`, `ENV`, `COPY`, or the image; use secret mounts.
 - Multi-line `RUN` → heredoc starting `set -eux` (`set -eu` with a secret). Merge consecutive `RUN`s with the same cache inputs; never across a `COPY` or different inputs.
-- Validate with `build-check` and lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error): the reviewer subagent runs them, and step 6 runs them inline when it is unavailable. This skill itself runs the test (`image-build`, then `image-inspect` and `image-remove`; default target); never `docker build` without `--check` or a throwaway tag.
-- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write and the test build (it pulls images and runs the Dockerfile's `RUN` commands) run right after the print, with no wait.
+- Validate with `build-check` and lint with `hadolint-lint` (`skipped (heredoc)` only on a parse error): the reviewer subagent runs them, and step 6 runs them inline when it is unavailable. The test build (`image-build`, then `image-inspect` and `image-remove`; default target) runs only when the user's input asks for a build; `--yes` never starts it, since it runs the Dockerfile's `RUN` lines. Never `docker build` without `--check` or a throwaway tag.
+- Writes and AskUserQuestion happen here only; the reviewer subagent only reads. Each write to an existing file prints its diff. The write runs right after the print, with no wait.
 - AskUserQuestion or Write unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
 - Caps: Clarify 3 AskUserQuestion calls; Verify-fix 3 attempts. Clarify cap or a failure before findings exist → `Result: stopped`. Verify cap or a later failure → list the leftovers in `Open:`, `Result: stopped`, `Stopped: <step>: verify cap` (or the failure), and stop.
 
@@ -63,7 +63,7 @@ Files: Dockerfile (<written | updated | kept>), .dockerignore (<written | update
 Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
 Distro: <debian | ubuntu | alpine> (<reason when not Debian slim>)
-Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>, test build <pass | fail | skipped (no docker | review | devcontainer) | error (<first line>)>
+Checks: docker build --check <pass | fail | not installed | error (<first line>)>, hadolint <pass | fail | skipped (heredoc) | not installed | error (<first line>)>, test build <pass | fail | skipped (no docker | review | devcontainer | not asked) | error (<first line>)>
 Findings: <path:line practice id — fix>, … | none
 Build: docker build --sbom=true --provenance=mode=max -t <name> -f <Dockerfile> <context> (user command; the test image is removed)
 Resolution: <n> resolved, <m> open (see Open) | none | not run

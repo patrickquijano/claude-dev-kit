@@ -1,10 +1,39 @@
-# Merge choices
+# Gates
 
 Fields come from `mr-get` and `merge-methods` in `commands.md`.
 
 ## Contents
 
-- Method choice · Branch cleanup · Merge tool · Post-merge check
+- Stop gates · Bypass eligibility · Blocker mapping · Method choice · Branch cleanup · Merge tool · Post-merge check
+
+## Stop gates
+
+| Condition                                                    | Action                                       |
+| ------------------------------------------------------------ | -------------------------------------------- |
+| `state` closed, merged, or locked                            | Stop; `Result: nothing-to-do` for merged     |
+| `draft` true (`detailed_merge_status` `draft_status`)        | Stop; report that it must be marked ready    |
+| `has_conflicts` true (`detailed_merge_status` `conflict`)    | Stop; report the conflicts; no merge         |
+| `checking`, `unchecked`, `preparing`, or `approvals_syncing` | Re-read `mr-get` once; still the same → stop |
+
+## Bypass eligibility
+
+No MR is eligible: the merge API has no admin or skip option. A stop report, not a question: when the user's input asks for a bypass, list the blockers per `## Blocker mapping`, `Result: stopped`, merge nothing, and never switch to auto-merge as a substitute.
+
+## Blocker mapping
+
+For a host refusal or a bypass request, read `detailed_merge_status` from `mr-get` and list the blockers and who can act (reviewer, author, maintainer).
+
+| Signal (`detailed_merge_status`) | Blocker line                    |
+| -------------------------------- | ------------------------------- |
+| `not_approved`                   | Required approval missing       |
+| `requested_changes`              | Changes requested               |
+| `ci_must_pass`                   | Pipeline must succeed           |
+| `ci_still_running`               | Pipeline still running          |
+| `need_rebase`                    | Source behind target; rebase it |
+| `discussions_not_resolved`       | Open discussions                |
+| `status_checks_must_pass`        | External status checks pending  |
+| `merge_request_blocked`          | Blocked by another MR           |
+| Any other non-`mergeable` value  | Merge blocked: `<value>`        |
 
 ## Method choice
 
@@ -18,7 +47,7 @@ Offer only methods `merge-methods` allows: `squash_option` `never` drops Squash 
 
 ## Branch cleanup
 
-Source in a fork (`source_project_id` differs from `target_project_id`) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `force_remove_source_branch` true → do not ask; Delete, stated with the reason.
+Under `--yes` the recommended option is taken; the stop gates still apply. Source in a fork (`source_project_id` differs from `target_project_id`) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `force_remove_source_branch` true → do not ask; Delete, stated with the reason.
 
 | Option        | Recommended when                                                                             | Reason                                                                        |
 | ------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -34,7 +63,7 @@ The Delete option text says it removes the remote source branch only; a local br
 | Keep          | `merge-mcp` with `squash` per Method and `sha`; `merge-glab` once on a non-policy error |
 | Delete        | Same, with `should_remove_source_branch` (MCP) or `--remove-source-branch` (`glab`)     |
 
-Re-read `sha` just before merging and merge that head. A refusal (policy, "cannot be merged", or any other error) is reported verbatim as the host's exact error; the merge is not retried or substituted, and auto-merge is never used. The merge completes asynchronously; verify afterwards.
+Re-read `sha` just before merging; a change since the facts → stop and report, never merge a different head. A policy or "cannot be merged" refusal is reported verbatim as the host's exact error and never retried or substituted; only a non-policy MCP error (or no server) runs `merge-glab` once. Auto-merge is never used. The merge completes asynchronously; verify afterwards.
 
 ## Post-merge check
 

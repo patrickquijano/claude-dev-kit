@@ -37,7 +37,7 @@ pass: <observable criteria, one per line>
   - Pass: Base image has exact tag and digest; `docker build` result reported or `Unverified:`
 - `no-approval-step`: "Create a composite action that runs our linter."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-  - Pass: No approval wait; each side-effect step runs directly after the decision questions
+  - Pass: The only questions are type, input/output contract, and runner choices; the files are printed and then written in the same turn with no "Proceed?" prompt
 - `cannot-interact`: "Create an action." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

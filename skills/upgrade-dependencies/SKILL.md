@@ -36,7 +36,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context → Repo root. `<none>` → stop (init git first). `dirty-tree` not empty → continue; `diff-stat` then includes those changes.
+1. **Pre-flight.** Root = Context → Repo root. `<none>` → stop (init git first). `dirty-tree` not empty → stop (commit or stash first).
 2. **Projects.** Find manifests from `managers.md` at root and below (skip `node_modules/`, `vendor/`, `.venv/`, build output); a workspace is one project. Input names a path or packages → limit to those.
 3. **Analyze.** Spawn one `cdk:version-resolver` subagent (fallback: a read-only version-resolver subagent) per project in one message (`spawns.md`). First run `tool-check` for each project's manager; it fails → skip that project's spawn, exclude it from steps 4-11, and say why; every project excluded → `Result: stopped`, `Stopped: 3: no usable package manager`.
 4. **Report.** Print one table per project: package, current, latest, bump, dev?, breaking changes with URL, affected files, config files, requires. Nothing outdated → `Result: nothing-to-do`.

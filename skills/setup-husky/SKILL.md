@@ -32,8 +32,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
 - Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
-- Plan: step 5 prints the plan naming every install, write (package.json, dependencies, init, hooks, config, ignores, rules), and a hook-owner or `core.hooksPath` replacement, then step 6 starts with no wait (`plan.md`). Each step 16 fix round prints its items, then applies them.
-- Pre-flight stops and a Stop answer to the step 5 question: print the Output with `Result: stopped | cancelled`.
+- Plan: step 5 prints the plan naming every install, write (package.json, dependencies, init, hooks, config, ignores, rules), then step 6 starts with no wait (`plan.md`). Each step 16 fix round prints its items, then applies them.
+- Pre-flight stops and a foreign hook owner or `core.hooksPath` stop (step 7): print the Output with `Result: stopped`.
 
 ## Workflow
 
@@ -41,9 +41,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 2. **Package dir.** Per `package-manager.md` Package dir. `<pkg>` = package dir relative to the git root (`.` at root).
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
 4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json once the plan is printed.
-5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop. `hooks.md` Events. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
+5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop (`--yes`: skip it, under `Open:`). `hooks.md` Events. Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` (`init.md` read-only checks) → stop, list it under `Open:`, replace nothing. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
 6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
-7. **Initialize Husky.** Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → replaced (the plan names it); `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
+7. **Initialize Husky.** `hooks-path` check (a foreign owner already stopped the run at step 5); not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
 9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); `chmod-exec` copied stubs. `hooks.md` Copy.
 10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
@@ -75,7 +75,7 @@ Package: <pkg> (<root | nearest | workspace root>)
 Package manager: <pm> (<packageManager | lockfile | chosen>)
 package.json: created | present
 Installed: <packages> | already present
-hooksPath: ok | migrated from <old> | replaced <old>
+hooksPath: ok | migrated from <old> | kept foreign <old>
 prepare: <script> (<set | merged | unchanged>)
 Init: ran | already initialized
 pre-commit: removed | kept (test script) | restored | untouched

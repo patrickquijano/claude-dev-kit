@@ -39,6 +39,13 @@ pass: Reads the existing config as JSONC and keeps its comments
 pass: Prints a diff, then writes with no approval wait
 pass: The test container is removed through the `cdk-test` label after the run
 
+id: existing-target-file-kept
+kind: behavior
+prompt: "/setup-devcontainer --yes" (no devcontainer config; an existing `compose.yaml` and `.devcontainer/.env`)
+expected: Existing target files are not overwritten
+pass: Neither file is changed; both are listed under `Open:` with the diff each would take
+pass: No question asked; other files are still written
+
 id: no-approval-step
 kind: behavior
 prompt: "Set up a devcontainer for this repo."

@@ -46,15 +46,7 @@ const MODEL_ALIASES = ['sonnet', 'opus', 'haiku', 'fable', 'inherit'];
 const BOOLEANS = ['background', 'omitClaudeMd'];
 const PLUGIN_IGNORED = ['permissionMode', 'hooks', 'mcpServers', 'initialPrompt'];
 // Always-removed list from references/docs-snapshot.md `## Tools`.
-const REMOVED_TOOLS = [
-  'AskUserQuestion',
-  'EndConversation',
-  'EnterPlanMode',
-  'ExitPlanMode',
-  'ScheduleWakeup',
-  'WaitForMcpServers',
-  'Workflow'
-];
+const REMOVED_TOOLS = ['AskUserQuestion', 'EndConversation', 'ScheduleWakeup', 'WaitForMcpServers', 'Workflow'];
 
 export class FrontmatterError extends Error {}
 

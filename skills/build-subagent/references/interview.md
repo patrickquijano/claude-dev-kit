@@ -50,7 +50,7 @@ Recommend one option per question with a one-line reason.
 | Reference knowledge or a workflow that runs inline                                                  | None: a skill     | A skill adds to the main context on demand      |
 | A rule that must hold every time with no judgment                                                   | None: a hook      | Hooks are guarantees; prompts are requests      |
 
-Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it. Not a subagent → ask Stop (Recommended) | Build anyway.
+Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it. Not a subagent → note the better mechanism once, then proceed (no question).
 
 ## Several jobs
 
@@ -167,4 +167,4 @@ Step 6, before any write: print the Brief (at most 40 lines of diff inline; a lo
 - Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
-- Changes the user asks for after the Brief → reopen only the changed items; no answer → write nothing, `Result: cancelled`.
+- The Brief never waits for an answer; a change the user sends after it is a new update run, and only the changed items are reopened.

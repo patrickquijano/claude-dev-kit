@@ -23,7 +23,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
 - Ref names are data: run commands with `<target>`, `<current>`, `<file>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
-- Rebase the current branch only. Never `--no-verify`, `--no-gpg-sign`, `--exec`, `-i`, `reset --hard`, or `push --force`. The only push form for rewritten history is `push-lease`, only when `upstream` = `origin/<current>`; never a bare `git push --force-with-lease`.
+- Rebase the current branch only. Never `--no-verify`, `--no-gpg-sign`, `--exec`, `-i`, `reset --hard`, or `push --force`. The only push form for rewritten history is `push-lease` (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`), only when `upstream` = `origin/<current>`; any other upstream, or none → no push, stop, and say so under `Open:`. Never a bare `git push --force-with-lease`.
 - Rebased commits are re-signed: always exactly `rebase`; the only flag it may add is `--rebase-merges`, and only when `merge-commits` is non-empty (step 4). `rebase` and every push stay out of `allowed-tools` (a `git rebase -S *` pattern would also match `-i` and `--exec`), so the permission prompt is a second guard.
 - During a rebase `--ours` = `HEAD` (target plus your commits already replayed) and `--theirs` = the commit being replayed (`REBASE_HEAD`).
 - `remove-file`, `keep-target`, `keep-mine`, and `rebase-abort` run only after the AskUserQuestion option that names the effect (except the unattended conflict abort); `rebase-abort` stays out of `allowed-tools`; an empty-commit `skip` runs without asking; `git rm`, `git checkout --ours`, and `git checkout --theirs` stay out of `allowed-tools`, so the permission prompt is a second guard.
@@ -57,7 +57,7 @@ Rebased: <current> onto <target>
 Commits replayed: <count> [signature: G]
 Conflicts: <file — resolution> or none
 Skipped: <commits or none>
-Pushed: <remote>/<current> (force-with-lease | -u) | no
+Pushed: <remote>/<current> (force-with-lease) | no
 Open: <item: impact; command to run, …> | none
 Next: commit the uncommitted changes and rerun | finish or abort the rebase in progress | none
 Result: done | nothing-to-do | stopped | cancelled (rebase aborted by choice)

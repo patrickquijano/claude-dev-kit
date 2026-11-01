@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Both `.yml` and `.yaml` exist → ask which to keep, never merge both.
+1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Both `.yml` and `.yaml` exist → ask which to keep, never merge both (`--yes`: use the existing one that is tracked, else `.yaml`, and list the other under `Open:` untouched).
 2. **Detect.** Per `ecosystems.md`: list manifests with `git-ls-files`, map each to its `package-ecosystem` and `directories`. Nothing found → stop (`Result: nothing-to-do`).
 3. **Research.** Spawn the `cdk:topic-researcher` subagent (fallback: a read-only subagent that cites official sources; inline fallback: WebFetch of the URLs in `options.md`) for the current options, deprecations, and defaults listed there, with the brief in `options.md`; cite URLs.
 4. **Questions.** Per `options.md`: schedule interval, grouping, cooldown, commit-message prefix (default from the repo's commitlint config). Each with the grill table.
@@ -61,6 +61,6 @@ Research: <url>, ... | unverified
 Validation: schema check pass | manual checklist pass | <failures>
 Open: <item: impact; recommended fix, ...> | none
 Next: commit the changes | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

@@ -38,7 +38,7 @@ A failing item that needs unavailable information, touches a released section, o
 
 ## Fallback
 
-AskUserQuestion or Write unavailable (unattended run) → ask nothing and act per row:
+AskUserQuestion or Write unavailable, or `--yes` (unattended run) → ask nothing and act per row; a row wins over any Recommended option:
 
 | Ask                                     | Action                                                    |
 | --------------------------------------- | --------------------------------------------------------- |

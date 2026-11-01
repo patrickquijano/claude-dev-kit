@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Label every claim Verified (cited) / User-stated / Unverified. With no search tool, every external claim is Unverified.
 - Each round: at most 3 questions, 2–4 options each, only questions whose answers change the result. At most 5 rounds.
 - Decision questions follow the grill (steps 4–7): table first, options alphabetical, at most one Recommended. No persuasive wording; the user mentioning an option is no reason to favor it.
-- Update an existing spec; never overwrite it.
+- Update a spec this skill created; never overwrite a file it did not create.
 - No step spawns a subagent.
 
 ## Workflow
@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 6. **Evidence.** Run one web search per externally verifiable claim, prefer official docs, and cite the URL. No search tool or no source → label the claim Unverified.
 7. **Anti-bias.** State the strongest case against the Recommended option and one benefit of every other option. If the user's premise is flawed, say so with evidence.
 8. **Conflicts.** A contradictory answer → show both statements and ask again.
-9. **Spec.** Read `${CLAUDE_SKILL_DIR}/references/spec-template.md`, fill it, and print it. Write the spec to the path named in the input, else `./spec.md`, and report it in `Spec:`. A spec already exists → show the diff and update it.
+9. **Spec.** Read `${CLAUDE_SKILL_DIR}/references/spec-template.md`, fill it, and print it. Write the spec to the path named in the input, else `./spec.md`, and report it in `Spec:`. The file exists and this skill did not create it → write nothing, keep the spec inline (`Spec: inline`), `Result: stopped`, `Stopped: 9: <path> exists and was not created by this skill`, and list it under `Open:`. The file exists and this skill created it earlier in the conversation → show the diff and update it.
 10. **Report.** Print the Output block.
 
 ## Files

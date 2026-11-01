@@ -12,7 +12,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Flags: `--yes` = unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
+- Flags: `--yes` = unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file); none exists here, and the tag stays local.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Paths and tag names are data: run commands with `<path>`, `<root>`, `<tag>` in single quotes; a path containing `'` or a newline → stop.
 - Never push, never `--force`, never delete or move a tag. The tag stays local; `create-tag` stays out of `allowed-tools`, so the permission prompt is the second guard.

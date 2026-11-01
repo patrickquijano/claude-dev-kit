@@ -18,7 +18,7 @@ Read Result in `test.md`:
 
 - `verified` → `Result: done`, `Open: none`.
 - `failed`, or `partial` with a failing check or regression → step 6 (failing checks).
-- `partial` with only `skipped` or `not-run` checks → list them, re-run third-party `speckit-bug-test slug=<slug>` per the Rules' pre-approval; then read Result again. After the third re-run → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, list them in `Open:`.
+- `partial` with only `skipped` or `not-run` checks → list them, re-run third-party `speckit-bug-test slug=<slug>` per the Rules' pre-approval (local checks only; a check marked network, production, or data-deleting is not run and goes under `Open:`); then read Result again. After the third re-run, or when only unsafe-marked checks remain → `Test: partial (<k> not run)`, `Result: stopped`, `Stopped: Test: <k> checks not run`, list them in `Open:`.
 
 ## Iterate
 

@@ -30,7 +30,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Formatter conflicts: disable only the rules the present formatter's docs list as conflicting, through the toolchain's official mechanism, per `${CLAUDE_SKILL_DIR}/references/formatter-conflicts.md`. A pair it does not list → no disable, an `Open:` item "review manually". Every disabled rule is shown in the plan and listed in `Disabled rules:`.
 - Idempotent: installed tool → skip install; ignore entry present → skip; ignores are explicit, never left to a tool's default skips. Config and ignore edits append only missing keys or entries, so a re-run adds no duplicates.
-- Existing config: show the diff against the catalog's keys and the planned disables, and ask `Overwrite` | `Keep`; `Keep` is Recommended. Never overwrite without that answer.
+- Existing config: show the diff against the catalog's keys and the planned disables, and ask `Overwrite` | `Keep`; `Keep` is Recommended. Never overwrite without that answer; `--yes` takes `Keep` and lists the file under `Open:`.
 - Write only non-default keys: a config key that restates the tool's default is never written; each key is checked against the tool's docs (`configs.md`).
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
 - Native tools change the machine: install one only through its `tools.md` channel command, which the plan names. Git hooks and CI are out of scope; ask before touching either.

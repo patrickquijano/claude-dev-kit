@@ -8,7 +8,7 @@ Detail for the steps that branch.
 
 ## Plan
 
-No AskUserQuestion and no `--yes` → `Result: stopped`, `Stopped: 1: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
+Runs at the end of step 6. The no-way-to-ask stop is in `SKILL.md` Rules.
 
 - Steps 1–6 only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
 - At the end of step 6 print the plan: the linters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), the config and ignore files to write or overwrite, and every formatter-conflict disable with its rule. Nothing to install or write → a one-line plan saying so. Then go to step 7 with no wait; each step 11 fix round prints its items first.

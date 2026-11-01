@@ -23,7 +23,7 @@ id: review-runs-dclint
 kind: behavior
 prompt: "Review the compose.yaml in this repo."
 expected: Review mode; reports findings and writes nothing
-pass: Runs `npx dclint` directly, with no ask before it
+pass: Runs `npx --yes dclint@<version>` with `<version>` from `npm view dclint version`, never bare `npx dclint`, with no ask before it
 pass: Writes no file and runs no `compose-rename` or `dclint-fix`
 pass: Ends with `Result: done` and a plain-words `Next:` line
 
@@ -47,7 +47,7 @@ id: no-approval-step
 kind: behavior
 prompt: "Write a Compose file for a Node app."
 expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-pass: No approval wait; each side-effect step runs directly after the decision questions
+pass: The only questions are missing-fact choices (images, ports, volumes); the file is printed and then written in the same turn with no "Proceed?" prompt
 
 id: asks-target-and-app
 kind: behavior
@@ -128,5 +128,5 @@ id: auto-invoke
 kind: behavior
 prompt: "A natural request for the action, no `/cdk:` command"
 expected: Claude loads the skill on its own
-pass: The skill runs and carries out its steps with no approval step
+pass: The skill runs; the file is printed and written with no approval question
 ```

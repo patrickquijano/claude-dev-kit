@@ -29,7 +29,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Tool names come from `tools.md` plus the project manifests; a file type or tool not in them → ask the user for a tool name, never guess one.
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Idempotent: installed tool → skip install; ignore entry present → skip; ignores are explicit, never left to a tool's default skips. Ignore edits append only missing entries, so a re-run adds no duplicates.
-- Existing config: show the diff against the catalog's keys and ask `Overwrite` | `Keep`; `Keep` is Recommended. Never overwrite without that answer.
+- Existing config: show the diff against the catalog's keys and ask `Overwrite` | `Keep`; `Keep` is Recommended. Never overwrite without that answer; `--yes` takes `Keep` and lists the file under `Open:`.
 - Write only non-default keys: a config key that restates the tool's default is never written; each key is checked against the tool's docs (`configs.md`).
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
 - Native tools change the machine: install one only through its `tools.md` channel command. Git hooks and CI are out of scope; ask before touching either.

@@ -28,8 +28,7 @@ G2: unmet — <what failed, file:line>
 
 Run after every implementer return (step 6 and each fix round). Run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
 
-- A newly changed path that is not planned: revert it (`restore-path`; an untracked new file is removed with `remove-new`).
-- A Dirty path whose diff changed and the picked approach does not name: never `restore-path` it (that would drop the user's own edits); keep it and list the path under `Open:`.
+- A newly changed path that is not planned, or a Dirty path whose diff changed and the picked approach does not name: never revert or remove it (that could drop the user's own edits); keep it and list the path under `Open:`.
 
 ## Iterate
 

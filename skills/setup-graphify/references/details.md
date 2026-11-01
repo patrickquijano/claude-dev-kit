@@ -14,4 +14,4 @@ Placeholder names come from `graphify update` or a label-less build. Say `label-
 
 ## Git ignore
 
-`graphify-out/*`, not `graphify-out/`: git cannot re-include a file whose parent folder is excluded. An existing `graphify-out/` or `/graphify-out` line blocks the negations → the plan states: replace it with the block (shares the graph and report with the team). Delete that line, then run `append-ignores`. Tell the user the post-commit hook rebuilds the tracked `graph.json`, so it shows as modified after commits and goes in the next commit.
+`graphify-out/*`, not `graphify-out/`: git cannot re-include a file whose parent folder is excluded. An existing `graphify-out/` or `/graphify-out` line blocks the negations → never delete or edit that line: run `append-ignores` anyway (it skips `.gitignore`), report `Git ignore: kept local only`, and list the line under `Open:` with the fix (replace it by hand with the block to share the graph and report with the team). Tell the user the post-commit hook rebuilds the tracked `graph.json`, so it shows as modified after commits and goes in the next commit.

@@ -58,6 +58,6 @@ Tool: gh | gh api
 Notes: <final body>
 Open: <item: reason> | none
 Next: <follow-up in plain words> | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

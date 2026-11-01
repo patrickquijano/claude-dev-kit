@@ -59,7 +59,7 @@ Write right after the printed file and change list; no wait follows. Name the fi
 
 1. Run `docker-check`; no docker → `Checks: config skipped (no docker)` and go to the lint.
 2. Compose / DevContainer: run `compose-validate`. Compose Deploy: run `stack-validate`; a scoped file is validated together with `compose.yaml`. A `required variable … is missing` error that comes only from `${VAR:?err}` is not a file fault: re-run `compose-validate-raw` (Compose Deploy: `stack-validate-raw`) and note it. Never print the output.
-3. Lint: run `dclint-version`, `dclint-engines`, and `node-check`; a Node version below the `engines` minimum → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`. Otherwise run `dclint`, with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` for Compose Deploy.
+3. Lint: run `dclint-version`, `dclint-engines`, and `node-check`; a Node version below the `engines` minimum → `Checks: dclint skipped (node)`; a minimum you cannot confirm → skipped, listed under `Open:`. Otherwise run `dclint` pinned to the `dclint-version` result (`npx --yes dclint@<version>`, never bare `npx dclint`), with `--disable-rule` for each rule in `practices.md` `## Swarm lint triage` for Compose Deploy.
 4. Review mode → report each `error` or `warning` as a finding; never fix the file or run `dclint-fix`. Otherwise each `error` or `warning` → fix the file, print the diff, re-run both checks (cap in Rules); an auto-fixable one may use `dclint-fix`, then re-run. A tool failure that is not a finding gets no fix loop.
 5. Leftovers: unfixed findings, skipped practices, a failed or missing check. Review mode lists each with its recommended fix.
 

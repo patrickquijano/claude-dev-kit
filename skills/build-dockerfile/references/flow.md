@@ -31,7 +31,7 @@ Spawn the `cdk:practices-reviewer` subagent (brief in `## Spawn briefs`) with th
 
 - Review mode → report findings; write nothing.
 - Create or update → each `error` or `warning` → fix, print the diff, write, re-run (cap in Rules). `info` → list only.
-- Create or update, default target, after the review is clean: run the Test check from practices.md `## Checks` (`image-build`, `image-inspect`, `image-remove`) with one `<run id>` for all three: 8 random hex characters chosen once per run; run `docker-check` first; a skip under practices.md is no finding; a build failure is a finding → fix and re-run within the cap. Review mode and devcontainer target never build here.
+- Create or update, default target, after the review is clean, and only when the user's input asks for a build (else the test build is `skipped (not asked)`; `--yes` does not ask): run the Test check from practices.md `## Checks` (`image-build`, `image-inspect`, `image-remove`) with one `<run id>` for all three: 8 random hex characters chosen once per run; run `docker-check` first; a skip under practices.md is no finding; a build failure is a finding → fix and re-run within the cap. Review mode and devcontainer target never build here.
 - `Resolution:` = findings the loop fixed as resolved, findings left (the `Open:` entries) as open; `none` when the reviewer reported no `error` or `warning`; `not run` when step 6 never ran.
 - Leftovers: unfixed findings, skipped practices, a failed or missing check (a tool `error` gets no fix loop; skipped hadolint for a heredoc parse error is not a leftover). Review mode lists each with its recommended fix.
 

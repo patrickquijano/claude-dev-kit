@@ -28,7 +28,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **Tooling.** Parse `origin` into host and project path per `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`; no GitLab host → `Stopped: 1: no GitLab remote`. Run the MCP host check via `project-get`; else run `auth`. Record per operation whether it runs on MCP or `glab`. Neither works → `Stopped: 1: no GitLab MCP and no glab auth`.
-2. **Target.** An issue URL (`/-/issues/<iid>` or `/-/work_items/<iid>`) or an IID or `#n` (project from `origin`) → update. Anything else → create. A `/-/merge_requests/` URL → `Stopped: 2: merge request, not an issue`. A work item whose type is not Issue or Incident → `Stopped: 2: <type>, not an issue`. A closed issue → update it and note that it is closed under `Open:`.
+2. **Target.** An issue URL (`/-/issues/<iid>` or `/-/work_items/<iid>`) or an IID or `#n` (project from `origin`) → update. Anything else → create. A `/-/merge_requests/` URL → `Stopped: 2: merge request, not an issue`. A work item whose type is not Issue or Incident → `Stopped: 2: <type>, not an issue`. A closed issue → `Stopped: 2: issue #<iid> is closed` unless the input says to update the closed issue (then update it and note it is closed under `Open:`); `--yes` never skips this stop.
 3. **Context.** Update: `issue-get`. Create: `issue-search` for open duplicates; on a match ask `Continue creating` | `Update #<iid>` (Recommended when the title matches) | `Stop`.
 4. **Template.** Pick per `${CLAUDE_SKILL_DIR}/references/template.md`: the project's `.gitlab/issue_templates/` on the default branch, then the bundled set. Several templates → the request decides, then `Default.md`, else ask. Update keeps the description's existing structure.
 5. **Fill.** Fill every field from cited sources. Each missing or ambiguous item → ask, one question per round. Quick-action lines become label candidates (`/label`) or are asked or listed under `Open:` (`/assign`, `/milestone`, others), then stripped.
@@ -58,6 +58,6 @@ Type: <type | none>
 Tool: mcp | glab | mcp+glab:<ops on glab>
 Open: <item: reason> | none
 Next: none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

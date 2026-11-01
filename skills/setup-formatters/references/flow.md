@@ -8,7 +8,7 @@ Detail for the steps that branch.
 
 ## Plan
 
-At the end of step 5. No flag and no AskUserQuestion → `Result: stopped`, `Stopped: 1: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
+Runs at the end of step 5. The no-way-to-ask stop is in `SKILL.md` Rules.
 
 - Print the plan: the formatters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write or overwrite, each with its purpose and effects. Nothing to install or write → a one-line plan saying so. Then go to step 6 with no wait.
 - The missing `package.json` is created first, then the install runs, native tools included.

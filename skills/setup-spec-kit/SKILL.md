@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **CLI.** `has-specify` succeeds → skip, else run `install-specify`; record `version`. Missing uv or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
-2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. Cases and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
+2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. A non-empty project with speckit files it did not create stops. Cases and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
 3. **Extensions.** Run `plan-extensions`; per `extensions.adds` run `extension-add`, per `priorityFixes` run `extension-set-priority`. Then read `skills.missing` from the plan for the missing required skill dirs. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append the `gitignore.missing` lines from step 3's plan to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Leave `.specify/.gitignore` alone; `specify init` manages it.
 5. **Lint and format ignores.** Spec Kit overwrites generated files on upgrade, so linting them is noise. Add `.specify/` and `.claude/skills/speckit-*/` to each existing config in that tool's syntax; keep `specs/` linted. Forms per tool: `${CLAUDE_SKILL_DIR}/references/ignores.md`.

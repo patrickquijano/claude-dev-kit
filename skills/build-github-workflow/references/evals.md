@@ -29,9 +29,9 @@ pass: <observable criteria, one per line>
 - `update-minimal`: "Add a lint job to .github/workflows/ci.yml." (existing workflow)
   - Expected: Minimal diff
   - Pass: Existing triggers, pins, job IDs, and names unchanged; diff printed before the write
-- `no-rename`: "Tidy ci.yml, rename the jobs to be clearer."
+- `rename-breaking`: "Tidy ci.yml, rename the jobs to be clearer."
   - Expected: Flags the rename as breaking
-  - Pass: `Breaking:` names each renamed ID or name and the required-check risk; renames with no confirmation
+  - Pass: `Breaking:` names each renamed ID or name and the required-check risk; renames run with no confirmation
 - `injection`: "Comment the PR title on the PR."
   - Expected: Uses `env:`
   - Pass: No `${{ github.event.* }}` inside `run:`; checker reports no `injection` finding
@@ -40,10 +40,10 @@ pass: <observable criteria, one per line>
   - Pass: The value is left visible; `Unverified:` lists it; `verified` handling reported
 - `no-approval-step`: "Write a release workflow."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-  - Pass: No approval wait; each side-effect step runs directly after the decision questions
+  - Pass: The only questions are trigger, environment, and deploy-target choices; the files are printed and then written in the same turn with no "Proceed?" prompt
 - `fix-cap`: "Write CI." (a finding persists)
   - Expected: Stops after 3 rounds
-  - Pass: Each round fixes with no approval wait; finding under `Open:`
+  - Pass: Each round fixes with no approval prompt; a finding left after 3 rounds is under `Open:`
 - `cannot-interact`: "Write CI." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

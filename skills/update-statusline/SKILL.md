@@ -62,6 +62,6 @@ statusLine: <set | present>
 Smoke test: <pass/fail lines> | skipped (<reason>)
 Open: <item: impact; recommended fix, ...> | none
 Next: restart or reopen Claude Code to see the new color | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

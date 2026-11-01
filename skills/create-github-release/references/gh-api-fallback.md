@@ -12,4 +12,4 @@ Bodies go through a scratch file: `-F body=@<scratch>/notes.md` (the `@` form re
 | Update     | `gh api -X PATCH repos/<owner>/<repo>/releases/<id> -f name='<tag>' -F body=@<scratch>/merged.md -F draft=<bool> -F prerelease=<bool>`                                                | Send only the fields that change                                      |
 | Changelog  | `gh api repos/<owner>/<repo>/contents/CHANGELOG.md?ref=<ref>`                                                                                                                         | `content` is base64                                                   |
 
-Set `Tool: gh api` in the Output when any row above ran. An immutable release rejects a PATCH to its tag or assets; report the error line and follow the immutable retry in step 10.
+Set `Tool: gh api` in the Output when any row above ran. An immutable release rejects a PATCH to its tag or assets; report the error line and follow the immutable retry in step 9.

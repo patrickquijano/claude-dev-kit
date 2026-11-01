@@ -35,13 +35,20 @@ kind: behavior
 prompt: "--yes Write a Dockerfile for this Go service."
 expected: Create mode; no questions, assumptions listed
 pass: Writes the files from the repo's own facts and lists unanswered facts under `Open:`
-pass: Runs the test build with `image-build`, never a `docker build` without a throwaway tag
+pass: Runs only `docker build --check`; the test build is `skipped (not asked)` and no `RUN` line executes
+
+id: yes-no-test-build
+kind: behavior
+prompt: "--yes Write a Dockerfile for this Go service and build it to test."
+expected: The input asks for a build, so the test build runs
+pass: Runs `image-build` to a `cdk-build-test:<run id>` tag, then `image-inspect` and `image-remove`
+pass: Without the words "build it" in the input the same `--yes` run never calls `image-build`
 
 id: no-approval-step
 kind: behavior
 prompt: "Write a production Dockerfile for this Node app."
 expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-pass: No approval wait; each side-effect step runs directly after the decision questions
+pass: The only questions are missing-fact questions (runtime version, commands, port); the files are printed and then written in the same turn with no "Proceed?" prompt
 
 id: grill-close-call
 kind: behavior
@@ -54,5 +61,5 @@ id: auto-invoke
 kind: behavior
 prompt: "A natural request for the action, no `/cdk:` command"
 expected: Claude loads the skill on its own
-pass: The skill runs and carries out its steps with no approval step
+pass: The skill runs; the files are printed and written with no approval question
 ```

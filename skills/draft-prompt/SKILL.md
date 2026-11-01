@@ -45,6 +45,6 @@ Placeholders: <each placeholder to fill | none>
 Rules: <confirmed instruction paths | none>
 Open: <what is left | none>
 Next: none
-Result: done | stopped | cancelled
+Result: done | stopped
 Stopped: <step>: <reason> | none
 ```

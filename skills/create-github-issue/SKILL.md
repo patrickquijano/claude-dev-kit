@@ -26,7 +26,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **Tooling.** Find the MCP tools for issue read, search, write, file contents, labels, and issue types; for each missing one run `auth` and plan to use `gh` for that operation. Record per operation whether it runs on MCP or `gh`. Neither works → `Stopped: 1: no GitHub MCP and no gh auth`.
-2. **Target.** An issue URL (`github.com/<o>/<r>/issues/<n>`) or a number or `#n` (repo from `origin`) → update. Anything else → create. A PR URL → `Stopped: 2: pull request, not an issue`. A closed issue → update it and note that it is closed under `Open:`.
+2. **Target.** An issue URL (`github.com/<o>/<r>/issues/<n>`) or a number or `#n` (repo from `origin`) → update. Anything else → create. A PR URL → `Stopped: 2: pull request, not an issue`. A closed issue → `Stopped: 2: issue #<n> is closed` unless the input says to update the closed issue (then update it and note it is closed under `Open:`); `--yes` never skips this stop.
 3. **Context.** Update: `issue-get`. Create: `issue-search` for open duplicates; on a match ask `Continue creating` | `Update #<n>` (Recommended when the title matches) | `Stop`.
 4. **Template.** Pick per `${CLAUDE_SKILL_DIR}/references/template.md`: repo `.github/ISSUE_TEMPLATE/`, legacy single file, owner `.github` repo, then the bundled set. One clear fit → use it; several plausible → ask. Update keeps the body's existing structure.
 5. **Fill.** Fill every field from cited sources. Each missing or ambiguous item → ask, one question per round.
@@ -54,6 +54,6 @@ Type: <type | none>
 Tool: mcp | gh | mcp+gh:<ops on gh>
 Open: <item: reason> | none
 Next: none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
