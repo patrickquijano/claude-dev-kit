@@ -17,9 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` print the verdict and then post the review without asking first.
 - `/cdk:create-github-release` creates or edits the release without a plan approval step.
 - `/cdk:merge-github-pull-request` and `/cdk:merge-gitlab-merge-request` ask only for the method and branch cleanup, then merge, and report a refused merge with the host's exact error.
-- Both merge skills use admin bypass only when your input asks for it, and no longer stop on readiness gates.
+- Both merge skills still stop, without asking, on a closed, merged, draft, or conflicting change and when the head moved since it was read; they never merge a different head.
+- `/cdk:merge-github-pull-request` uses admin bypass only when your input asks for it and you own the PR, and reports the blockers otherwise; `/cdk:merge-gitlab-merge-request` never bypasses protection.
 - `/cdk:switch-branch` asks only whether to push and no longer offers a Stop option.
-- `/cdk:delete-branches` force-deletes an unmerged branch without asking and lists each as `branch@sha` under `Local force-deleted:`.
+- `/cdk:delete-branches` never force-deletes; a branch that is not fully merged is reported as `Local skipped: <branch@sha> not fully merged`.
+- `/cdk:rebase-onto` pushes a rebased branch only with a pinned `--force-with-lease` when the upstream is `origin/<branch>`, and otherwise stops without pushing.
+- `/cdk:push-commits` stops on an unsigned commit; `/cdk:create-github-issue` and `/cdk:create-gitlab-issue` stop on a closed issue unless your input names it; `/cdk:upgrade-dependencies` stops on a dirty tree.
+- `setup-*` skills never overwrite a file they did not create, rotate a token, or delete a `.gitignore` line; `/cdk:setup-husky` stops on another hook owner or a custom `core.hooksPath`. Each lists what it left under `Open:`.
+- `/cdk:fix-spec-kit-bug` re-runs only local checks, and `/cdk:implement-spec` lists unplanned paths under `Open:` instead of reverting them.
 - `/cdk:delete-branches --yes` selects no branch and reports that a person must choose.
 - `--yes` runs unattended for every skill: no questions, recommended options taken, assumptions listed under `Open:`.
 - Skill reports no longer include `Plan mode:` or `Confirmed:` lines, and `Result: cancelled` is gone from skills that no longer ask to confirm.
@@ -27,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - The `--no-plan` flag is removed from every skill that had it; pass `--yes` for an unattended run, or none to answer questions.
+
+### Security
+
+- Development dependency `minimatch` is pinned to 11.0.3 to clear a denial-of-service advisory; the audit allowlist for it is removed.
 
 ## [0.8.8] - 2026-10-31
 
