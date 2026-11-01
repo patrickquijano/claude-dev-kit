@@ -2,6 +2,7 @@
 # Aligned with .yamlfmt.yaml and the .prettierrc.json YAML override.
 extends: default
 
+# Replaces ignore-from-file: .gitignore so untracked scratch dirs are skipped without a .gitignore dependency.
 ignore: |
   node_modules/
   package-lock.json
@@ -11,7 +12,9 @@ ignore: |
   evals/results/
 
 rules:
+  # Skill evals and generated compose files carry long lines that yamlfmt does not wrap.
   line-length: disable
+  # GitHub Actions uses `on:` as a key.
   truthy: {check-keys: false}
+  # Same 2-space indent that yamlfmt writes.
   indentation: {spaces: 2}
-  quoted-strings: {required: only-when-needed}
