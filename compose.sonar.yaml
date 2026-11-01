@@ -5,12 +5,15 @@ services:
     image: sonarqube:26.10.0.133078-community
     ports:
       - target: 9000
-        published: "${SONAR_PORT:-9000}"
+        published: ${SONAR_PORT:-9000}
         host_ip: 127.0.0.1
     environment:
-      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"'"]
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fsS http://localhost:9000/api/system/status | grep -q '"status":"UP"'
       interval: 10s
       timeout: 5s
       retries: 30
@@ -37,7 +40,7 @@ services:
         required: false
     environment:
       - SONAR_HOST_URL=http://sonarqube:9000
-      - "SONAR_EXCLUSIONS=**/.scannerwork/**,**/.git/**,**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/.nuxt/**,**/.angular/**,**/.turbo/**,**/out/**,**/storybook-static/**,**/vendor/**,**/storage/**,**/bootstrap/cache/**,**/public/build/**,**/public/hot/**,**/var/cache/**,**/var/log/**,**/.venv/**,**/venv/**,**/env/**,**/__pycache__/**,**/.tox/**,**/.mypy_cache/**,**/.pytest_cache/**,**/.ruff_cache/**,**/site-packages/**,**/staticfiles/**,**/tmp/**,**/log/**,**/public/assets/**,**/public/packs/**"
+      - SONAR_EXCLUSIONS=**/.scannerwork/**,**/.git/**,**/node_modules/**,**/dist/**,**/build/**,**/coverage/**,**/.next/**,**/.nuxt/**,**/.angular/**,**/.turbo/**,**/out/**,**/storybook-static/**,**/vendor/**,**/storage/**,**/bootstrap/cache/**,**/public/build/**,**/public/hot/**,**/var/cache/**,**/var/log/**,**/.venv/**,**/venv/**,**/env/**,**/__pycache__/**,**/.tox/**,**/.mypy_cache/**,**/.pytest_cache/**,**/.ruff_cache/**,**/site-packages/**,**/staticfiles/**,**/tmp/**,**/log/**,**/public/assets/**,**/public/packs/**
     volumes:
       - type: bind
         source: .
