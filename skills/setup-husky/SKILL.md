@@ -33,7 +33,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
 - Plan: step 5 prints the plan naming every install, write (package.json, dependencies, init, hooks, config, ignores, rules), then step 6 starts with no wait (`plan.md`). Each step 16 fix round prints its items, then applies them.
-- Pre-flight stops and a foreign hook owner or `core.hooksPath` stop (step 7): print the Output with `Result: stopped`.
+- Pre-flight stops and a foreign hook owner or `core.hooksPath` stop (step 5): print the Output with `Result: stopped`.
 
 ## Workflow
 
@@ -89,6 +89,6 @@ Smoke test: <pass/fail lines> | skipped (<reason>)
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
 Open: <item: impact; recommended fix, ...> | none
 Next: commit the changes | none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```

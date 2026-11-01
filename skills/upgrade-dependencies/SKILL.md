@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Ask (unattended: record) what the input and repo cannot answer.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:` (see the Unattended rule). Only a flag the user passed counts; never add one.
-- Only this skill asks the user (AskUserQuestion); subagents cannot. Unattended = running as a subagent or in print mode; every other case where it is unavailable → ask the pending question as plain text, end the turn, and take the next message as the answer.
+- Only this skill asks the user (AskUserQuestion); subagents cannot. Unattended = `--yes`, running as a subagent, or print mode; every other case where it is unavailable → ask the pending question as plain text, end the turn, and take the next message as the answer.
 - Latest stable only: skip pre-release, beta, RC, canary, and nightly versions, unless the user names one.
 - Change manifests and lockfiles only as `${CLAUDE_SKILL_DIR}/references/managers.md` says: its upgrade command, or its listed manifest edit followed by its lock or update command, or the exact specifier restore of a revert (`validate.md`). Other hand edits desync the lockfile.
 - Breaking changes come from the package's official changelog, release notes, or migration guide, never from memory. None found → say so in the plan and treat the major upgrade as high risk.

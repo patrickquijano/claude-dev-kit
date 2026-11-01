@@ -6,7 +6,6 @@ Details step 6 of `${CLAUDE_SKILL_DIR}/SKILL.md`.
 
 Steps 2–6 only read and ask: tool-check, the resolver and researcher spawns, and the select ask. At the end of step 6 print the plan, then go to step 7 with no wait: the projects, each package with current → new version and bump, the planned edits per file, the majors selected in step 5, the effects (manifest and lockfile changes, the install and check commands that run), and the high-risk notes.
 
-- A change to the selection reruns step 6 for the changed packages first.
 - An end before step 7 (`nothing-to-do`, nothing selected, every major declined and no patch or minor selected) prints the Output.
 
 ## Step 6

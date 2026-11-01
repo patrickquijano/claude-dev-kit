@@ -76,7 +76,7 @@ Docker access: none | docker-outside-of-docker | docker-in-docker
 Files: <path (written | updated | kept)>, …
 Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
-Checks: JSON <pass | fail | n/a (JSONC | no node)>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, shellcheck <pass | fail | not installed | n/a>, up + exec test <pass | fail | not installed | skipped (no Dockerfile)>
+Checks: JSON <pass | fail | n/a (JSONC | no node)>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, shellcheck <pass | fail | not installed | n/a>, up + exec test <pass | fail | not installed | skipped (no Dockerfile) | skipped (not chosen)>
 Next: <item>, … | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped
