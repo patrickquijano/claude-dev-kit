@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint . --max-warnings 0 && markdownlint-cli2 \"**/*.md\" && yamllint --strict . && yamlfmt -lint . && prettier --check . \"!**/*.yaml\" \"!**/*.yml\"",
-    "format": "prettier --write . && yamlfmt . && markdownlint-cli2 --fix \"**/*.md\"",
+    "format": "prettier --write . \"!**/*.yaml\" \"!**/*.yml\" && yamlfmt . && markdownlint-cli2 --fix \"**/*.md\"",
     "test": "npm run test:unit && npm run test:integration",
     "audit": "audit-ci --config audit-ci.jsonc",
     "prepare": "husky",
@@ -27,6 +27,7 @@
   },
   "overrides": {
     "katex": "^0.18.2",
+    "minimatch": "^11.0.3",
     "re2js": "^2.8.8"
   },
   "engines": {
