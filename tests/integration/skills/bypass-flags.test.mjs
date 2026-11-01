@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const skillsDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'skills');
 // The docs snapshot records Claude Code's own tool names, which a subagent never gets.
 const DOC_FACTS = join('build-subagent', 'references', 'docs-snapshot.md');
-const REMOVED = [/--no-plan/i, /EnterPlanMode/, /ExitPlanMode/, /plan mode/i, /Plan mode:/];
+const REMOVED = [/--no-plan/i, /EnterPlanMode/, /ExitPlanMode/, /plan mode/i];
 
 const hintOf = (content) => content.match(/^argument-hint:\s*(.*)$/m)?.[1] ?? '';
 
@@ -46,7 +46,7 @@ describe('bypass flags', () => {
     test(`${name} has no plan mode or --no-plan`, () => {
       // Arrange
       const files = filesUnder(join(skillsDir, name)).filter(
-        (file) => /\.(md|txt|ya?ml)$/.test(file) && !file.endsWith(DOC_FACTS)
+        (file) => /\.(md|mjs|txt|ya?ml)$/.test(file) && !file.endsWith(DOC_FACTS)
       );
       // Act
       const hits = files.flatMap((file) => {
