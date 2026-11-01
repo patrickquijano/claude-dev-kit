@@ -2,7 +2,7 @@
   "name": "cdk",
   "private": true,
   "scripts": {
-    "lint": "eslint . --max-warnings 0 && markdownlint-cli2 \"**/*.md\" && yamllint --strict . && yamlfmt -lint . && prettier --check .",
+    "lint": "eslint . --max-warnings 0 && markdownlint-cli2 \"**/*.md\" && yamllint --strict . && yamlfmt -lint . && prettier --check . \"!**/*.yaml\" \"!**/*.yml\"",
     "format": "prettier --write . && yamlfmt . && markdownlint-cli2 --fix \"**/*.md\"",
     "test": "npm run test:unit && npm run test:integration",
     "audit": "audit-ci --config audit-ci.jsonc",

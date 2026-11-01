@@ -55,7 +55,20 @@
       "label": "lint: prettier",
       "type": "shell",
       "command": "npx",
-      "args": ["--no-install", "prettier", "--check", "."],
+      "args": [
+        "--no-install",
+        "prettier",
+        "--check",
+        ".",
+        {
+          "value": "!**/*.yaml",
+          "quoting": "strong"
+        },
+        {
+          "value": "!**/*.yml",
+          "quoting": "strong"
+        }
+      ],
       "problemMatcher": []
     },
     {

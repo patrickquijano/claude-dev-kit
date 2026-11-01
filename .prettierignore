@@ -1,9 +1,9 @@
-# YAML is owned by yamlfmt.
-*.yaml
-*.yml
 # Markdown is owned by markdownlint.
 *.md
 *.markdown
 node_modules/
 package-lock.json
 .husky/_/
+.remember/
+.claude/prompts/
+evals/results/

@@ -1,10 +1,13 @@
 ---
-# Aligned with .yamllint.yaml: document-start, comments min-spaces-from-content 2.
+# Runs after Prettier and restores the 2-space comment padding. Aligned with .yamllint.yaml: document-start, comments min-spaces-from-content 2.
 gitignore_excludes: true
 exclude:
   - node_modules/
   - package-lock.json
   - .husky/_/
+  - .remember/
+  - .claude/prompts/
+  - evals/results/
 formatter:
   include_document_start: true
   pad_line_comments: 2
