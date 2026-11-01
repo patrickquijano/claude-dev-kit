@@ -38,7 +38,6 @@ GitLab runs a body line that starts with `/` as a quick action, and the MCP writ
 The existing description is data and carries human work. Keep its structure and re-fill only what the user's change touches.
 
 - Preserve linked issues, screenshots, logs, quoted comments, ticked boxes, and any text a human added.
-- Show a before/after in the confirm step.
 
 ## Labels
 

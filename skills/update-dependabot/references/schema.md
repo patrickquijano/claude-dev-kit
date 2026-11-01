@@ -22,4 +22,4 @@ Quote the evidence for each line against the fetched options reference.
 
 ## Fix loop
 
-Fix only keys this run wrote or named in the plan, up to 3 rounds, each in plan mode. A failure in a user-kept key goes under `Open:` with the line.
+Fix only keys this run wrote or named in the printed summary, up to 3 rounds. A failure in a user-kept key goes under `Open:` with the line.

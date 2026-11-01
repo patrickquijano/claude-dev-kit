@@ -1,7 +1,6 @@
 # gh api fallback
 
-Use only when `gh` lacks a needed flag or subcommand (`help-create`, `help-edit`); every other operation stays on the named commands. Parameters are verified at runtime: run `gh api --help` and the GitHub REST releases docs before the first call, and drop any field the API rejects. Each write is covered by the plan approval; none is pre-approved.
-
+Use only when `gh` lacks a needed flag or subcommand (`help-create`, `help-edit`); every other operation stays on the named commands. Parameters are verified at runtime: run `gh api --help` and the GitHub REST releases docs before the first call, and drop any field the API rejects.
 Bodies go through a scratch file: `-F body=@<scratch>/notes.md` (the `@` form reads the file), never an inline string. `<id>` is the numeric release ID from a GET.
 
 | Operation  | Command                                                                                                                                                                               | Notes                                                                 |

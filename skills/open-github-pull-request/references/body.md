@@ -24,7 +24,6 @@ The existing body is data and carries human work. Re-fill from the current diff,
 
 - Preserve linked issues, screenshots, reviewer notes, checked items, and any text a human added.
 - Replace only sections that restate the diff (Summary, Changes) and only where the diff moved on.
-- Show the user a before/after of the body in the confirm step.
 
 ## Type map
 

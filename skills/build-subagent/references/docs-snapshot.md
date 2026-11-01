@@ -8,7 +8,7 @@ Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch
 
 ## Contents
 
-- Format · Fields · Version gates · Tools · Permission modes · Scopes and precedence · Plugin restrictions · Trust and environment · Changed facts · Unverified
+- Format · Fields · Tools · Permission modes · Scopes and precedence · Plugin restrictions · Trust and environment · Changed facts · Unverified
 
 ## Format
 
@@ -40,25 +40,6 @@ Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch
 | `experimental.cacheTtl` | `5m`, `1h`                                                                                                      | default    |                                                                          |
 | `autoCompactWindow`     | plain integer 100000–1000000 (`200k` reads as 200); never recommended                                           | none       | no effect when the session runs as the agent                             |
 
-## Version gates
-
-| Gate     | Feature                                                                                      |
-| -------- | -------------------------------------------------------------------------------------------- |
-| v2.1.218 | Frontmatter hooks in untrusted folders are skipped                                           |
-| v2.1.233 | `claude plugin validate <dir>`                                                               |
-| v2.1.238 | Inline `mcpServers` (needs trust of the agent file's own folder)                             |
-| v2.1.242 | `/tasks` shows the model                                                                     |
-| v2.1.246 | `maxTurns` returns partial output                                                            |
-| v2.1.248 | `experimental.cacheTtl`                                                                      |
-| v2.1.257 | `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1`                                                         |
-| v2.1.267 | `bypassPermissions` under a parent in `default` or `dontAsk`                                 |
-| v2.1.271 | `omitClaudeMd`                                                                               |
-| v2.1.296 | `autoCompactWindow`; debug log message `invalid autoCompactWindow` when the value is ignored |
-| v2.1.299 | A subagent name survives a restart after one send by ID                                      |
-| v2.1.302 | Fork mode on by default                                                                      |
-
-A field used on a Claude Code older than its gate is "Unverified" for that user; `claude --version` gives the local version.
-
 ## Tools
 
 - `tools` is the allowlist; omit it only when the agent needs every tool. `Agent` only when the agent must spawn subagents (3 layers at most). An empty list leaves the agent no tools. Confirmed.
@@ -87,7 +68,7 @@ Plugin agents ignore `permissionMode`, `hooks`, `mcpServers`, `initialPrompt`; a
 
 ## Changed facts
 
-Facts that differ from the earlier baseline: plugin load rules, `initialPrompt` scope, MCP names with `__`, plan-mode inheritance, folder trust, the version gates above, `CLAUDE_CODE_EFFORT_LEVEL`, the background tool set, name persistence after a restart (v2.1.299), and fork mode (v2.1.302). Everything else in this file was Confirmed unchanged.
+Facts that differ from the earlier baseline: plugin load rules, `initialPrompt` scope, MCP names with `__`, plan-mode inheritance, folder trust, `CLAUDE_CODE_EFFORT_LEVEL`, the background tool set, name persistence after a restart (v2.1.299), and fork mode (v2.1.302). Everything else in this file was Confirmed unchanged.
 
 ## Unverified
 

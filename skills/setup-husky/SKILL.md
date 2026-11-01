@@ -2,14 +2,14 @@
 name: setup-husky
 description: Installs Husky Git hooks that enforce Conventional Commits and signed commits, with an optional signing pre-check. Use only when the user explicitly asks to set up Husky or Git hooks.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-argument-hint: '[--yes] [--no-plan]'
+argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)
 disable-model-invocation: true
 ---
 
 # Setup Husky
 
-Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
+Input: $ARGUMENTS (strip `--yes` first)
 
 ## Context
 
@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Rules
 
 - Ask (`--yes`: record) what the input and repo cannot answer.
-- Flags: `--yes` = unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (replacing another hook owner or `core.hooksPath`, overwriting a kept user file): it is asked, or skipped and listed under `Open:`.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - `${CLAUDE_SKILL_DIR}/assets/` holds the canonical hooks. Copy `.mjs` files byte for byte; stubs change only in their path prefix and step 5 flags (step 9).
@@ -30,20 +30,20 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Never overwrite a user file; never pass `--no-verify`.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
-- Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only; gates keep their form): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
+- Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
-- Approval: nothing is installed or written (package.json, dependencies, init, hooks, config, ignores, rules) before the `ExitPlanMode` approval after step 5 (`plan.md`), which covers the first write only (each step 16 fix round re-enters plan mode); the plan names every install, write, and a hook-owner or `core.hooksPath` replacement. Plan mode declined or unavailable → `Result: stopped`, `Stopped: 5: plan mode declined`. `--no-plan` replaces the approval with an ask `Apply` | `Stop` after the plan prints. `--yes`: apply, but never replace another hook owner.
-- Pre-flight stops and a Stop answer: print the Output with `Result: stopped | cancelled`.
+- Plan: step 5 prints the plan naming every install, write (package.json, dependencies, init, hooks, config, ignores, rules), and a hook-owner or `core.hooksPath` replacement, then step 6 starts with no wait (`plan.md`). Each step 16 fix round prints its items, then applies them.
+- Pre-flight stops and a Stop answer to the step 5 question: print the Output with `Result: stopped | cancelled`.
 
 ## Workflow
 
-1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Node version `<none>` → stop ("install Node.js"). Then enter plan mode per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan mode` (`--no-plan` | `--yes`: skip).
+1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Node version `<none>` → stop ("install Node.js").
 2. **Package dir.** Per `package-manager.md` Package dir. `<pkg>` = package dir relative to the git root (`.` at root).
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
-4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json after the `ExitPlanMode` approval.
-5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop. `hooks.md` Events.
+4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json once the plan is printed.
+5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop. `hooks.md` Events. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
 6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
-7. **Initialize Husky.** Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → replaced only when the approved plan names it, else stop; `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
+7. **Initialize Husky.** Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → replaced (the plan names it); `hooks-path` check; not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
 9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); `chmod-exec` copied stubs. `hooks.md` Copy.
 10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
@@ -52,13 +52,13 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 13. **Line endings.** Append `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root) to root `.gitattributes`, creating it if missing, unless an identical `eol=lf` line exists (CRLF breaks the `sh` stubs).
 14. **Tool ignores.** Add the Husky paths to each existing linter, formatter, npm, and Docker config. `ignores.md`.
 15. **Smoke test.** No commit-msg hook (or a kept user stub not calling `commit-msg.mjs`) → skip. Else `smoke-commit-msg` on valid, past-tense, and 73-char headers. `hooks.md` Smoke test.
-16. **Fix loop.** Each round enters plan mode first (`plan.md`; `--no-plan` | `--yes`: skip). Repair failing checks on files this run wrote, up to the cap; list the rest under `Open:`.
+16. **Fix loop.** Each round prints its items first (`plan.md`). Repair failing checks on files this run wrote, up to the cap; list the rest under `Open:`.
 17. **Report** the Output.
 
 ## Files
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
-- For the plan-mode entry (step 1), see `${CLAUDE_SKILL_DIR}/references/plan.md`.
+- For the plan (step 5) and fix rounds (step 16), see `${CLAUDE_SKILL_DIR}/references/plan.md`.
 - For package dir, package manager detection, and a missing `package.json` (steps 2-4), see `${CLAUDE_SKILL_DIR}/references/package-manager.md`.
 - For hook events, copying hooks, the commitlint config, and the smoke test (steps 5, 9, 10, 15), see `${CLAUDE_SKILL_DIR}/references/hooks.md`.
 - For `hooksPath`, `prepare` merging, and init (step 7), see `${CLAUDE_SKILL_DIR}/references/init.md`.
@@ -71,7 +71,6 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Output
 
 ```text
-Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 Package: <pkg> (<root | nearest | workspace root>)
 Package manager: <pm> (<packageManager | lockfile | chosen>)
 package.json: created | present

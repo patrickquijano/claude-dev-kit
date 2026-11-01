@@ -25,26 +25,12 @@ Ask Simple | Non-simple | Need more information (AskUserQuestion) with exactly o
 
 ## Class rules
 
-- Non-simple: R8 as step `0.`; remove approval gates that the plan already covers; apply R11 to every loop.
-- Simple: R9 in the step just before the first write; no plan mode.
-- Both: keep gates that guard external irreversible actions and genuine decisions; add R11 only when a loop exists.
+- Both: add R11 to every loop; none without a loop.
 
 ## Rule texts
-
-R8, the non-simple start step:
-
-```text
-0. **Plan mode.** Enter plan mode first (load `EnterPlanMode` with ToolSearch if deferred; already active → stay in it); read-only steps run inside it. Before creating, editing, or deleting any file or running any side-effect action, present the plan and wait for `ExitPlanMode` approval. Declined or unavailable → `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is written.
-```
-
-R9, the simple gate:
-
-```text
-**Confirm.** State in at most 3 lines what will change, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`.
-```
 
 R11, the iteration rule:
 
 ```text
-**Plan mode (each round).** At the start of each iteration, before any fix, enter plan mode (load `EnterPlanMode` with ToolSearch if deferred), present the findings and proposed fixes, and wait for `ExitPlanMode` approval.
+**Round limit.** Iterate at most <n> rounds; at the start of each round list the open findings and the fixes, then apply them; then report what is left.
 ```

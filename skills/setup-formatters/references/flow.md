@@ -4,18 +4,14 @@ Detail for the steps that branch.
 
 ## Contents
 
-- Plan mode · Choose tools · Install · Resolve · Spawn briefs
+- Plan · Choose tools · Install · Resolve · Spawn briefs
 
-## Plan mode
+## Plan
 
-Runs first (step 0). `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; no flag and no AskUserQuestion → `Plan mode: skipped (unattended)`, `Result: stopped`, `Stopped: 0: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
+At the end of step 5. No flag and no AskUserQuestion → `Result: stopped`, `Stopped: 1: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
 
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is installed or written.
-- Steps 1–5 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
-- At the end of step 5 write the plan file: the formatters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write or overwrite, each with its purpose and effects. Nothing to install or write → a one-line plan file saying so, then `ExitPlanMode`, so the install and write steps run after approval. Call `ExitPlanMode`; approval covers every listed effect of the first write, then go to step 6; each step 10 fix round re-enters plan mode.
-- After approval the missing `package.json` is created first, then the install runs, native tools included.
-- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 0: plan rejected`.
-- Any end before step 6 prints the Output with `Plan mode:` as reached.
+- Print the plan: the formatters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), and the config and ignore files to write or overwrite, each with its purpose and effects. Nothing to install or write → a one-line plan saying so. Then go to step 6 with no wait.
+- The missing `package.json` is created first, then the install runs, native tools included.
 
 ## Choose tools
 
@@ -23,8 +19,8 @@ One candidate → use it. Several formatters → the catalog's first, no questio
 
 ## Install
 
-- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question. `--no-plan` without `--yes` → no `ExitPlanMode`: ask one gate (`Go` | `Stop`) naming the same effects before any install or write; `Stop` → `Result: cancelled`, `Stopped: 0: gate stopped`.
-- Approved → create the missing `package.json` first (`package-manager.md`), then install.
+- The printed plan lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → skip this step.
+- Create the missing `package.json` first (`package-manager.md`), then install.
 - Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>` (workspace-root flag per `package-manager.md`).
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. .NET tools → `dotnet-manifest` when needed, then `dotnet-tool-install`; missing prerequisite → skip the tool with the reason.
 - Native tools → the first `tools.md` channel whose command exists (`uv-install`, `pipx-install`, `go-install`, `brew-install`). Run that command (it is in the plan). No channel → skip with the install page.
@@ -34,7 +30,7 @@ One candidate → use it. Several formatters → the catalog's first, no questio
 ## Resolve
 
 - Sources: `Check:`/`Problems:`, `Skipped tools:`, `Constraints:` that caused a skip, `Unknown types`, analyst `Gaps`.
-- **Plan mode (each round).** Before applying round k's fix, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 10: plan rejected`. Declined or unavailable → no fix is applied; the problem goes under `Open:`.
+- Each round: print the round's items (cause, chosen fix) and the files each touches, then apply the fix.
 - Fix a config this run wrote only when it is invalid or contradictory, then re-run the check once for the touched tools. Never edit configs or ignore entries to clear a `Problems:` item; never auto-fix user code or install tools unasked.
 - Everything else goes to `Open:` with its impact and recommended fix. Open items never change `Result:`.
 

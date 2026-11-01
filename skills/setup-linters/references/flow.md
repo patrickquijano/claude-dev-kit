@@ -4,18 +4,15 @@ Detail for the steps that branch.
 
 ## Contents
 
-- Plan mode · Formatters present · Choose tools · Package manager · Install · Resolve · Spawn briefs
+- Plan · Formatters present · Choose tools · Package manager · Install · Resolve · Spawn briefs
 
-## Plan mode
+## Plan
 
-Runs first (step 0). `--no-plan` or `--yes` → `Plan mode: skipped (--no-plan | --yes)`; no flag and no AskUserQuestion → `Plan mode: skipped (unattended)`, `Result: stopped`, `Stopped: 0: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
+No AskUserQuestion and no `--yes` → `Result: stopped`, `Stopped: 1: unattended`; nothing is installed or written, and the planned work goes under `Open:`.
 
-- Plan mode already active → `already active`, stay in it. Otherwise load `EnterPlanMode` with ToolSearch if it is deferred, then call it. The user declines it, or the tool is unavailable → `declined`, `Result: stopped`, `Stopped: 0: plan mode declined`; nothing is installed or written.
-- Steps 1–6 run inside plan mode: they only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
-- At the end of step 6 write the plan file: the linters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), the config and ignore files to write or overwrite, and every formatter-conflict disable with its rule. Nothing to install or write → a one-line plan file saying so, then `ExitPlanMode`, so step 10 runs after approval. Call `ExitPlanMode`; approval covers every listed effect of the first write, then go to step 7; each step 11 fix round re-enters plan mode.
-- After approval the missing `package.json` is created first, then the install runs, native tools included.
-- Rejection → revise per the feedback and call `ExitPlanMode` again; 3 rejections → `Result: cancelled`, `Stopped: 0: plan rejected`.
-- Any end before step 7 prints the Output with `Plan mode:` as reached.
+- Steps 1–6 only read, ask with AskUserQuestion, spawn the read-only analyst and version resolver, and run `pm-detect`.
+- At the end of step 6 print the plan: the linters with resolved versions, the `package.json` to create when missing, the install commands, the native tool installs (each tool with its `tools.md` channel command, from a read-only `command -v` check), the config and ignore files to write or overwrite, and every formatter-conflict disable with its rule. Nothing to install or write → a one-line plan saying so. Then go to step 7 with no wait; each step 11 fix round prints its items first.
+- The missing `package.json` is created first, then the install runs, native tools included.
 
 ## Formatters present
 
@@ -40,11 +37,11 @@ Only when an npm tool is installed or checked. Run `pm-detect` (`commands.md`); 
 
 - Exec form `<x>` for installed binaries: npm `npx --no-install`, pnpm `pnpm exec`, yarn `yarn`, bun `bunx --no-install`. Add dev: `npm install -D`, `pnpm add -D`, `yarn add -D`, `bun add -d`.
 - Workspace root: pnpm adds `-w`; yarn 1 (no `.yarnrc.yml`, `packageManager` absent or `yarn@1.x`) adds `-W`.
-- Missing `package.json` (`packageJson` false) → create `{ "name": "<name>", "private": true }` in `pkg` only after the `ExitPlanMode` approval, with `name` from the JSON. Never run `<pm> init`.
+- Missing `package.json` (`packageJson` false) → create `{ "name": "<name>", "private": true }` in `pkg`, with `name` from the JSON. Never run `<pm> init`.
 
 ## Install
 
-- Approved first: the `ExitPlanMode` approval lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → no question.
+- The printed plan lists each effect (packages with resolved versions, the `package.json` to create when missing, the install commands, the config and ignore files to write). Nothing to install or write → skip this step.
 - Only tools not yet installed. npm packages → one command: `npm-add-dev`, `pnpm-add-dev`, `yarn-add-dev`, or `bun-add-dev` for the manager, each package `<pkg>@<version>`.
 - Composer packages → check the `tools.md` prerequisites, then `composer-require`. Missing prerequisite → skip the tool with the reason.
 - Native tools → the first `tools.md` channel whose command exists (`uv-install`, `pipx-install`, `go-install`, `brew-install`). Run that command (it is in the plan). No channel → skip with the install page.
@@ -58,7 +55,7 @@ Run each linter's check command from `configs.md`. Then the conflict check for t
 ## Resolve
 
 - Sources: `Check:`/`Problems:`, `Skipped tools:`, `Constraints:` that caused a skip, `Unknown types`, analyst `Gaps`.
-- **Plan mode (each round).** Before applying round k's fix, call `EnterPlanMode` (load it with ToolSearch if deferred). Put the round's items (cause, chosen fix) and the files each touches in the plan, then `ExitPlanMode`; apply only what was approved. Plan mode already active → write the plan to its plan file. Rejection → revise and call `ExitPlanMode` again, at most 3 times → `Result: cancelled`, `Stopped: 11: plan rejected`. Declined or unavailable → no fix is applied; the problem goes under `Open:`.
+- **Each round.** Before applying round k's fix, print the round's items (cause, chosen fix) and the files each touches, then apply them.
 - Fix a config this run wrote only when it is invalid or contradictory, then re-run the check once for the touched tools. Never edit configs or ignore entries to clear a `Problems:` item; never auto-fix user code or install tools unasked.
 - Everything else goes to `Open:` with its impact and recommended fix. Open items never change `Result:`.
 

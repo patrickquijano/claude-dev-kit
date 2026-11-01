@@ -30,7 +30,7 @@
 | ID  | Pts | Criterion                                                                                                                                                                                                                                                         | Rule                     |
 | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
 | B1  | 4   | S: `SKILL.md` under 500 lines                                                                                                                                                                                                                                     | Lazy loading             |
-| B2  | 5   | Structure matches the kind (Task: Rules, Workflow, Output, `[--yes] [--no-plan]` flags and a `Plan mode:` Output line; Reference: topic sections; Background-only: facts, no steps)                                                                               | Structure per kind       |
+| B2  | 5   | Structure matches the kind (Task: Rules, Workflow, Output, a `[--yes]` flag; Reference: topic sections; Background-only: facts, no steps)                                                                                                                         | Structure per kind       |
 | B3  | 3   | Short imperative text; no uncited generic explanation or restatement of another bundled file. Not a deduction: a `SKILL.md` Rules bullet that restates a reference rule so it survives compaction, or a fact with a source. Each deduction quotes the `file:line` | Style                    |
 | B4  | 5   | S (B10, contents list): detail lives in `references/`, `assets/`, `scripts/`; each linked with when to read; one level deep; long references open with `## Contents`                                                                                              | Lazy loading             |
 | B5  | 4   | Rules that must survive compaction sit in the first 5,000 tokens                                                                                                                                                                                                  | Compaction               |
@@ -50,12 +50,12 @@
 
 ## Quality (13)
 
-| ID  | Pts | Criterion                                                                                                                                                                    | Rule               |
-| --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Q1  | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output                                                          | Structure per kind |
-| Q2  | 4   | Steps with side effects confirm first and name each effect, except a gate skipped by a flag the user passed; destructive commands are never pre-approved, even under `--yes` | Style              |
-| Q3  | 3   | One job: the description and workflow serve a single action                                                                                                                  | One job            |
-| Q4  | 3   | Task Output names the follow-up in plain words, never a skill command (`Next:`, S warning); independent spawns run in parallel                                               | Structure per kind |
+| ID  | Pts | Criterion                                                                                                                      | Rule               |
+| --- | --- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| Q1  | 3   | S: Task output is fixed and ends with a result line; Reference and Background-only are N/A if they define no output            | Structure per kind |
+| Q2  | 4   | Steps with side effects name each effect                                                                                       | Style              |
+| Q3  | 3   | One job: the description and workflow serve a single action                                                                    | One job            |
+| Q4  | 3   | Task Output names the follow-up in plain words, never a skill command (`Next:`, S warning); independent spawns run in parallel | Structure per kind |
 
 ## Scoring
 

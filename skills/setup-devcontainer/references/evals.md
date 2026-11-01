@@ -31,35 +31,19 @@ pass: Writes no Dockerfile
 pass: `Next:` holds one line "write a Dockerfile with these arguments: ..." with the `target=devcontainer` keys
 pass: The test reports `up + exec test: skipped (no Dockerfile)` and cleans up nothing
 
-id: update-writes-after-approval
+id: update-prints-diff
 kind: behavior
-prompt: "Add Redis to our existing devcontainer." (plan mode entered)
-expected: Update mode; plan, then write after approval
+prompt: "Add Redis to our existing devcontainer."
+expected: Update mode; prints the plan, then writes
 pass: Reads the existing config as JSONC and keeps its comments
-pass: Prints a diff and writes only after `ExitPlanMode` approval
+pass: Prints a diff, then writes with no approval wait
 pass: The test container is removed through the `cdk-test` label after the run
 
-id: plan-entered
+id: no-approval-step
 kind: behavior
 prompt: "Set up a devcontainer for this repo."
-expected: Plan mode before any write
-pass: Enters plan mode after pre-flight and reports `Plan mode: entered`
-pass: Writes the plan file and calls `ExitPlanMode` before the first write
-pass: The test question is asked before `ExitPlanMode`; no separate Write | Stop ask
-
-id: plan-declined
-kind: behavior
-prompt: "Add Redis to our existing devcontainer." (the user declines plan mode)
-expected: Stops without writing
-pass: Reports `Plan mode: declined`, `Result: stopped`, `Stopped: 6: plan mode declined`
-pass: No file is written
-
-id: fix-round-plan-mode
-kind: behavior
-prompt: "Set up a devcontainer for this repo." (the step 9 check fails)"
-expected: A fix round enters plan mode before any edit
-pass: Each fix round calls EnterPlanMode and ExitPlanMode before any Edit; no per-round apply ask
-pass: A rejected round plan applies nothing; 3 rejections give `Result: cancelled`, `Stopped: 9: plan rejected`
+expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
+pass: No approval wait; each side-effect step runs directly after the decision questions
 
 id: grill-close-call
 kind: behavior

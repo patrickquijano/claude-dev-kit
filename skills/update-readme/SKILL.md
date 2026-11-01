@@ -1,14 +1,14 @@
 ---
 name: update-readme
-description: Creates, updates, or scores a README.md from archetype templates against a 100-point rubric; writes after confirmation. Use when asked to write, improve, or score one.
+description: Creates, updates, or scores a README.md from archetype templates against a 100-point rubric. Use when asked to write, improve, or score one.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-argument-hint: '[--yes] [--no-plan] [optional type | score]'
+argument-hint: '[--yes] [optional type | score]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(git remote get-url *) Bash(wc -l *)
 ---
 
 # Update README
 
-Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
+Input: $ARGUMENTS (strip `--yes` first)
 
 ## Context
 
@@ -20,7 +20,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 - Host-agnostic: portable Markdown only, per `${CLAUDE_SKILL_DIR}/references/portable.md`.
 - Ask (`--yes`: record) what the input and repo cannot answer.
-- Flags: `--yes` = unattended (no plan mode, no questions, recommended options, assumptions under `Open:`); `--no-plan` skips plan mode only and every gate is still asked. Only a flag the user passed counts, never add one. `--yes` never covers a destructive step (overwriting a dirty or unnamed file): it is asked, or skipped and listed under `Open:`.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Only this skill asks the user; subagents cannot. The question tool is AskUserQuestion (load it with ToolSearch if deferred); without it, a numbered inline list per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Fallback`. Write unavailable → `Result: stopped`, `Stopped: 11: write unavailable`. A dismissed question → `Result: cancelled` per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Cancelled`.
 - License, URLs, versions, and contacts not derivable → ask; user omits → leave out; never re-ask an omitted item. Badges follow `portable.md`.
@@ -31,7 +31,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 - Pass score = 95/100. Only the step 15 improver applies score fixes. Improve rounds capped at 3; the counter starts at 0 and rises each improve round. Then stop and list leftovers in `Open:`.
 - Always rescore: after every improve round, including the last one and one whose improver return is malformed, rescore (step 13) with a fresh scorer spawn (or inline). It scores every criterion from the current files; never carry a prior score, its points, or the improver's `Expected:` estimate forward, and never assume a criterion passes. The reported score, the pass check, the stall, and the cap are judged only on that rescore.
 - Score-only never writes. Formatter and linter runs prompt for permission; expected.
-- Commit nothing; the README and the split files the Confirm lists are the only repo files written (plus the plan file in improve rounds), and only after the step 11 Confirm; each improve round re-enters plan mode (`--no-plan` | `--yes`: skip). `--yes`: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Fallback`.
+- Commit nothing; the README and the split files listed at step 11 are the only repo files written. `--yes`: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Fallback`.
 
 ## Workflow
 
@@ -49,7 +49,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 8. **Length.** A projection of 200 lines or fewer → max = 200, no question. Above 200 → ask 200 | 400 | 600 per `## Length options` in `${CLAUDE_SKILL_DIR}/references/modularization.md`. Stop and wait.
 9. **Modularize.** Projection above the max → ask the layout per `## Layouts` in `modularization.md`; per-package only for monorepo types. Apply `## Split rules`. Stop and wait.
 10. **Idempotence.** The draft equals every current file in the README set → skip steps 11 and 12 and go to step 13; `Result: nothing-to-do` when the score is ≥95.
-11. **Confirm.** List each file to create or modify (path, create or modify, line count) and each syntax conversion, then ask Yes | No with AskUserQuestion; proceed only on Yes, else `Result: cancelled`. Write the files, then run `format-readme` on each written file when facts `Formatter` is not none.
+11. **Write.** Print each file to create or modify (path, create or modify, line count) and each syntax conversion; no wait follows. Write the files, then run `format-readme` on each written file when facts `Formatter` is not none.
 12. **Verify.** Run `count-lines` on every written file and check every relative link per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Verify`; report both.
 13. **Score.** Facts `Visibility: unknown` and `License: none`, not answered → AskUserQuestion: Public | Private | Omit. Score-only treats `Visibility: unknown` as Omit, no question. Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only scorer subagent) per `${CLAUDE_SKILL_DIR}/references/spawns.md` with the README path, split files, rubric path `${CLAUDE_SKILL_DIR}/references/rubric.md`, archetype, facts block (answers merged), and `Omitted:` list.
 14. **Report.** Show the score table and deductions (criterion, lost pts, fix). Score-only or total ≥95 → `Result: done`. At the cap with <95 → `Result: stopped`, `Stopped: 14: below 95 after 3 rounds`.
@@ -58,7 +58,7 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 
 ## Files
 
-- For the README search, score-only and non-`.md` pre-flight, host mapping, the fallback, the weighted-question format, verification, the improve round, improve-round plan mode, leftovers, and cancel handling, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
+- For the README search, score-only and non-`.md` pre-flight, host mapping, the fallback, the weighted-question format, verification, the improve round, leftovers, and cancel handling, see `${CLAUDE_SKILL_DIR}/references/flow.md`.
 - For the spawn briefs, return blocks, and inline fallbacks (steps 3, 13, 15), see `${CLAUDE_SKILL_DIR}/references/spawns.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 - For the type signals, section matrix, weights, and justifications (steps 4, 5, 7), see `${CLAUDE_SKILL_DIR}/references/templates.md`.
@@ -78,7 +78,6 @@ Input: $ARGUMENTS (strip `--yes` and `--no-plan` first)
 ## Output
 
 ```text
-Plan mode: entered | already active | declined | skipped (--no-plan | --yes)
 README: <path> (created | updated | scored)
 Location: <path>
 Host: <github | gitlab | bitbucket | gitea | generic>
@@ -91,7 +90,6 @@ Verify: lines <pass | fail>; links <resolved>/<total>
 Score: <n>/100 (pass | below 95) | n/a
 Rounds: <improve rounds>
 Omitted: <items the user chose to omit | none>
-Confirmed: yes | no (stopped) | unattended | n/a (score-only or stopped earlier)
 Converted from: <old README path | none>
 Open: <criterion (lost pts): fix, ... | none>
 Next: commit the README change | none

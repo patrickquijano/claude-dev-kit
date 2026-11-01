@@ -19,44 +19,35 @@ pass: <observable criteria, one per line>
 ## Behavior cases
 
 ```text
-id: review-asks-before-dclint
+id: review-runs-dclint
 kind: behavior
 prompt: "Review the compose.yaml in this repo."
 expected: Review mode; reports findings and writes nothing
-pass: Plan mode is `skipped (review)`
-pass: Asks Run | Skip before `npx dclint`, and runs it only on Run
+pass: Runs `npx dclint` directly, with no ask before it
 pass: Writes no file and runs no `compose-rename` or `dclint-fix`
 pass: Ends with `Result: done` and a plain-words `Next:` line
 
 id: create-pins-tags
 kind: behavior
 prompt: "Write a Compose file for a Node app with Postgres 16 and Redis 7."
-expected: Create mode; exact image tags, long syntax, plan approval before the write
+expected: Create mode; exact image tags, long syntax, file printed then written with no wait
 pass: Spawns a read-only subagent for the image tags, or resolves them inline when it is unavailable
 pass: Every `image:` is an exact `X.Y.Z` tag; no `latest`, no `version:` key
-pass: Shows the file and gets the `ExitPlanMode` approval before the Write; starts no containers
+pass: Prints the file, then writes it with no approval wait; starts no containers
 
 id: legacy-name-rename-ask
 kind: behavior
 prompt: "Improve our docker-compose.yml: add healthchecks."
 expected: Update mode; asks about the legacy file name before any move
 pass: Asks Rename to `compose.yaml` | Keep the name
-pass: Runs `git mv` only after the user confirms the rename and the plan is approved
+pass: Runs `git mv` only when the user chose Rename, right after the answer
 pass: Keeps existing service names and ports; lists each change with its reason
 
-id: plan-declined-stops
+id: no-approval-step
 kind: behavior
-prompt: "Write a Compose file for a Node app." (the user declines plan mode)
-expected: Stops without writing
-pass: `Plan mode: declined`, `Result: stopped`, `Stopped: 6: plan mode declined`
-pass: Writes no file and runs no `dclint` or `compose-rename`
-
-id: fix-round-plan-mode
-kind: behavior
-prompt: "Write a Compose file for a Node app." (dclint reports an `error`)"
-expected: A fix round enters plan mode before any edit
-pass: Each fix round calls EnterPlanMode and ExitPlanMode before any Edit; no per-round apply ask
-pass: A rejected round plan applies nothing; 3 rejections give `Result: cancelled`, `Stopped: 7: plan rejected`
+prompt: "Write a Compose file for a Node app."
+expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
+pass: No approval wait; each side-effect step runs directly after the decision questions
 
 id: asks-target-and-app
 kind: behavior
@@ -137,5 +128,5 @@ id: auto-invoke
 kind: behavior
 prompt: "A natural request for the action, no `/cdk:` command"
 expected: Claude loads the skill on its own
-pass: The skill runs; its existing confirm or plan approval still precedes any write or push
+pass: The skill runs and carries out its steps with no approval step
 ```

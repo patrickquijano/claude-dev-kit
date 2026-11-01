@@ -1,14 +1,14 @@
 # Post
 
-Steps 8–9 of `SKILL.md`. The only question is the Confirm below; everything after it runs without asking.
+Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting.
 
 ## Contents
 
-- Confirm · Head check · Threads · Review · Own MR · Errors · Report
+- Summary · Head check · Threads · Review · Own MR · Errors · Report
 
-## Confirm
+## Summary
 
-Before any write, print the verdict, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. AskUserQuestion once: **Post** (submits the thread writes and the review; Recommended when every area completed) · **Stop** (`Result: cancelled`, `Review: not posted (declined)`, nothing written). Any `Skipped` file, incomplete area, incomplete sweep, or coverage gap makes Stop Recommended, with that as the reason. No way to ask → `Result: stopped`, `Stopped: post: unattended, not confirmed`, `Review: not posted (unattended)`; interactive without AskUserQuestion → ask as plain text and end the turn.
+Before any write, print the verdict, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. Then post without waiting; a `Skipped` file, incomplete area, incomplete sweep, or coverage gap is listed under `Open:`.
 
 ## Head check
 

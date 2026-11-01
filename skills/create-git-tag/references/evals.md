@@ -1,6 +1,6 @@
 # Evals
 
-Cases for `create-git-tag`: parsing, guards, and confirmation. Test each on Haiku, Sonnet, and Opus.
+Cases for `create-git-tag`: parsing and guards. Test each on Haiku, Sonnet, and Opus.
 
 ## Template
 
@@ -13,16 +13,16 @@ pass: <observable criteria>
 
 ## Cases
 
-| id                  | prompt                                                                          | expected                          | pass                                                                     |
-| ------------------- | ------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
-| not-a-repo          | "Tag the release from the changelog." (directory is not a git repo)             | Stops                             | `Stopped: 1: not a git repository: <path>`; no tag command               |
-| no-changelog        | "Tag the release from the changelog." (no `CHANGELOG.md`)                       | Stops                             | `Stopped: 2: no changelog, no tag created`                               |
-| unreleased-only     | "Tag the release from the changelog." (only `## [Unreleased]`)                  | Stops                             | `Stopped: 4: no dated version in CHANGELOG.md`; no question asked        |
-| bracketless-heading | "Tag the release from the changelog." (`## 1.2.0 - <date>` newest)              | Tags `v1.2.0`                     | `Tag: v1.2.0`; `Pushed: no (local only)`                                 |
-| tag-exists          | "Tag the release from the changelog." (`v1.2.0` already exists locally)         | Stops                             | `Stopped: 6: tag v1.2.0 already exists locally`; tag unchanged           |
-| multiline-message   | "Tag the release from the changelog." (section has `### Added` and `### Fixed`) | Keeps heading lines in the tag    | `git tag -n99 <tag>` shows both `###` lines; `--cleanup=whitespace` used |
-| decline-confirm     | "Tag the release from the changelog." (answer No at the confirm)                | Creates nothing                   | `Result: cancelled`; no tag exists afterward                             |
-| auto-invoke         | A natural request for the action, no `/cdk:` command                            | Claude loads the skill on its own | The skill runs; its confirm still precedes `git tag -a`                  |
+| id                  | prompt                                                                          | expected                                                                                  | pass                                                                               |
+| ------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| not-a-repo          | "Tag the release from the changelog." (directory is not a git repo)             | Stops                                                                                     | `Stopped: 1: not a git repository: <path>`; no tag command                         |
+| no-changelog        | "Tag the release from the changelog." (no `CHANGELOG.md`)                       | Stops                                                                                     | `Stopped: 2: no changelog, no tag created`                                         |
+| unreleased-only     | "Tag the release from the changelog." (only `## [Unreleased]`)                  | Stops                                                                                     | `Stopped: 3: no dated version in CHANGELOG.md`; no question asked                  |
+| bracketless-heading | "Tag the release from the changelog." (`## 1.2.0 - <date>` newest)              | Tags `v1.2.0`                                                                             | `Tag: v1.2.0`; `Pushed: no (local only)`                                           |
+| tag-exists          | "Tag the release from the changelog." (`v1.2.0` already exists locally)         | Stops                                                                                     | `Stopped: 4: tag v1.2.0 already exists locally`; tag unchanged                     |
+| multiline-message   | "Tag the release from the changelog." (section has `### Added` and `### Fixed`) | Keeps heading lines in the tag                                                            | `git tag -n99 <tag>` shows both `###` lines; `--cleanup=whitespace` used           |
+| no-approval-step    | "Tag the release from the changelog."                                           | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| auto-invoke         | A natural request for the action, no `/cdk:` command                            | Claude loads the skill on its own                                                         | The skill runs; no approval step precedes `git tag -a`                             |
 
 ## Running per model
 
