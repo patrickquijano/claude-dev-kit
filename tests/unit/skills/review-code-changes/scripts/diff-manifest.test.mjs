@@ -563,6 +563,68 @@ describe('scope', () => {
     assert.deepEqual([out.files, out.skipped], [[], [{ path: 'a.js', reason: 'oversized' }]]);
   });
 
+  test('skips an untracked file that is not a regular file', () => {
+    // Arrange
+    const { calls, spawnSync } = scopeGit('big.txt\0');
+    const d = {
+      ...fsStub(),
+      lstatSync: (p) => (p === '/r/big.txt' ? { isFile: () => false, size: 0 } : FILE),
+      spawnSync
+    };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual([out.skipped, noIndexTargets(calls)], [[{ path: 'big.txt', reason: 'not a regular file' }], []]);
+  });
+
+  test('skips an oversized untracked file', () => {
+    // Arrange
+    const { calls, spawnSync } = scopeGit('big.txt\0');
+    const d = {
+      ...fsStub(),
+      lstatSync: (p) => (p === '/r/big.txt' ? { isFile: () => true, size: 1_000_001 } : FILE),
+      spawnSync
+    };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual([out.skipped, noIndexTargets(calls)], [[{ path: 'big.txt', reason: 'oversized' }], []]);
+  });
+
+  test('diffs an untracked file that vanished before the stat', () => {
+    // Arrange
+    const { calls, spawnSync } = scopeGit('big.txt\0');
+    const d = {
+      ...fsStub(),
+      lstatSync: (p) => {
+        if (p === '/r/big.txt') throw enoent();
+        return FILE;
+      },
+      spawnSync
+    };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual([out.skipped, noIndexTargets(calls)], [[], ['big.txt']]);
+  });
+
+  test('rethrows an unexpected stat error on an untracked file', () => {
+    // Arrange
+    const { spawnSync } = scopeGit('big.txt\0');
+    const d = {
+      ...fsStub(),
+      lstatSync: (p) => {
+        if (p === '/r/big.txt') throw Object.assign(new Error('denied'), { code: 'EACCES' });
+        return FILE;
+      },
+      spawnSync
+    };
+    // Act
+    const run = () => scope(['--root', '/r'], d);
+    // Assert
+    assert.throws(run, /denied/);
+  });
+
   test('keeps a file at the size limit', () => {
     // Arrange
     const d = {
@@ -856,6 +918,20 @@ describe('delta', () => {
     const out = delta(args, d);
     // Assert
     assert.deepEqual([out.skipped, calls.length], [[{ path: 'a.js', reason: 'not snapshotted' }], 0]);
+  });
+
+  test('excludes a path that exists but is not a regular file', () => {
+    // Arrange
+    const { calls, spawnSync } = spy(gitStub({ diff: PATCH }));
+    const d = {
+      ...fsStub({ '/p.txt': 'a.js\n' }),
+      lstatSync: (p) => (p === '/r/a.js' ? { isFile: () => false, size: 0 } : FILE),
+      spawnSync
+    };
+    // Act
+    const out = delta(args, d);
+    // Assert
+    assert.deepEqual([out.skipped, noIndexTargets(calls)], [[{ path: 'a.js', reason: 'not a regular file' }], []]);
   });
 
   test('excludes a path with no snapshot copy when snap.json is missing', () => {
