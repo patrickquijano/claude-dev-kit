@@ -30,7 +30,8 @@ const STOPS = {
   'rebase-onto': [/--force-with-lease=<branch>:<[^>]+>/, /--force-if-includes/],
   'setup-husky': [/foreign|another tool/i, /core\.hooksPath/],
   'push-commits': [/unsigned/i],
-  'upgrade-dependencies': [/dirty|uncommitted/i]
+  'upgrade-dependencies': [/dirty|uncommitted/i],
+  'build-skill': [/cdk:audit-skill/]
 };
 
 describe('safety stops are kept', () => {

@@ -6,21 +6,29 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const skills = ['review-github-pull-request', 'review-gitlab-merge-request'];
-const files = ['SKILL.md', 'references/analyze.md', 'references/threads.md', 'references/evals.md'];
 const read = (...parts) => readFileSync(join(root, ...parts), 'utf8');
 const agent = read('agents', 'code-reviewer.md');
 const kinds = ['intent', 'correctness', 'security', 'quality', 'sweep', 'threads'];
+const subagent = 'cdk:code-reviewer';
+// Each file listed must name the subagent; the evals file is checked for task-worker only.
+const delegating = [
+  { skill: 'review-github-pull-request', named: ['SKILL.md', 'references/analyze.md', 'references/threads.md'] },
+  { skill: 'review-gitlab-merge-request', named: ['SKILL.md', 'references/analyze.md', 'references/threads.md'] },
+  { skill: 'review-code-changes', named: ['SKILL.md', 'references/review.md'] },
+  { skill: 'address-github-pull-request-review', named: ['references/flow.md'] },
+  { skill: 'address-gitlab-merge-request-review', named: ['references/flow.md'] }
+];
 
-describe('review skills delegate to the code-reviewer subagent', () => {
-  for (const skill of skills) {
-    for (const file of files.filter((f) => f !== 'references/evals.md')) {
-      test(`${skill} ${file} names code-reviewer`, () => {
+describe('skills delegate to the code-reviewer subagent', () => {
+  for (const { skill, named } of delegating) {
+    for (const file of named) {
+      test(`${skill} ${file} names ${subagent}`, () => {
         // Arrange
         const text = read('skills', skill, file);
         // Act
-        const named = text.includes('cdk:code-reviewer');
+        const found = text.includes(subagent);
         // Assert
-        assert.ok(named, 'code-reviewer not named');
+        assert.ok(found, `${subagent} not named`);
       });
     }
 
@@ -28,11 +36,13 @@ describe('review skills delegate to the code-reviewer subagent', () => {
       // Arrange
       const pattern = /task-worker/;
       // Act
-      const offenders = files.filter((f) => pattern.test(read('skills', skill, f)));
+      const offenders = [...named, 'references/evals.md'].filter((f) => pattern.test(read('skills', skill, f)));
       // Assert
       assert.deepEqual(offenders, []);
     });
+  }
 
+  for (const skill of skills) {
     test(`${skill} analyze.md spawns every area kind`, () => {
       // Arrange
       const text = read('skills', skill, 'references', 'analyze.md');
