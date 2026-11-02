@@ -17,7 +17,7 @@ describe('check-agent CLI', () => {
     root = mkdtempSync(join(tmpdir(), 'check-agent-'));
     writeFileSync(
       join(root, 'good.md'),
-      `---\nname: good\ndescription: Reviews on request.\ntools: Read\n---\n\n${BODY}`
+      `---\nname: good\ndescription: Reviews on request.\ntools: Read\ncolor: cyan\n---\n\n${BODY}`
     );
     writeFileSync(join(root, 'bad.md'), '---\nname: bad\ncolour: red\npermissionMode: plan\n---\n\n# Heading\n');
   });
@@ -43,7 +43,14 @@ describe('check-agent CLI', () => {
     const report = JSON.parse(result.stdout);
     const found = report.errors.map((e) => e.id);
     assert.deepEqual(report.warnings.map((w) => w.id).slice(0, 1), ['unknown-field-near']);
-    assert.deepEqual(found, ['description-missing', 'scope-ignored', 'role-missing', 'task-missing', 'return-missing']);
+    assert.deepEqual(found, [
+      'description-missing',
+      'scope-ignored',
+      'color-missing',
+      'role-missing',
+      'task-missing',
+      'return-missing'
+    ]);
   });
 
   test('exits 2 with usage when no file is given', () => {
@@ -74,7 +81,7 @@ describe('check CLI through a symlink', () => {
     symlinkSync(SCRIPT, join(root, 'link.mjs'));
     writeFileSync(
       join(root, 'linked.md'),
-      `---\nname: linked\ndescription: Reviews on request.\ntools: Read\n---\n\n${BODY}`
+      `---\nname: linked\ndescription: Reviews on request.\ntools: Read\ncolor: cyan\n---\n\n${BODY}`
     );
   });
   after(() => rmSync(root, { recursive: true, force: true }));

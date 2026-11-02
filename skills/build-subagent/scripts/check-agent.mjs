@@ -42,6 +42,10 @@ const ENUMS = {
   memory: ['user', 'project', 'local'],
   color: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan']
 };
+// Display colors by access (set from the tools, never asked): read-only agents are cyan, write-capable agents red.
+const READ_ONLY_COLOR = 'cyan';
+const READ_WRITE_COLOR = 'red';
+const WRITE_TOOLS = ['Edit', 'Write', 'NotebookEdit'];
 const MODEL_ALIASES = ['sonnet', 'opus', 'haiku', 'fable', 'inherit'];
 const BOOLEANS = ['background', 'omitClaudeMd'];
 const PLUGIN_IGNORED = ['permissionMode', 'hooks', 'mcpServers', 'initialPrompt'];
@@ -203,6 +207,20 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
   if ('memory' in fields && 'tools' in fields && !tools.includes('Write') && !tools.includes('Edit')) {
     found.push(
       warning('memory-tools', 'A7', at('memory'), 'memory makes the agent write-capable but tools is read-only')
+    );
+  }
+  const disallowed = items(fields.disallowedTools).map(toolName);
+  const inheritsWrite = !('tools' in fields) && !WRITE_TOOLS.every((t) => disallowed.includes(t));
+  const writes = inheritsWrite || tools.some((t) => WRITE_TOOLS.includes(t)) || 'memory' in fields;
+  const color = writes ? READ_WRITE_COLOR : READ_ONLY_COLOR;
+  if (!('color' in fields)) {
+    found.push(
+      error('color-missing', 'A6', 1, `color is not set; ${writes ? 'read/write' : 'read-only'} uses ${color}`)
+    );
+  } else if (ENUMS.color.includes(fields.color) && fields.color !== color) {
+    const access = writes ? 'read/write' : 'read-only';
+    found.push(
+      error('color-access', 'A6', at('color'), `color "${fields.color}" must be ${color} for a ${access} agent`)
     );
   }
   return found;
