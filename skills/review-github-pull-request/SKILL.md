@@ -35,10 +35,10 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Pre-flight.** Check `auth-status`, `origin` is `github.com`, then `repo-view`; failure → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`.
-3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 `cdk:task-worker` subagents (fallback: read-only subagents that judge threads) per `threads.md` `## Spawn briefs`.
+3. **Threads.** Digest open threads and judge each as fixed, accepted, obsolete, or still open per `${CLAUDE_SKILL_DIR}/references/threads.md`; run the script, then spawn up to 4 `cdk:code-reviewer` subagents (fallback: read-only subagents that judge threads) per `threads.md` `## Spawn briefs`.
 4. **Open threads.** Any thread judged Open or left unjudged (`threads.md` `## Open-thread check`) → the check fails and the verdict will be `REQUEST_CHANGES`; continue to step 5 either way.
 5. **Scratch.** Write the diff, head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
-6. **Analyze.** Spawn four `cdk:task-worker` reviewer subagents (fallback: read-only subagents) in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep (once per batch) per `analyze.md`; an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
+6. **Analyze.** Spawn four `cdk:code-reviewer` reviewer subagents (fallback: read-only subagents) in one turn per `analyze.md` `## Spawn briefs`; validate each return, then run the coverage check and the completeness sweep (once per batch) per `analyze.md`; an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
 7. **Verdict.** Re-verify Blocking findings, drop duplicates of open threads, apply the verdict table (`analyze.md`).
 8. **Post.** Print the verdict, counts, and writes, then re-fetch the head SHA, reply to and resolve judged threads, and submit one pinned review per `${CLAUDE_SKILL_DIR}/references/post.md`.
 9. **Report.** Print the Output; list what is left under `Open:`.
