@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.11] - 2026-11-02
+
+### Added
+
+- `/cdk:review-code-changes` reviews uncommitted and branch changes, fixes each finding, and re-reviews until clean; it never commits or pushes.
+- `cdk:code-reviewer` is a read-only subagent that reviews one area of a diff: intent, correctness, security, quality, a sweep for misses, or review threads.
+
+### Changed
+
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` now spawn `cdk:code-reviewer` instead of `cdk:task-worker` for their reviews and thread checks.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` report `needs-clarification` items instead of `unclear` ones, and print an example Output.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` spawn `cdk:code-reviewer` to check their fixes for regressions before they commit.
+- `/cdk:address-github-pull-request-review` checks the pushed head and the reply count at the end and stops on a mismatch.
+- `/cdk:address-github-pull-request-review` stops instead of asking when its input is malformed under `--yes`.
+- `/cdk:address-gitlab-merge-request-review` posts review-body replies as one MR summary note and can look up project members and the current user.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` track every reported item in a ledger, check the scorer's file coverage, and finish only when each item is fixed or declined.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` print an `Items:` line with the reported, fixed, declined, and open counts.
+- `/cdk:build-skill` asks which planned approach to use, and takes the recommended one under `--yes`.
+- `cdk:rubric-scorer` now runs on the `opus` model.
+
+### Removed
+
+- Remove the `--owned` option from `/cdk:audit-skill` and `/cdk:audit-subagent`; both now edit a target that has uncommitted changes.
+- `/cdk:build-skill` and `/cdk:build-subagent` no longer stop on a target with uncommitted changes.
+
 ## [0.8.10] - 2026-11-02
 
 ### Added
@@ -459,7 +484,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...HEAD
+[0.8.11]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...v0.8.8

@@ -40,6 +40,8 @@ pass: <observable criteria>
 | auth-403-stops             | "Review MR 9." (`get_project` or `glab api` returns 403)                 | Stops with the fix                                                                        | `Result: stopped`; fix names `glab auth login --hostname <host>`; no token printed                  |
 | neither-tool-stops         | "Review MR 9." (no MCP, no `glab` auth)                                  | Stops before any write                                                                    | `Stopped: 1: no GitLab MCP and no glab auth`                                                        |
 | no-approval-step           | "Review MR 9."                                                           | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions                  |
+| reviewer-agent-kind        | "Review MR 9." (any diff)                                                | Spawns the dedicated reviewer once per area                                               | Four `cdk:code-reviewer` spawns, one per area kind; no other subagent type                          |
+| thread-judge-uncertain     | "Review MR 9." (a judged thread the judge cannot place)                  | Judge returns Open                                                                        | `cdk:code-reviewer` kind `threads` returns `Open` for that thread; reply `Not addressed at <sha>`   |
 
 ## Running per model
 

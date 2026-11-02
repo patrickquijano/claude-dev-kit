@@ -26,7 +26,7 @@ model: <haiku | sonnet | opus | inherit, with a one-line reason>
 prompt: <3–5 lines: input it receives, what it returns, what it must not do>
 ```
 
-Then ask once: stop here, or build a skill anyway. Stopping is `Result: stopped`.
+Then stop: `Result: stopped`, `Stopped: 2: not a skill fit`; build a skill only when the input asks for one.
 
 ## Kind, for a skill
 

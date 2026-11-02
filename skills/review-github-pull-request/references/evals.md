@@ -35,6 +35,8 @@ pass: <observable criteria>
 | odd-path                   | "Review PR 9." (a changed file named `-x;rm`)                          | Skips the file                                                                            | Listed under `Skipped:`; never in a shell argument                                                  |
 | unjudged-ask               | "Review PR 9." (unjudged thread with an unmet code ask)                | Requests changes                                                                          | `Verdict: REQUEST_CHANGES`                                                                          |
 | no-approval-step           | "Review PR 9."                                                         | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions                  |
+| reviewer-agent-kind        | "Review PR 9." (any diff)                                              | Spawns the dedicated reviewer once per area                                               | Four `cdk:code-reviewer` spawns, one per area kind; no other subagent type                          |
+| thread-judge-uncertain     | "Review PR 9." (a judged thread the judge cannot place)                | Judge returns Open                                                                        | `cdk:code-reviewer` kind `threads` returns `Open` for that thread; reply `Not addressed at <sha>`   |
 
 ## Running per model
 

@@ -2,7 +2,7 @@
 name: rubric-scorer
 description: Scores a subagent, skill, README.md, or CLAUDE.md and rules against its 100-point rubric after an edit, verifying commands, paths, and links. Read-only.
 tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
-model: sonnet
+model: opus
 effort: medium
 color: cyan
 ---
@@ -55,7 +55,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Read the rubric fully, then `SKILL.md` and every file under the skill directory.
 - Criteria: every gate and sub-criterion in the rubric, applying its scoring rules, delegation test, and fix evidence standard (fetch E1 and E3 sources with WebSearch and WebFetch; none reachable → mark each affected fix UNVERIFIED and say so).
 - Sum with the step 4 command over the rubric's applicable points; a gate failure forces REJECTED.
-- Return in the rubric's format instead of `## Return`: `Score:`, `Verdict:`, and `Gates:` lines, then its 9 required report sections in order, at most 150 lines, evidence quotes of 15 words or fewer.
+- Return in the rubric's format instead of `## Return`: `Score:`, `Verdict:`, and `Gates:` lines, then its 11 required report sections in order, at most 200 lines, evidence quotes of 15 words or fewer.
 
 ### subagent-audit
 
@@ -63,7 +63,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Read the rubric fully, then the subagent file and every file its prompt references; open no other agent or skill file except to Glob the agents directory for a duplicate `name`.
 - Criteria: every gate and sub-criterion in the rubric, applying its scoring rules, subagent justification test, and fix evidence standard (fetch E1 and E3 sources with WebSearch and WebFetch; none reachable → mark each affected fix UNVERIFIED and say so).
 - Sum with the step 4 command over the rubric's applicable points; a gate failure forces REJECTED.
-- Return in the rubric's format instead of `## Return`: `Score:`, `Verdict:`, and `Gates:` lines (G1 to G8), then its 9 required report sections in order, at most 150 lines, evidence quotes of 15 words or fewer.
+- Return in the rubric's format instead of `## Return`: `Score:`, `Verdict:`, and `Gates:` lines (G1 to G8), then its 11 required report sections in order, at most 200 lines, evidence quotes of 15 words or fewer.
 
 ### readme
 
