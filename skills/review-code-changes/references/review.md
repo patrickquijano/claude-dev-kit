@@ -18,9 +18,9 @@ The commit is the HEAD SHA from the manifest plus "working tree; read head/".
 
 ## Round 1
 
-Per batch, spawn three `cdk:code-reviewer` subagents in one turn, one per kind in this order: `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is read into `head/` and the kind respawned once. No description or issue text exists, so there is no intent source: the `intent` kind is skipped, never run with `none` inputs.
+Per batch, spawn three `cdk:code-reviewer` subagents in one turn, one per kind in this order: `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path that is not a sensitive name (`.env*`, keys, credentials) is read into `head/` and the kind respawned once; a sensitive path is listed by name only under `Open:`. No description or issue text exists, so there is no intent source: the `intent` kind is skipped, never run with `none` inputs.
 
-`rejected` (the `Findings:` count) is a finding judged invalid or declined, recorded here with its reason.
+`rejected` (the `Findings:` count) is a finding judged invalid or declined; note it with its reason.
 
 ## Validation
 
@@ -38,7 +38,7 @@ Every path of a batch must appear in each kind's `Coverage:` with its manifest h
 
 ## Later rounds
 
-Run `delta` (`fix.md`), then the round-1 kinds on the delta hunks only (batches `delta-<n>-batch-<m>.txt`), then `threads`: spawn `cdk:code-reviewer` with kind `threads` over the prior findings, each judged `Fixed`, `Accepted`, `Obsolete`, or `Open` with `path:line`:
+Run `delta` (`fix.md`), then the round-1 kinds on the delta hunks only (batches `delta-<n>-batch-<m>.txt`); in later rounds validate `line` against the hunks in `delta-<n>.json`, not round 1. Then `threads`: spawn `cdk:code-reviewer` with kind `threads` over the prior findings, each judged `Fixed`, `Accepted`, `Obsolete`, or `Open` with `path:line`:
 
 - `Fixed`: the head code at `path:line` resolves the finding.
 - `Accepted`: declined on purpose, with a reason.
