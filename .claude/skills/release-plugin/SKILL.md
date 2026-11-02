@@ -59,7 +59,7 @@ Input: $ARGUMENTS (strip `--yes` first)
     - Otherwise invoke the `cdk:implement-spec` skill with `--yes` and the items as the requirement.
     - It changed files → invoke the `cdk:commit-changes` skill, then the `cdk:push-commits` skill, then go back to step 10.
     - It changed nothing → stop before the merge and list the items under `Open:`.
-13. Invoke the `cdk:merge-github-pull-request <url>` skill: squash, branch kept (step 15 deletes it only after the release check).
+13. Invoke the `cdk:merge-github-pull-request <url>` skill: squash, branch kept (step 15 deletes it only after the release check); record `<merged head sha>` from the `PR: … @ <sha>` line of its Output.
 14. **Release check.**
     - Run `git switch <default>`.
     - Run `git pull --ff-only` (the tag must sit on the default tip).
