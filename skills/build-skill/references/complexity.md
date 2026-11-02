@@ -25,7 +25,7 @@ Ask Simple | Non-simple | Need more information (AskUserQuestion) with exactly o
 
 ## Class rules
 
-- Both: add R11 to every loop; none without a loop. Add no gate (a question that only approves the next step); keep a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) before every irreversible step; `--yes` never skips it.
+- Both: add R11 to every loop; none without a loop. Gates and safety stops follow the `rules.md` Bypass flag bullet.
 
 ## Rule texts
 
