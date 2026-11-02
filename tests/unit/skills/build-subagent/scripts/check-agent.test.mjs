@@ -630,7 +630,7 @@ describe('checkFrontmatter color', () => {
     assert.match(found[0].message, /read-only uses cyan/);
   });
 
-  test('requires red for Edit, Write, NotebookEdit, memory, or inherited tools', () => {
+  test('requires red for Edit, Write, NotebookEdit, or memory', () => {
     // Arrange
     const base = { name: 'a', description: 'Use proactively.', color: 'cyan' };
     const cases = [
@@ -643,6 +643,24 @@ describe('checkFrontmatter color', () => {
     const found = cases.map((c) => ids(withModel({ ...base, ...c }, 'a')));
     // Assert
     for (const f of found) assert.ok(f.includes('color-access'));
+  });
+
+  test('names the access in the color-access message', () => {
+    // Arrange
+    const fields = { name: 'a', description: 'Use proactively.', tools: 'Read, Edit', color: 'cyan' };
+    // Act
+    const found = withModel(fields, 'a').filter((f) => f.id === 'color-access');
+    // Assert
+    assert.match(found[0].message, /must be red for a read\/write agent/);
+  });
+
+  test('leaves an invalid color to the enum check, not color-access', () => {
+    // Arrange
+    const fields = { name: 'a', description: 'Use proactively.', tools: 'Read', color: 'teal' };
+    // Act
+    const found = ids(withModel(fields, 'a'));
+    // Assert
+    assert.ok(!found.includes('color-access'));
   });
 
   test('requires cyan for a read-only agent and accepts a matching color', () => {

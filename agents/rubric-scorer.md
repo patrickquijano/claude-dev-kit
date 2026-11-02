@@ -30,7 +30,7 @@ Rigor: verify every path, command, and claim against the files before stating it
   - A3: take length, proactive wording, and qualified names from the check IDs `description-length`, `description-proactive`, `description-reference`; judge bare skill or agent names and distinctness from siblings.
   - A4: the `tools` list against the Task steps; each tool must be used, and none missing.
   - A6: each optional field against `## Fields on signal` in `agent-checklist.md` beside the rubric; a field at its default is noise, so it is a deduction.
-  - A5, A6: score `model`, `effort`, and `color` against the `## Model and effort` and `## Color` sections in `interview.md` beside the rubric; a value the job supports earns full points, and a missing `color` is not a deduction.
+  - A5, A6: score `model`, `effort`, and `color` against the `## Model and effort` and `## Color` sections in `interview.md` beside the rubric; a value the job supports earns full points, and a missing or access-mismatched `color` is a deduction.
   - D3: Glob the scope's agents directory for another file with the same `name`.
   - C1, C2: Grep the skill for the agent's name, list the inputs it passes, and the Return fields it reads.
 - Extra Return lines: `Contract:` and `Gaps:`.

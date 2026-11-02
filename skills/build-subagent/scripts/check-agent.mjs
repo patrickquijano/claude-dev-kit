@@ -213,12 +213,10 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
   const inheritsWrite = !('tools' in fields) && !WRITE_TOOLS.every((t) => disallowed.includes(t));
   const writes = inheritsWrite || tools.some((t) => WRITE_TOOLS.includes(t)) || 'memory' in fields;
   const color = writes ? READ_WRITE_COLOR : READ_ONLY_COLOR;
+  const access = writes ? 'read/write' : 'read-only';
   if (!('color' in fields)) {
-    found.push(
-      error('color-missing', 'A6', 1, `color is not set; ${writes ? 'read/write' : 'read-only'} uses ${color}`)
-    );
+    found.push(error('color-missing', 'A6', 1, `color is not set; ${access} uses ${color}`));
   } else if (ENUMS.color.includes(fields.color) && fields.color !== color) {
-    const access = writes ? 'read/write' : 'read-only';
     found.push(
       error('color-access', 'A6', at('color'), `color "${fields.color}" must be ${color} for a ${access} agent`)
     );
