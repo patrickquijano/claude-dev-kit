@@ -30,9 +30,7 @@ const STOPS = {
   'rebase-onto': [/--force-with-lease=<branch>:<[^>]+>/, /--force-if-includes/],
   'setup-husky': [/foreign|another tool/i, /core\.hooksPath/],
   'push-commits': [/unsigned/i],
-  'upgrade-dependencies': [/dirty|uncommitted/i],
-  'audit-skill': [/dirty tracked file/, /--owned/],
-  'build-skill': [/dirty tracked file/, /cdk:audit-skill/]
+  'upgrade-dependencies': [/dirty|uncommitted/i]
 };
 
 describe('safety stops are kept', () => {
@@ -47,6 +45,17 @@ describe('safety stops are kept', () => {
         assert.ok(found, `${name} lost its stop: ${pattern}`);
       });
     }
+  }
+
+  for (const name of ['audit-skill', 'audit-subagent', 'build-skill', 'build-subagent']) {
+    test(`${name} has no --owned flag and no dirty tracked file stop`, () => {
+      // Arrange
+      const text = skillText(name);
+      // Act
+      const found = /--owned|dirty tracked file/.test(text);
+      // Assert
+      assert.equal(found, false);
+    });
   }
 
   test('delete-branches never force-deletes', () => {
