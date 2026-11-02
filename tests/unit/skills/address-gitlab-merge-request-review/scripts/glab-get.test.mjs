@@ -13,6 +13,8 @@ const BAD = [
   'projects/7/merge_requests/5/reviewers/../../../user',
   'projects/g%2Fp/members/all/x',
   'projects/g%2Fp/members',
+  'projects/%2e%2e/merge_requests/5/discussions?per_page=100',
+  'projects/%2E%2E/jobs/9/trace',
   'users/1'
 ];
 

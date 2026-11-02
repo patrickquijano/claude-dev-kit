@@ -35,7 +35,11 @@ const ENDPOINTS = [
 // True when `host` is a plain hostname and `endpoint` matches one of the read-only shapes.
 export function isAllowed(host, endpoint) {
   return (
-    HOST.test(host) && !host.startsWith('-') && !endpoint.includes('..') && ENDPOINTS.some((re) => re.test(endpoint))
+    HOST.test(host) &&
+    !host.startsWith('-') &&
+    !endpoint.includes('..') &&
+    !/%2e/i.test(endpoint) &&
+    ENDPOINTS.some((re) => re.test(endpoint))
   );
 }
 
