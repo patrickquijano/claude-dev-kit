@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` now spawn `cdk:code-reviewer` instead of `cdk:task-worker` for their reviews and thread checks.
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` report `needs-clarification` items instead of `unclear` ones, and print an example Output.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` spawn `cdk:code-reviewer` to check their fixes for regressions before they commit.
 - `/cdk:address-github-pull-request-review` checks the pushed head and the reply count at the end and stops on a mismatch.
 - `/cdk:address-github-pull-request-review` stops instead of asking when its input is malformed under `--yes`.
 - `/cdk:address-gitlab-merge-request-review` posts review-body replies as one MR summary note and can look up project members and the current user.
