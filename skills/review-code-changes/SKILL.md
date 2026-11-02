@@ -78,6 +78,8 @@ Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
+`rejected` is a finding judged invalid or declined, recorded in `${CLAUDE_SKILL_DIR}/references/review.md`.
+
 Example:
 
 ```text

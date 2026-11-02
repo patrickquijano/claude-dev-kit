@@ -42,15 +42,15 @@ Input: $ARGUMENTS (strip `--yes` first)
    - **4f.** Deduction map: every sub-criterion below max and every gate FAIL has a fix ID with Before → After or `no fix: <reason>`; missing → respawn once, then write the fix inline.
    - **4g.** Add every item to the ledger.
 5. **Decide.** ACCEPTED (90 or more and all gates PASS) and no open item → go to step 10. Otherwise go to step 6: ACCEPTED does not end the loop while the scorer still lists a VERIFIED fix or an unverified suggestion.
-6. **Fix.** For each editable skill with at least one VERIFIED or approved fix, whatever its verdict:
+6. **Fix.** For each skill with at least one VERIFIED or approved fix, whatever its verdict:
    - **6a. Plan.**
       - Spawn the `cdk:implementation-planner` subagent, all in parallel (fallback: a read-only subagent that plans the change from repo evidence and docs).
       - Brief it with the planner brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
       - Forward check: every returned step names a ledger fix ID and a path inside the skill directory; a malformed return → respawn once, then plan inline.
-      - Coverage check: every open fix ID in the ledger appears in a step. Unmapped IDs → respawn the planner once with those IDs and the rejected steps to return an updated full plan; still unmapped → plan them inline as exact Before → After steps.
+      - Coverage check: every open VERIFIED or approved fix ID in the ledger appears in a step; an UNVERIFIED fix stays an open item for step 8 and never reaches the planner. Unmapped IDs → respawn the planner once with those IDs and the rejected steps to return an updated full plan; still unmapped → plan them inline as exact Before → After steps.
       - Specificity check: Grep each step's Before text in its file; 0 or more than 1 matches → reject the step and include it in the re-plan; still failing after the re-plan → a ledger item for step 8.
       - Record its `Questions:` and `Unverified:` as open items.
-      - Inline fallback: order the fixes yourself, one step each as exact Before → After.
+      - Inline fallback: order the VERIFIED and approved fixes yourself, one step each as exact Before → After.
    - **6b. Apply.**
       - A plan with 3 or fewer files → apply the fixes with Edit in the plan's order, since a fresh subagent must rebuild context, which costs more than a few edits.
       - A plan with more than 3 files → spawn the `cdk:plan-implementer` subagent, one per skill, all in parallel (fallback: a subagent that applies the plan inside one skill directory).

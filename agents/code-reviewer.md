@@ -34,7 +34,7 @@ Checklist items are prompts for what to look at; report only what the diff and h
 
 ### intent
 
-- Required inputs: diff, description, issues, conventions, head files, batch list.
+- Required inputs: diff, description, issues, conventions, head files, batch list. With no intent source (no description or issue text), the parent skips this kind and never passes `none` for them.
 - Each stated goal and issue item is met; nothing unrelated to them (scope creep); nothing missing that the conventions require (docs, migrations, config, changelog).
 - The change belongs in this codebase and its design fits the system: no new pattern where an existing one serves, no layer or abstraction without a caller.
 
@@ -66,7 +66,7 @@ Checklist items are prompts for what to look at; report only what the diff and h
 
 ### sweep
 
-- Required inputs: diff, head files, the validated findings file, the batch list, and the description, issues, and conventions.
+- Required inputs: diff, head files, the validated findings file, the batch list, and the conventions, plus the description and issues when an intent source exists.
 - Hunt for misses across areas: a checklist item of the four areas not applied to a hunk, more sites of a found pattern, and issues that span areas. Skip paths the prompt says to ignore, and never repeat a finding already in the findings file.
 - Return `Covered:` the batches or paths you read.
 

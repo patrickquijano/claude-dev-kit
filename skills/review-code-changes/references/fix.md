@@ -20,4 +20,4 @@ Write the distinct step files to `<scratch>/paths.txt`. Run `verify` on them; `o
 
 ## Delta
 
-After implementing, run `status` and compare it with the step-1b baseline plus `<scratch>/paths.txt`; append each new changed path to `paths.txt` before `delta`, else list it under `Open:`. A newly changed path that `delta` reports as `sensitive` (`isSensitive` in the script is the one list) is not appended to `paths.txt`; list it by name only under `Open:`. Run `delta` with the round number on `<scratch>/paths.txt`. Its hunks feed the re-review (`review.md`). A changed file outside the planned set is listed under `Open:`, never reverted.
+After implementing, run `status` and compare it with the step-1b baseline plus `<scratch>/paths.txt`; append each new changed path to `paths.txt` before `delta`, else list it under `Open:`. A newly changed path that the manifest lists as skipped for a sensitive name is not appended to `paths.txt`; list it by name only under `Open:`. Run `delta` with the round number on `<scratch>/paths.txt`. Its hunks feed the re-review (`review.md`). A changed file outside the planned set is listed under `Open:`, never reverted.

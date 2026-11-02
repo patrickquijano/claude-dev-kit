@@ -24,7 +24,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-0. **Input.** Parse the argument with the script; check origin, branch, and a clean tree. Closed, merged, locked, or mismatched → stop; malformed or missing → ask. Per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Input`.
+0. **Input.** Parse the argument with the script; check origin, branch, and a clean tree. Closed, merged, locked, or mismatched → stop; malformed or missing → ask (`--yes`: stop). Per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Input`.
 1. **Identify.** Collect open discussions, review-body items, and failing pipeline jobs; none → `Result: nothing-to-do`. `## Identify`.
 2. **Triage.** Classify each item as blocking, suggestion, nit, invalid, already-fixed (counted under invalid in `Items:`), or needs-clarification, with evidence; fix the first three, reply to the last three. `## Triage`.
 3. **Plan.** Write and print the plan for each item; do not wait. `## Plan`.
@@ -32,7 +32,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 5. **Verify.** Run the repo's checks, add a test for fixed behavior, and re-read the full diff for regressions. `## Verify`.
 6. **Iterate.** On failure diagnose, research, retry (cap 3). `## Iterate`.
 7. **Commit.** Invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill) once (one or more commits; it may merge items); it owns every commit; no file changed → skip it. `## Commit`.
-8. **Ledger.** Run before step 9: every item must end as fixed, replied invalid, replied question, or Open; a missing outcome → stop and list it under `Open:`. `## Ledger`.
+8. **Ledger.** Run before step 9: every item must end as fixed, invalid or needs-clarification (reply planned), or Open; a missing outcome → stop and list it under `Open:`. `## Ledger`.
 9. **Push.** Rebase on the remote source branch and make one normal push. `## Push`.
 10. **Reply.** After the push, reply per the plan: on each discussion, and one MR summary note for review-body items; never resolve. `## Reply`.
 11. **Report.** Print the Output; list invalid and needs-clarification items under `For you:` as replied, awaiting reviewer.

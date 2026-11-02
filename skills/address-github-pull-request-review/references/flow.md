@@ -91,4 +91,4 @@ Write each body to a scratch file. Replies post only after the push succeeded, o
 
 ## Delivery
 
-After the push and replies, run `git rev-parse HEAD` and `git rev-parse origin/<head>`; they must match, and the posted reply count must equal the plan's. A mismatch → `Result: stopped`, `Stopped: 11: delivery mismatch`, items under `Open:`. `--dry-run` or no commits → skip.
+After the push and replies, run `git rev-parse HEAD` and `git rev-parse origin/<head>`; they must match, and the posted reply count must equal the plan's. A mismatch → `Result: stopped`, `Stopped: 11: delivery mismatch`, items under `Open:`. No commits → skip the head check but still check the reply count. `--dry-run` → skip both.
