@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import {
+  assertScratch,
   delta,
   isSafePath,
   main,
@@ -304,6 +305,67 @@ describe('resolveBase', () => {
     // Assert
     assert.throws(act, /no merge base/);
   });
+
+  test('throws when no merge base exists with the master fallback', () => {
+    // Arrange
+    const git = (args) => {
+      if (args[0] === 'symbolic-ref') return { status: 128, stdout: '' };
+      if (args[0] === 'rev-parse' && args.includes('refs/heads/main')) return { status: 1, stdout: '' };
+      if (args[0] === 'merge-base') return { status: 1, stdout: '' };
+      return { status: 0, stdout: { 'rev-parse': 'abc\n', branch: 'feat/x\n' }[args[0]] };
+    };
+    // Act
+    const act = () => resolveBase(git);
+    // Assert
+    assert.throws(act, /no merge base between HEAD and master/);
+  });
+});
+
+describe('assertScratch', () => {
+  test('accepts a sibling directory', () => {
+    // Arrange
+    const scratch = '/tmp/s';
+    // Act
+    const act = () => assertScratch('/r', scratch);
+    // Assert
+    assert.doesNotThrow(act);
+  });
+
+  test('accepts a directory inside the root', () => {
+    // Arrange
+    const scratch = '/r/.scratch';
+    // Act
+    const act = () => assertScratch('/r', scratch);
+    // Assert
+    assert.doesNotThrow(act);
+  });
+
+  test('rejects the root itself', () => {
+    // Arrange
+    const scratch = '/r';
+    // Act
+    const act = () => assertScratch('/r', scratch);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
+  });
+
+  test('rejects the filesystem root', () => {
+    // Arrange
+    const scratch = '/';
+    // Act
+    const act = () => assertScratch('/r', scratch);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
+  });
+
+  test('rejects an ancestor of the root', () => {
+    // Arrange
+    const scratch = '/home/u';
+    // Act
+    const act = () => assertScratch('/home/u/repo', scratch);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
+  });
 });
 
 describe('scope', () => {
@@ -374,12 +436,16 @@ describe('scope', () => {
     const names = [
       '.ENV',
       '.env',
+      '.git-credentials',
       '.netrc',
       '.npmrc',
       '.pgpass',
+      '.pypirc',
       'Credentials.json',
       'ID_RSA',
       'a.PEM',
+      'a.jks',
+      'b.keystore',
       'c.p12',
       'c.pfx',
       'cert.pem',
@@ -388,9 +454,11 @@ describe('scope', () => {
       'id_ecdsa',
       'id_ed25519',
       'id_rsa',
-      'k.key'
+      'k.key',
+      'prod.tfvars',
+      'secrets.yml'
     ];
-    const kept = ['.netrc.md', 'environment.md', 'id_card.js', 'keyboard.js'];
+    const kept = ['.netrc.md', 'environment.md', 'id_card.js', 'keyboard.js', 'secretsauce.md'];
     const { calls, spawnSync } = scopeGit([...names, ...kept].join('\0'));
     const d = { ...fsStub(), spawnSync };
     // Act
@@ -431,6 +499,121 @@ describe('scope', () => {
     const out = scope(['--root', '/r', '--scratch', '/s'], d);
     // Assert
     assert.deepEqual([out.files.map((f) => f.path), fs.written['/s/diff.patch'].includes('A=1')], [['a.js'], false]);
+  });
+
+  test('drops a plain file renamed to a secret name', () => {
+    // Arrange
+    const renamed =
+      'diff --git a/notes.txt b/.env\nsimilarity index 80%\nrename from notes.txt\nrename to .env\n--- a/notes.txt\n+++ b/.env\n@@ -1 +1 @@\n-A=1\n+A=2\n';
+    const fs = fsStub();
+    const d = { ...fs, spawnSync: gitStub({ ...scopeTable, diff: PATCH + renamed }) };
+    // Act
+    const out = scope(['--root', '/r', '--scratch', '/s'], d);
+    // Assert
+    assert.deepEqual(
+      [out.files.map((f) => f.path), out.skipped, fs.written['/s/diff.patch'].includes('A=2')],
+      [['a.js'], [{ path: '.env', reason: 'sensitive' }], false]
+    );
+  });
+
+  test('excludes a section whose header is C-quoted and never keeps it in the patch', () => {
+    // Arrange
+    const header = 'diff --git "a/q\\"x" "b/q\\"x"';
+    const quoted = `${header}\n--- "a/q\\"x"\n+++ "b/q\\"x"\n@@ -1 +1 @@\n-A=1\n+A=2\n`;
+    const fs = fsStub();
+    const d = { ...fs, spawnSync: gitStub({ ...scopeTable, diff: PATCH + quoted }) };
+    // Act
+    const out = scope(['--root', '/r', '--scratch', '/s'], d);
+    // Assert
+    assert.deepEqual(
+      [out.files.map((f) => f.path), out.skipped, fs.written['/s/diff.patch'].includes('A=2')],
+      [['a.js'], [{ path: header.slice('diff --git '.length), reason: 'unsafe path' }], false]
+    );
+  });
+
+  test('keeps a section with an unquoted header', () => {
+    // Arrange
+    const d = { ...fsStub(), spawnSync: gitStub(scopeTable) };
+    // Act
+    const out = scope(['--root', '/r', '--scratch', '/s'], d);
+    // Assert
+    assert.deepEqual(out.skipped, []);
+  });
+
+  test('excludes an untracked embedded repository as a directory and never diffs it', () => {
+    // Arrange
+    const { calls, spawnSync } = scopeGit('emb/\0ok.txt\0');
+    const d = { ...fsStub(), spawnSync };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual([out.skipped, noIndexTargets(calls)], [[{ path: 'emb/', reason: 'directory' }], ['ok.txt']]);
+  });
+
+  test('skips an oversized file', () => {
+    // Arrange
+    const d = {
+      ...fsStub(),
+      lstatSync: () => ({ isFile: () => true, size: 1_000_001 }),
+      spawnSync: gitStub(scopeTable)
+    };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual([out.files, out.skipped], [[], [{ path: 'a.js', reason: 'oversized' }]]);
+  });
+
+  test('keeps a file at the size limit', () => {
+    // Arrange
+    const d = {
+      ...fsStub(),
+      lstatSync: () => ({ isFile: () => true, size: 1_000_000 }),
+      spawnSync: gitStub(scopeTable)
+    };
+    // Act
+    const out = scope(['--root', '/r'], d);
+    // Assert
+    assert.deepEqual(
+      out.files.map((f) => f.path),
+      ['a.js']
+    );
+  });
+
+  test('removes the batch files a previous manifest lists', () => {
+    // Arrange
+    const removed = [];
+    const d = {
+      ...fsStub({ '/s/manifest.json': JSON.stringify({ batches: [['a'], ['b']] }) }),
+      rmSync: (p) => removed.push(p),
+      spawnSync: gitStub(scopeTable)
+    };
+    // Act
+    scope(['--root', '/r', '--scratch', '/s'], d);
+    // Assert
+    assert.deepEqual(
+      removed.filter((p) => p.includes('batch-')),
+      ['/s/batch-1.txt', '/s/batch-2.txt']
+    );
+  });
+
+  test('throws on a corrupt previous manifest', () => {
+    // Arrange
+    const d = { ...fsStub({ '/s/manifest.json': '{' }), spawnSync: gitStub(scopeTable) };
+    // Act
+    const act = () => scope(['--root', '/r', '--scratch', '/s'], d);
+    // Assert
+    assert.throws(act, SyntaxError);
+  });
+
+  test('rejects a scratch path equal to the root before removing anything', () => {
+    // Arrange
+    const removed = [];
+    const d = { ...fsStub(), rmSync: (p) => removed.push(p), spawnSync: gitStub(scopeTable) };
+    // Act
+    const act = () => scope(['--root', '/r', '--scratch', '/r'], d);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
+    assert.deepEqual(removed, []);
   });
 
   test('keeps a tracked look-alike name in the patch', () => {
@@ -546,6 +729,40 @@ describe('snapshot', () => {
     assert.deepEqual([out.snapshot, out.skipped], [[], [{ path: 'a.js', reason: 'deleted' }]]);
   });
 
+  test('writes snap.json with the copied and the absent paths', () => {
+    // Arrange
+    const fs = fsStub({ '/p.txt': 'a.js\nb.js\n' });
+    const d = {
+      ...fs,
+      lstatSync: (p) => {
+        if (p === '/r/b.js') throw enoent();
+        return FILE;
+      }
+    };
+    // Act
+    snapshot(args, d);
+    // Assert
+    assert.deepEqual(JSON.parse(fs.written['/s/snap.json']), { snapshot: ['a.js'], absent: ['b.js'] });
+  });
+
+  test('leaves unsafe and secret-shaped paths out of the absent list', () => {
+    // Arrange
+    const fs = fsStub({ '/p.txt': '../x\n.env\na.js\n' });
+    // Act
+    snapshot(args, fs);
+    // Assert
+    assert.deepEqual(JSON.parse(fs.written['/s/snap.json']), { snapshot: ['a.js'], absent: [] });
+  });
+
+  test('rejects a scratch path equal to the root', () => {
+    // Arrange
+    const d = fsStub({ '/p.txt': 'a.js\n' });
+    // Act
+    const act = () => snapshot(['--root', '/r', '--scratch', '/r', '--paths', '/p.txt'], d);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
+  });
+
   test('skips a path whose real path leaves the root', () => {
     // Arrange
     const d = { ...fsStub({ '/p.txt': 'a.js\n' }), realpathSync: (p) => (p === '/r' ? '/r' : '/elsewhere/a.js') };
@@ -617,16 +834,46 @@ describe('delta', () => {
     assert.deepEqual([out.files, out.batches, out.skipped], [[], [], []]);
   });
 
-  test('diffs against /dev/null when the snapshot has no copy', () => {
+  test('diffs against /dev/null when the snapshot recorded the path as absent', () => {
     // Arrange
     const { calls, spawnSync } = spy(gitStub({ diff: PATCH }));
-    const d = { ...fsStub({ '/p.txt': 'a.js\n' }), lstatSync: noSnapshot, spawnSync };
+    const snap = JSON.stringify({ snapshot: [], absent: ['a.js'] });
+    const d = { ...fsStub({ '/p.txt': 'a.js\n', '/s/snap.json': snap }), lstatSync: noSnapshot, spawnSync };
     // Act
     delta(args, d);
     // Assert
     const diff = calls.find((a) => a.includes('--no-index'));
     const at = diff.indexOf('--no-index');
     assert.deepEqual(diff.slice(at + 1), ['/dev/null', 'a.js']);
+  });
+
+  test('excludes a path with no snapshot copy that was not recorded as absent', () => {
+    // Arrange
+    const { calls, spawnSync } = spy(gitStub({ diff: PATCH }));
+    const snap = JSON.stringify({ snapshot: [], absent: ['other.js'] });
+    const d = { ...fsStub({ '/p.txt': 'a.js\n', '/s/snap.json': snap }), lstatSync: noSnapshot, spawnSync };
+    // Act
+    const out = delta(args, d);
+    // Assert
+    assert.deepEqual([out.skipped, calls.length], [[{ path: 'a.js', reason: 'not snapshotted' }], 0]);
+  });
+
+  test('excludes a path with no snapshot copy when snap.json is missing', () => {
+    // Arrange
+    const d = { ...fsStub({ '/p.txt': 'a.js\n' }), lstatSync: noSnapshot, spawnSync: gitStub({ diff: PATCH }) };
+    // Act
+    const out = delta(args, d);
+    // Assert
+    assert.deepEqual(out.skipped, [{ path: 'a.js', reason: 'not snapshotted' }]);
+  });
+
+  test('rejects a scratch path that contains the root', () => {
+    // Arrange
+    const d = { ...fsStub({ '/p.txt': 'a.js\n' }), spawnSync: gitStub({ diff: PATCH }) };
+    // Act
+    const act = () => delta(['--root', '/s/r', '--scratch', '/s', '--paths', '/p.txt', '--round', '2'], d);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
   });
 
   test('records a file removed from the working tree as deleted', () => {
@@ -772,6 +1019,39 @@ describe('verify', () => {
     const out = verify(args, d);
     // Assert
     assert.deepEqual([out.ok, out.drifted], [true, []]);
+  });
+
+  test('flags a path outside the round-1 manifest whose head copy changed', () => {
+    // Arrange
+    const d = {
+      ...fsStub({ '/s/manifest.json': manifest, '/p.txt': 'new.js\n', '/r/new.js': 'new', '/s/head/new.js': 'old' }),
+      spawnSync: git
+    };
+    // Act
+    const out = verify(args, d);
+    // Assert
+    assert.deepEqual(out.drifted, [{ path: 'new.js', reason: 'changed since review' }]);
+  });
+
+  test('passes a path outside the round-1 manifest whose head copy matches', () => {
+    // Arrange
+    const d = {
+      ...fsStub({ '/s/manifest.json': manifest, '/p.txt': 'new.js\n', '/r/new.js': 'same', '/s/head/new.js': 'same' }),
+      spawnSync: git
+    };
+    // Act
+    const out = verify(args, d);
+    // Assert
+    assert.deepEqual([out.ok, out.drifted], [true, []]);
+  });
+
+  test('rejects a scratch path equal to the filesystem root', () => {
+    // Arrange
+    const d = { ...fsStub({ '/manifest.json': manifest, '/p.txt': '' }), spawnSync: git };
+    // Act
+    const act = () => verify(['--root', '/r', '--scratch', '/', '--paths', '/p.txt'], d);
+    // Assert
+    assert.throws(act, /unsafe --scratch/);
   });
 
   test('flags a file that changed since review', () => {

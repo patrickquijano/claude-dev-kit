@@ -177,6 +177,34 @@ describe('diff-manifest snapshot and delta', () => {
     );
   });
 
+  test('diffs a file created after the snapshot recorded it as absent', () => {
+    // Arrange
+    const repo = makeRepo();
+    const scratch = makeScratchDir(repo, 'd4');
+    run('scope', '--root', repo, '--scratch', scratch);
+    const paths = join(scratch, 'paths.txt');
+    writeFileSync(paths, 'late.txt\n');
+    run('snapshot', '--root', repo, '--scratch', scratch, '--paths', paths);
+    writeFileSync(join(repo, 'late.txt'), 'new\n');
+    // Act
+    const out = run('delta', '--root', repo, '--scratch', scratch, '--paths', paths, '--round', '1');
+    // Assert
+    assert.deepEqual(
+      out.files.map((f) => f.path),
+      ['late.txt']
+    );
+  });
+
+  test('excludes an existing file that was never snapshotted', () => {
+    // Arrange
+    const scratch = makeScratchDir(root, 'd5');
+    const paths = scopeWithPlan(root, scratch);
+    // Act
+    const out = run('delta', '--root', root, '--scratch', scratch, '--paths', paths, '--round', '1');
+    // Assert
+    assert.deepEqual([out.files, out.skipped], [[], [{ path: 'tracked.txt', reason: 'not snapshotted' }]]);
+  });
+
   test('reports no files when nothing changed since the snapshot', () => {
     // Arrange
     const scratch = makeScratchDir(root, 'd2');

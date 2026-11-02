@@ -14,7 +14,7 @@ import {
 } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve, sep } from 'node:path';
+import { dirname, join, parse, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
@@ -63,15 +63,16 @@ export function isSafePath(path) {
   );
 }
 
-// A secret-shaped file name (`.env*`, key and cert files, `id_<algo>` keys, `credentials*`, `.netrc`/`.npmrc`/`.pgpass`) never reaches scratch or `diff.patch`.
+// A secret-shaped file name (`.env*`, key, cert, keystore, and `.tfvars` files, `id_<algo>` keys, `credentials*`, `secrets.*`, and dotfiles such as `.netrc` or `.git-credentials`) never reaches scratch or `diff.patch`.
 function isSensitive(path) {
   const name = path.split('/').pop();
   return (
     /^\.env/i.test(name) ||
-    /\.(pem|key|p12|pfx)$/i.test(name) ||
+    /\.(pem|key|p12|pfx|jks|keystore|tfvars)$/i.test(name) ||
     /^id_(rsa|dsa|ecdsa|ed25519)/i.test(name) ||
     /^credentials/i.test(name) ||
-    /^\.(netrc|npmrc|pgpass)$/i.test(name)
+    /^secrets\./i.test(name) ||
+    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials)$/i.test(name)
   );
 }
 
@@ -230,6 +231,12 @@ function writeBatches(d, scratch, prefix, files) {
   return batches;
 }
 
+// Throws when the scratch path is the root, a filesystem root, or an ancestor of the root, since the commands remove files under it.
+export function assertScratch(root, scratch) {
+  if (scratch === root || scratch === parse(scratch).root || root.startsWith(scratch + sep))
+    throw new Error(`unsafe --scratch: ${scratch} is the root, a filesystem root, or contains the root`);
+}
+
 function resetScratch(d, scratch, names) {
   for (const n of names) d.rmSync(join(scratch, n), { recursive: true, force: true });
 }
@@ -249,7 +256,7 @@ function clearPrevious(d, scratch) {
   }
   (previous.batches ?? []).forEach((_, i) => d.rmSync(join(scratch, `batch-${i + 1}.txt`), { force: true }));
   removeMatching(d, scratch, (n) => /^delta-\d+/.test(n));
-  resetScratch(d, scratch, ['head', 'snap', 'diff.patch', 'manifest.json']);
+  resetScratch(d, scratch, ['head', 'snap', 'snap.json', 'diff.patch', 'manifest.json']);
 }
 
 function readPaths(d, file) {
@@ -274,7 +281,9 @@ export function scope(argv, d) {
   const root = resolve(rootArg);
   const git = makeGit(d, root);
   const { head, base, defaultBranch } = resolveBase(git);
-  const scratch = resolve(arg(argv, '--scratch') ?? d.makeScratch());
+  const scratchArg = arg(argv, '--scratch');
+  const scratch = resolve(scratchArg ?? d.makeScratch());
+  if (scratchArg) assertScratch(root, scratch);
   d.mkdirSync(scratch, { recursive: true });
   clearPrevious(d, scratch);
   let patch = git(['-c', 'core.quotepath=off', 'diff', ...DIFF_FLAGS, '--find-renames', base]).stdout;
@@ -284,6 +293,10 @@ export function scope(argv, d) {
     .sort(byteSort);
   const excluded = [];
   for (const f of untracked) {
+    if (f.endsWith('/')) {
+      excluded.push({ path: f, reason: 'directory' });
+      continue;
+    }
     if (!isSafePath(f)) {
       excluded.push({ path: JSON.stringify(f), reason: 'unsafe path' });
       continue;
@@ -297,15 +310,24 @@ export function scope(argv, d) {
     }).stdout;
   }
   const kept = [];
+  const parsed = [];
   for (const section of patch.split(/^(?=diff --git )/m).filter((s) => s.startsWith('diff --git '))) {
+    const header = section.split('\n')[0];
+    if (header.startsWith('diff --git "')) {
+      excluded.push({ path: header.slice('diff --git '.length), reason: 'unsafe path' });
+      continue;
+    }
     const [file] = parseDiff(section);
-    const sides = /^diff --git a\/(.+) b\/(.+)$/.exec(section.split('\n')[0]) ?? [];
+    const sides = /^diff --git a\/(.+) b\/(.+)$/.exec(header) ?? [];
     if (isSensitive(file.path) || isSensitive(sides[1] ?? file.path) || isSensitive(sides[2] ?? file.path))
       excluded.push({ path: file.path, reason: 'sensitive' });
-    else kept.push(section);
+    else {
+      kept.push(section);
+      parsed.push(file);
+    }
   }
   patch = kept.join('');
-  const parsed = parseDiff(patch).sort((a, b) => byteSort(a.path, b.path));
+  parsed.sort((a, b) => byteSort(a.path, b.path));
   copyFiles(d, root, join(scratch, 'head'), parsed);
   const files = parsed.filter((f) => !f.skip);
   const skipped = [...excluded, ...parsed.filter((f) => f.skip).map((f) => ({ path: f.path, reason: f.skip }))].sort(
@@ -334,6 +356,7 @@ export function snapshot(argv, d) {
   if (!rootArg) throw new Error('usage: snapshot --root <dir> --scratch <dir> --paths <file>');
   const root = resolve(rootArg);
   const scratch = resolve(scratchArg);
+  assertScratch(root, scratch);
   const paths = readPaths(d, pathsFile);
   const files = paths.map((path) => ({
     path,
@@ -341,8 +364,13 @@ export function snapshot(argv, d) {
   }));
   resetScratch(d, scratch, ['snap']);
   copyFiles(d, root, join(scratch, 'snap'), files);
-  return {
+  const out = {
     snapshot: files.filter((f) => !f.skip).map((f) => f.path),
+    absent: files.filter((f) => f.skip === 'deleted').map((f) => f.path)
+  };
+  d.writeFileSync(join(scratch, 'snap.json'), `${JSON.stringify(out)}\n`);
+  return {
+    snapshot: out.snapshot,
     skipped: files.filter((f) => f.skip).map((f) => ({ path: f.path, reason: f.skip }))
   };
 }
@@ -355,8 +383,15 @@ export function delta(argv, d) {
     throw new Error('usage: delta --root <dir> --scratch <dir> --paths <file> --round <n>');
   const root = resolve(rootArg);
   const scratch = resolve(scratchArg);
+  assertScratch(root, scratch);
   const git = makeGit(d, root);
   const paths = readPaths(d, pathsFile);
+  let absent = [];
+  try {
+    absent = JSON.parse(d.readFileSync(join(scratch, 'snap.json'), 'utf8')).absent ?? [];
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+  }
   const exists = (path) => {
     try {
       d.lstatSync(path);
@@ -397,6 +432,10 @@ export function delta(argv, d) {
     }
     if (!contained) {
       excluded.push({ path: p, reason: 'outside root' });
+      continue;
+    }
+    if (!hadBefore && !absent.includes(p)) {
+      excluded.push({ path: p, reason: 'not snapshotted' });
       continue;
     }
     const text = git(
@@ -440,6 +479,7 @@ export function verify(argv, d) {
   if (!rootArg) throw new Error('usage: verify --root <dir> --scratch <dir> --paths <file>');
   const root = resolve(rootArg);
   const scratch = resolve(scratchArg);
+  assertScratch(root, scratch);
   const git = makeGit(d, root);
   const manifest = JSON.parse(d.readFileSync(join(scratch, 'manifest.json'), 'utf8'));
   const head = git(['rev-parse', 'HEAD']).stdout.trim();
@@ -450,7 +490,14 @@ export function verify(argv, d) {
       drifted.push({ path: p, reason: 'unsafe path' });
       continue;
     }
-    if (!reviewed.has(p)) continue;
+    const headCopy = join(scratch, 'head', p);
+    let before = null;
+    try {
+      before = d.readFileSync(headCopy);
+    } catch (err) {
+      if (err?.code !== 'ENOENT') throw err;
+    }
+    if (before === null && !reviewed.has(p)) continue;
     const src = inside(root, p);
     let now;
     try {
@@ -464,8 +511,7 @@ export function verify(argv, d) {
       drifted.push({ path: p, reason: 'deleted' });
       continue;
     }
-    if (now !== sha256(d.readFileSync(join(scratch, 'head', p))))
-      drifted.push({ path: p, reason: 'changed since review' });
+    if (now !== sha256(before ?? d.readFileSync(headCopy))) drifted.push({ path: p, reason: 'changed since review' });
   }
   const headMoved = head !== manifest.head;
   return { ok: !headMoved && drifted.length === 0, head, headMoved, drifted };
