@@ -197,7 +197,7 @@ function realInside(d, root, src) {
   return d.realpathSync(src).startsWith(d.realpathSync(root) + sep);
 }
 
-// Copies each non-skipped file from the working tree into `<dir>/<path>`; a symlink or oversized file becomes skipped.
+// Copies each non-skipped file from the working tree into `<dir>/<path>`; a symlink or oversized file becomes skipped; the sensitive check below is defence in depth, as `scope` and `delta` filter first.
 function copyFiles(d, root, dir, files) {
   for (const f of files) {
     if (f.skip) continue;
@@ -321,9 +321,9 @@ export function scope(argv, d) {
       excluded.push({ path: f, reason: 'sensitive' });
       continue;
     }
-    const big = untrackedSkip(d, root, f);
-    if (big) {
-      excluded.push({ path: f, reason: big });
+    const skip = untrackedSkip(d, root, f);
+    if (skip) {
+      excluded.push({ path: f, reason: skip });
       continue;
     }
     patch += git(['-c', 'core.quotepath=off', 'diff', ...DIFF_FLAGS, '--no-index', '/dev/null', f], {
