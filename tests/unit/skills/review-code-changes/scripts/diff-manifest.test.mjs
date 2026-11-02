@@ -1021,6 +1021,15 @@ describe('verify', () => {
     assert.deepEqual([out.ok, out.drifted], [true, []]);
   });
 
+  test('flags a reviewed path whose head copy is missing instead of crashing', () => {
+    // Arrange
+    const d = { ...fsStub({ '/s/manifest.json': manifest, '/p.txt': 'a.js\n', '/r/a.js': 'same' }), spawnSync: git };
+    // Act
+    const out = verify(args, d);
+    // Assert
+    assert.deepEqual(out.drifted, [{ path: 'a.js', reason: 'review copy missing' }]);
+  });
+
   test('flags a path outside the round-1 manifest whose head copy changed', () => {
     // Arrange
     const d = {

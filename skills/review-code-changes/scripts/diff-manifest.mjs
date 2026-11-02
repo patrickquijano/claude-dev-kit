@@ -201,6 +201,10 @@ function realInside(d, root, src) {
 function copyFiles(d, root, dir, files) {
   for (const f of files) {
     if (f.skip) continue;
+    if (isSensitive(f.path)) {
+      f.skip = 'sensitive';
+      continue;
+    }
     const src = inside(root, f.path);
     if (!src) {
       f.skip = 'outside root';
@@ -274,6 +278,18 @@ function requireArgs(argv, names) {
   return values;
 }
 
+// The skip reason for an untracked file that is not a small regular file, or null; a missing file is left to git.
+function untrackedSkip(d, root, path) {
+  try {
+    const st = d.lstatSync(join(root, path));
+    if (!st.isFile()) return 'not a regular file';
+    return st.size > MAX_FILE_BYTES ? 'oversized' : null;
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+    return null;
+  }
+}
+
 // scope: the round-1 manifest of everything since the base plus staged, unstaged, and untracked files.
 export function scope(argv, d) {
   const rootArg = arg(argv, '--root');
@@ -303,6 +319,11 @@ export function scope(argv, d) {
     }
     if (isSensitive(f)) {
       excluded.push({ path: f, reason: 'sensitive' });
+      continue;
+    }
+    const big = untrackedSkip(d, root, f);
+    if (big) {
+      excluded.push({ path: f, reason: big });
       continue;
     }
     patch += git(['-c', 'core.quotepath=off', 'diff', ...DIFF_FLAGS, '--no-index', '/dev/null', f], {
@@ -434,6 +455,10 @@ export function delta(argv, d) {
       excluded.push({ path: p, reason: 'outside root' });
       continue;
     }
+    if (hasAfter && !d.lstatSync(join(root, p)).isFile()) {
+      excluded.push({ path: p, reason: 'not a regular file' });
+      continue;
+    }
     if (!hadBefore && !absent.includes(p)) {
       excluded.push({ path: p, reason: 'not snapshotted' });
       continue;
@@ -511,7 +536,8 @@ export function verify(argv, d) {
       drifted.push({ path: p, reason: 'deleted' });
       continue;
     }
-    if (now !== sha256(before ?? d.readFileSync(headCopy))) drifted.push({ path: p, reason: 'changed since review' });
+    if (before === null) drifted.push({ path: p, reason: 'review copy missing' });
+    else if (now !== sha256(before)) drifted.push({ path: p, reason: 'changed since review' });
   }
   const headMoved = head !== manifest.head;
   return { ok: !headMoved && drifted.length === 0, head, headMoved, drifted };
