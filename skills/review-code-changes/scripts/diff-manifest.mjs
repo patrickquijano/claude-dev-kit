@@ -176,12 +176,20 @@ function defaultRef(git) {
   return null;
 }
 
-// Base commit: HEAD on the default branch, else the merge base of HEAD and the default branch.
+// Base commit: the merge base of HEAD and the default branch; on the default branch, that of its `origin/` ref when one exists, else HEAD.
 export function resolveBase(git) {
   const head = git(['rev-parse', 'HEAD']).stdout.trim();
   const ref = defaultRef(git);
   const current = git(['branch', '--show-current']).stdout.trim();
-  if (!ref || current === ref.replace(/^origin\//, '')) return { head, base: head, defaultBranch: ref };
+  if (!ref) return { head, base: head, defaultBranch: ref };
+  if (current === ref.replace(/^origin\//, '')) {
+    const remote = `refs/remotes/origin/${current}`;
+    if (git(['rev-parse', '--verify', '--quiet', remote], { okStatuses: [0, 1] }).status !== 0)
+      return { head, base: head, defaultBranch: ref };
+    const onDefault = git(['merge-base', 'HEAD', remote], { okStatuses: [0, 1] });
+    if (onDefault.status !== 0) throw new Error(`no merge base between HEAD and ${remote}`);
+    return { head, base: onDefault.stdout.trim(), defaultBranch: ref };
+  }
   const mb = git(['merge-base', 'HEAD', ref], { okStatuses: [0, 1] });
   if (mb.status !== 0) throw new Error(`no merge base between HEAD and ${ref}`);
   return { head, base: mb.stdout.trim(), defaultBranch: ref };

@@ -33,6 +33,8 @@ const enoent = () => Object.assign(new Error('missing'), { code: 'ENOENT' });
 // Stubbed git: `table` maps the first git argument found in `table` to a stdout string or {status, stdout}.
 const gitStub = (table) => (cmd, args) => {
   assert.equal(cmd, 'git');
+  if (args.includes('--verify') && args.some((a) => a.startsWith('refs/remotes/')))
+    return { status: 1, stdout: '', stderr: '' };
   const hit = table[args.find((a) => table[a] !== undefined)] ?? '';
   return typeof hit === 'string' ? { status: 0, stdout: hit, stderr: '' } : { stderr: '', ...hit };
 };
@@ -242,16 +244,67 @@ describe('makeBatches', () => {
 });
 
 describe('resolveBase', () => {
-  test('uses HEAD on the default branch', () => {
+  test('uses HEAD on the default branch when origin has no such ref', () => {
     // Arrange
     const git = (args) => ({
-      status: 0,
+      status: args.includes('--verify') ? 1 : 0,
       stdout: { 'rev-parse': 'abc\n', 'symbolic-ref': 'origin/main\n', branch: 'main\n' }[args[0]]
     });
     // Act
     const r = resolveBase(git);
     // Assert
     assert.equal(r.base, 'abc');
+  });
+
+  // Git stub for the default branch `main`; `remote` is the `--verify` status and `mb` the merge-base reply.
+  const onMain = (remote, mb) => (args) => {
+    if (args.includes('--verify')) return { status: remote, stdout: '' };
+    if (args[0] === 'merge-base') return { ...mb, args };
+    return { status: 0, stdout: { 'rev-parse': 'abc\n', 'symbolic-ref': 'origin/main\n', branch: 'main\n' }[args[0]] };
+  };
+
+  test('uses the merge base with origin on the default branch', () => {
+    // Arrange
+    const git = onMain(0, { status: 0, stdout: 'def\n' });
+    // Act
+    const r = resolveBase(git);
+    // Assert
+    assert.equal(r.base, 'def');
+  });
+
+  test('asks for the merge base with the remote ref of the default branch', () => {
+    // Arrange
+    const calls = [];
+    const inner = onMain(0, { status: 0, stdout: 'def\n' });
+    const git = (args) => {
+      calls.push(args);
+      return inner(args);
+    };
+    // Act
+    resolveBase(git);
+    // Assert
+    assert.deepEqual(
+      calls.find((a) => a[0] === 'merge-base'),
+      ['merge-base', 'HEAD', 'refs/remotes/origin/main']
+    );
+  });
+
+  test('uses HEAD on the default branch when the remote ref is missing', () => {
+    // Arrange
+    const git = onMain(1, { status: 0, stdout: 'def\n' });
+    // Act
+    const r = resolveBase(git);
+    // Assert
+    assert.equal(r.base, 'abc');
+  });
+
+  test('throws when the default branch has no merge base with origin', () => {
+    // Arrange
+    const git = onMain(0, { status: 1, stdout: '' });
+    // Act
+    const act = () => resolveBase(git);
+    // Assert
+    assert.throws(act, /no merge base between HEAD and refs\/remotes\/origin\/main/);
   });
 
   test('uses the merge base on a feature branch', () => {
@@ -272,7 +325,8 @@ describe('resolveBase', () => {
     // Arrange
     const git = (args) => {
       if (args[0] === 'symbolic-ref') return { status: 128, stdout: '' };
-      if (args[0] === 'rev-parse' && args.includes('refs/heads/main')) return { status: 1, stdout: '' };
+      if (args.includes('refs/heads/main') || args.includes('refs/remotes/origin/master'))
+        return { status: 1, stdout: '' };
       return { status: 0, stdout: { 'rev-parse': 'abc\n', branch: 'master\n' }[args[0]] };
     };
     // Act
