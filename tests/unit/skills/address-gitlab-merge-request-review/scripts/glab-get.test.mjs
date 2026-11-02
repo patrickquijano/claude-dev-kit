@@ -2,8 +2,19 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { isAllowed, main } from '../../../../../skills/address-gitlab-merge-request-review/scripts/glab-get.mjs';
 
-const OK = ['projects/g%2Fp/merge_requests/5/discussions?per_page=100&page=2', 'projects/7/jobs/9/trace'];
-const BAD = ['projects/g%2Fp/merge_requests/5/notes', 'projects/7/merge_requests/5/reviewers/../../../user'];
+const OK = [
+  'projects/g%2Fp/merge_requests/5/discussions?per_page=100&page=2',
+  'projects/7/jobs/9/trace',
+  'projects/g%2Fp/members/all/42',
+  'user'
+];
+const BAD = [
+  'projects/g%2Fp/merge_requests/5/notes',
+  'projects/7/merge_requests/5/reviewers/../../../user',
+  'projects/g%2Fp/members/all/x',
+  'projects/g%2Fp/members',
+  'users/1'
+];
 
 describe('isAllowed', () => {
   test('accepts the read-only endpoints the skill uses', () => {

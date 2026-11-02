@@ -27,7 +27,9 @@ const ENDPOINTS = [
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/(?:reviewers|closes_issues)$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/pipelines\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/pipelines\/\d+\/jobs\?scope=failed&per_page=\d+$/,
-  /^projects\/[\w.~%-]+\/jobs\/\d+\/trace$/
+  /^projects\/[\w.~%-]+\/jobs\/\d+\/trace$/,
+  /^projects\/[\w.~%-]+\/members\/all\/\d+$/,
+  /^user$/
 ];
 
 // True when `host` is a plain hostname and `endpoint` matches one of the read-only shapes.
