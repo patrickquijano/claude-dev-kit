@@ -44,4 +44,4 @@ Weights sum to 100.
 - Print the score table before the question, then one AskUserQuestion with the Recommended option first (none on a close call; options then alphabetical) and the option descriptions per `grill.md`.
 - Each option's `preview` holds its score breakdown: criterion, weight, score, evidence.
 - Update and improve show the current value in the question.
-- Record the choice and its flags; the rubric's F5 scores against it. Without AskUserQuestion, ask in plain text with the same table.
+- Record the choice and its flags; the audit scores the flags against it. Without AskUserQuestion, ask in plain text with the same table.

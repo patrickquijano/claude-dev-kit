@@ -8,8 +8,8 @@ Steps 3–6 of `SKILL.md` (preflight, interview, Brief): ask only what the input
 
 ## Protocol
 
-- At most 3 questions per batch, 2–4 options plus Other, the Recommended option first, worded as a proposal whose reason cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`.
-- At most 8 batches per agent (11 asked items plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including revisions. Cap hit before the Brief is printed → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
+- At most 3 questions per batch, 2–4 options plus Other, the Recommended option first, worded as a proposal whose reason cites a `file:line`, a sibling agent, or a doc line; no evidence → say "no evidence", give no recommendation. A Stop option on every batch. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each decision question show the score table, the recommendation, and the option descriptions per `grill.md`.
+- At most 8 batches per subagent (13 items less item 2, Fit, which asks no question per `## Fit`, and item 12, asked as the capability questions, is 11 asked items; plus up to 4 capability questions is 15 at 3 per batch = 5, plus up to 3 revisions); every batch asked at steps 5–6 counts, including revisions. Cap hit before the Brief is printed → `Result: stopped`, `Stopped: <step>: batch cap`, nothing written. Skip an item the input or a named file already answers; record its source (`user` or the path). Exception: item 4 (Name) is always asked in create, the user's name being a candidate; update and improve follow `## Name`.
 - Resolved means a user choice or a named file; never an assumption or a default.
 - A vague answer ("whatever", "not sure") or "I don't know" → one follow-up with concrete options, or offer a read-only look-up (Grep, Read) and ask again with its result; still unresolved → stop with `Result: stopped`, never fill the gap.
 - Any change at the brief reopens only the items it touches (counts toward the 8 batches).
@@ -22,7 +22,7 @@ Steps 3–6 of `SKILL.md` (preflight, interview, Brief): ask only what the input
 | 2   | Fit                    | `## Fit`                                                                                                                                                                                                                                                                                                                              |
 | 3   | Scope                  | `## Scope`                                                                                                                                                                                                                                                                                                                            |
 | 4   | Name                   | `## Name`                                                                                                                                                                                                                                                                                                                             |
-| 5   | Triggers               | The situations that must make the parent delegate; whether Claude should delegate on its own (yes and the agent works from a plain request: the parent can fill every input of at least one kind from its own context → `Use proactively` in `description`; else, or when it needs skill-supplied structured inputs, a plain trigger) |
+| 5   | Triggers               | The situations that must make the parent delegate; whether Claude should delegate on its own (`Use proactively` or a plain trigger, per `agent-checklist.md` `## Frontmatter` Description)                                                                                                                                            |
 | 6   | Inputs                 | Each input the parent passes in the delegation prompt                                                                                                                                                                                                                                                                                 |
 | 7   | Tools, with the reason | An explicit minimal list; each tool tied to a Task step                                                                                                                                                                                                                                                                               |
 | 8   | Writes                 | Files it edits or creates, or read-only; a writer returns what it changed (`agent-checklist`)                                                                                                                                                                                                                                         |
@@ -36,7 +36,7 @@ Steps 3–6 of `SKILL.md` (preflight, interview, Brief): ask only what the input
 
 ## Optional capabilities
 
-Multi-select questions of at most 3 capabilities each, batched per `## Protocol` (Stop on every batch); each option set only when chosen: `color` (display only), `maxTurns`, `isolation: worktree`, `memory` (makes the agent write-capable), `skills`, `background`, `omitClaudeMd`, `permissionMode` / `mcpServers` / `hooks` / `initialPrompt` (Personal or Project only). Propose none by default; each pick needs a signal from `agent-checklist.md` `## Fields on signal`. Nothing chosen → the field is omitted and the Brief says so with the default it falls back to.
+Multi-select questions of at most 3 capabilities each, batched per `## Protocol` (Stop on every batch); each option set only when chosen: `maxTurns`, `isolation: worktree`, `memory`, `skills`, `background`, `omitClaudeMd`, `permissionMode` / `mcpServers` / `hooks` / `initialPrompt`. Propose none by default; each pick needs a signal from `agent-checklist.md` `## Fields on signal`. Nothing chosen → the field is omitted and the Brief says so with the default it falls back to.
 
 ## Fit
 
@@ -89,15 +89,15 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 | `.claude-plugin/plugin.json` at the target root, or an agent meant for distribution | Plugin                                        | `<plugin root>/agents/<name>.md`, invoked `@<plugin>:<name>` |
 | No signal                                                                           | Project when cwd is a git repo, else Personal |                                                              |
 
-Precedence and plugin restrictions: `docs-snapshot.md` `## Scopes and precedence`, `## Plugin restrictions`. An agent needing an ignored field → Personal or Project.
+Precedence and plugin restrictions: `docs-snapshot.md` `## Scopes and precedence`, `## Plugin restrictions`. Which scope an agent needing an ignored field gets: `agent-checklist.md` `## Fields on signal`.
 
 ## Name
 
 Propose the name as a weighted question. Always in create (the user's name is a candidate); in update and improve only when the current name breaks a hard rule or the user asks to rename (a rename moves the file and breaks `@name` callers). The user's choice wins.
 
 - Candidates: 2–4, each from a different source so no one source dominates: the user's (or current) name, the job's words, the closest sibling role suffix in the scope, the user's domain words. Gather evidence read-only first: Glob the scope's agents dir, Grep the purpose.
-- Hard rules (`docs-snapshot.md` `## Format`, `agent-checklist.md`): lowercase, hyphen-separated; no `:`, no leading `-`; at most 256 characters; the file stem matches `name`; unique in the scope (`rubric.md` D3). A candidate that fails one is dropped and listed with its rule, never scored.
-- An actor noun names who does the job (`code-reviewer`), never the action (`review-code`) or a gerund (`reviewing`). A requested action or gerund name is a scored candidate beside its actor form; it is never silently kept or renamed.
+- Hard rules (`agent-checklist.md` `## Frontmatter`, `docs-snapshot.md` `## Format`), plus unique in the scope. A candidate that fails one is dropped and listed with its rule, never scored.
+- A requested action or gerund name is a scored candidate beside its actor form; it is never silently kept or renamed.
 
 | Criterion                                                                        | Weight |
 | -------------------------------------------------------------------------------- | ------ |
@@ -115,9 +115,9 @@ Propose the name as a weighted question. Always in create (the user's name is a 
 
 Asked in every create and update (improve: only when a violation touches them); a question the input already answers is skipped. Ground each recommendation:
 
-1. Take the job, tools, and return shape from the items. Glob the target scope's agents directory, Grep `^model:`, `^effort:`, `^color:` in the siblings, and sort each sibling into a role by its `description`.
+1. Take the job, tools, and return shape from the items. Glob the target scope's agents directory, Grep `^model:`, `^effort:` in the siblings, and sort each sibling into a role by its `description`.
 2. Siblings of the same role agree → recommend that value and cite it ("matches 6 sibling analyzers"). None, or they disagree → use the tables.
-3. The job fits two rows → recommend the row for its hardest step (model) or the domain color (color), and say it was a close call.
+3. The job fits two rows → recommend the row for its hardest step, and say it was a close call.
 4. Every reason cites a job, tool, or sibling fact and names the deciding criterion; never recommend from the name alone. Update: recommend the current value when the evidence supports it.
 
 Criteria: reasoning depth, cost of a miss, context size, spawn frequency and latency, tool power, sibling consensus.
@@ -129,7 +129,7 @@ Criteria: reasoning depth, cost of a miss, context size, spawn frequency and lat
 | `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run                             |
 | `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (prices: see the models overview); recommend only when the input says `opus` is not enough |
 
-Never omit `model`. `inherit` is written only when the user confirms it (the agent then follows the parent's model); otherwise recommend the alias the criteria support and say why.
+`model` and `inherit`: per `agent-checklist.md` `## Fields on signal`; otherwise recommend the alias the criteria support and say why.
 
 | Effort   | Pick for                                                                                            | Trade-off                                                    |
 | -------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -143,20 +143,7 @@ Layout: model options the recommended alias first and one alternate it was weigh
 
 ## Color
 
-Asked only when chosen under `## Optional capabilities`. `color` only changes how the agent is displayed in the task list and transcript. The roles below are this plugin's own sibling convention (read from `agents/*.md` `color:` lines), not a documented rule: cite the sibling agents, and say "no evidence" when the scope has none.
-
-| Color    | Role                                    |
-| -------- | --------------------------------------- |
-| `green`  | Git, change requests, and planned edits |
-| `cyan`   | Repo-fact analyzers                     |
-| `yellow` | Scorers                                 |
-| `purple` | Reviewers and auditors                  |
-| `red`    | Security                                |
-| `orange` | Spec and planning workflows             |
-| `blue`   | Tests and checks                        |
-| `pink`   | Research                                |
-
-A domain color wins over the generic one (security red and test blue beat reviewer purple). Layout: the recommended color with its reason, one alternate backed by evidence, and Stop; not chosen → omit the field.
+Never asked: `color` is display only (`docs-snapshot.md` `## Fields`) and is set from the tools chosen at item 7: `cyan` for a read-only agent, `red` for a write-capable one (`tools` has Edit, Write, or NotebookEdit, `memory` is set, or `tools` is omitted). `check-agent` enforces it (rubric A6); the Brief names the color and the access that set it.
 
 ## Brief
 
@@ -164,7 +151,7 @@ Step 6, before any write: print the Brief (at most 40 lines of diff inline; a lo
 
 - `Target: <absolute path>` and `Mode:`.
 - Doc facts that differ from `docs-snapshot.md` after a due freshness read (in memory only), when any.
-- Items 1–13, one line each: value and source (`user` or the path). An omitted field is listed with the default it falls back to; `tools` and `disallowedTools` both omitted is stated as "every tool".
+- Items 1–13, one line each: value and source (`user` or the path), plus the derived `color` and the access that set it. An omitted field is listed with the default it falls back to; both `tools` and `disallowedTools` omitted per `agent-checklist.md` `## Frontmatter` Tools.
 - Update and improve: the diff; collisions and multi-scope picks show the diff against each candidate; unknown fields flagged.
 - `Unverified:` (facts omitted, overlaps), `Dropped jobs:` when narrowed or split.
 - The Brief never waits for an answer; a change the user sends after it is a new update run, and only the changed items are reopened.

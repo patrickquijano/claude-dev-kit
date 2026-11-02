@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.10] - 2026-11-02
+
+### Added
+
+- `/cdk:audit-skill` audits, scores, and fixes one or more skills against a 100-point rubric until no open item is left.
+- `/cdk:audit-subagent` audits, scores, and fixes one or more subagents against a 100-point rubric the same way.
+- Both audit skills take `--owned` and `--yes`; they score but never edit a target with uncommitted changes.
+
+### Changed
+
+- `/cdk:build-skill` and `/cdk:build-subagent` now plan with `cdk:implementation-planner`, apply the plan inline or with `cdk:plan-implementer`, then run `/cdk:audit-skill` or `/cdk:audit-subagent`.
+- `/cdk:build-skill` and `/cdk:build-subagent` report an `Audit:` line instead of the old `Score:` and `Rounds:` lines.
+- `/cdk:build-skill` `improve` mode now runs the validator first as its baseline and reports `Baseline: validate-skill pass | fail`.
+- The subagent validator requires `color: cyan` on read-only subagents and `color: red` on subagents that can write.
+- `cdk:rubric-scorer` accepts the new `skill-audit` and `subagent-audit` kinds, and the bundled subagents have clearer descriptions and examples.
+
 ## [0.8.9] - 2026-11-01
 
 ### Changed
@@ -443,7 +459,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...HEAD
+[0.8.10]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.6...v0.8.7

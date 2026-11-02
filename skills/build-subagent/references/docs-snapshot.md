@@ -61,8 +61,8 @@ A field used on a Claude Code older than its gate is "Unverified" for that user;
 
 ## Tools
 
-- `tools` is the allowlist; omit it only when the agent needs every tool. `Agent` only when the agent must spawn subagents (3 layers at most). An empty list leaves the agent no tools. Confirmed.
-- Always removed from subagents, so never listed: `AskUserQuestion`, `EndConversation`, `ScheduleWakeup`, `WaitForMcpServers`, `Workflow`; `Agent` too at the depth limit. Confirmed.
+- `tools` is the allowlist (rules: `agent-checklist.md` `## Frontmatter`); `Agent` lets the agent spawn subagents (3 layers at most). An empty list leaves the agent no tools. Confirmed.
+- Always removed from subagents: `AskUserQuestion`, `EndConversation`, `ScheduleWakeup`, `WaitForMcpServers`, `Workflow`; `Agent` too at the depth limit. Confirmed.
 - Omit `Skill` from `tools` to block on-demand skill loading. Confirmed.
 - MCP tools: `mcp__<server>__<tool>`; for a server name containing `__`, list each tool individually, not the whole server. Changed.
 - Background runs get a filtered tool set (the docs list it under Available tools). Confirmed.
@@ -78,7 +78,7 @@ A field used on a Claude Code older than its gate is "Unverified" for that user;
 
 ## Plugin restrictions
 
-Plugin agents ignore `permissionMode`, `hooks`, `mcpServers`, `initialPrompt`; an agent needing one is Personal or Project. Confirmed; `initialPrompt` is also main-session only.
+Plugin agents ignore `permissionMode`, `hooks`, `mcpServers`, `initialPrompt`. Confirmed; `initialPrompt` is also main-session only.
 
 ## Trust and environment
 
