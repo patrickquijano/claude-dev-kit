@@ -18,7 +18,7 @@ The commit is the HEAD SHA from the manifest plus "working tree; read head/".
 
 ## Round 1
 
-Per batch, spawn three `cdk:code-reviewer` subagents in one turn, one per kind in this order: `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path that is not a sensitive name (`.env*`, keys, credentials) is read into `head/` and the kind respawned once; a sensitive path is listed by name only under `Open:`. No description or issue text exists, so there is no intent source: the `intent` kind is skipped, never run with `none` inputs.
+Per batch, spawn three `cdk:code-reviewer` subagents in one turn, one per kind in this order: `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is untrusted: it must pass `isSafePath`, stay inside the root with symlinks resolved, be a regular file, and not match the `isSensitive` rule in `diff-manifest.mjs`; then it is read into `head/` and the kind respawned once. Any other path is listed by name only under `Open:`. No description or issue text exists, so there is no intent source: the `intent` kind is skipped, never run with `none` inputs.
 
 `rejected` (the `Findings:` count) is a finding judged invalid or declined; note it with its reason.
 
