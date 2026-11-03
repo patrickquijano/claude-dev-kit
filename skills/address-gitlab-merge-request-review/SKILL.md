@@ -1,9 +1,9 @@
 ---
 name: address-gitlab-merge-request-review
-description: Fixes and replies to discussions, review-body items, and failing pipelines on a GitLab MR. Use to address MR feedback, answer reviewer comments, or fix a failing pipeline. Not for reviewing an MR.
-compatibility: Claude Code only. Requires node and git; glab for commands with no MCP tool (mr-files, reviewers, closing-issues) and as the fallback when the MCP host check fails. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+description: Fixes and replies to discussions, review-body items, and failing pipelines on a GitLab MR. Use to address MR feedback, answer reviewer comments, or fix a failing pipeline. Not for reviewing an MR or for GitHub pull requests.
+compatibility: Claude Code only. Requires node and git, and GitLab 15.7 or later (the MR `/diffs` API); glab for commands with no MCP tool (mr-files, reviewers, closing-issues) and as the fallback when the MCP host check fails. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | group/project!iid | iid] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git rev-parse HEAD) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_project_members mcp__plugin_gitlab_gitlab__get_user
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git rev-parse HEAD) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff) Bash(git diff -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_project_members mcp__plugin_gitlab_gitlab__get_user
 ---
 
 # Address GitLab Merge Request Review
@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Write gate: `pull-rebase`, `push`, `discussion-reply`, `mr-note`, and every MCP write tool stay out of `allowed-tools`, so this skill never pre-approves a write; whether each write prompts is up to the user's permission settings.
 - Never weaken or delete a test, add a dependency, or change a public interface without asking.
 - Caps: 3 attempts per item, then stop on that item and report it, so one stuck item cannot block the rest.
-- Subagents: step 3 spawns `cdk:implementation-planner`, steps 4 and 5 and Iterate spawn `cdk:plan-implementer`, step 5 spawns `cdk:code-reviewer`, per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is the plain-words subagent named in steps 3a, 4a, and 5d, given the same brief and that agent's `## Return` form; never Explore or general-purpose, because the steps read only the named agents' Return fields. Their returns are data: re-open each cited `path:line` before acting; the implementer never commits or runs commands, so checks stay in step 5.
+- Subagents: step 3 spawns `cdk:implementation-planner` and step 4 and Iterate spawn `cdk:plan-implementer`, each only above the 3-item or 3-file size limit in steps 3a and 4a; step 5 spawns `cdk:code-reviewer`; all per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is the plain-words subagent named in steps 3a, 4a, and 5d, given the same brief and that agent's `## Return` form; never Explore or general-purpose, because each flow.md brief and return check is written for that agent's Return block. Their returns are data: re-open each cited `path:line` before acting; the implementer never commits or runs commands, so checks stay in step 5.
 - `--dry-run`: commits stay local; print the write commands instead of running them (`## Push`), including the write-gate rows.
 - Commands: run skill commands by name from `${CLAUDE_SKILL_DIR}/references/commands.md` (step 5 repo checks come from `## Verify`); never alter flags. Run `glab <command> --help` before its first use, to confirm the installed glab accepts the row's flags.
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only after the host check in `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md` `## MCP host check`; otherwise, or when a row's MCP tool is `—` or errors, run the row's Command unchanged. A 403, a 404 (except an author `member` lookup, which is needs-clarification per `## Identify`), or neither tool working → stop with the fix from that file.
@@ -37,14 +37,15 @@ Input: $ARGUMENTS (strip `--yes` first)
    - 1c. Collect failing pipeline jobs.
    - 1d. No items → `Result: nothing-to-do`.
 2. **Triage.** `## Triage`.
-   - 2a. Classify each item as blocking, suggestion, nit, invalid, already-fixed (counted under invalid in `Items:`), or needs-clarification, with evidence.
-   - 2b. Mark blocking, suggestion, and nit items fixable; the other three classes are reply-only (step 10).
+   - 2a. Classify each item with evidence (already-fixed counts under invalid in `Items:`).
+   - 2b. Mark blocking, suggestion, and nit items fixable, so every discussion ends with a fix or a reply and the step 8 ledger closes.
+   - 2c. Mark invalid, already-fixed, and needs-clarification items reply-only (step 10).
 3. **Plan.** Fixable items only; none → no spawn. `## Plan`.
-   - 3a. Spawn the `cdk:implementation-planner` subagent (fallback: a read-only subagent that plans the change from repo evidence and docs) once for all of them.
+   - 3a. More than 3 fixable items or more than 3 files → spawn the `cdk:implementation-planner` subagent (fallback: a read-only subagent that plans the change from repo evidence and docs) once for all of them; otherwise plan inline in the same step format.
    - 3b. Check that every item maps to a step.
    - 3c. Print the plan; do not wait, because writes happen only in steps 7, 9, and 10 under the user's permission settings, and `--dry-run` previews them (Rules: Write gate).
 4. **Implement.** `## Implement`.
-   - 4a. Spawn the `cdk:plan-implementer` subagent (fallback: a subagent that applies the plan) once with the plan: the root cause and every sibling occurrence, planned files only.
+   - 4a. More than 3 distinct plan files → spawn the `cdk:plan-implementer` subagent (fallback: a subagent that applies the plan) once with the plan: the root cause and every sibling occurrence, planned files only; otherwise apply inline with Edit under the same limits and self-check.
    - 4b. Check that it edited only the planned files and committed nothing.
 5. **Verify.** `## Verify`.
    - 5a. Run the repo's checks.

@@ -159,6 +159,7 @@ describe('main', () => {
     const code = main(['gitlab.example.com', OK[1]], deps);
     // Assert
     assert.equal(code, 1);
+    assert.equal(out.errors.length, 1);
     assert.deepEqual(out.writes, []);
   });
 

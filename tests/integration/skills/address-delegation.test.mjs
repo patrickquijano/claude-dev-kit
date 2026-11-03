@@ -78,7 +78,7 @@ describe('address skills delegate planning and edits', () => {
       assert.ok(tools.length > 0 && !writes, 'allowed-tools missing or pre-approves a write');
     });
 
-    test(`${skill} flow.md Verify names the diff row, defined in commands.md; not pre-approved`, () => {
+    test(`${skill} flow.md Verify names the diff row, defined in commands.md as plain git diff`, () => {
       // Arrange
       const row = skill.includes('github') ? 'pr-diff' : 'mr-diff';
       const verify = section(read(skill, 'references/flow.md'), 'Verify');
@@ -86,12 +86,14 @@ describe('address skills delegate planning and edits', () => {
       // Act
       const named = verify.includes(`\`${row}\``);
       const defined = commands.split('\n').some((line) => line.startsWith(`| \`${row}\``));
-      const preApproved = frontmatter(skill).includes('git diff --merge-base');
+      const command = commands
+        .split('\n')
+        .find((line) => line.startsWith(`| \`${row}\``))
+        ?.split('|')
+        [skill.includes('github') ? 2 : 3]?.trim();
       // Assert
-      assert.ok(
-        named && defined && !preApproved,
-        `${row} missing from Verify or commands.md, or pre-approved in allowed-tools`
-      );
+      assert.ok(named && defined, `${row} missing from Verify or commands.md`);
+      assert.equal(command, '`git diff`', `${row} must be plain git diff, no --merge-base and no ref`);
     });
 
     test(`${skill} flow.md Plan overrides representative-path collapsing`, () => {
@@ -101,6 +103,17 @@ describe('address skills delegate planning and edits', () => {
       const overrides = plan.includes('representative paths');
       // Assert
       assert.ok(overrides, 'representative paths override missing from Plan');
+    });
+
+    test(`${skill} flow.md Plan states the more than 3 size threshold`, () => {
+      // Arrange
+      const plan = section(read(skill, 'references/flow.md'), 'Plan');
+      const implement = section(read(skill, 'references/flow.md'), 'Implement');
+      // Act
+      const planThreshold = /more than 3 fixable items or more than 3 changed files/.test(plan);
+      const implementThreshold = /more than 3 → spawn/.test(implement);
+      // Assert
+      assert.ok(planThreshold && implementThreshold, 'more than 3 threshold missing from Plan or Implement');
     });
 
     test(`${skill} flow.md fetches changed files in Plan after the no-fixable check`, () => {
@@ -155,7 +168,10 @@ describe('address skills delegate planning and edits', () => {
     test(`${skill} rejects an unsafe branch ref`, () => {
       // Arrange
       const ref = skill.includes('github') ? '<head>' : '<source_branch>';
-      const line = read(skill, 'references/commands.md').split('\n')[2];
+      const line =
+        read(skill, 'references/commands.md')
+          .split('\n')
+          .find((l) => l.includes('is never substituted into `pull-rebase`')) ?? '';
       const input = section(read(skill, 'references/flow.md'), 'Input');
       // Act
       const guarded = line.includes(ref) && line.includes('`pull-rebase`') && line.includes('`push`');

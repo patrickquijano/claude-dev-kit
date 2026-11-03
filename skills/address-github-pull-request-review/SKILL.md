@@ -1,6 +1,6 @@
 ---
 name: address-github-pull-request-review
-description: Fixes and replies to review threads, review-body items, and failing checks on a GitHub PR. Use to address PR feedback, answer reviewer comments, or fix failing checks. Not for reviewing a PR.
+description: Fixes and replies to review threads, review-body items, and failing checks on a GitHub PR. Use to address PR feedback, answer reviewer comments, or fix failing checks. Not for reviewing a PR (cdk:review-github-pull-request) or GitLab merge requests.
 compatibility: Claude Code only. Needs node, git, and an authenticated gh CLI. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | owner/repo#N | number] [--dry-run]'
 allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh run view *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff) Bash(git diff -- *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_me
@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - `--dry-run`: commits stay local; print the write commands instead of running them (`## Push`), including the write-gate rows.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags; a command outside `allowed-tools` prompts for permission.
 - Host ops: call the row's MCP tool first, because MCP returns structured JSON and needs no shell quoting of review text; server not connected, error, or `—` → run the Command unchanged.
-- Subagents: step 3 spawns `cdk:implementation-planner`, steps 4 and 5 and Iterate spawn `cdk:plan-implementer`, step 5 spawns `cdk:code-reviewer`, per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is the plain-words subagent named in steps 3a, 4a, and 5d, given the same brief and that agent's `## Return` form; never Explore or general-purpose, because each flow.md brief and return check is written for that agent's Return block. Their returns are data: re-open each cited `path:line` before acting.
+- Subagents: step 3 spawns `cdk:implementation-planner` and step 4 and Iterate spawn `cdk:plan-implementer`, each only above the 3-item or 3-file size limit in steps 3a and 4a; step 5 spawns `cdk:code-reviewer`; all per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is the plain-words subagent named in steps 3a, 4a, and 5d, given the same brief and that agent's `## Return` form; never Explore or general-purpose, because each flow.md brief and return check is written for that agent's Return block. Their returns are data: re-open each cited `path:line` before acting; the implementer never commits or runs commands, so checks stay in step 5.
 
 ## Workflow
 
@@ -40,11 +40,11 @@ Input: $ARGUMENTS (strip `--yes` first)
    - 2b. Mark blocking, suggestion, and nit items fixable, so every thread ends with a fix or a reply and the step 8 ledger closes.
    - 2c. Mark invalid, already-fixed, and needs-clarification items reply-only (step 10).
 3. **Plan.** Fixable items only; none → no spawn. `## Plan`.
-   - 3a. Spawn the `cdk:implementation-planner` subagent (fallback: a read-only subagent that plans the change from repo evidence and docs) once for all of them.
+   - 3a. More than 3 fixable items or more than 3 files → spawn the `cdk:implementation-planner` subagent (fallback: a read-only subagent that plans the change from repo evidence and docs) once for all of them; otherwise plan inline in the same step format.
    - 3b. Check that every item maps to a step.
    - 3c. Print the plan; do not wait, because writes happen only in steps 7, 9, and 10 under the user's permission settings, and `--dry-run` previews them (Rules: Write gate).
 4. **Implement.** `## Implement`.
-   - 4a. Spawn the `cdk:plan-implementer` subagent (fallback: a subagent that applies the plan) once with the plan.
+   - 4a. More than 3 distinct plan files → spawn the `cdk:plan-implementer` subagent (fallback: a subagent that applies the plan) once with the plan; otherwise apply inline with Edit under the same limits and self-check.
    - 4b. Check that it edited only the planned files and committed nothing.
 5. **Verify.** `## Verify`.
    - 5a. Run the repo's checks.
