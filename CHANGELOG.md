@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.12] - 2026-11-03
+
+### Changed
+
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` plan their fixes through `cdk:implementation-planner` and apply them through `cdk:plan-implementer`.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` run reply-only items (invalid, already fixed, needs clarification) without a plan, so only fixable items reach the planner.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` list each step's sub-steps, and each run asks permission before every push and reply.
+- `/cdk:address-github-pull-request-review` can read a failing check's log with `gh run view`.
+- `/cdk:address-gitlab-merge-request-review` reads the merge request's changed files through `glab` when the GitLab MCP server has no tool for them.
+
 ## [0.8.11] - 2026-11-02
 
 ### Added
@@ -484,7 +494,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...HEAD
+[0.8.12]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...v0.8.12
 [0.8.11]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...v0.8.9
