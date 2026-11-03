@@ -23,7 +23,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 - Never echo a secret value in any file, report, or Output: cite `file:line` and write `[redacted]`.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. It is passed on to the implement-spec skill only when the user gave it, and it never skips the init safety stop.
 - No gate (a question that only approves the next step). The one safety stop is step 1: a run directory not ignored by git → `Result: stopped`, because run files would land in the user's diff. The step 5 trust question (5a.1) is not a gate.
-- Never hunt or verify under `.cdk-security-audit/`; it holds run files, not source.
+- Never hunt or verify under `.cdk-security-audit/`; it holds run files, not source. Never Read a `scope.json` `sensitive` path.
 - Never commit, push, switch or create a branch, stash, or `reset --hard`; the user commits afterwards.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. The script is run, never read, because only its output is needed and reading it spends context. `ledger` and `findings` exiting 1 with `ok: false` JSON is a check result to act on, not a stop; any other non-zero exit → `Result: stopped`, `Stopped: <step>: <first stderr line>`.
 - The audit covers the whole repo, unlike a review of one branch diff. Confirmed findings are fixed unless Report only (step 5); `needs_validation` and deferred items are only reported, never fixed.
@@ -33,10 +33,10 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 ## Workflow
 
 1. **Pre-flight.** Root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`.
-   - 1a. Run `init` (`commands.md`) with the profile, range, and path scope; it fails → `Result: stopped`, `Stopped: 1: <first stderr line>`.
+   - 1a. Run `init` (`commands.md`) with the profile, range, and path scope; it fails with `not ignored by git` → step 1b; any other failure → `Result: stopped`, `Stopped: 1: <first stderr line>`.
    - 1b. Safety stop: `init` reports `not ignored by git` → `Result: stopped`, `Stopped: 1: run directory not ignored by git`; never `--yes`-skipped.
-   - 1c. `files` is 0 → `Result: nothing-to-do`.
-   - 1d. Read the `out_of_scope` paths from `<run>/scope.json` (`init` prints only their count) for `REPORT.md`; `Open:` gets only their count and the `<run>/scope.json` path.
+   - 1c. `files` is 0 → `Result: nothing-to-do`; a non-zero `sensitive` count and the `<run>/scope.json` path go under `Open:`.
+   - 1d. Read the `out_of_scope` and `sensitive` paths from `<run>/scope.json` (`init` prints only their counts) for `REPORT.md`, whose `Not hunted:` lists the `sensitive` names; `Open:` gets only their counts and the `<run>/scope.json` path.
 2. **Recon and ledger.** Spawn the recon mode (`phases.md`) with the absolute `<run>/scope.json` path.
    - 2a. Write `<run>/ledger.json` from its `Units` (`phases.md`), writing the recon `no source` unit with `coverage: out_of_scope`; list only the `no source` paths under `Open:`, and list them with the step 1d paths in `REPORT.md`. When step 1d `out_of_scope` is non-empty, add one unit `U-OOS` with all those paths, `entry_points: []`, `sinks: []`, `coverage: out_of_scope`, and `wave: null`; recon never sees them and no hunt covers them.
    - 2b. Run `ledger`.
@@ -49,7 +49,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 4. **Verify.** Spawn one fresh verify per candidate, each with exactly one candidate (verify mode, `phases.md`). A hunt-level `needs_validation` candidate skips the spawn and becomes a record with `verdict: needs_validation`, `refutation: not verified: <candidate depends_on>`, `severity: null`, empty `fix` and `regression_test`, and `fix_status: not_applicable`.
    - **Round limit.** Iterate at most 2 rounds; at the start of each round list the open findings and the fixes, then apply them; then report what is left. Here round 1 verifies every candidate and round 2 re-verifies those whose return was malformed or carried a `Question:`.
    - 4a. Assign ids `SA-001`, `SA-002`, … in the order candidates leave step 4, hunt-level `needs_validation` ones included (`${CLAUDE_SKILL_DIR}/references/findings.md`).
-   - 4b. For each `confirmed` return, Read its `file:line` and confirm the evidence is there; a mismatch → re-verify once, still mismatched → `needs_validation`.
+   - 4b. For each `confirmed` return, Read its `file:line` and confirm the evidence is there; a mismatch → re-verify once, still mismatched → `rejected` with `refutation: evidence not found at <file:line>`, `severity: null`, empty `fix` and `regression_test`, and `fix_status: not_applicable`.
    - 4c. Write `<run>/findings.json`, copying `root`, `head`, `profile`, and `range` from `scope.json`.
 5. **Fix.** No `confirmed` finding → skip to step 6 with `fix_status: not_applicable` on every record.
    - 5a. Write `<run>/fix-spec.md` from the confirmed findings: a fix and a regression test each (`findings.md`).
@@ -69,7 +69,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
    - Record `fix_status` per id from its result (`fixed` for a met goal) in `findings.json`, then re-run `findings`.
    - Put leftovers under `Open:`.
 8. **Reports.** Use `${CLAUDE_SKILL_DIR}/assets/report-templates.md` and show the fix status of each finding.
-   - 8a. Write `<run>/REPORT.md`: the REPORT section, then one FINDINGS-DETAIL section per confirmed finding. Its `Not hunted:` line lists the out-of-scope, `no source`, and deferred units' paths.
+   - 8a. Write `<run>/REPORT.md`: the REPORT section, then one FINDINGS-DETAIL section per confirmed finding. Its `Not hunted:` line lists the out-of-scope, `sensitive`, `no source`, and deferred units' paths.
    - 8b. Write `<run>/NEEDS-VALIDATION.md`: one NEEDS-VALIDATION section per such finding.
 9. **Output.** Print the Output. Done when `findings` and `ledger` exit 0, every confirmed id is `fixed` or under `Open:`, and `REPORT.md` and `NEEDS-VALIDATION.md` exist.
 
@@ -91,7 +91,7 @@ Run: <absolute run directory> | none
 Profile: <quick | standard | deep>
 Findings: <confirmed>/<needs_validation>/<rejected>
 Fixed: <ids> | none
-Open: <id: severity, reason; recommended fix>, <assumptions>, <deferred units>, <n out-of-scope paths: <run>/scope.json>, <no source paths> | none
+Open: <id: severity, reason; recommended fix>, <assumptions>, <deferred units>, <n out-of-scope and n sensitive paths: <run>/scope.json>, <no source paths> | none
 Next: review the changes and the reports in the run directory, then ask to commit the fixes; validate each needs_validation finding against the deployed setup
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none

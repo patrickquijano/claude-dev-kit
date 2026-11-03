@@ -26,7 +26,7 @@ A missing piece is not a finding: it is `rejected`, or `needs_validation` when t
 ## Verdicts
 
 - `confirmed`: the repo alone shows the exploitable path.
-- `needs_validation`: the path depends on facts not in the repo (deployment config, network exposure, runtime values, third-party behavior). It is reported and never fixed, because a fix would rest on a guess.
+- `needs_validation`: the path depends on facts not in the repo (deployment config, network exposure, runtime values, third-party behavior). It is reported and never fixed, because a fix would rest on a guess. It never covers evidence that is not at the cited `file:line`; that is `rejected`.
 - `rejected`: a guard, an unreachable path, a trusted-only caller, or a framework default defeats it. Keep the record with its `refutation`, so a later run does not re-raise it.
 
 ## Severity

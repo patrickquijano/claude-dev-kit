@@ -21,7 +21,7 @@ Run: <absolute run directory> | Head: <head> | Profile: <profile> | Range: <rang
 
 Fix status: <n> fixed, <n> open, <n> not_applicable
 Open: <ids still open, or none>
-Not hunted: <`scope.json` `out_of_scope` paths, the recon `no source` unit's paths, and the deferred units' paths, or none>
+Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no source` unit's paths, and the deferred units' paths, or none>
 ```
 
 ## FINDINGS-DETAIL
