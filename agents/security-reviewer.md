@@ -37,7 +37,7 @@ Checklist items are prompts for what to look at; report only what the files show
 - Required inputs: one ledger unit (`coverage_id`, paths, entry points, sinks).
 - Trace attacker input from each entry point to each sink of the unit; check validation, authorization, and defaults on the way.
 - Look for injection, broken access control, unsafe deserialization, SSRF, path traversal, secrets in code or logs, weak crypto, and insecure defaults.
-- A flow that matches the bar but depends on deployment facts not in the repo (config, network exposure, runtime values) → `status: needs_validation`, never a confirmed claim. Never judge paths outside the unit. Cap at 30 candidates, most severe first, because each candidate costs the parent one `verify` run.
+- A flow that matches the bar but depends on deployment facts not in the repo (config, network exposure, runtime values) → `status: needs_validation` and name that fact in `depends_on`, never a confirmed claim. Never judge paths outside the unit. Cap at 30 candidates, most severe first, because each candidate costs the parent one `verify` run.
 
 ### verify
 
@@ -72,7 +72,7 @@ Mode `hunt`:
 Status: <complete | partial | blocked>
 Unit: <coverage_id>
 Candidates:
-- {id, file, line, actor, input, boundary, impact, evidence, status: candidate | needs_validation}
+- {id, file, line, actor, input, boundary, impact, evidence, status: candidate | needs_validation, depends_on: <deployment fact; required when status is needs_validation, else none>}
 Coverage: <paths read | candidates n>
 Gaps: <unreadable paths | none>
 Confidence: <high | medium | low> — <why>

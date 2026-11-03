@@ -63,7 +63,7 @@ Spawn the `cdk:security-reviewer` subagent (fallback: a read-only subagent that 
 - the attack classes for the product type
 - the finding bar: a lower-trust actor, attacker-controlled input, a crossed trust boundary, a concrete impact
 
-Read only these Return fields: `Status`, `Unit`, `Candidates` (each `id`, `file`, `line`, `actor`, `input`, `boundary`, `impact`, `evidence`, `status`), `Coverage`, `Gaps`, `Question`. `Candidates: none` is a valid return. A candidate with `status: needs_validation` is carried to step 4 and skips the verify spawn. `Gaps:` paths go under `Open:`.
+Read only these Return fields: `Status`, `Unit`, `Candidates` (each `id`, `file`, `line`, `actor`, `input`, `boundary`, `impact`, `evidence`, `status`, `depends_on`), `Coverage`, `Gaps`, `Question`. `Candidates: none` is a valid return. A candidate with `status: needs_validation` and no `depends_on` is malformed. A candidate with `status: needs_validation` is carried to step 4 and skips the verify spawn. `Gaps:` paths go under `Open:`.
 
 Inline fallback: trace input from each entry point to each sink of the unit with Read, Glob, and Grep, and write the same candidate fields.
 
