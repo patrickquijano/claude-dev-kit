@@ -41,7 +41,8 @@ Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then s
 
 ## Changes
 
-- Change only what the task needs; no unrelated edits or refactors.
+- Change only what the task needs; every changed line traces to the request; no unrelated edits or refactors.
+- Mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused, or dead code inside lines you already edit.
 - One logical change per commit.
 
 ## Definition of done
@@ -67,14 +68,15 @@ Unconditional (no frontmatter). Fill from `principles.md` `## Catalog`, `## Avoi
 
 <!-- Group lines; each is a repo-specific action naming repo tools, paths, or commands from facts. ≤30 non-blank lines. Drop a line the repo has no place for. -->
 
-- Guidance, not law: preserve existing architecture and conventions; prefer keeping working code over rewriting it only to satisfy a principle.
-- Simplicity: {{repo action: simplest working solution; no speculative abstractions; extract on third repeat; one source of truth per business rule; optimize only after <repo perf command or profiler> shows need}}.
+- Guidance, not law: preserve existing architecture and conventions; prefer keeping working code over rewriting it only to satisfy a principle; caution over speed; trivial tasks may skip the Workflow steps.
+- Workflow: {{state assumptions and ask when the request is unclear; show the possible readings; name a simpler way and push back; plan multi-step work with a check per step via <repo test or validate command>}}.
+- Simplicity: {{repo action: simplest working solution; no speculative abstractions; no unrequested configurability; no error handling for impossible internal states; extract on third repeat; one source of truth per business rule; optimize only after <repo perf command or profiler> shows need}}.
 - Structure: {{repo action: one responsibility per <repo layer>; small interfaces only where two implementations or a test double exist; keep internals private; compose over deep inheritance; talk to direct collaborators only}}.
-- Behavior: {{repo action: follow existing naming; explicit dependencies; commands change state, queries return data; check preconditions and fail fast; immutable or stateless where cheap; safe retries; compatible public APIs}}.
+- Behavior: {{repo action: follow existing naming and style; explicit dependencies; commands change state, queries return data; check preconditions and fail fast; immutable or stateless where cheap; safe retries; compatible public APIs}}.
 - Security: {{repo action: safe defaults; minimum permissions; errors expose no internals; dependency scan via <repo scanner>; layered checks}}.
 - Validation: validate and encode untrusted input at trust boundaries. <!-- Validator and boundary path go in the path-scoped rule. -->
 - Reliability: {{timeouts on remote calls; degrade optional dependencies — only where the repo calls remote services}}.
-- Testing: {{new behavior gets a test via the `CLAUDE.md` Commands test command; assert behavior, not internals}}.
+- Testing: {{new behavior gets a test via the `CLAUDE.md` Commands test command; reproduce a bug with a failing test first; keep tests passing before and after a refactor; assert behavior, not internals}}.
 - Errors and observability: {{no swallowed errors; errors carry context; <repo logger> with levels; no secrets or personal data in logs}}.
 - Maintainability: {{readable names, comments only for why; tidy only lines the change already edits; record larger cleanups in <issue tracker>; automate a manual step on its third repeat with <repo task runner>}}.
 - Operations: {{config via env, migrations with rollback, health checks — only where the repo deploys or runs services}}.

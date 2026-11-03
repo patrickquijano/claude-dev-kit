@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.13] - 2026-11-03
+
+### Changed
+
+- `/cdk:update-rules` writes a Workflow line in the principles rule: state assumptions and ask when the request is unclear, show the possible readings, name a simpler way and push back, and plan multi-step work with a check per step. The rules score (E1) now requires a Workflow line, so existing rules without one score lower until updated.
+- `/cdk:update-rules` adds change-scope lines to the `CLAUDE.md` Changes section: every changed line traces to the request, and unrelated dead code outside the edited lines is mentioned, never deleted, while dead code inside edited lines or left unused by the change may be removed.
+- `/cdk:update-rules` generates Simplicity, Behavior, and Testing lines that also cover unrequested configurability, impossible internal states, failing-test-first bug fixes, and keeping tests passing through a refactor, and the Behavior line adds following existing style. Its "Guidance, not law" line adds caution over speed, with trivial tasks allowed to skip the Workflow steps.
+
 ## [0.8.12] - 2026-11-03
 
 ### Added
@@ -499,7 +507,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...HEAD
+[0.8.13]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...v0.8.13
 [0.8.12]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...v0.8.12
 [0.8.11]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...v0.8.10
