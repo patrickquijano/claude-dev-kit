@@ -16,7 +16,7 @@
 - Security: validate untrusted input at trust boundaries.
 - Observability: no logger; error output per `.claude/rules/hooks.md` Error policy.
 - Behavior: fail fast; never swallow an error (catch rules: `.claude/rules/es-modules.md`).
-- Workflow: state assumptions and ask when the request is unclear; name a simpler way and push back; plan multi-step work with a check per step via `npm test` or `claude plugin validate --strict .`.
+- Workflow: state assumptions and ask when the request is unclear; show the possible readings; name a simpler way and push back; plan multi-step work with a check per step via `npm test` or `claude plugin validate --strict .`.
 - Maintainability: tidy only lines the change already edits; record larger cleanups as tech debt in an issue instead of fixing them in the same change.
 - Add a pattern only for a problem the code shows now, named in the change; avoid overengineering, forced patterns, indirection, hidden dependencies, duplicated rules, premature optimization, and unneeded dependencies (check Node stdlib and installed deps first).
 - Verify: review the diff against this file before commit; then the Definition of done in `.claude/CLAUDE.md`.

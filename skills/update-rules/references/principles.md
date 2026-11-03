@@ -25,7 +25,7 @@ Correctness > security > clarity > simplicity > maintainability > testability > 
 - Trade-off order → `CLAUDE.md` Precedence.
 - Repo-wide items → unconditional `.claude/rules/principles.md` (no `paths`).
 - Language, framework, directory, or domain items → path-scoped rule per facts `Stack` entry, `paths` globs matching tracked files (e.g. `src/api/**` for the API validator, `**/*.py` for Python typing). Never put them in `CLAUDE.md` or the unconditional rule.
-- Change-scope items (change only what the task needs and every changed line traces to the request; mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused) → `CLAUDE.md` Changes, not the rule. Update mode adds any that are missing.
+- Change-scope items (change only what the task needs and every changed line traces to the request; mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused, or dead code inside lines you already edit) → `CLAUDE.md` Changes, not the rule. Update mode adds any that are missing.
 - Hard requirement (e.g. no secrets in commits) → also suggest a hook in step 4.
 
 ## Catalog

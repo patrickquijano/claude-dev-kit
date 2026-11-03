@@ -42,7 +42,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Changes
 
 - Change only what the task needs; every changed line traces to the request; no unrelated edits or refactors.
-- Mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused.
+- Mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused, or dead code inside lines you already edit.
 - One logical change per commit.
 
 ## Definition of done
