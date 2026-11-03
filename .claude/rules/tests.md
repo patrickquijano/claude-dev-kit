@@ -10,4 +10,4 @@ paths:
 - Unit tests do I/O only through stubbed `deps` per `.claude/rules/es-modules.md` and never touch real fs, git, network, or processes: `grep -rn "node:child_process\|mkdtemp" tests/unit` stays empty (stub keys named `spawn` are fine).
 - Behavior that needs real I/O (temp git repos, spawned CLIs, stdin→stdout contracts) goes in `tests/integration/` at the mirrored path. Same `// Arrange`, `// Act`, `// Assert` comments, one Act per test, temp dirs removed in `after`, no network.
 - No integration tests in `tests/unit/`; move existing ones with `git mv` so history follows.
-- Verify: `npm test` (`test:unit` and `test:integration` run each suite alone).
+- Verify: `npm test` (single-suite commands: `.claude/CLAUDE.md` Commands).
