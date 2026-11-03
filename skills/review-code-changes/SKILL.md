@@ -3,7 +3,7 @@ name: review-code-changes
 description: Reviews uncommitted and branch changes, fixes each finding, re-reviews until clean. Use to review, self-review, or look over local changes before a commit. Not for GitHub PRs or GitLab MRs.
 compatibility: Claude Code only. Requires git and Node.js 22 or newer. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[intent text] [--yes]'
-allowed-tools: Read Grep Glob Edit Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git log --format=%B --no-merges *)
+allowed-tools: Read Grep Glob Edit Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *)
 ---
 
 # Review Code Changes
@@ -39,7 +39,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
    - 2a. Run `scope` (`commands.md`).
    - 2b. No files and no skipped paths → `Result: nothing-to-do`.
    - 2c. Skipped paths go under `Open:`.
-   - 2d. Run `commands.md` `commits`, then write `<scratch>/description.md` and `issues.md` per `${CLAUDE_SKILL_DIR}/references/review.md` Intent source; both sources empty → skip `intent` and note it under `Open:`.
+   - 2d. Run `commands.md` `commits` (declined or failed → empty commit source, noted under `Open:`), then write `<scratch>/description.md` and `issues.md` per `${CLAUDE_SKILL_DIR}/references/review.md` Intent source; both sources empty → skip `intent` and note it under `Open:`.
 3. **Review.** Follow `${CLAUDE_SKILL_DIR}/references/review.md`.
    - 3a. Spawn the `cdk:code-reviewer` subagent per batch and kind, with `intent` only when a source exists.
    - 3b. Merge and validate the findings.
