@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `/cdk:audit-code-security` audits a whole repo for exploitable security flaws, verifies each candidate, reports the results, and fixes confirmed ones through `/cdk:implement-spec`.
-- `/cdk:audit-code-security` takes `--profile` (`quick`, `standard`, or `deep`), `--range <a>..<b>`, and path arguments to narrow the audit; paths left out are listed under `Open:` and `Not hunted:`.
+- `/cdk:audit-code-security` takes `--profile` (`quick`, `standard`, or `deep`), `--range <a>..<b>`, and path arguments to narrow the audit; paths left out are counted under `Open:` and listed under `Not hunted:`.
 - `/cdk:audit-code-security` keeps its run files under `.cdk-security-audit/` and stops when that directory is not ignored by git.
 - `cdk:security-reviewer` is a read-only subagent that maps trust boundaries and sinks, hunts one unit, or verifies one candidate for `/cdk:audit-code-security`.
 - `/cdk:review-code-changes` accepts intent text and reads commit messages, and runs an `intent` review of the changes against them when either exists.
@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `/cdk:review-code-changes` skips the `intent` review when there is no input text and no commits, and lists the skip under `Open:`.
+- `/cdk:review-code-changes` may ask permission to read commit messages, and treats a declined read as no commits.
+- `/cdk:audit-code-security` asks once before fixing, with `Fix now` or `Report only`, because fixing runs the project's own checks.
+- `/cdk:audit-subagent` scores low or medium effort as a fit for search, summarize, and lint tasks (rubric C5.1).
 - `/cdk:build-subagent` effort guidance favors a lower level when a downstream gate catches a miss, and its effort table describes each level in more detail.
 - `cdk:code-reviewer` and `cdk:implementation-planner` run at `high` effort, `cdk:format-lint-analyzer` and `cdk:repo-analyzer` at `medium`, and `cdk:codebase-explorer` uses the `haiku` model.
 
