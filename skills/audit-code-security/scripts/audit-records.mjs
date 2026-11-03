@@ -1,0 +1,360 @@
+// Deterministic records for audit-code-security: `init` scope, `ledger` check, and `findings` check.
+// CLI: `init --root <abs> [--profile <p>] [--range <a>..<b>] [path ...]`, `ledger --run <abs>`, `findings --run <abs>`.
+import { lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { basename, dirname, isAbsolute, join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// Runs `fn` only when this module is the entry script; an error it throws prints one stderr line and sets exit code 1.
+async function runIfMain(metaUrl, fn, label) {
+  if (!process.argv[1] || metaUrl !== pathToFileURL(realpathSync(process.argv[1])).href) return;
+  try {
+    const code = await fn();
+    if (typeof code === 'number') process.exitCode = code;
+  } catch (err) {
+    process.stderr.write(
+      `${label}: ${String(err?.message ?? err)
+        .split('\n')[0]
+        .slice(0, 300)}\n`
+    );
+    process.exitCode = 1;
+  }
+}
+
+const GIT_TIMEOUT_MS = 60_000;
+const MAX_BUFFER = 256 * 1024 * 1024;
+const MAX_UNITS = 40;
+const MAX_EVIDENCE_LINES = 3;
+const RUN_BASE = '.cdk-security-audit';
+
+// The bundled schema is the single source of truth for the enums below; it is read once at import.
+const SCHEMA = JSON.parse(
+  readFileSync(fileURLToPath(new URL('../assets/report-schema.json', import.meta.url)), 'utf8')
+);
+const COVERAGE = SCHEMA.$defs.coverage.enum;
+const PROFILES = SCHEMA.properties.profile.enum;
+
+class UsageError extends Error {}
+
+const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
+const under = (f, p) => f === p || f.startsWith(`${p}/`);
+
+function typeOf(value) {
+  if (value === null) return 'null';
+  return Array.isArray(value) ? 'array' : typeof value;
+}
+
+function matchesType(value, type) {
+  if (type === 'integer') return Number.isInteger(value);
+  return type === 'number' ? typeof value === 'number' : typeOf(value) === type;
+}
+
+// Hand-rolled check for the schema keywords the report schema uses; returns `{path, message}` entries and never echoes a value.
+function validateSchema(value, schema, path, out) {
+  if (schema.type !== undefined) {
+    const types = [].concat(schema.type);
+    if (!types.some((t) => matchesType(value, t))) {
+      out.push({ path, message: `${path}: expected ${types.join(' or ')}` });
+      return out;
+    }
+  }
+  if (schema.enum && !schema.enum.includes(value)) out.push({ path, message: `${path}: not an allowed value` });
+  // eslint-disable-next-line security/detect-non-literal-regexp -- the pattern comes from the bundled schema file, never from audited input
+  if (typeof value === 'string' && schema.pattern && !new RegExp(schema.pattern).test(value))
+    out.push({ path, message: `${path}: does not match pattern ${schema.pattern}` });
+  if (typeof value === 'number' && schema.minimum !== undefined && value < schema.minimum)
+    out.push({ path, message: `${path}: below minimum ${schema.minimum}` });
+  if (typeOf(value) === 'object') {
+    for (const key of schema.required ?? [])
+      if (!Object.hasOwn(value, key)) out.push({ path, message: `${path}: missing ${key}` });
+    for (const key of Object.keys(value)) {
+      if (schema.properties && Object.hasOwn(schema.properties, key))
+        validateSchema(value[key], schema.properties[key], `${path}.${key}`, out);
+      else if (schema.additionalProperties === false)
+        out.push({ path, message: `${path}: unexpected property ${key.slice(0, 80)}` });
+    }
+  }
+  if (Array.isArray(value) && schema.items)
+    value.forEach((v, i) => validateSchema(v, schema.items, `${path}[${i}]`, out));
+  return out;
+}
+
+// Side effects the CLI needs; tests pass stubs, everything else uses the real ones.
+const realDeps = {
+  spawnSync,
+  lstatSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+  log: (text) => console.log(text),
+  error: (text) => console.error(text)
+};
+
+function makeGit(d, root) {
+  return (args, { okStatuses = [0] } = {}) => {
+    const r = d.spawnSync('git', args, {
+      cwd: root,
+      encoding: 'utf8',
+      timeout: GIT_TIMEOUT_MS,
+      maxBuffer: MAX_BUFFER
+    });
+    if (r.error) throw new Error(`git ${args[0]} failed: ${r.error.message}`);
+    if (!okStatuses.includes(r.status)) {
+      throw new Error(`git ${args[0]} exited ${r.status}: ${String(r.stderr ?? '').split('\n')[0]}`);
+    }
+    return r;
+  };
+}
+
+// Parses `--flag value` pairs; an unknown flag, a missing value, or a positional when `positional` is false is a usage error.
+function parseFlags(argv, names, positional = false) {
+  const flags = {};
+  const rest = [];
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i];
+    if (token.startsWith('--')) {
+      if (!names.includes(token)) throw new UsageError(`unknown flag ${token.slice(0, 40)}`);
+      const value = argv[++i];
+      if (value === undefined || value.startsWith('--')) throw new UsageError(`${token} needs a value`);
+      flags[token] = value;
+    } else if (positional) rest.push(token);
+    else throw new UsageError(`unexpected argument ${token.slice(0, 40)}`);
+  }
+  return { flags, rest };
+}
+
+function safeRelPath(path) {
+  return (
+    path !== '' &&
+    !isAbsolute(path) &&
+    !/^[A-Za-z]:/.test(path) &&
+    !path.startsWith('-') &&
+    !path.split('/').includes('..')
+  );
+}
+
+function verifyRef(git, ref) {
+  if (ref.startsWith('-')) throw new UsageError('a ref must not start with -');
+  if (git(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], { okStatuses: [0, 1] }).status !== 0)
+    throw new Error(`unknown ref: ${ref.slice(0, 80)}`);
+}
+
+function readJson(d, file, label) {
+  let text;
+  try {
+    text = d.readFileSync(file, 'utf8');
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+    throw new Error(`${label} not found in the run dir`, { cause: err });
+  }
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    if (!(err instanceof SyntaxError)) throw err;
+    throw new Error(`${label} is not valid JSON`, { cause: err });
+  }
+}
+
+// init: creates the next run dir `<root>/.cdk-security-audit/run-<n>`, git-ignored through a self-ignoring `.gitignore`, and writes `scope.json`. It refuses a run dir git does not ignore and a `.gitignore` that is not a regular file.
+export function init(argv, d) {
+  const { flags, rest } = parseFlags(argv, ['--root', '--profile', '--range'], true);
+  const rootArg = flags['--root'];
+  if (!rootArg || !isAbsolute(rootArg)) throw new UsageError('init needs --root <abs>');
+  const profile = flags['--profile'] ?? 'standard';
+  if (!PROFILES.includes(profile)) throw new UsageError(`--profile must be ${PROFILES.join('|')}`);
+  const rangeArg = flags['--range'];
+  const refs = rangeArg === undefined ? null : rangeArg.split('..');
+  if (refs && (refs.length !== 2 || !refs[0] || !refs[1])) throw new UsageError('--range must be <a>..<b>');
+  const normal = rest.map((p) => p.replace(/\/+$/, '').replace(/^(?:\.\/)+/, ''));
+  if (!normal.every((p) => p === '.' || safeRelPath(p)))
+    throw new UsageError('a path must be repo-relative with no .. segment');
+  const named = normal.filter((p) => p !== '.');
+  const paths = normal.includes('.') ? [] : normal;
+  const git = makeGit(d, rootArg);
+  const root = d.realpathSync(rootArg);
+  if (d.realpathSync(git(['rev-parse', '--show-toplevel']).stdout.trim()) !== root)
+    throw new Error('--root is not the repository top level');
+  if (refs) refs.forEach((ref) => verifyRef(git, ref));
+  const head = git(['rev-parse', 'HEAD']).stdout.trim();
+  const tracked = git(['ls-files', '-z']).stdout.split('\0').filter(Boolean).sort(byteSort);
+  for (const p of named)
+    if (!tracked.some((f) => under(f, p))) throw new UsageError(`path matches no tracked file: ${p.slice(0, 80)}`);
+  const matched = paths.length ? tracked.filter((f) => paths.some((p) => under(f, p))) : tracked;
+  let files = matched;
+  let outOfScope = [];
+  if (refs) {
+    const changed = new Set(git(['diff', '--name-only', '-z', `${refs[0]}...${refs[1]}`, '--']).stdout.split('\0'));
+    files = matched.filter((f) => changed.has(f));
+    outOfScope = matched.filter((f) => !changed.has(f));
+  }
+  const runBase = join(root, RUN_BASE);
+  d.mkdirSync(runBase, { recursive: true });
+  if (d.realpathSync(runBase) !== runBase) throw new Error('unsafe run dir: it resolves outside the repo root');
+  const ignoreFile = join(runBase, '.gitignore');
+  const stat = d.lstatSync(ignoreFile, { throwIfNoEntry: false });
+  if (stat && !stat.isFile()) throw new Error('unsafe run dir: .gitignore is not a regular file');
+  d.writeFileSync(ignoreFile, '*\n');
+  if (git(['check-ignore', '-q', '--', `${RUN_BASE}/`], { okStatuses: [0, 1] }).status !== 0)
+    throw new Error('run dir is not ignored by git');
+  const numbers = d
+    .readdirSync(runBase)
+    .map((n) => /^run-(\d+)$/.exec(n))
+    .filter(Boolean)
+    .map((m) => Number(m[1]));
+  const run = join(runBase, `run-${Math.max(0, ...numbers) + 1}`);
+  d.mkdirSync(run);
+  const range = rangeArg ?? null;
+  const scope = { root, head, profile, range, paths, files, out_of_scope: outOfScope };
+  d.writeFileSync(join(run, 'scope.json'), `${JSON.stringify(scope, null, 2)}\n`);
+  return { ok: true, run, head, profile, range, files: files.length, out_of_scope: outOfScope.length };
+}
+
+// The real path of `--run`, which must be a `<root>/.cdk-security-audit/run-<n>` dir.
+function resolveRun(d, flags) {
+  const runArg = flags['--run'];
+  if (!runArg || !isAbsolute(runArg)) throw new UsageError('needs --run <abs>');
+  const run = d.realpathSync(runArg);
+  if (basename(dirname(run)) !== RUN_BASE || !/^run-\d+$/.test(basename(run)))
+    throw new Error(`--run is not a <root>/${RUN_BASE}/run-<n> dir`);
+  return run;
+}
+
+// Reads `scope.json` and checks it names the repo that holds the run dir.
+function readScope(d, run) {
+  const scope = readJson(d, join(run, 'scope.json'), 'scope.json');
+  if (scope.root !== dirname(dirname(run))) throw new Error('scope.json root does not match the run dir');
+  return scope;
+}
+
+function unitErrors(unit, index) {
+  const id = typeof unit?.coverage_id === 'string' ? unit.coverage_id : null;
+  const fail = (message) => ({ rule: 'L0', id, message: `unit ${index}: ${message}` });
+  if (typeOf(unit) !== 'object') return [fail('not an object')];
+  const errors = [];
+  if (!id) errors.push(fail('coverage_id must be a non-empty string'));
+  for (const key of ['paths', 'entry_points', 'sinks'])
+    if (!isStrings(unit[key])) errors.push(fail(`${key} must be an array of strings`));
+  if (unit.wave !== null && !Number.isInteger(unit.wave)) errors.push(fail('wave must be an integer or null'));
+  return errors;
+}
+
+// Reads `ledger.json` and returns its units array.
+function readLedger(d, run) {
+  const doc = readJson(d, join(run, 'ledger.json'), 'ledger.json');
+  if (!Array.isArray(doc?.units)) throw new Error('ledger.json needs a units array');
+  return doc.units;
+}
+
+// ledger: checks `ledger.json` against `scope.json` (L0 malformed unit, L1 duplicate id, L2 coverage enum, L3 uncovered file, L4 covered/deferred unit cap, L5 path outside scope).
+export function ledger(argv, d) {
+  const run = resolveRun(d, parseFlags(argv, ['--run']).flags);
+  const scope = readScope(d, run);
+  const units = readLedger(d, run);
+  const errors = units.flatMap(unitErrors);
+  const seen = new Set();
+  for (const unit of units) {
+    if (typeOf(unit) !== 'object') continue;
+    if (seen.has(unit.coverage_id))
+      errors.push({ rule: 'L1', id: unit.coverage_id, message: `duplicate coverage_id ${unit.coverage_id}` });
+    seen.add(unit.coverage_id);
+    if (!COVERAGE.includes(unit.coverage))
+      errors.push({ rule: 'L2', id: unit.coverage_id ?? null, message: `coverage must be ${COVERAGE.join('|')}` });
+  }
+  const covered = new Set(units.flatMap((u) => (isStrings(u?.paths) ? u.paths : [])));
+  for (const file of scope.files)
+    if (!covered.has(file)) errors.push({ rule: 'L3', id: file, message: `${file} is in no unit's paths` });
+  const inScope = new Set(scope.files);
+  const outside = new Set(scope.out_of_scope ?? []);
+  for (const unit of units) {
+    if (typeOf(unit) !== 'object' || !isStrings(unit.paths)) continue;
+    for (const path of unit.paths)
+      if (!inScope.has(path) && !(unit.coverage === 'out_of_scope' && outside.has(path)))
+        errors.push({
+          rule: 'L5',
+          id: unit.coverage_id ?? null,
+          message: `${path} is outside the scope for coverage ${unit.coverage}`
+        });
+  }
+  const counted = units.filter((u) => u?.coverage !== 'out_of_scope').length;
+  if (counted > MAX_UNITS)
+    errors.push({ rule: 'L4', id: null, message: `${counted} covered or deferred units; the cap is ${MAX_UNITS}` });
+  return errors.length ? { ok: false, errors } : { ok: true, units: units.length };
+}
+
+function recordErrors(record, ctx) {
+  const id = typeof record.id === 'string' ? record.id : null;
+  const fail = (rule, message) => ({ rule, id, message });
+  const errors = [];
+  if (id !== null) {
+    if (ctx.ids.has(id)) errors.push(fail('F2', `duplicate id ${id}`));
+    ctx.ids.add(id);
+  }
+  const confirmed = record.verdict === 'confirmed';
+  if (confirmed !== (record.severity !== null && record.severity !== undefined))
+    errors.push(fail('F3', 'severity must be set exactly when the verdict is confirmed'));
+  if (!(confirmed ? ['fixed', 'open'] : ['not_applicable']).includes(record.fix_status))
+    errors.push(fail('F4', 'fix_status must be fixed or open when confirmed, else not_applicable'));
+  if (!ctx.units.has(record.coverage_id)) errors.push(fail('F5', 'coverage_id is not in ledger.json'));
+  if (typeof record.file === 'string') {
+    if (!safeRelPath(record.file)) errors.push(fail('F6', 'file must be repo-relative with no .. segment'));
+    else if (!ctx.files.has(record.file)) errors.push(fail('F6', 'file is not in scope.json files'));
+  }
+  if (confirmed && !(String(record.fix ?? '').trim() && String(record.regression_test ?? '').trim()))
+    errors.push(fail('F7', 'a confirmed finding needs a fix and a regression_test'));
+  if (typeof record.evidence === 'string' && record.evidence.trimEnd().split('\n').length > MAX_EVIDENCE_LINES)
+    errors.push(fail('F8', `evidence is longer than ${MAX_EVIDENCE_LINES} lines`));
+  return errors;
+}
+
+// findings: checks `findings.json` against the schema (F1) and the cross-field rules F2 to F9.
+export function findings(argv, d) {
+  const run = resolveRun(d, parseFlags(argv, ['--run']).flags);
+  const scope = readScope(d, run);
+  const units = readLedger(d, run);
+  const doc = readJson(d, join(run, 'findings.json'), 'findings.json');
+  const errors = validateSchema(doc, SCHEMA, '$', []).map((e) => {
+    const index = /^\$\.findings\[(\d+)\]/.exec(e.path)?.[1];
+    const id = index === undefined ? undefined : doc.findings[Number(index)]?.id;
+    return { rule: 'F1', id: typeof id === 'string' ? id : null, message: e.message };
+  });
+  const ctx = {
+    ids: new Set(),
+    units: new Set(units.map((u) => u?.coverage_id)),
+    files: new Set(scope.files)
+  };
+  if (typeOf(doc) === 'object')
+    for (const key of ['root', 'head', 'profile', 'range'])
+      if (Object.hasOwn(doc, key) && doc[key] !== scope[key])
+        errors.push({ rule: 'F9', id: null, message: `${key} does not match scope.json` });
+  const records = Array.isArray(doc?.findings) ? doc.findings.filter((r) => typeOf(r) === 'object') : [];
+  for (const record of records) errors.push(...recordErrors(record, ctx));
+  return errors.length ? { ok: false, errors } : { ok: true, findings: records.length };
+}
+
+const COMMANDS = { init, ledger, findings };
+
+// CLI body; returns the exit code (0 ok, 1 bad records, 2 usage).
+export function main(argv, deps = {}) {
+  const d = { ...realDeps, ...deps };
+  if (!Object.hasOwn(COMMANDS, argv[0])) {
+    d.error(
+      'usage: audit-records.mjs init --root <abs> [--profile p] [--range a..b] [path ...] | ledger --run <abs> | findings --run <abs>'
+    );
+    return 2;
+  }
+  let result;
+  try {
+    result = COMMANDS[argv[0]](argv.slice(1), d);
+  } catch (err) {
+    if (!(err instanceof UsageError)) throw err;
+    d.error(`usage: audit-records.mjs ${argv[0]}: ${err.message}`);
+    return 2;
+  }
+  d.log(JSON.stringify(result));
+  return result.ok ? 0 : 1;
+}
+
+await runIfMain(import.meta.url, () => main(process.argv.slice(2)), 'audit-records');
