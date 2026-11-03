@@ -24,6 +24,7 @@ const HOST = /^[A-Za-z0-9.:-]+$/;
 const ENDPOINTS = [
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+&page=\d+$/,
+  /^projects\/[\w.~%-]+\/merge_requests\/\d+\/diffs\?per_page=\d+&page=\d+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/(?:reviewers|closes_issues)$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/pipelines\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/pipelines\/\d+\/jobs\?scope=failed&per_page=\d+$/,

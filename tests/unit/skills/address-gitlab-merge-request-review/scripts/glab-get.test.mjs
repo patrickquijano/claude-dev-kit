@@ -4,12 +4,15 @@ import { isAllowed, main } from '../../../../../skills/address-gitlab-merge-requ
 
 const OK = [
   'projects/g%2Fp/merge_requests/5/discussions?per_page=100&page=2',
+  'projects/g%2Fp/merge_requests/5/diffs?per_page=100&page=1',
   'projects/7/jobs/9/trace',
   'projects/g%2Fp/members/all/42',
   'user'
 ];
 const BAD = [
   'projects/g%2Fp/merge_requests/5/notes',
+  'projects/g%2Fp/merge_requests/5/diffs',
+  'projects/g%2Fp/merge_requests/5/diffs?per_page=100&page=1&unidiff=true',
   'projects/7/merge_requests/5/reviewers/../../../user',
   'projects/g%2Fp/members/all/x',
   'projects/g%2Fp/members',
