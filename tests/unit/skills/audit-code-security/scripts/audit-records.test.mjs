@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { describe, test } from 'node:test';
 import { findings, init, ledger, main } from '../../../../../skills/audit-code-security/scripts/audit-records.mjs';
+
+const schema = createRequire(import.meta.url)('../../../../../skills/audit-code-security/assets/report-schema.json');
+const SCHEMA_PATH = '/asset/report-schema.json';
 
 const BASE = '/repo/.cdk-security-audit';
 const RUN = `${BASE}/run-1`;
@@ -28,8 +32,10 @@ const fsStub = (files = {}, existing = [], links = {}, kinds = {}) => {
   return {
     written,
     made,
+    schemaPath: SCHEMA_PATH,
     readFileSync: (p) => {
       if (p in files) return files[p];
+      if (p === SCHEMA_PATH) return JSON.stringify(schema);
       throw enoent();
     },
     writeFileSync: (p, t) => {
@@ -167,13 +173,77 @@ describe('init', () => {
     assert.throws(act, /unsafe run dir/);
   });
 
-  test('refuses a ref that starts with a dash', () => {
+  test('refuses a --range value that starts with --', () => {
     // Arrange
     const d = deps(gitStub({ tracked }), fsStub());
     // Act
     const act = () => init(['--root', '/repo', '--range', '--output=x..HEAD'], d);
     // Assert
-    assert.throws(act, /--range/);
+    assert.throws(act, /needs a value/);
+  });
+
+  test('refuses a first range side that starts with a dash', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root', '/repo', '--range', '-x..HEAD'], d);
+    // Assert
+    assert.throws(act, /must not start with -/);
+  });
+
+  test('refuses --root without a value', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root'], d);
+    // Assert
+    assert.throws(act, /needs a value/);
+  });
+
+  test('refuses --range followed by another flag', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root', '/repo', '--range', '--profile'], d);
+    // Assert
+    assert.throws(act, /needs a value/);
+  });
+
+  test('refuses a --range without two dots', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root', '/repo', '--range', 'main'], d);
+    // Assert
+    assert.throws(act, /--range must be/);
+  });
+
+  test('refuses a --range with an empty first side', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root', '/repo', '--range', '..HEAD'], d);
+    // Assert
+    assert.throws(act, /--range must be/);
+  });
+
+  test('refuses a three-dot --range', () => {
+    // Arrange
+    const d = deps(gitStub({ tracked }), fsStub());
+    // Act
+    const act = () => init(['--root', '/repo', '--range', 'a...b'], d);
+    // Assert
+    assert.throws(act, /--range must be/);
+  });
+
+  test('takes the profile enum from the schema read through deps', () => {
+    // Arrange
+    const stub = json({ properties: { profile: { enum: ['x'] } } });
+    const d = deps(gitStub({ tracked }), fsStub({ [SCHEMA_PATH]: stub }));
+    // Act
+    const out = init(['--root', '/repo', '--profile', 'x'], d);
+    // Assert
+    assert.equal(out.profile, 'x');
   });
 
   test('refuses a dash-prefixed ref given as the second range side', () => {
@@ -297,8 +367,13 @@ describe('init', () => {
 });
 
 describe('ledger', () => {
+  const bare = json({ ...scope, out_of_scope: [] });
   const check = (units, extra) =>
-    ledger(['--run', RUN], deps(null, runFs({ [`${RUN}/ledger.json`]: json({ units }), ...extra })));
+    ledger(
+      ['--run', RUN],
+      deps(null, runFs({ [`${RUN}/scope.json`]: bare, [`${RUN}/ledger.json`]: json({ units }), ...extra }))
+    );
+  const withScope = { [`${RUN}/scope.json`]: json(scope) };
 
   test('accepts a ledger that covers every scope file', () => {
     // Arrange
@@ -377,7 +452,7 @@ describe('ledger', () => {
       unit({ coverage_id: 'U-OOS', paths: ['docs/x.md'], coverage: 'out_of_scope', wave: null })
     ];
     // Act
-    const out = check(units);
+    const out = check(units, withScope);
     // Assert
     assert.deepEqual(rules(out), ['L4']);
   });
@@ -386,9 +461,9 @@ describe('ledger', () => {
     // Arrange
     const units = [unit({ paths: ['src/a.js', 'src/b.js', 'docs/x.md'] })];
     // Act
-    const out = check(units);
+    const out = check(units, withScope);
     // Assert
-    assert.deepEqual(rules(out), ['L5']);
+    assert.deepEqual(rules(out), ['L5', 'L6']);
   });
 
   test('L5 flags an out_of_scope unit holding a path in neither list', () => {
@@ -404,9 +479,40 @@ describe('ledger', () => {
     // Arrange
     const units = [unit(), unit({ coverage_id: 'U-OOS', paths: ['docs/x.md'], coverage: 'out_of_scope', wave: null })];
     // Act
-    const out = check(units);
+    const out = check(units, withScope);
     // Assert
     assert.deepEqual(out, { ok: true, units: 2 });
+  });
+
+  test('L6 flags an out_of_scope path held by no unit', () => {
+    // Arrange
+    const units = [unit()];
+    // Act
+    const out = check(units, withScope);
+    // Assert
+    assert.deepEqual(
+      out.errors.map((e) => [e.rule, e.id]),
+      [['L6', 'docs/x.md']]
+    );
+  });
+
+  test('L6 flags an out_of_scope unit that misses one of two scope paths', () => {
+    // Arrange
+    const two = { [`${RUN}/scope.json`]: json({ ...scope, out_of_scope: ['docs/x.md', 'docs/y.md'] }) };
+    const units = [unit(), unit({ coverage_id: 'U-OOS', paths: ['docs/x.md'], coverage: 'out_of_scope', wave: null })];
+    // Act
+    const out = check(units, two);
+    // Assert
+    assert.deepEqual(rules(out), ['L6']);
+  });
+
+  test('L1 skips units whose coverage_id is missing', () => {
+    // Arrange
+    const units = [unit({ coverage_id: undefined }), unit({ coverage_id: undefined })];
+    // Act
+    const out = check(units);
+    // Assert
+    assert.deepEqual(rules(out), ['L0', 'L0']);
   });
 
   test('L0 flags a malformed unit', () => {
@@ -600,7 +706,7 @@ describe('findings', () => {
 
   test('F3 flags severity on a rejected record', () => {
     // Arrange
-    const records = [record({ verdict: 'rejected', fix_status: 'not_applicable' })];
+    const records = [record({ verdict: 'rejected', fix_status: 'not_applicable', fix: '', regression_test: '' })];
     // Act
     const out = check(records);
     // Assert
@@ -646,6 +752,26 @@ describe('findings', () => {
   test('F7 flags a confirmed record without a fix', () => {
     // Arrange
     const records = [record({ fix: ' ' })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(rules(out), ['F7']);
+  });
+
+  test('F7 flags a rejected record that carries a fix', () => {
+    // Arrange
+    const base = { severity: null, fix_status: 'not_applicable', regression_test: '' };
+    const records = [record({ ...base, verdict: 'rejected', fix: 'use execFile' })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(rules(out), ['F7']);
+  });
+
+  test('F7 flags a needs_validation record that carries a regression_test', () => {
+    // Arrange
+    const base = { severity: null, fix_status: 'not_applicable', fix: '' };
+    const records = [record({ ...base, verdict: 'needs_validation', regression_test: 'request runs one command' })];
     // Act
     const out = check(records);
     // Assert
@@ -712,6 +838,38 @@ describe('main', () => {
     // Assert
     assert.equal(code, 2);
     assert.match(c.out.errors[0], /matches no tracked file/);
+  });
+
+  test('returns 2 for an unknown flag', () => {
+    // Arrange
+    const c = capture();
+    const d = { ...deps(null, runFs()), log: c.log, error: c.error };
+    // Act
+    const code = main(['ledger', '--run', RUN, '--bogus', 'x'], d);
+    // Assert
+    assert.equal(code, 2);
+    assert.match(c.out.errors[0], /unknown flag/);
+  });
+
+  test('returns 2 for an unexpected positional argument', () => {
+    // Arrange
+    const c = capture();
+    const d = { ...deps(null, runFs()), log: c.log, error: c.error };
+    // Act
+    const code = main(['findings', '--run', RUN, 'extra'], d);
+    // Assert
+    assert.equal(code, 2);
+    assert.match(c.out.errors[0], /unexpected argument/);
+  });
+
+  test('returns 2 for a three-dot range', () => {
+    // Arrange
+    const c = capture();
+    const d = { ...deps(gitStub({ tracked: ['src/a.js'] }), fsStub()), log: c.log, error: c.error };
+    // Act
+    const code = main(['init', '--root', '/repo', '--range', 'a...b'], d);
+    // Assert
+    assert.equal(code, 2);
   });
 
   test('returns 2 for an unknown command', () => {

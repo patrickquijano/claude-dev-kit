@@ -88,13 +88,14 @@ describe('audit-records init', () => {
 
   test('creates run-1 then run-2 under the git-ignored .cdk-security-audit dir', () => {
     // Arrange
-    const first = cli('init', '--root', root);
+    const fresh = makeRepo();
+    const first = cli('init', '--root', fresh);
     // Act
-    const second = cli('init', '--root', root);
+    const second = cli('init', '--root', fresh);
     // Assert
     assert.equal(first.status, 0);
-    assert.equal(first.out.run, join(root, '.cdk-security-audit', 'run-1'));
-    assert.equal(git(root, 'status', '--porcelain'), '');
+    assert.equal(first.out.run, join(fresh, '.cdk-security-audit', 'run-1'));
+    assert.equal(git(fresh, 'status', '--porcelain'), '');
     assert.equal(second.out.run.endsWith('run-2'), true);
     assert.equal(existsSync(join(second.out.run, 'scope.json')), true);
   });

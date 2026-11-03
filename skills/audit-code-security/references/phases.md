@@ -42,7 +42,7 @@ Write `<run>/ledger.json` from the `Units` lines (`<coverage_id> | <paths> | <fi
 - `coverage_id`: unique, stable (`U-01`, `U-02`, …).
 - `coverage`: `covered` (to be hunted), `deferred` (not hunted for lack of waves), or `out_of_scope` (never hunted: the recon `no source` unit and the single `U-OOS` unit that holds every `scope.json` `out_of_scope` path).
 - `wave`: the wave number once hunted, otherwise `null`.
-- Every `scope.json` `files` entry belongs to one unit; `paths` lists repo-relative files, not directories; the 40-unit cap counts only `covered` and `deferred` units. Run `ledger`; the checks are in `commands.md` output (rules L0-L5).
+- Every `scope.json` `files` entry belongs to one unit; `paths` lists repo-relative files, not directories; the 40-unit cap counts only `covered` and `deferred` units. Run `ledger`; the checks are in `commands.md` output (rules L0 to L6; L6 is an out-of-scope path in no out_of_scope unit).
 
 ## Waves and budgets
 

@@ -27,13 +27,6 @@ const MAX_UNITS = 40;
 const MAX_EVIDENCE_LINES = 3;
 const RUN_BASE = '.cdk-security-audit';
 
-// The bundled schema is the single source of truth for the enums below; it is read once at import.
-const SCHEMA = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../assets/report-schema.json', import.meta.url)), 'utf8')
-);
-const COVERAGE = SCHEMA.$defs.coverage.enum;
-const PROFILES = SCHEMA.properties.profile.enum;
-
 class UsageError extends Error {}
 
 const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -89,6 +82,7 @@ const realDeps = {
   readFileSync,
   realpathSync,
   writeFileSync,
+  schemaPath: fileURLToPath(new URL('../assets/report-schema.json', import.meta.url)),
   log: (text) => console.log(text),
   error: (text) => console.error(text)
 };
@@ -142,6 +136,11 @@ function verifyRef(git, ref) {
     throw new Error(`unknown ref: ${ref.slice(0, 80)}`);
 }
 
+// The bundled schema is the single source of truth for the enums and the findings validation.
+function loadSchema(d) {
+  return JSON.parse(d.readFileSync(d.schemaPath, 'utf8'));
+}
+
 function readJson(d, file, label) {
   let text;
   try {
@@ -163,11 +162,13 @@ export function init(argv, d) {
   const { flags, rest } = parseFlags(argv, ['--root', '--profile', '--range'], true);
   const rootArg = flags['--root'];
   if (!rootArg || !isAbsolute(rootArg)) throw new UsageError('init needs --root <abs>');
+  const profiles = loadSchema(d).properties.profile.enum;
   const profile = flags['--profile'] ?? 'standard';
-  if (!PROFILES.includes(profile)) throw new UsageError(`--profile must be ${PROFILES.join('|')}`);
+  if (!profiles.includes(profile)) throw new UsageError(`--profile must be ${profiles.join('|')}`);
   const rangeArg = flags['--range'];
   const refs = rangeArg === undefined ? null : rangeArg.split('..');
-  if (refs && (refs.length !== 2 || !refs[0] || !refs[1])) throw new UsageError('--range must be <a>..<b>');
+  if (refs && (rangeArg.includes('...') || refs.length !== 2 || !refs[0] || !refs[1]))
+    throw new UsageError('--range must be <a>..<b>');
   const normal = rest.map((p) => p.replace(/\/+$/, '').replace(/^(?:\.\/)+/, ''));
   if (!normal.every((p) => p === '.' || safeRelPath(p)))
     throw new UsageError('a path must be repo-relative with no .. segment');
@@ -248,20 +249,23 @@ function readLedger(d, run) {
   return doc.units;
 }
 
-// ledger: checks `ledger.json` against `scope.json` (L0 malformed unit, L1 duplicate id, L2 coverage enum, L3 uncovered file, L4 covered/deferred unit cap, L5 path outside scope).
+// ledger: checks `ledger.json` against `scope.json` (L0 malformed unit, L1 duplicate id, L2 coverage enum, L3 uncovered file, L4 covered/deferred unit cap, L5 path outside scope, L6 out-of-scope path in no out_of_scope unit).
 export function ledger(argv, d) {
   const run = resolveRun(d, parseFlags(argv, ['--run']).flags);
+  const coverage = loadSchema(d).$defs.coverage.enum;
   const scope = readScope(d, run);
   const units = readLedger(d, run);
   const errors = units.flatMap(unitErrors);
   const seen = new Set();
   for (const unit of units) {
     if (typeOf(unit) !== 'object') continue;
-    if (seen.has(unit.coverage_id))
-      errors.push({ rule: 'L1', id: unit.coverage_id, message: `duplicate coverage_id ${unit.coverage_id}` });
-    seen.add(unit.coverage_id);
-    if (!COVERAGE.includes(unit.coverage))
-      errors.push({ rule: 'L2', id: unit.coverage_id ?? null, message: `coverage must be ${COVERAGE.join('|')}` });
+    if (typeof unit.coverage_id === 'string' && unit.coverage_id) {
+      if (seen.has(unit.coverage_id))
+        errors.push({ rule: 'L1', id: unit.coverage_id, message: `duplicate coverage_id ${unit.coverage_id}` });
+      seen.add(unit.coverage_id);
+    }
+    if (!coverage.includes(unit.coverage))
+      errors.push({ rule: 'L2', id: unit.coverage_id ?? null, message: `coverage must be ${coverage.join('|')}` });
   }
   const covered = new Set(units.flatMap((u) => (isStrings(u?.paths) ? u.paths : [])));
   for (const file of scope.files)
@@ -278,6 +282,10 @@ export function ledger(argv, d) {
           message: `${path} is outside the scope for coverage ${unit.coverage}`
         });
   }
+  const heldOut = new Set(units.flatMap((u) => (u?.coverage === 'out_of_scope' && isStrings(u.paths) ? u.paths : [])));
+  for (const path of outside)
+    if (!heldOut.has(path))
+      errors.push({ rule: 'L6', id: path, message: `${path} is in no out_of_scope unit's paths` });
   const counted = units.filter((u) => u?.coverage !== 'out_of_scope').length;
   if (counted > MAX_UNITS)
     errors.push({ rule: 'L4', id: null, message: `${counted} covered or deferred units; the cap is ${MAX_UNITS}` });
@@ -304,6 +312,8 @@ function recordErrors(record, ctx) {
   }
   if (confirmed && !(String(record.fix ?? '').trim() && String(record.regression_test ?? '').trim()))
     errors.push(fail('F7', 'a confirmed finding needs a fix and a regression_test'));
+  else if (!confirmed && (String(record.fix ?? '').trim() || String(record.regression_test ?? '').trim()))
+    errors.push(fail('F7', 'fix and regression_test must be empty unless confirmed'));
   if (typeof record.evidence === 'string' && record.evidence.trimEnd().split('\n').length > MAX_EVIDENCE_LINES)
     errors.push(fail('F8', `evidence is longer than ${MAX_EVIDENCE_LINES} lines`));
   return errors;
@@ -312,10 +322,11 @@ function recordErrors(record, ctx) {
 // findings: checks `findings.json` against the schema (F1) and the cross-field rules F2 to F9.
 export function findings(argv, d) {
   const run = resolveRun(d, parseFlags(argv, ['--run']).flags);
+  const schema = loadSchema(d);
   const scope = readScope(d, run);
   const units = readLedger(d, run);
   const doc = readJson(d, join(run, 'findings.json'), 'findings.json');
-  const errors = validateSchema(doc, SCHEMA, '$', []).map((e) => {
+  const errors = validateSchema(doc, schema, '$', []).map((e) => {
     const index = /^\$\.findings\[(\d+)\]/.exec(e.path)?.[1];
     const id = index === undefined ? undefined : doc.findings[Number(index)]?.id;
     return { rule: 'F1', id: typeof id === 'string' ? id : null, message: e.message };
