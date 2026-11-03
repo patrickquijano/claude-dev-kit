@@ -1,5 +1,5 @@
 // Read-only GitLab GET for address-gitlab-merge-request-review: checks the host and endpoint against fixed shapes, then runs `glab api --hostname <host> <endpoint>`.
-// CLI: `glab-get.mjs <host> <endpoint>` prints the response body; exit 0 = ok, 1 = glab failed, 2 = bad arguments.
+// CLI: `glab-get.mjs <host> <endpoint>` prints the response body (for /diffs only a JSON array of `new_path`); exit 0 = ok, 1 = glab failed or a bad /diffs body, 2 = bad arguments.
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -21,9 +21,11 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const HOST = /^[A-Za-z0-9.:-]+$/;
+const DIFFS = /^projects\/[\w.~%-]+\/merge_requests\/\d+\/diffs\?per_page=\d+&page=\d+$/;
 const ENDPOINTS = [
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+&page=\d+$/,
+  DIFFS,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/(?:reviewers|closes_issues)$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/pipelines\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/pipelines\/\d+\/jobs\?scope=failed&per_page=\d+$/,
@@ -53,6 +55,19 @@ const realDeps = {
   error: (text) => console.error(text)
 };
 
+// The `new_path` of each /diffs entry, or null when the body is not a complete JSON array of such entries.
+function newPaths(body) {
+  let entries;
+  try {
+    entries = JSON.parse(body);
+  } catch (err) {
+    if (err instanceof SyntaxError) return null;
+    throw err;
+  }
+  if (!Array.isArray(entries) || entries.some((e) => typeof e?.new_path !== 'string')) return null;
+  return entries.map((e) => e.new_path);
+}
+
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
@@ -64,6 +79,15 @@ export function main(argv, deps = {}) {
   if (res.status !== 0) {
     d.error((res.stderr.split('\n').find((l) => l.trim()) ?? `glab exited ${res.status}`).trim().slice(0, 300));
     return 1;
+  }
+  if (DIFFS.test(argv[1])) {
+    const paths = newPaths(res.stdout);
+    if (!paths) {
+      d.error('/diffs response is not a JSON array of entries with new_path');
+      return 1;
+    }
+    d.write(JSON.stringify(paths));
+    return 0;
   }
   d.write(res.stdout);
   return 0;

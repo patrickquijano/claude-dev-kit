@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.12] - 2026-11-03
+
+### Added
+
+- `/cdk:address-github-pull-request-review` can read a failing check's log with `gh run view`.
+- `/cdk:address-gitlab-merge-request-review` reads the merge request's changed files through `glab` (`glab-get.mjs` `/diffs`), because the GitLab MCP server has no tool for them. It needs GitLab 15.7 or later (the MR `/diffs` API) and stops with a clear reason on an older server.
+
+### Changed
+
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` plan their fixes through `cdk:implementation-planner` and apply them through `cdk:plan-implementer` when there are more than 3 fixable items or more than 3 files, as `/cdk:review-code-changes` does; smaller changes are planned and applied inline.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` run reply-only items (invalid, already fixed, needs clarification) without a plan, so only fixable items reach the planner.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` document each step's sub-steps and state that a push or reply is never pre-approved, so your permission settings decide whether each one asks first.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` fetch the changed files only when a fixable item exists, cite each fix's commit as it is after the rebase and push, and stop without committing when the implementer deletes an unplanned file or turns it binary or when the branch name is unsafe to pass to git.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` give the regression reviewer the plain `git diff` of the uncommitted fixes, so no base ref is needed.
+
 ## [0.8.11] - 2026-11-02
 
 ### Added
@@ -484,7 +499,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...HEAD
+[0.8.12]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...v0.8.12
 [0.8.11]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.8...v0.8.9
