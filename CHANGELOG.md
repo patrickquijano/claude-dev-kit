@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/cdk:update-rules` writes a Workflow line in the principles rule: state assumptions, ask when the request is unclear, and plan multi-step work with a check per step.
 - `/cdk:update-rules` adds change-scope lines to the `CLAUDE.md` Changes section: every changed line traces to the request, and unrelated dead code is mentioned, never deleted.
-- `/cdk:update-rules` generates Simplicity, Behavior, and Testing lines that also cover unrequested configurability, impossible internal states, failing-test-first bug fixes, and keeping tests passing through a refactor.
+- `/cdk:update-rules` generates Simplicity, Behavior, and Testing lines that also cover unrequested configurability, impossible internal states, failing-test-first bug fixes, and keeping tests passing through a refactor, and the Behavior line adds following existing style. Its "Guidance, not law" line adds caution over speed, with trivial tasks allowed to skip the Workflow steps.
 
 ## [0.8.12] - 2026-11-03
 
