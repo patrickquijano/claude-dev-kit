@@ -49,7 +49,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Record the release head branch `<head>` from `git rev-parse --abbrev-ref HEAD`.
 10. **Review the PR.**
     - Invoke the `cdk:review-github-pull-request <url>` skill.
-    - Count the open findings from that Output, with no spawn: the `Findings:` blocking + suggestions + nitpicks plus the `Threads:` left-open and unjudged counts. Spawn the review-result reader only when those lines are missing or malformed; it returns `findings: n`.
+    - Count the open findings from that Output, with no spawn: the `Findings:` blocking + suggestions + nitpicks plus the `Threads:` replied-not-addressed, left-open, and unjudged counts. Spawn the review-result reader only when those lines are missing or malformed; it returns `findings: n`.
     - `n = 0` → step 12, else step 11.
 11. **Address the review.**
     - Round < 3: invoke the `cdk:address-github-pull-request-review <url>` skill with push and replies, then back to step 10.
