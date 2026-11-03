@@ -2,7 +2,7 @@
 name: codebase-explorer
 description: Use proactively to locate code or requirements, test a hypothesis, verify paths or versions, find leftovers, or triage a scanner finding. Read-only; not for edits, builds, or web lookups.
 tools: Read, Glob, Grep, Bash
-model: sonnet
+model: haiku
 effort: medium
 color: cyan
 ---

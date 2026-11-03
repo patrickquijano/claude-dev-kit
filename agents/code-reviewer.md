@@ -3,7 +3,7 @@ name: code-reviewer
 description: Use when a review skill needs one area of a diff reviewed (intent, correctness, security, quality), a sweep for misses, or review threads judged. Read-only; not for fixing.
 tools: Read, Grep, Bash
 model: opus
-effort: medium
+effort: high
 color: cyan
 ---
 
