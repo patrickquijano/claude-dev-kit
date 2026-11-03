@@ -1,9 +1,61 @@
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
 import { describe, test } from 'node:test';
 import { findings, init, ledger, main } from '../../../../../skills/audit-code-security/scripts/audit-records.mjs';
 
-const schema = createRequire(import.meta.url)('../../../../../skills/audit-code-security/assets/report-schema.json');
+// Inline copy of the bundled report schema, served through the stubbed fs.
+const schema = {
+  type: 'object',
+  $defs: { coverage: { enum: ['covered', 'deferred', 'out_of_scope'] } },
+  properties: {
+    root: { type: 'string' },
+    head: { type: 'string' },
+    profile: { enum: ['quick', 'standard', 'deep'] },
+    range: { type: ['string', 'null'] },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', pattern: '^SA-\\d{3,}$' },
+          coverage_id: { type: 'string' },
+          file: { type: 'string' },
+          line: { type: 'integer', minimum: 1 },
+          actor: { type: 'string' },
+          input: { type: 'string' },
+          boundary: { type: 'string' },
+          impact: { type: 'string' },
+          evidence: { type: 'string' },
+          verdict: { enum: ['confirmed', 'needs_validation', 'rejected'] },
+          severity: { enum: ['critical', 'high', 'medium', 'low', null] },
+          refutation: { type: 'string' },
+          fix: { type: 'string' },
+          regression_test: { type: 'string' },
+          fix_status: { enum: ['fixed', 'open', 'not_applicable'] }
+        },
+        required: [
+          'id',
+          'coverage_id',
+          'file',
+          'line',
+          'actor',
+          'input',
+          'boundary',
+          'impact',
+          'evidence',
+          'verdict',
+          'severity',
+          'refutation',
+          'fix',
+          'regression_test',
+          'fix_status'
+        ],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ['root', 'head', 'profile', 'range', 'findings'],
+  additionalProperties: false
+};
 const SCHEMA_PATH = '/asset/report-schema.json';
 
 const BASE = '/repo/.cdk-security-audit';
@@ -29,9 +81,16 @@ const gitStub =
 const fsStub = (files = {}, existing = [], links = {}, kinds = {}) => {
   const written = {};
   const made = [];
+  const removed = [];
   return {
     written,
     made,
+    removed,
+    rmSync: (p) => {
+      delete written[p];
+      removed.push(p);
+    },
+    rmdirSync: (p) => removed.push(p),
     schemaPath: SCHEMA_PATH,
     readFileSync: (p) => {
       if (p in files) return files[p];
@@ -114,7 +173,8 @@ describe('init', () => {
       profile: 'standard',
       range: null,
       files: 3,
-      out_of_scope: 0
+      out_of_scope: 0,
+      sensitive: 0
     });
     assert.deepEqual(JSON.parse(fs.written[`${RUN}/scope.json`]).files, ['docs/x.md', 'src/a.js', 'src/b.js']);
   });
@@ -155,13 +215,61 @@ describe('init', () => {
     assert.equal(fs.written[`${BASE}/.gitignore`], '*\n');
   });
 
-  test('refuses a run base that git does not ignore', () => {
+  test('refuses a run base that git does not ignore and removes what it created', () => {
     // Arrange
-    const d = deps(gitStub({ tracked, ignored: false }), fsStub());
+    const fs = fsStub();
+    const d = deps(gitStub({ tracked, ignored: false }), fs);
     // Act
     const act = () => init(['--root', '/repo'], d);
     // Assert
     assert.throws(act, /not ignored by git/);
+    assert.deepEqual(fs.written, {});
+    assert.deepEqual(fs.removed, [`${BASE}/.gitignore`, BASE]);
+  });
+
+  test('keeps an existing run base when it has no .gitignore and git does not ignore it', () => {
+    // Arrange
+    const fs = fsStub({}, [], {}, { [BASE]: 'dir' });
+    const d = deps(gitStub({ tracked, ignored: false }), fs);
+    // Act
+    const act = () => init(['--root', '/repo'], d);
+    // Assert
+    assert.throws(act, /not ignored by git/);
+    assert.deepEqual(fs.removed, [`${BASE}/.gitignore`]);
+  });
+
+  test('restores an existing .gitignore when git does not ignore the run base', () => {
+    // Arrange
+    const fs = fsStub({ [`${BASE}/.gitignore`]: 'keep\n' }, [], {}, { [`${BASE}/.gitignore`]: 'file' });
+    const d = deps(gitStub({ tracked, ignored: false }), fs);
+    // Act
+    const act = () => init(['--root', '/repo'], d);
+    // Assert
+    assert.throws(act, /not ignored by git/);
+    assert.equal(fs.written[`${BASE}/.gitignore`], 'keep\n');
+    assert.deepEqual(fs.removed, []);
+  });
+
+  test('lists secret-named tracked files in sensitive and keeps them out of files', () => {
+    // Arrange
+    const fs = fsStub();
+    const git = gitStub({ tracked: ['.env', 'src/a.js', 'keys/id_rsa'] });
+    // Act
+    const out = init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive, out.sensitive], [['src/a.js'], ['.env', 'keys/id_rsa'], 2]);
+  });
+
+  test('keeps a secret-named file out of files and out_of_scope with --range', () => {
+    // Arrange
+    const fs = fsStub();
+    const git = gitStub({ tracked: ['.env', 'src/a.js'], changed: ['.env'] });
+    // Act
+    init(['--root', '/repo', '--range', 'main..HEAD'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.out_of_scope, written.sensitive], [[], ['src/a.js'], ['.env']]);
   });
 
   test('refuses a run base symlinked outside the repo', () => {
@@ -630,6 +738,43 @@ describe('findings', () => {
     const out = check(records);
     // Assert
     assert.deepEqual(rules(out), ['F1']);
+  });
+
+  test('F1 names a missing required field', () => {
+    // Arrange
+    const { actor, ...rest } = record();
+    // Act
+    const out = check([rest]);
+    // Assert
+    assert.equal(actor, 'anonymous user');
+    assert.deepEqual(
+      out.errors.map((e) => [e.rule, e.message]),
+      [['F1', '$.findings[0]: missing actor']]
+    );
+  });
+
+  test('F1 names an id that breaks the pattern', () => {
+    // Arrange
+    const records = [record({ id: 'SA-1' })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(
+      out.errors.map((e) => [e.rule, e.message]),
+      [['F1', '$.findings[0].id: does not match pattern ^SA-\\d{3,}$']]
+    );
+  });
+
+  test('F1 names a field of the wrong type', () => {
+    // Arrange
+    const records = [record({ actor: 7 })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(
+      out.errors.map((e) => [e.rule, e.message]),
+      [['F1', '$.findings[0].actor: expected string']]
+    );
   });
 
   test('F1 flags a bad top-level field', () => {

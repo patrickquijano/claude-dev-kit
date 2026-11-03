@@ -1,6 +1,15 @@
 // Deterministic records for audit-code-security: `init` scope, `ledger` check, and `findings` check.
 // CLI: `init --root <abs> [--profile <p>] [--range <a>..<b>] [path ...]`, `ledger --run <abs>`, `findings --run <abs>`.
-import { lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import {
+  lstatSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -32,6 +41,9 @@ class UsageError extends Error {}
 const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const under = (f, p) => f === p || f.startsWith(`${p}/`);
+const SENSITIVE =
+  /^(?:\.env|\.env\..*|.*\.(?:pem|key|p12|pfx)|id_(?:rsa|dsa|ecdsa|ed25519)|credentials|credentials\.json|\.netrc)$/;
+const isSensitive = (f) => SENSITIVE.test(basename(f));
 
 function typeOf(value) {
   if (value === null) return 'null';
@@ -81,6 +93,8 @@ const realDeps = {
   readdirSync,
   readFileSync,
   realpathSync,
+  rmdirSync,
+  rmSync,
   writeFileSync,
   schemaPath: fileURLToPath(new URL('../assets/report-schema.json', import.meta.url)),
   log: (text) => console.log(text),
@@ -141,6 +155,16 @@ function loadSchema(d) {
   return JSON.parse(d.readFileSync(d.schemaPath, 'utf8'));
 }
 
+// The text of `file`, or null when it does not exist.
+function readIfPresent(d, file) {
+  try {
+    return d.readFileSync(file, 'utf8');
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+    return null;
+  }
+}
+
 function readJson(d, file, label) {
   let text;
   try {
@@ -184,22 +208,44 @@ export function init(argv, d) {
   for (const p of named)
     if (!tracked.some((f) => under(f, p))) throw new UsageError(`path matches no tracked file: ${p.slice(0, 80)}`);
   const matched = paths.length ? tracked.filter((f) => paths.some((p) => under(f, p))) : tracked;
-  let files = matched;
+  // Secret-named files are listed apart from the scope, so no hunt reads them and the report still names them.
+  const sensitive = matched.filter(isSensitive);
+  const candidates = matched.filter((f) => !isSensitive(f));
+  let files = candidates;
   let outOfScope = [];
   if (refs) {
     const changed = new Set(git(['diff', '--name-only', '-z', `${refs[0]}...${refs[1]}`, '--']).stdout.split('\0'));
-    files = matched.filter((f) => changed.has(f));
-    outOfScope = matched.filter((f) => !changed.has(f));
+    files = candidates.filter((f) => changed.has(f));
+    outOfScope = candidates.filter((f) => !changed.has(f));
   }
   const runBase = join(root, RUN_BASE);
+  const baseExisted = d.lstatSync(runBase, { throwIfNoEntry: false }) !== undefined;
   d.mkdirSync(runBase, { recursive: true });
   if (d.realpathSync(runBase) !== runBase) throw new Error('unsafe run dir: it resolves outside the repo root');
   const ignoreFile = join(runBase, '.gitignore');
   const stat = d.lstatSync(ignoreFile, { throwIfNoEntry: false });
   if (stat && !stat.isFile()) throw new Error('unsafe run dir: .gitignore is not a regular file');
+  const prior = stat ? readIfPresent(d, ignoreFile) : null;
   d.writeFileSync(ignoreFile, '*\n');
-  if (git(['check-ignore', '-q', '--', `${RUN_BASE}/`], { okStatuses: [0, 1] }).status !== 0)
+  // Undo what this call created so a refused or failed run leaves the repo as it was.
+  const undo = () => {
+    if (prior !== null) d.writeFileSync(ignoreFile, prior);
+    else {
+      d.rmSync(ignoreFile);
+      if (!baseExisted) d.rmdirSync(runBase);
+    }
+  };
+  let ignored;
+  try {
+    ignored = git(['check-ignore', '-q', '--', `${RUN_BASE}/`], { okStatuses: [0, 1] }).status === 0;
+  } catch (err) {
+    undo();
+    throw err;
+  }
+  if (!ignored) {
+    undo();
     throw new Error('run dir is not ignored by git');
+  }
   const numbers = d
     .readdirSync(runBase)
     .map((n) => /^run-(\d+)$/.exec(n))
@@ -208,9 +254,18 @@ export function init(argv, d) {
   const run = join(runBase, `run-${Math.max(0, ...numbers) + 1}`);
   d.mkdirSync(run);
   const range = rangeArg ?? null;
-  const scope = { root, head, profile, range, paths, files, out_of_scope: outOfScope };
+  const scope = { root, head, profile, range, paths, files, out_of_scope: outOfScope, sensitive };
   d.writeFileSync(join(run, 'scope.json'), `${JSON.stringify(scope, null, 2)}\n`);
-  return { ok: true, run, head, profile, range, files: files.length, out_of_scope: outOfScope.length };
+  return {
+    ok: true,
+    run,
+    head,
+    profile,
+    range,
+    files: files.length,
+    out_of_scope: outOfScope.length,
+    sensitive: sensitive.length
+  };
 }
 
 // The real path of `--run`, which must be a `<root>/.cdk-security-audit/run-<n>` dir.

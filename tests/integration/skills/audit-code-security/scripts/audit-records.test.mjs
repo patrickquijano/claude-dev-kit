@@ -110,6 +110,29 @@ describe('audit-records init', () => {
     assert.equal(scope.root, root);
   });
 
+  test('lists a committed .env in sensitive and keeps it out of files', () => {
+    // Arrange
+    const other = makeRepo();
+    writeFileSync(join(other, '.env'), 'X=1\n');
+    git(other, 'add', '.env');
+    git(other, 'commit', '-q', '-m', 'add env');
+    // Act
+    const { out } = cli('init', '--root', other);
+    const scope = JSON.parse(readFileSync(join(out.run, 'scope.json'), 'utf8'));
+    // Assert
+    assert.deepEqual(scope.sensitive, ['.env']);
+    assert.equal(scope.files.includes('.env'), false);
+  });
+
+  test('loads the bundled schema for --profile deep', () => {
+    // Arrange
+    const args = ['init', '--root', root, '--profile', 'deep'];
+    // Act
+    const { out } = cli(...args);
+    // Assert
+    assert.equal(out.profile, 'deep');
+  });
+
   test('keeps run files out of scope on a second init', () => {
     // Arrange
     cli('init', '--root', root);
