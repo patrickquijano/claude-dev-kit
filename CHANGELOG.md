@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` plan their fixes through `cdk:implementation-planner` and apply them through `cdk:plan-implementer`.
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` run reply-only items (invalid, already fixed, needs clarification) without a plan, so only fixable items reach the planner.
-- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` list each step's sub-steps, and each run asks permission before every push and reply.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` list each step's sub-steps, and never pre-approve a push or reply, so your permission settings decide whether each one asks first.
 - `/cdk:address-github-pull-request-review` can read a failing check's log with `gh run view`.
 - `/cdk:address-gitlab-merge-request-review` reads the merge request's changed files through `glab` when the GitLab MCP server has no tool for them.
 

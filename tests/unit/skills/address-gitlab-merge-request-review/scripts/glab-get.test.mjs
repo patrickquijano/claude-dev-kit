@@ -99,6 +99,69 @@ describe('main', () => {
     assert.deepEqual(out.writes, ['{"ok":1}']);
   });
 
+  test('prints only the new_path array for the diffs endpoint', () => {
+    // Arrange
+    const body = '[{"new_path":"a.mjs","diff":"x"},{"new_path":"b/c.md","diff":"y"}]';
+    const { out, deps } = harness({ status: 0, stdout: body, stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(out.writes, ['["a.mjs","b/c.md"]']);
+  });
+
+  test('prints a one-path array for a single diffs entry', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '[{"new_path":"a.mjs"}]', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(out.writes, ['["a.mjs"]']);
+  });
+
+  test('exits 1 with one error for a diffs body that is not an array of entries', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '{"message":"x"}', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.equal(out.errors.length, 1);
+    assert.deepEqual(out.writes, []);
+  });
+
+  test('prints an empty array for an empty diffs page', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '[]', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(out.writes, ['[]']);
+  });
+
+  test('exits 1 with one error for a diffs entry without new_path', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '[{"old_path":"a"}]', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.equal(out.errors.length, 1);
+    assert.deepEqual(out.writes, []);
+  });
+
+  test('exits 1 without output for a cut-off diffs body', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '[{"new_path":"a"', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[1]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.deepEqual(out.writes, []);
+  });
+
   test('exits 1 with the first stderr line when glab fails', () => {
     // Arrange
     const { out, deps } = harness({ status: 1, stdout: '', stderr: '\n403 Forbidden\nmore' });

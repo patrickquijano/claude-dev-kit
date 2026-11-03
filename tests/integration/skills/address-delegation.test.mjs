@@ -14,6 +14,8 @@ const section = (text, heading) => {
   return text.slice(start, next < 0 ? undefined : next);
 };
 
+const frontmatter = (skill) => read(skill, 'SKILL.md').match(/^allowed-tools:.*$/m)?.[0] ?? '';
+
 describe('address skills delegate planning and edits', () => {
   for (const skill of skills) {
     test(`${skill} SKILL.md names the planner and the implementer`, () => {
@@ -63,7 +65,55 @@ describe('address skills delegate planning and edits', () => {
       // Assert
       assert.ok(guard >= 0 && guard < rebase, 'guard missing or after pull-rebase');
     });
+
+    test(`${skill} allowed-tools pre-approves no write`, () => {
+      // Arrange
+      const tools = frontmatter(skill);
+      // Act
+      const writes =
+        /\bgit (push|pull)\b|\bgh api\b|\bglab api\b|\bgh pr comment\b|save_note|__add_|__create_|__update_|_write\b/.test(
+          tools
+        );
+      // Assert
+      assert.ok(tools.length > 0 && !writes, 'allowed-tools missing or pre-approves a write');
+    });
+
+    test(`${skill} flow.md Verify names the diff row, defined in commands.md; not pre-approved`, () => {
+      // Arrange
+      const row = skill.includes('github') ? 'pr-diff' : 'mr-diff';
+      const verify = section(read(skill, 'references/flow.md'), 'Verify');
+      const commands = read(skill, 'references/commands.md');
+      // Act
+      const named = verify.includes(`\`${row}\``);
+      const defined = commands.split('\n').some((line) => line.startsWith(`| \`${row}\``));
+      const preApproved = frontmatter(skill).includes('git diff --merge-base');
+      // Assert
+      assert.ok(
+        named && defined && !preApproved,
+        `${row} missing from Verify or commands.md, or pre-approved in allowed-tools`
+      );
+    });
+
+    test(`${skill} flow.md Plan overrides representative-path collapsing`, () => {
+      // Arrange
+      const plan = section(read(skill, 'references/flow.md'), 'Plan');
+      // Act
+      const overrides = plan.includes('representative paths');
+      // Assert
+      assert.ok(overrides, 'representative paths override missing from Plan');
+    });
   }
+});
+
+describe('address-github-pull-request-review reply step', () => {
+  test('SKILL.md step 10 says never resolve', () => {
+    // Arrange
+    const text = read(skills[0], 'SKILL.md');
+    // Act
+    const matched = /^10\. \*\*Reply\.\*\*.*never resolve/m.test(text);
+    // Assert
+    assert.ok(matched, 'step 10 does not say never resolve');
+  });
 });
 
 describe('address-github-pull-request-review failing checks', () => {
