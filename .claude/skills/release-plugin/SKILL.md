@@ -15,9 +15,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 - Autonomous after step 1: step 1's questions are the only user pauses besides permission prompts. Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one, so a run never gains a bypass the user did not choose.
 - Invoked-skill mode: steps 2-17 invoke each skill as if the user had passed `--yes` (no questions, recommended options taken), so the only pauses stay in step 1.
-- Run steps 1-19 in one continuous run. An invoked skill's Output or Report is that step's result, not the end: print it, then start the next step in the same turn. Never end the turn, ask "continue?", or wait for a prompt between steps.
-- Wait for each spawn's Return before going on. A background spawn's completion resumes the chain at the step that spawned it.
-- Step ledger, so a skipped step shows up: after every step print `Step <n>/19: <result> → next <n+1>`. Before step 19, check that `Steps:` holds 1-18, except skipped steps (step 2's `cdk:switch-branch` part on an unprotected branch, step 11 with no findings, step 12 with `items: 0`). A missing step → run it now.
+- Run steps 1-19 in one continuous run. An invoked skill's Output or Report, including its `Next: none` and `Result: done`, is only that step's result, never the chain's end or its `Next:`. After printing it, the same message carries the next step's first tool call. Never send a text-only message between steps, ask "continue?", or wait for a prompt.
+- Wait for each spawn's Return before going on. A background spawn's completion resumes the chain at the step that spawned it: on every resume, re-read the last ledger line and make the next step's tool call in that same message.
+- Step ledger, so a skipped step shows up: after every step print `Step <n>/19: <result> → next <n+1>`, naming a step number, never a description, in the same message as that step's first tool call. Before step 19, check that `Steps:` holds 1-18, except skipped steps (step 2's `cdk:switch-branch` part on an unprotected branch, step 11 with no findings, step 12 with `items: 0`). A missing step → run it now.
 - Skills are invoked by their `cdk:` name; fallback when one is unavailable: follow `<root>/skills/<name>/SKILL.md` and the files it links, reading `${CLAUDE_SKILL_DIR}` in them as `<root>/skills/<name>`.
 - Chain stop: stop on `Result: stopped`, a host refusal, a failed check, or a stop a step names (cap, no PR URL, release-check miss), with `Result: stopped`, `Stopped: <step>: <reason>`, and `Steps:` listing what is done. `nothing-to-do` (for example, an unchanged README) counts as done and continues; a missing `Result:` line → derive it from what the step did, then continue.
 - The version bump in step 6 changes only `version`; never change any other manifest field, so the tag, CHANGELOG, README, and `plugin.json` agree (step 14 checks).
@@ -49,8 +49,8 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Record the release head branch `<head>` from `git rev-parse --abbrev-ref HEAD`.
 10. **Review the PR.**
     - Invoke the `cdk:review-github-pull-request <url>` skill.
-    - Spawn the review-result reader on that Output; it returns `findings: n`.
-    - `n = 0` → step 12.
+    - Count the open findings from that Output, with no spawn: the `Findings:` blocking + suggestions + nitpicks plus the `Threads:` left-open and unjudged counts. Spawn the review-result reader only when those lines are missing or malformed; it returns `findings: n`.
+    - `n = 0` → step 12, else step 11.
 11. **Address the review.**
     - Round < 3: invoke the `cdk:address-github-pull-request-review <url>` skill with push and replies, then back to step 10.
     - Round 3 reached with findings left → stop before the merge.
