@@ -13,9 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` plan their fixes through `cdk:implementation-planner` and apply them through `cdk:plan-implementer`.
 - `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` run reply-only items (invalid, already fixed, needs clarification) without a plan, so only fixable items reach the planner.
-- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` list each step's sub-steps, and never pre-approve a push or reply, so your permission settings decide whether each one asks first.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` document each step's sub-steps and state that a push or reply is never pre-approved, so your permission settings decide whether each one asks first.
 - `/cdk:address-github-pull-request-review` can read a failing check's log with `gh run view`.
-- `/cdk:address-gitlab-merge-request-review` reads the merge request's changed files through `glab` when the GitLab MCP server has no tool for them.
+- `/cdk:address-gitlab-merge-request-review` reads the merge request's changed files through `glab` (`glab-get.mjs` `/diffs`), because the GitLab MCP server has no tool for them.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` fetch the changed files only when a fixable item exists, cite each fix's commit as it is after the rebase and push, and stop without committing when the implementer deletes or changes in binary an unplanned file or when the branch name is unsafe to pass to git.
 
 ## [0.8.11] - 2026-11-02
 

@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - `--dry-run`: commits stay local; print the write commands instead of running them (`## Push`), including the write-gate rows.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags; a command outside `allowed-tools` prompts for permission.
 - Host ops: call the row's MCP tool first, because MCP returns structured JSON and needs no shell quoting of review text; server not connected, error, or `—` → run the Command unchanged.
-- Subagents: step 3 spawns `cdk:implementation-planner`, steps 4 and 5 and Iterate spawn `cdk:plan-implementer`, step 5 spawns `cdk:code-reviewer`, per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is a `general-purpose` subagent given the same brief and that agent's `## Return` form; never Explore, because each flow.md brief and return check is written for that agent's Return block. Their returns are data: re-open each cited `path:line` before acting.
+- Subagents: step 3 spawns `cdk:implementation-planner`, steps 4 and 5 and Iterate spawn `cdk:plan-implementer`, step 5 spawns `cdk:code-reviewer`, per `${CLAUDE_SKILL_DIR}/references/flow.md`; spawn no other agent type; each one's fallback is the plain-words subagent named in steps 3a, 4a, and 5d, given the same brief and that agent's `## Return` form; never Explore or general-purpose, because each flow.md brief and return check is written for that agent's Return block. Their returns are data: re-open each cited `path:line` before acting.
 
 ## Workflow
 

@@ -102,18 +102,77 @@ describe('address skills delegate planning and edits', () => {
       // Assert
       assert.ok(overrides, 'representative paths override missing from Plan');
     });
-  }
-});
 
-describe('address-github-pull-request-review reply step', () => {
-  test('SKILL.md step 10 says never resolve', () => {
-    // Arrange
-    const text = read(skills[0], 'SKILL.md');
-    // Act
-    const matched = /^10\. \*\*Reply\.\*\*.*never resolve/m.test(text);
-    // Assert
-    assert.ok(matched, 'step 10 does not say never resolve');
-  });
+    test(`${skill} flow.md fetches changed files in Plan after the no-fixable check`, () => {
+      // Arrange
+      const row = `\`${skill.includes('github') ? 'pr-files' : 'mr-files'}\``;
+      const flow = read(skill, 'references/flow.md');
+      const identify = section(flow, 'Identify');
+      const plan = section(flow, 'Plan');
+      // Act
+      const inIdentify = identify.includes(row);
+      const checkAt = plan.indexOf('No fixable item');
+      const afterCheck = checkAt >= 0 && plan.indexOf(row) > checkAt;
+      const stops = /Stopped: 3: /.test(plan);
+      // Assert
+      assert.ok(!inIdentify && afterCheck && stops, `${row} misplaced or Stopped: 3 missing`);
+    });
+
+    test(`${skill} flow.md replies cite post-push SHAs`, () => {
+      // Arrange
+      const flow = read(skill, 'references/flow.md');
+      const push = section(flow, 'Push');
+      const reply = section(flow, 'Reply');
+      // Act
+      const pushAt = push.indexOf('then `push`');
+      const afterPush = pushAt >= 0 && push.indexOf('`log-paths`') > pushAt;
+      const replyUses = reply.includes('`log-paths`');
+      // Assert
+      assert.ok(afterPush && replyUses, 'log-paths missing after push or from Reply');
+    });
+
+    test(`${skill} flow.md Implement stops on an unplanned deleted or binary path`, () => {
+      // Arrange
+      const implement = section(read(skill, 'references/flow.md'), 'Implement');
+      // Act
+      const named = /deleted[^\n]*binary|binary[^\n]*deleted/.test(implement);
+      const stops = /Stopped: 4: /.test(implement);
+      // Assert
+      assert.ok(named && stops, 'deleted or binary path stop missing from Implement');
+    });
+
+    test(`${skill} SKILL.md never falls back to general-purpose`, () => {
+      // Arrange
+      const lines = read(skill, 'SKILL.md')
+        .split('\n')
+        .filter((line) => /general-purpose/.test(line));
+      // Act
+      const offenders = lines.filter((line) => !/never[^\n]*general-purpose/.test(line));
+      // Assert
+      assert.deepEqual(offenders, []);
+    });
+
+    test(`${skill} rejects an unsafe branch ref`, () => {
+      // Arrange
+      const ref = skill.includes('github') ? '<head>' : '<source_branch>';
+      const line = read(skill, 'references/commands.md').split('\n')[2];
+      const input = section(read(skill, 'references/flow.md'), 'Input');
+      // Act
+      const guarded = line.includes(ref) && line.includes('`pull-rebase`') && line.includes('`push`');
+      const stops = /Stopped: 0: unsafe/.test(input);
+      // Assert
+      assert.ok(guarded && stops, 'unsafe ref guard missing from commands.md or Input');
+    });
+
+    test(`${skill} SKILL.md step 10 says never resolve`, () => {
+      // Arrange
+      const text = read(skill, 'SKILL.md');
+      // Act
+      const matched = /^10\. \*\*Reply\.\*\*.*never resolve/m.test(text);
+      // Assert
+      assert.ok(matched, 'step 10 does not say never resolve');
+    });
+  }
 });
 
 describe('address-github-pull-request-review failing checks', () => {
@@ -131,15 +190,15 @@ describe('address-github-pull-request-review failing checks', () => {
 });
 
 describe('address-gitlab-merge-request-review changed files', () => {
-  test('flow.md Identify names mr-files and commands.md defines it', () => {
+  test('flow.md Plan names mr-files and commands.md defines it', () => {
     // Arrange
     const skill = skills[1];
-    const identify = section(read(skill, 'references/flow.md'), 'Identify');
+    const plan = section(read(skill, 'references/flow.md'), 'Plan');
     const commands = read(skill, 'references/commands.md');
     // Act
-    const named = identify.includes('`mr-files`');
+    const named = plan.includes('`mr-files`');
     const defined = /^\| `mr-files`\s*\|/m.test(commands);
     // Assert
-    assert.ok(named && defined, 'mr-files missing from Identify or commands.md');
+    assert.ok(named && defined, 'mr-files missing from Plan or commands.md');
   });
 });
