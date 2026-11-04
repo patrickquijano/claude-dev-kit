@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `/cdk:audit-code-security` audits a whole repo for exploitable security flaws, verifies each candidate, reports the results, and fixes confirmed ones through `/cdk:implement-spec`.
-- `/cdk:audit-code-security` takes `--profile` (`quick`, `standard`, or `deep`), `--range <a>..<b>`, and path arguments to narrow the audit; paths left out are counted under `Open:` and listed under `Not hunted:`.
+- `/cdk:audit-code-security` takes `--profile` (`quick`, `standard`, or `deep`), `--range <a>..<b>` (`<b>` must resolve to `HEAD`), and path arguments to narrow the audit; paths left out are counted under `Open:` and listed under `Not hunted:`.
 - `/cdk:audit-code-security` keeps its run files under `.cdk-security-audit/` and stops when that directory is not ignored by git.
-- `/cdk:audit-code-security` asks once before fixing, with `Fix now` or `Report only`, because fixing runs the project's own checks.
+- `/cdk:audit-code-security` asks once before fixing, with `Fix now` or `Report only`, because fixing runs the project's own checks; `--yes` takes `Report only` and lists the skipped fix under `Open:`.
 - `/cdk:audit-code-security` never reads tracked secret-named files or symlinks that point outside the repo or at one, and lists them under `Not hunted:`.
 - `cdk:security-reviewer` is a read-only subagent that maps trust boundaries and sinks, hunts one unit, or verifies one candidate for `/cdk:audit-code-security`.
 - `/cdk:review-code-changes` accepts intent text and reads commit messages, runs an `intent` review of the changes against them when either exists, skips it with a note under `Open:` when neither does, and may ask permission to read commit messages (a declined read counts as no commits).
