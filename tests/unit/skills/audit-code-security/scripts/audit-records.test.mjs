@@ -317,6 +317,42 @@ describe('init', () => {
     assert.deepEqual(written.sensitive, secrets.toSorted());
   });
 
+  test('hides one name per secret-shaped alternative', () => {
+    // Arrange
+    const fs = fsStub();
+    const secrets = [
+      'a.pem',
+      'a.key',
+      'a.p12',
+      'a.pfx',
+      'a.jks',
+      'a.keystore',
+      'a.kdbx',
+      'a.gpg',
+      'a.tfvars.json',
+      'terraform.tfstate.backup',
+      'id_dsa',
+      'id_ecdsa',
+      'id_ed25519',
+      'credentials.json',
+      '.netrc',
+      '.pgpass',
+      '.pypirc',
+      '.git-credentials',
+      '.dockercfg',
+      '.vault_pass',
+      'application_default_credentials.json',
+      'service-account-prod.json'
+    ];
+    const git = gitStub({ tracked: [...secrets, 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/a.js']);
+    assert.deepEqual(written.sensitive, secrets.toSorted());
+  });
+
   test('lists a path once when ls-files repeats it', () => {
     // Arrange
     const fs = fsStub();
@@ -397,6 +433,28 @@ describe('init', () => {
     const act = () => init(['--root', '/repo'], deps(git, fs));
     // Assert
     assert.throws(act, /boom/);
+  });
+
+  test('hides a tracked symlink into .git whatever the case', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/cfg.txt': '/repo/.GIT/config' }, { '/repo/cfg.txt': 'symlink' });
+    const git = gitStub({ tracked: ['cfg.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['cfg.txt']]);
+  });
+
+  test('hides a tracked symlink to a directory inside the repo', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/lnk': '/repo/src' }, { '/repo/lnk': 'symlink', '/repo/src': 'dir' });
+    const git = gitStub({ tracked: ['lnk', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['lnk']]);
   });
 
   test('hides a tracked symlink into the .git directory', () => {
@@ -804,6 +862,17 @@ describe('init', () => {
     // Assert
     assert.throws(act, /repo-relative/);
   });
+
+  for (const bad of ['/etc/passwd', 'C:x']) {
+    test(`refuses the path ${bad}`, () => {
+      // Arrange
+      const d = deps(gitStub({ tracked }), fsStub());
+      // Act
+      const act = () => init(['--root', '/repo', bad], d);
+      // Assert
+      assert.throws(act, /repo-relative/);
+    });
+  }
 });
 
 describe('ledger', () => {

@@ -43,16 +43,17 @@ const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const under = (f, p) => f === p || f.startsWith(`${p}/`);
 
-// A secret-shaped file name: env, key, cert, keystore, Terraform state and vars, `id_<algo>`, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`. It extends `isSensitive` in review-code-changes/scripts/diff-manifest.mjs; over-hiding is the safe failure.
+// A secret-shaped file name: env, key, cert, keystore, Terraform state and vars, `id_<algo>`, `credentials*`, cloud credential JSON, `secrets.*`, and dotfiles such as `.netrc`. It extends `isSensitive` in review-code-changes/scripts/diff-manifest.mjs; over-hiding is the safe failure.
 function isSensitive(path) {
   const name = basename(path);
   return (
     /^\.env/i.test(name) ||
-    /\.(pem|key|p8|p12|pfx|jks|keystore|tfvars|tfstate)$/i.test(name) ||
+    /\.(pem|key|p8|p12|pfx|jks|keystore|kdbx|gpg|tfvars(\.json)?|tfstate(\.backup)?)$/i.test(name) ||
     /^id_(rsa|dsa|ecdsa|ed25519)/i.test(name) ||
     /^credentials/i.test(name) ||
+    /^(application_default_credentials|service[-_]account.*)\.json$/i.test(name) ||
     /^secrets\./i.test(name) ||
-    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials|htpasswd)$/i.test(name)
+    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials|htpasswd|dockercfg|vault_pass)$/i.test(name)
   );
 }
 
@@ -63,7 +64,7 @@ function typeOf(value) {
 
 function matchesType(value, type) {
   if (type === 'integer') return Number.isInteger(value);
-  return type === 'number' ? typeof value === 'number' : typeOf(value) === type;
+  return typeOf(value) === type;
 }
 
 // Hand-rolled check for the schema keywords the report schema uses; returns `{path, message}` entries and never echoes a value.
@@ -203,7 +204,10 @@ function computeScope(d, git, root, { listed, refs, paths, named }) {
       if (!HIDING_CODES.includes(err?.code)) throw err;
       return true;
     }
-    return !under(target, root) || under(target, join(root, '.git')) || isSensitive(target);
+    // Lowercased for the `.git` check, since a case-insensitive filesystem resolves `.GIT` to it.
+    if (!under(target, root) || under(target.toLowerCase(), join(root, '.git').toLowerCase()) || isSensitive(target))
+      return true;
+    return !d.lstatSync(target, { throwIfNoEntry: false })?.isFile();
   };
   const entries = listed
     .filter((f) => !under(f, RUN_BASE))
@@ -268,7 +272,7 @@ function createRunDir(d, git, root) {
   if (!ignored) throw failAfterUndo(new Error('run dir is not ignored by git'));
   const numbers = d
     .readdirSync(runBase)
-    .map((n) => /^run-(\d+)$/.exec(n))
+    .map((n) => /^run-(\d{1,9})$/.exec(n))
     .filter(Boolean)
     .map((m) => Number(m[1]));
   const run = join(runBase, `run-${Math.max(0, ...numbers) + 1}`);
