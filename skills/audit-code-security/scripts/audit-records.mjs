@@ -41,9 +41,19 @@ class UsageError extends Error {}
 const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const under = (f, p) => f === p || f.startsWith(`${p}/`);
-const SENSITIVE =
-  /^(?:\.env|\.env\..*|.*\.(?:pem|key|p12|pfx)|id_(?:rsa|dsa|ecdsa|ed25519)|credentials|credentials\.json|\.netrc)$/;
-const isSensitive = (f) => SENSITIVE.test(basename(f));
+
+// A secret-shaped file name (`.env*`, key, cert, keystore, and `.tfvars` files, `id_<algo>` keys, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`); mirrors `isSensitive` in review-code-changes.
+function isSensitive(path) {
+  const name = basename(path);
+  return (
+    /^\.env/i.test(name) ||
+    /\.(pem|key|p12|pfx|jks|keystore|tfvars)$/i.test(name) ||
+    /^id_(rsa|dsa|ecdsa|ed25519)/i.test(name) ||
+    /^credentials/i.test(name) ||
+    /^secrets\./i.test(name) ||
+    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials)$/i.test(name)
+  );
+}
 
 function typeOf(value) {
   if (value === null) return 'null';
@@ -204,13 +214,38 @@ export function init(argv, d) {
     throw new Error('--root is not the repository top level');
   if (refs) refs.forEach((ref) => verifyRef(git, ref));
   const head = git(['rev-parse', 'HEAD']).stdout.trim();
-  const tracked = git(['ls-files', '-z']).stdout.split('\0').filter(Boolean).sort(byteSort);
+  if (refs && git(['rev-parse', `${refs[1]}^{commit}`]).stdout.trim() !== head)
+    throw new UsageError(`--range ${refs[1].slice(0, 80)} must resolve to HEAD`);
+  // A symlink that leaves the repo or points at a secret-named file is hidden like a secret-named file.
+  const hidden = new Set();
+  const isHiddenLink = (f) => {
+    let target;
+    try {
+      target = d.realpathSync(join(root, f));
+    } catch (err) {
+      if (err?.code !== 'ENOENT') throw err;
+      return true;
+    }
+    return !under(target, root) || isSensitive(target);
+  };
+  const tracked = git(['ls-files', '-z'])
+    .stdout.split('\0')
+    .filter(Boolean)
+    .filter((f) => !under(f, RUN_BASE))
+    .filter((f) => {
+      const stat = d.lstatSync(join(root, f), { throwIfNoEntry: false });
+      if (!stat || !(stat.isFile() || stat.isSymbolicLink())) return false;
+      if (stat.isSymbolicLink() && isHiddenLink(f)) hidden.add(f);
+      return true;
+    })
+    .sort(byteSort);
   for (const p of named)
     if (!tracked.some((f) => under(f, p))) throw new UsageError(`path matches no tracked file: ${p.slice(0, 80)}`);
   const matched = paths.length ? tracked.filter((f) => paths.some((p) => under(f, p))) : tracked;
   // Secret-named files are listed apart from the scope, so no hunt reads them and the report still names them.
-  const sensitive = matched.filter(isSensitive);
-  const candidates = matched.filter((f) => !isSensitive(f));
+  const isHidden = (f) => isSensitive(f) || hidden.has(f);
+  const sensitive = matched.filter(isHidden);
+  const candidates = matched.filter((f) => !isHidden(f));
   let files = candidates;
   let outOfScope = [];
   if (refs) {
@@ -235,17 +270,22 @@ export function init(argv, d) {
       if (!baseExisted) d.rmdirSync(runBase);
     }
   };
+  // Keeps the original error first and names a failed cleanup in its message, so the stop text stays intact.
+  const failAfterUndo = (err) => {
+    try {
+      undo();
+    } catch (undoErr) {
+      err.message += ` (undo also failed: ${String(undoErr?.message ?? undoErr).split('\n')[0]})`;
+    }
+    return err;
+  };
   let ignored;
   try {
     ignored = git(['check-ignore', '-q', '--', `${RUN_BASE}/`], { okStatuses: [0, 1] }).status === 0;
   } catch (err) {
-    undo();
-    throw err;
+    throw failAfterUndo(err);
   }
-  if (!ignored) {
-    undo();
-    throw new Error('run dir is not ignored by git');
-  }
+  if (!ignored) throw failAfterUndo(new Error('run dir is not ignored by git'));
   const numbers = d
     .readdirSync(runBase)
     .map((n) => /^run-(\d+)$/.exec(n))
@@ -365,9 +405,11 @@ function recordErrors(record, ctx) {
     if (!safeRelPath(record.file)) errors.push(fail('F6', 'file must be repo-relative with no .. segment'));
     else if (!ctx.files.has(record.file)) errors.push(fail('F6', 'file is not in scope.json files'));
   }
-  if (confirmed && !(String(record.fix ?? '').trim() && String(record.regression_test ?? '').trim()))
+  const hasFix = String(record.fix ?? '').trim() !== '';
+  const hasTest = String(record.regression_test ?? '').trim() !== '';
+  if (confirmed && !(hasFix && hasTest))
     errors.push(fail('F7', 'a confirmed finding needs a fix and a regression_test'));
-  else if (!confirmed && (String(record.fix ?? '').trim() || String(record.regression_test ?? '').trim()))
+  else if (!confirmed && (hasFix || hasTest))
     errors.push(fail('F7', 'fix and regression_test must be empty unless confirmed'));
   if (typeof record.evidence === 'string' && record.evidence.trimEnd().split('\n').length > MAX_EVIDENCE_LINES)
     errors.push(fail('F8', `evidence is longer than ${MAX_EVIDENCE_LINES} lines`));

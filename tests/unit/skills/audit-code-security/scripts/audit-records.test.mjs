@@ -62,22 +62,34 @@ const BASE = '/repo/.cdk-security-audit';
 const RUN = `${BASE}/run-1`;
 const enoent = () => Object.assign(new Error('missing'), { code: 'ENOENT' });
 
-// Stubbed git: `tracked` is the ls-files list, `changed` the diff list, `bad` the refs that do not resolve, `calls` records each args array.
+// Stubbed git: `tracked` is the ls-files list, `changed` the diff list, `bad` the refs that do not resolve, `revs` maps a `<ref>^{commit}` arg to its sha, `checkIgnoreStatus` overrides the check-ignore exit, `calls` records each args array.
 const gitStub =
-  ({ tracked = [], changed = [], bad = [], top = '/repo', ignored = true, calls = [] } = {}) =>
+  ({
+    tracked = [],
+    changed = [],
+    bad = [],
+    revs = {},
+    top = '/repo',
+    ignored = true,
+    checkIgnoreStatus,
+    calls = []
+  } = {}) =>
   (cmd, args) => {
     assert.equal(cmd, 'git');
     calls.push(args);
     const out = (stdout, status = 0) => ({ status, stdout, stderr: '' });
     if (args[0] === 'ls-files') return out(tracked.map((f) => `${f}\0`).join(''));
-    if (args[0] === 'check-ignore') return out('', ignored ? 0 : 1);
+    if (args[0] === 'check-ignore') return out('', checkIgnoreStatus ?? (ignored ? 0 : 1));
+    if (args[0] === 'rev-parse' && args[1] in revs) return out(`${revs[args[1]]}\n`);
     if (args[0] === 'diff') return out(changed.map((f) => `${f}\0`).join(''));
     if (args.includes('--show-toplevel')) return out(`${top}\n`);
     if (args.includes('--verify')) return out('', bad.some((r) => args.at(-1).startsWith(r)) ? 1 : 0);
     return out('abc\n');
   };
 
-// Stubbed fs: `links` maps realpath results, `kinds` maps a path to `file` or another kind for lstatSync.
+// Stubbed fs: `links` maps realpath results, `kinds` maps a path to `file`, `symlink`, `missing`, or another kind for lstatSync; a path under /repo outside the run base is a regular file by default.
+const statOf = (kind) =>
+  kind === 'missing' ? undefined : { isFile: () => kind === 'file', isSymbolicLink: () => kind === 'symlink' };
 const fsStub = (files = {}, existing = [], links = {}, kinds = {}) => {
   const written = {};
   const made = [];
@@ -103,7 +115,10 @@ const fsStub = (files = {}, existing = [], links = {}, kinds = {}) => {
     mkdirSync: (p) => made.push(p),
     readdirSync: () => existing,
     realpathSync: (p) => links[p] ?? p,
-    lstatSync: (p) => (p in kinds ? { isFile: () => kinds[p] === 'file' } : undefined)
+    lstatSync: (p) => {
+      if (p in kinds) return statOf(kinds[p]);
+      return p.startsWith('/repo/') && !p.startsWith(BASE) ? statOf('file') : undefined;
+    }
   };
 };
 
@@ -270,6 +285,122 @@ describe('init', () => {
     // Assert
     const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
     assert.deepEqual([written.files, written.out_of_scope, written.sensitive], [[], ['src/a.js'], ['.env']]);
+  });
+
+  test('hides secret-shaped names regardless of case and extension', () => {
+    // Arrange
+    const fs = fsStub();
+    const secrets = ['.ENV', 'server.tfvars', 'secrets.yml', '.npmrc', 'keys/ID_RSA'];
+    const git = gitStub({ tracked: [...secrets, 'src/env.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/env.js']);
+    assert.deepEqual(written.sensitive, secrets.toSorted());
+  });
+
+  test('moves a tracked symlink to an outside file into sensitive', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/link.txt': '/etc/passwd' }, { '/repo/link.txt': 'symlink' });
+    const git = gitStub({ tracked: ['link.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['link.txt']]);
+  });
+
+  test('moves a tracked symlink to a .env file into sensitive', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/config.txt': '/repo/conf/.env' }, { '/repo/config.txt': 'symlink' });
+    const git = gitStub({ tracked: ['config.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['config.txt']]);
+  });
+
+  test('keeps a tracked symlink to a plain file inside the repo in files', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/alias.js': '/repo/src/a.js' }, { '/repo/alias.js': 'symlink' });
+    const git = gitStub({ tracked: ['alias.js', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['alias.js', 'src/a.js'], []]);
+  });
+
+  test('drops a tracked file that is deleted from the working tree', () => {
+    // Arrange
+    const fs = fsStub({}, [], {}, { '/repo/src/b.js': 'missing' });
+    const git = gitStub({ tracked: ['src/a.js', 'src/b.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    assert.deepEqual(JSON.parse(fs.written[`${RUN}/scope.json`]).files, ['src/a.js']);
+  });
+
+  test('drops a tracked path under the run base', () => {
+    // Arrange
+    const fs = fsStub({}, [], {}, { '/repo/.cdk-security-audit/run-0/scope.json': 'file' });
+    const git = gitStub({ tracked: ['src/a.js', '.cdk-security-audit/run-0/scope.json'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    assert.deepEqual(JSON.parse(fs.written[`${RUN}/scope.json`]).files, ['src/a.js']);
+  });
+
+  test('refuses a --range whose second side is not HEAD', () => {
+    // Arrange
+    const git = gitStub({ tracked, revs: { 'other^{commit}': 'zzz' } });
+    // Act
+    const act = () => init(['--root', '/repo', '--range', 'main..other'], deps(git, fsStub()));
+    // Assert
+    assert.throws(act, /--range other must resolve to HEAD/);
+  });
+
+  test('removes .gitignore and the run base when check-ignore exits 128', () => {
+    // Arrange
+    const fs = fsStub();
+    const d = deps(gitStub({ tracked, checkIgnoreStatus: 128 }), fs);
+    // Act
+    const act = () => init(['--root', '/repo'], d);
+    // Assert
+    assert.throws(act, /git check-ignore exited 128/);
+    assert.deepEqual(fs.removed, [`${BASE}/.gitignore`, BASE]);
+  });
+
+  test('rethrows the git error when undoing the run base also fails', () => {
+    // Arrange
+    const fs = {
+      ...fsStub(),
+      rmSync: () => {
+        throw new Error('rm failed');
+      }
+    };
+    const d = deps(gitStub({ tracked, checkIgnoreStatus: 128 }), fs);
+    // Act
+    const act = () => init(['--root', '/repo'], d);
+    // Assert
+    assert.throws(act, /git check-ignore exited 128.*\(undo also failed: rm failed\)/);
+  });
+
+  test('keeps the not-ignored error when undoing the run base fails', () => {
+    // Arrange
+    const fs = {
+      ...fsStub(),
+      rmSync: () => {
+        throw new Error('rm failed');
+      }
+    };
+    const d = deps(gitStub({ tracked, ignored: false }), fs);
+    // Act
+    const act = () => init(['--root', '/repo'], d);
+    // Assert
+    assert.throws(act, /^Error: run dir is not ignored by git \(undo also failed: rm failed\)/);
   });
 
   test('refuses a run base symlinked outside the repo', () => {
@@ -742,11 +873,10 @@ describe('findings', () => {
 
   test('F1 names a missing required field', () => {
     // Arrange
-    const { actor, ...rest } = record();
+    const records = [record({ actor: undefined })];
     // Act
-    const out = check([rest]);
+    const out = check(records);
     // Assert
-    assert.equal(actor, 'anonymous user');
     assert.deepEqual(
       out.errors.map((e) => [e.rule, e.message]),
       [['F1', '$.findings[0]: missing actor']]
