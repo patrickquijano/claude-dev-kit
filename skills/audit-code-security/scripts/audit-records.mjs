@@ -35,6 +35,7 @@ const MAX_BUFFER = 256 * 1024 * 1024;
 const MAX_UNITS = 40;
 const MAX_EVIDENCE_LINES = 3;
 const RUN_BASE = '.cdk-security-audit';
+const HIDING_CODES = ['ENOENT', 'ELOOP', 'ENOTDIR', 'EACCES'];
 
 class UsageError extends Error {}
 
@@ -42,7 +43,7 @@ const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const under = (f, p) => f === p || f.startsWith(`${p}/`);
 
-// A secret-shaped file name (`.env*`, key, cert, keystore, and `.tfvars` files, `id_<algo>` keys, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`); mirrors `isSensitive` in review-code-changes.
+// A secret-shaped file name (`.env*`, key, cert, keystore, and `.tfvars` files, `id_<algo>` keys, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`); mirrors `isSensitive` in review-code-changes. `credentials*` also hides files like credentials.service.ts; over-hiding is the safe failure, and the pattern mirrors `isSensitive` in review-code-changes/scripts/diff-manifest.mjs.
 function isSensitive(path) {
   const name = basename(path);
   return (
@@ -216,29 +217,25 @@ export function init(argv, d) {
   const head = git(['rev-parse', 'HEAD']).stdout.trim();
   if (refs && git(['rev-parse', `${refs[1]}^{commit}`]).stdout.trim() !== head)
     throw new UsageError(`--range ${refs[1].slice(0, 80)} must resolve to HEAD`);
-  // A symlink that leaves the repo or points at a secret-named file is hidden like a secret-named file.
-  const hidden = new Set();
+  // A symlink that leaves the repo, enters `.git`, or points at a secret-named file is hidden like a secret-named file.
   const isHiddenLink = (f) => {
     let target;
     try {
       target = d.realpathSync(join(root, f));
     } catch (err) {
-      if (err?.code !== 'ENOENT') throw err;
+      if (!HIDING_CODES.includes(err?.code)) throw err;
       return true;
     }
-    return !under(target, root) || isSensitive(target);
+    return !under(target, root) || under(target, join(root, '.git')) || isSensitive(target);
   };
-  const tracked = git(['ls-files', '-z'])
+  const entries = git(['ls-files', '-z'])
     .stdout.split('\0')
     .filter(Boolean)
     .filter((f) => !under(f, RUN_BASE))
-    .filter((f) => {
-      const stat = d.lstatSync(join(root, f), { throwIfNoEntry: false });
-      if (!stat || !(stat.isFile() || stat.isSymbolicLink())) return false;
-      if (stat.isSymbolicLink() && isHiddenLink(f)) hidden.add(f);
-      return true;
-    })
-    .sort(byteSort);
+    .map((f) => ({ f, stat: d.lstatSync(join(root, f), { throwIfNoEntry: false }) }))
+    .filter(({ stat }) => stat && (stat.isFile() || stat.isSymbolicLink()));
+  const hidden = new Set(entries.filter(({ f, stat }) => stat.isSymbolicLink() && isHiddenLink(f)).map(({ f }) => f));
+  const tracked = entries.map(({ f }) => f).sort(byteSort);
   for (const p of named)
     if (!tracked.some((f) => under(f, p))) throw new UsageError(`path matches no tracked file: ${p.slice(0, 80)}`);
   const matched = paths.length ? tracked.filter((f) => paths.some((p) => under(f, p))) : tracked;
@@ -344,7 +341,7 @@ function readLedger(d, run) {
   return doc.units;
 }
 
-// ledger: checks `ledger.json` against `scope.json` (L0 malformed unit, L1 duplicate id, L2 coverage enum, L3 uncovered file, L4 covered/deferred unit cap, L5 path outside scope, L6 out-of-scope path in no out_of_scope unit).
+// ledger: checks `ledger.json` against `scope.json` (L0 malformed unit, L1 duplicate id, L2 coverage enum, L3 file not in exactly one unit, L4 covered/deferred unit cap, L5 path outside scope, L6 out-of-scope path in no out_of_scope unit).
 export function ledger(argv, d) {
   const run = resolveRun(d, parseFlags(argv, ['--run']).flags);
   const coverage = loadSchema(d).$defs.coverage.enum;
@@ -362,9 +359,15 @@ export function ledger(argv, d) {
     if (!coverage.includes(unit.coverage))
       errors.push({ rule: 'L2', id: unit.coverage_id ?? null, message: `coverage must be ${coverage.join('|')}` });
   }
-  const covered = new Set(units.flatMap((u) => (isStrings(u?.paths) ? u.paths : [])));
-  for (const file of scope.files)
-    if (!covered.has(file)) errors.push({ rule: 'L3', id: file, message: `${file} is in no unit's paths` });
+  const owners = new Map();
+  for (const u of units)
+    for (const p of new Set(isStrings(u?.paths) ? u.paths : [])) owners.set(p, (owners.get(p) ?? 0) + 1);
+  for (const file of scope.files) {
+    const n = owners.get(file) ?? 0;
+    if (n === 0) errors.push({ rule: 'L3', id: file, message: `${file} is in no unit's paths` });
+    else if (n > 1)
+      errors.push({ rule: 'L3', id: file, message: `${file} is in ${n} units' paths; it belongs to exactly one` });
+  }
   const inScope = new Set(scope.files);
   const outside = new Set(scope.out_of_scope ?? []);
   for (const unit of units) {
