@@ -43,16 +43,16 @@ const byteSort = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const isStrings = (v) => Array.isArray(v) && v.every((s) => typeof s === 'string');
 const under = (f, p) => f === p || f.startsWith(`${p}/`);
 
-// A secret-shaped file name (`.env*`, key, cert, keystore, and `.tfvars` files, `id_<algo>` keys, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`); mirrors `isSensitive` in review-code-changes. `credentials*` also hides files like credentials.service.ts; over-hiding is the safe failure, and the pattern mirrors `isSensitive` in review-code-changes/scripts/diff-manifest.mjs.
+// A secret-shaped file name: env, key, cert, keystore, Terraform state and vars, `id_<algo>`, `credentials*`, `secrets.*`, and dotfiles such as `.netrc`. It extends `isSensitive` in review-code-changes/scripts/diff-manifest.mjs; over-hiding is the safe failure.
 function isSensitive(path) {
   const name = basename(path);
   return (
     /^\.env/i.test(name) ||
-    /\.(pem|key|p12|pfx|jks|keystore|tfvars)$/i.test(name) ||
+    /\.(pem|key|p8|p12|pfx|jks|keystore|tfvars|tfstate)$/i.test(name) ||
     /^id_(rsa|dsa|ecdsa|ed25519)/i.test(name) ||
     /^credentials/i.test(name) ||
     /^secrets\./i.test(name) ||
-    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials)$/i.test(name)
+    /^\.(netrc|npmrc|pgpass|pypirc|git-credentials|htpasswd)$/i.test(name)
   );
 }
 
@@ -301,7 +301,7 @@ export function init(argv, d) {
   const head = git(['rev-parse', 'HEAD']).stdout.trim();
   if (refs && git(['rev-parse', `${refs[1]}^{commit}`]).stdout.trim() !== head)
     throw new UsageError(`--range ${refs[1].slice(0, 80)} must resolve to HEAD`);
-  const listed = git(['ls-files', '-z']).stdout.split('\0').filter(Boolean);
+  const listed = [...new Set(git(['ls-files', '-z']).stdout.split('\0').filter(Boolean))];
   if (listed.includes(`${RUN_BASE}/.gitignore`))
     throw new Error(`unsafe run dir: ${RUN_BASE}/.gitignore is tracked by git`);
   const { files, outOfScope, sensitive } = computeScope(d, git, root, { listed, refs, paths, named });

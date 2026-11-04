@@ -304,6 +304,30 @@ describe('init', () => {
     assert.deepEqual(written.sensitive, secrets.toSorted());
   });
 
+  test('hides terraform state, apple keys and htpasswd files', () => {
+    // Arrange
+    const fs = fsStub();
+    const secrets = ['infra/prod.tfstate', 'AuthKey.p8', 'web/.htpasswd'];
+    const git = gitStub({ tracked: [...secrets, 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/a.js']);
+    assert.deepEqual(written.sensitive, secrets.toSorted());
+  });
+
+  test('lists a path once when ls-files repeats it', () => {
+    // Arrange
+    const fs = fsStub();
+    const git = gitStub({ tracked: ['src/a.js', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/a.js']);
+  });
+
   test('moves a tracked symlink to an outside file into sensitive', () => {
     // Arrange
     const fs = fsStub({}, [], { '/repo/link.txt': '/etc/passwd' }, { '/repo/link.txt': 'symlink' });
