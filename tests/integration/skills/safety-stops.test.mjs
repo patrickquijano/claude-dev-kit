@@ -17,8 +17,13 @@ const skillText = (name) =>
     .map((file) => readFileSync(file, 'utf8'))
     .join('\n');
 
-// Each entry is a fact stop that refuses without asking; `--yes` never skips it.
+// Each entry is a fact stop that refuses without asking; `--yes` never skips it. The audit-code-security entries pin step 1b's stop and step 5a.1's `--yes` default.
 const STOPS = {
+  'audit-code-security': [
+    /Stopped: 1: run directory not ignored by git/,
+    /1b\. Safety stop:.*never `--yes`-skipped/,
+    /5a\.1\. Ask once, showing .*`Fix now`.*`--yes` takes `Report only`/
+  ],
   'merge-github-pull-request': [
     /draft/i,
     /conflict/i,

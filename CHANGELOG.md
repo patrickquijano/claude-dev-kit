@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.14] - 2026-11-04
+
+### Added
+
+- `/cdk:audit-code-security` audits a whole repo for exploitable security flaws, verifies each candidate, reports the results, and fixes confirmed ones through `/cdk:implement-spec`.
+- `/cdk:audit-code-security` takes `--profile` (`quick`, `standard`, or `deep`), `--range <a>..<b>` (`<b>` must resolve to `HEAD`), and path arguments to narrow the audit; paths left out are counted under `Open:` and listed under `Not hunted:`.
+- `/cdk:audit-code-security` keeps its run files under `.cdk-security-audit/` and stops when that directory is not ignored by git.
+- `/cdk:audit-code-security` asks once before fixing, with `Fix now` or `Report only`, because fixing runs the project's own checks; `--yes` takes `Report only` and lists the skipped fix under `Open:`.
+- `/cdk:audit-code-security` never reads tracked secret-named files or symlinks that point outside the repo or at one, and lists them under `Not hunted:`.
+- `cdk:security-reviewer` is a read-only subagent that maps trust boundaries and sinks, hunts one unit, or verifies one candidate for `/cdk:audit-code-security`.
+- `/cdk:review-code-changes` accepts intent text and reads commit messages, runs an `intent` review of the changes against them when either exists, skips it with a note under `Open:` when neither does, and may ask permission to read commit messages (a declined read counts as no commits).
+
+### Changed
+
+- `/cdk:audit-subagent` scores low or medium effort as a fit for search, summarize, and lint tasks (rubric C5.1).
+- `/cdk:build-subagent` effort guidance favors a lower level when a downstream gate catches a miss, and its effort table describes each level in more detail.
+- `cdk:code-reviewer` and `cdk:implementation-planner` run at `high` effort, `cdk:format-lint-analyzer` and `cdk:repo-analyzer` at `medium`, and `cdk:codebase-explorer` uses the `haiku` model.
+
 ## [0.8.13] - 2026-11-03
 
 ### Changed
@@ -507,7 +525,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...HEAD
+[0.8.14]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...v0.8.14
 [0.8.13]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...v0.8.13
 [0.8.12]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...v0.8.12
 [0.8.11]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.10...v0.8.11

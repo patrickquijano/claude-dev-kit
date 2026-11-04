@@ -120,7 +120,7 @@ Asked in every create and update (improve: only when a violation touches them); 
 3. The job fits two rows → recommend the row for its hardest step, and say it was a close call.
 4. Every reason cites a job, tool, or sibling fact and names the deciding criterion; never recommend from the name alone. Update: recommend the current value when the evidence supports it.
 
-Criteria: reasoning depth, cost of a miss, context size, spawn frequency and latency, tool power, sibling consensus.
+Criteria: reasoning depth, cost of a miss, context size, spawn frequency and latency, tool power, sibling consensus; a downstream gate that catches a miss favors the lower level.
 
 | Model    | Pick for                                                                                                                                                                   | Trade-off                                                                                                                   |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -131,13 +131,13 @@ Criteria: reasoning depth, cost of a miss, context size, spawn frequency and lat
 
 `model` and `inherit`: per `agent-checklist.md` `## Fields on signal`; otherwise recommend the alias the criteria support and say why.
 
-| Effort   | Pick for                                                                                            | Trade-off                                                    |
-| -------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `low`    | Fixed-rule lookups and inventories, or spawns that are frequent or fanned out where latency matters | Fastest and cheapest; shallow reasoning                      |
-| `medium` | Bounded judgment over a moderate scope: scoring, drafting, analysis                                 | Balanced speed and depth                                     |
-| `high`   | Multi-step reasoning across files where a miss is costly: correctness or security review            | Slower and costlier; catches more                            |
-| `xhigh`  | Interdependent planning, conflict resolution, long-horizon edits                                    | Slower still; use when `high` misses cross-step dependencies |
-| `max`    | Only when the input says `xhigh` is not enough                                                      | Slowest and most expensive level                             |
+| Effort   | Pick for                                                                                                                                                                                           | Trade-off                                                 |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `low`    | Single-shot lookups where a skipped check costs nothing, or high-volume fan-out where latency beats thoroughness                                                                                   | Fastest and cheapest; shallow reasoning, may skip a check |
+| `medium` | Fixed-rule lookups, inventories, and fact collection; bounded judgment (scoring, drafting, analysis); repeated verification decided by command exit codes; analysis the user approves item by item | Balanced speed and depth                                  |
+| `high`   | Multi-step reasoning whose miss nothing downstream catches: final correctness or security review, interdependent planning that drives later edits                                                  | Slower and costlier; catches more                         |
+| `xhigh`  | Long-running agentic or coding work (over 30 minutes, million-token budgets), or work where `high` misses cross-step dependencies                                                                  | Slower still; use only for that scope                     |
+| `max`    | Only when the input says `xhigh` is not enough                                                                                                                                                     | Slowest and most expensive level                          |
 
 Layout: model options the recommended alias first and one alternate it was weighed against, the other aliases and `inherit` under Other; effort: the recommended level first, then its two neighbours; "Other" covers a full model ID only for model.
 

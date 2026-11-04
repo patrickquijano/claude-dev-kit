@@ -3,7 +3,7 @@ name: repo-analyzer
 description: Collects the repo facts that a devcontainer, .gitignore, permission rules, README, CI workflows, or project instructions need before writing. Read-only.
 tools: Read, Glob, Grep, Bash
 model: haiku
-effort: low
+effort: medium
 color: cyan
 ---
 

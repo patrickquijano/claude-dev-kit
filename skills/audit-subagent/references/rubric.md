@@ -79,7 +79,7 @@ Record: purpose | rules that apply (D1-D4, I1-I4) | verdict (justified / not jus
 
 ## C5. Model, effort, and color fit (6)
 
-- C5.1 Model and effort match task complexity (3): 3 = lightweight model and low effort for search/summarize/lint tasks, stronger model and higher effort for design/review/judgment tasks, or inherit when the parent's model is the right fit; 1 = defensible but unexplained mismatch; 0 = clear mismatch (strongest model or `max` effort for mechanical lookups, or weakest for complex reasoning).
+- C5.1 Model and effort match task complexity (3): 3 = lightweight model and low or medium effort for search/summarize/lint tasks, stronger model and higher effort for design/review/judgment tasks, or inherit when the parent's model is the right fit; 1 = defensible but unexplained mismatch; 0 = clear mismatch (strongest model or `max` effort for mechanical lookups, or weakest for complex reasoning).
 - C5.2 Model and effort stated, or deliberately omitted with reason (1): 1 = stated, or omission justified; 0 = neither.
 - C5.3 `color` matches access (2): 2 = `cyan` for a read-only agent, `red` for a write-capable one (`tools` has Edit, Write, or NotebookEdit, `memory` is set, or `tools` is omitted); 0 = missing or the other color. Display only, so a fix never changes behavior.
 

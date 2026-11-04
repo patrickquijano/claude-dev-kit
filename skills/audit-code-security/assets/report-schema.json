@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "audit-code-security findings.json",
+  "type": "object",
+  "$defs": {
+    "coverage": { "enum": ["covered", "deferred", "out_of_scope"] }
+  },
+  "properties": {
+    "root": { "type": "string" },
+    "head": { "type": "string" },
+    "profile": { "enum": ["quick", "standard", "deep"] },
+    "range": { "type": ["string", "null"] },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "pattern": "^SA-\\d{3,}$" },
+          "coverage_id": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "actor": { "type": "string" },
+          "input": { "type": "string" },
+          "boundary": { "type": "string" },
+          "impact": { "type": "string" },
+          "evidence": { "type": "string" },
+          "verdict": { "enum": ["confirmed", "needs_validation", "rejected"] },
+          "severity": { "enum": ["critical", "high", "medium", "low", null] },
+          "refutation": { "type": "string" },
+          "fix": { "type": "string" },
+          "regression_test": { "type": "string" },
+          "fix_status": { "enum": ["fixed", "open", "not_applicable"] }
+        },
+        "required": [
+          "id",
+          "coverage_id",
+          "file",
+          "line",
+          "actor",
+          "input",
+          "boundary",
+          "impact",
+          "evidence",
+          "verdict",
+          "severity",
+          "refutation",
+          "fix",
+          "regression_test",
+          "fix_status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["root", "head", "profile", "range", "findings"],
+  "additionalProperties": false
+}
