@@ -53,7 +53,7 @@ Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no so
 - Impact if true: <impact>
 - Evidence: <evidence, secrets as [redacted]>
 - Refutation: <refutation>
-- Depends on: <the deployment fact named in refutation>
+- Depends on: <the deployment fact named in refutation, or `not verified: over the verify cap` (rerun with a narrower scope)>
 ```
 
 ## FIX-SPEC

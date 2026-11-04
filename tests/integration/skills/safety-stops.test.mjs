@@ -20,9 +20,9 @@ const skillText = (name) =>
 // Each entry is a fact stop that refuses without asking; `--yes` never skips it. The audit-code-security entries pin step 1b's stop and step 5a.1's `--yes` default.
 const STOPS = {
   'audit-code-security': [
-    /not ignored by git/,
+    /Stopped: 1: run directory not ignored by git/,
     /1b\. Safety stop:.*never `--yes`-skipped/,
-    /5a\.1\. Ask once:.*`--yes` takes `Report only`/
+    /5a\.1\. Ask once, showing .*`Fix now`.*`--yes` takes `Report only`/
   ],
   'merge-github-pull-request': [
     /draft/i,

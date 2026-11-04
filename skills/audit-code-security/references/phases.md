@@ -51,13 +51,13 @@ Write `<run>/ledger.json` from the `Units` lines (`<coverage_id> | <paths> | <fi
 - A wave hunts each `covered` unit with `wave: null` once, riskiest first (most sinks, then most entry points).
 - A wave size is the whole remaining set; if the subagent cap or context makes that unsafe, hunt in the order above and stop at the budget.
 - After a unit is hunted set its `wave` to the wave number. After the last wave, every unit still `null` becomes `deferred`.
-- A later wave takes only units with `wave: null`; a unit whose hunt returned `Status: partial` is reset to `wave: null` so the next wave re-hunts it.
+- A later wave takes only units with `wave: null`; a unit whose hunt returned `Status: partial` is reset to `wave: null` so the next wave re-hunts it, and its earlier candidates are discarded (or deduped by `file:line`). A unit still partial after the last wave goes under `Open:`.
 - Re-run `ledger` after each ledger edit.
 
 ## Verify cap
 
 - Verify spawns per profile: quick 10, standard 25, deep 50. This is an assumption; report it under `Open:`.
-- Verify candidates in the order they leave the hunt waves; a candidate past the cap is not spawned and takes the hunt-level `needs_validation` path (SKILL.md step 4) with `refutation: not verified: over the verify cap`.
+- Verify candidates in the order they leave the hunt waves (riskiest units first, since candidates carry no severity before verify); a candidate past the cap is not spawned and takes the hunt-level `needs_validation` path (SKILL.md step 4) with `refutation: not verified: over the verify cap`.
 
 ## Hunt brief
 
