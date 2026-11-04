@@ -65,7 +65,7 @@ One `## <id>` section per confirmed finding, most severe first.
 
 Run directory: <absolute run directory>
 Repo root: <absolute repo root>
-Edit only files inside the repo; never write to the run directory.
+Edit only files inside the repo; never write to the run directory. Add no commands, dependencies, or CI, hook, or config changes.
 
 ## <id> — <file:line>
 

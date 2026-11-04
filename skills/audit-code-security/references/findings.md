@@ -47,7 +47,7 @@ All fields are required in `findings.json` records; the schema file lists the al
 - `id`, `coverage_id` (the ledger unit that produced it), `file` (repo-relative), `line` (integer, 1 or more).
 - `actor`, `input`, `boundary`, `impact`: one short sentence each.
 - `evidence`: at most 3 lines, with secrets as `[redacted]`.
-- `verdict`, `severity`, `refutation` (the disproof attempted and why it held or failed; for `needs_validation` it names the deployment fact the verdict depends on).
+- `verdict`, `severity`, `refutation` (the disproof attempted and why it held or failed; for `needs_validation` it names the deployment fact the verdict depends on, or reads `not verified: over the verify cap`).
 - `fix` and `regression_test`: non-empty for `confirmed`; empty strings otherwise.
 - `fix_status`: `fixed` or `open` for `confirmed`; `not_applicable` otherwise.
 
