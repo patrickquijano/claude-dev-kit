@@ -114,7 +114,11 @@ const fsStub = (files = {}, existing = [], links = {}, kinds = {}) => {
     },
     mkdirSync: (p) => made.push(p),
     readdirSync: () => existing,
-    realpathSync: (p) => links[p] ?? p,
+    realpathSync: (p) => {
+      const v = links[p];
+      if (v instanceof Error) throw v;
+      return v ?? p;
+    },
     lstatSync: (p) => {
       if (p in kinds) return statOf(kinds[p]);
       return p.startsWith('/repo/') && !p.startsWith(BASE) ? statOf('file') : undefined;
@@ -331,6 +335,66 @@ describe('init', () => {
     // Assert
     const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
     assert.deepEqual([written.files, written.sensitive], [['alias.js', 'src/a.js'], []]);
+  });
+
+  test('hides .envrc, .env-local, and .git-credentials', () => {
+    // Arrange
+    const fs = fsStub();
+    const secrets = ['.envrc', '.env-local', '.git-credentials'];
+    const git = gitStub({ tracked: [...secrets, 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/a.js']);
+    assert.deepEqual(written.sensitive, secrets.toSorted());
+  });
+
+  for (const code of ['ENOENT', 'ELOOP', 'ENOTDIR', 'EACCES']) {
+    test(`hides a tracked symlink whose realpath fails with ${code}`, () => {
+      // Arrange
+      const err = Object.assign(new Error('x'), { code });
+      const fs = fsStub({}, [], { '/repo/link.txt': err }, { '/repo/link.txt': 'symlink' });
+      const git = gitStub({ tracked: ['link.txt', 'src/a.js'] });
+      // Act
+      init(['--root', '/repo'], deps(git, fs));
+      // Assert
+      const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+      assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['link.txt']]);
+    });
+  }
+
+  test('rethrows an unexpected realpath error for a tracked symlink', () => {
+    // Arrange
+    const err = Object.assign(new Error('boom'), { code: 'EIO' });
+    const fs = fsStub({}, [], { '/repo/link.txt': err }, { '/repo/link.txt': 'symlink' });
+    const git = gitStub({ tracked: ['link.txt', 'src/a.js'] });
+    // Act
+    const act = () => init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    assert.throws(act, /boom/);
+  });
+
+  test('hides a tracked symlink into the .git directory', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/cfg.txt': '/repo/.git/config' }, { '/repo/cfg.txt': 'symlink' });
+    const git = gitStub({ tracked: ['cfg.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['cfg.txt']]);
+  });
+
+  test('keeps a tracked symlink into .github in files', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/ci.txt': '/repo/.github/ci.yml' }, { '/repo/ci.txt': 'symlink' });
+    const git = gitStub({ tracked: ['ci.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['ci.txt', 'src/a.js'], []]);
   });
 
   test('drops a tracked file that is deleted from the working tree', () => {
@@ -613,6 +677,11 @@ describe('ledger', () => {
       deps(null, runFs({ [`${RUN}/scope.json`]: bare, [`${RUN}/ledger.json`]: json({ units }), ...extra }))
     );
   const withScope = { [`${RUN}/scope.json`]: json(scope) };
+  // n covered units, each owning one distinct scope file.
+  const many = (n) => ({
+    files: Array.from({ length: n }, (_, i) => `src/f${i}.js`),
+    units: Array.from({ length: n }, (_, i) => unit({ coverage_id: `u${i}`, paths: [`src/f${i}.js`] }))
+  });
 
   test('accepts a ledger that covers every scope file', () => {
     // Arrange
@@ -634,7 +703,7 @@ describe('ledger', () => {
 
   test('L1 flags a duplicate coverage_id', () => {
     // Arrange
-    const units = [unit(), unit()];
+    const units = [unit({ paths: ['src/a.js'] }), unit({ paths: ['src/b.js'] })];
     // Act
     const out = check(units);
     // Assert
@@ -662,6 +731,36 @@ describe('ledger', () => {
     );
   });
 
+  test('L3 flags a scope file in more than one unit', () => {
+    // Arrange
+    const units = [unit({ paths: ['src/a.js', 'src/b.js'] }), unit({ coverage_id: 'u2', paths: ['src/a.js'] })];
+    // Act
+    const out = check(units);
+    // Assert
+    assert.deepEqual(
+      out.errors.map((e) => [e.rule, e.id]),
+      [['L3', 'src/a.js']]
+    );
+  });
+
+  test('L3 passes when units hold disjoint paths', () => {
+    // Arrange
+    const units = [unit({ paths: ['src/a.js'] }), unit({ coverage_id: 'u2', paths: ['src/b.js'] })];
+    // Act
+    const out = check(units);
+    // Assert
+    assert.deepEqual(out, { ok: true, units: 2 });
+  });
+
+  test('L3 accepts a path listed twice inside one unit', () => {
+    // Arrange
+    const units = [unit({ paths: ['src/a.js', 'src/a.js', 'src/b.js'] })];
+    // Act
+    const out = check(units);
+    // Assert
+    assert.deepEqual(out, { ok: true, units: 1 });
+  });
+
   test('L4 flags more than 40 units', () => {
     // Arrange
     const units = Array.from({ length: 41 }, (_, i) => unit({ coverage_id: `u${i}` }));
@@ -674,24 +773,23 @@ describe('ledger', () => {
   test('L4 ignores out_of_scope units in the cap', () => {
     // Arrange
     const ghosts = Array.from({ length: 45 }, (_, i) => `docs/g${i}.md`);
-    const units = [
-      ...Array.from({ length: 40 }, (_, i) => unit({ coverage_id: `u${i}` })),
-      unit({ coverage_id: 'U-OOS', paths: ghosts, coverage: 'out_of_scope', wave: null })
-    ];
+    const { files, units: covered } = many(40);
+    const units = [...covered, unit({ coverage_id: 'U-OOS', paths: ghosts, coverage: 'out_of_scope', wave: null })];
     // Act
-    const out = check(units, { [`${RUN}/scope.json`]: json({ ...scope, out_of_scope: ghosts }) });
+    const out = check(units, { [`${RUN}/scope.json`]: json({ ...scope, files, out_of_scope: ghosts }) });
     // Assert
     assert.equal(out.ok, true);
   });
 
   test('L4 still flags 41 covered units next to a U-OOS unit', () => {
     // Arrange
+    const { files, units: covered } = many(41);
     const units = [
-      ...Array.from({ length: 41 }, (_, i) => unit({ coverage_id: `u${i}` })),
+      ...covered,
       unit({ coverage_id: 'U-OOS', paths: ['docs/x.md'], coverage: 'out_of_scope', wave: null })
     ];
     // Act
-    const out = check(units, withScope);
+    const out = check(units, { [`${RUN}/scope.json`]: json({ ...scope, files }) });
     // Assert
     assert.deepEqual(rules(out), ['L4']);
   });
@@ -747,7 +845,10 @@ describe('ledger', () => {
 
   test('L1 skips units whose coverage_id is missing', () => {
     // Arrange
-    const units = [unit({ coverage_id: undefined }), unit({ coverage_id: undefined })];
+    const units = [
+      unit({ coverage_id: undefined, paths: ['src/a.js'] }),
+      unit({ coverage_id: undefined, paths: ['src/b.js'] })
+    ];
     // Act
     const out = check(units);
     // Assert

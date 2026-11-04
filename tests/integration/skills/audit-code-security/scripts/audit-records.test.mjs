@@ -124,6 +124,51 @@ describe('audit-records init', () => {
     assert.equal(scope.files.includes('.env'), false);
   });
 
+  test('hides a committed symlink to a file outside the repo', () => {
+    // Arrange
+    const other = makeRepo();
+    const outside = join(tmp('outside'), 'target.txt');
+    writeFileSync(outside, 'data\n');
+    symlinkSync(outside, join(other, 'out.txt'));
+    git(other, 'add', 'out.txt');
+    git(other, 'commit', '-q', '-m', 'add link');
+    // Act
+    const { out } = cli('init', '--root', other);
+    const scope = JSON.parse(readFileSync(join(out.run, 'scope.json'), 'utf8'));
+    // Assert
+    assert.deepEqual(scope.sensitive, ['out.txt']);
+    assert.equal(scope.files.includes('out.txt'), false);
+  });
+
+  test('hides a committed symlink to a .env file', () => {
+    // Arrange
+    const other = makeRepo();
+    writeFileSync(join(other, '.env'), 'X=1\n');
+    symlinkSync('.env', join(other, 'config.txt'));
+    git(other, 'add', 'config.txt');
+    git(other, 'commit', '-q', '-m', 'add link');
+    // Act
+    const { out } = cli('init', '--root', other);
+    const scope = JSON.parse(readFileSync(join(out.run, 'scope.json'), 'utf8'));
+    // Assert
+    assert.equal(scope.sensitive.includes('config.txt'), true);
+    assert.equal(scope.files.includes('config.txt'), false);
+  });
+
+  test('hides a committed symlink to a missing target', () => {
+    // Arrange
+    const other = makeRepo();
+    symlinkSync('missing-target.txt', join(other, 'dangling.txt'));
+    git(other, 'add', 'dangling.txt');
+    git(other, 'commit', '-q', '-m', 'add link');
+    // Act
+    const { out } = cli('init', '--root', other);
+    const scope = JSON.parse(readFileSync(join(out.run, 'scope.json'), 'utf8'));
+    // Assert
+    assert.deepEqual(scope.sensitive, ['dangling.txt']);
+    assert.equal(scope.files.includes('dangling.txt'), false);
+  });
+
   test('loads the bundled schema for --profile deep', () => {
     // Arrange
     const args = ['init', '--root', root, '--profile', 'deep'];
