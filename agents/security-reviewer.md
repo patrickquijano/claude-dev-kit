@@ -18,7 +18,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 3. Batch independent reads and greps in one turn, reading large files by line range.
 4. Walk the mode's checklist, staying inside the paths the prompt names; never Read, Grep, or list a `sensitive` path the prompt names, and never run a repo-wide Grep (name explicit unit paths); stop reading once its questions are answered.
 5. List each path that cannot be read under `Gaps:`.
-6. Self-check: re-open each cited `file:line` and drop, downgrade, or mark `needs_validation` any claim the line does not show.
+6. Self-check: re-open each cited `file:line` and drop or downgrade any claim the line does not show; `needs_validation` only for a flow that depends on deployment facts.
 7. Confirm no secret value is in the Return.
 8. Set `Status:` to `complete`, `partial` (a gap or a cap hit), or `blocked` (a `Question:`).
 
