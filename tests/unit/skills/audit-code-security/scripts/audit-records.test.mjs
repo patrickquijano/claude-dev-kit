@@ -417,6 +417,119 @@ describe('init', () => {
     assert.deepEqual(JSON.parse(fs.written[`${RUN}/scope.json`]).files, ['src/a.js']);
   });
 
+  test('lists a tracked run dir file in out_of_scope', () => {
+    // Arrange
+    const fs = fsStub();
+    const git = gitStub({ tracked: ['src/a.js', '.cdk-security-audit/run-0/scope.json'] });
+    // Act
+    const out = init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(
+      [written.files, written.out_of_scope, out.out_of_scope],
+      [['src/a.js'], ['.cdk-security-audit/run-0/scope.json'], 1]
+    );
+  });
+
+  test('lists a gitlink in out_of_scope', () => {
+    // Arrange
+    const fs = fsStub({}, [], {}, { '/repo/vendor/lib': 'dir' });
+    const git = gitStub({ tracked: ['src/a.js', 'vendor/lib'] });
+    // Act
+    const out = init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.out_of_scope, out.out_of_scope], [['src/a.js'], ['vendor/lib'], 1]);
+  });
+
+  test('lists a tracked file missing from the working tree in out_of_scope', () => {
+    // Arrange
+    const fs = fsStub({}, [], {}, { '/repo/src/b.js': 'missing' });
+    const git = gitStub({ tracked: ['src/a.js', 'src/b.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.out_of_scope], [['src/a.js'], ['src/b.js']]);
+  });
+
+  test('keeps only the skipped paths under the path scope in out_of_scope', () => {
+    // Arrange
+    const kinds = { '/repo/src/gone.js': 'missing', '/repo/src/mod': 'dir', '/repo/docs/old.md': 'missing' };
+    const fs = fsStub({}, [], {}, kinds);
+    const git = gitStub({ tracked: ['src/a.js', 'src/gone.js', 'src/mod', 'docs/old.md'] });
+    // Act
+    init(['--root', '/repo', 'src'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.out_of_scope], [['src/a.js'], ['src/gone.js', 'src/mod']]);
+  });
+
+  test('refuses a tracked run base .gitignore before writing anything', () => {
+    // Arrange
+    const fs = fsStub();
+    const git = gitStub({ tracked: ['src/a.js', '.cdk-security-audit/.gitignore'] });
+    // Act
+    const act = () => init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    assert.throws(act, { message: 'unsafe run dir: .cdk-security-audit/.gitignore is tracked by git' });
+    assert.deepEqual([fs.written, fs.made], [{}, []]);
+  });
+
+  test('does not stop for a tracked file deeper in the run base', () => {
+    // Arrange
+    const git = gitStub({ tracked: ['src/a.js', '.cdk-security-audit/run-0/x'] });
+    // Act
+    const out = init(['--root', '/repo'], deps(git, fsStub()));
+    // Assert
+    assert.equal(out.run, RUN);
+  });
+
+  test('hides secret-shaped names by extension and prefix but not look-alikes', () => {
+    // Arrange
+    const fs = fsStub();
+    const secrets = ['Credentials.json', 'auth/credentials.service.ts', 'certs/server.PEM', 'tls/site.key'];
+    const git = gitStub({ tracked: [...secrets, 'src/keyboard.js', 'src/mycredentials.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual(written.files, ['src/keyboard.js', 'src/mycredentials.js']);
+    assert.deepEqual(written.sensitive, secrets);
+  });
+
+  test('hides a symlink to a sibling directory whose name starts with the root name', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/l.txt': '/repo-other/x.txt' }, { '/repo/l.txt': 'symlink' });
+    const git = gitStub({ tracked: ['l.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['src/a.js'], ['l.txt']]);
+  });
+
+  test('keeps a symlink into a directory whose name starts with .git in files', () => {
+    // Arrange
+    const fs = fsStub({}, [], { '/repo/l.txt': '/repo/.gitx/d.txt' }, { '/repo/l.txt': 'symlink' });
+    const git = gitStub({ tracked: ['l.txt', 'src/a.js'] });
+    // Act
+    init(['--root', '/repo'], deps(git, fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.sensitive], [['l.txt', 'src/a.js'], []]);
+  });
+
+  test('treats a path with a trailing slash as a directory prefix', () => {
+    // Arrange
+    const fs = fsStub();
+    // Act
+    init(['--root', '/repo', 'src/'], deps(gitStub({ tracked }), fs));
+    // Assert
+    const written = JSON.parse(fs.written[`${RUN}/scope.json`]);
+    assert.deepEqual([written.files, written.paths], [['src/a.js', 'src/b.js'], ['src']]);
+  });
+
   test('refuses a --range whose second side is not HEAD', () => {
     // Arrange
     const git = gitStub({ tracked, revs: { 'other^{commit}': 'zzz' } });
@@ -573,7 +686,7 @@ describe('init', () => {
     // Act
     const act = () => init(['--root', 'repo'], d);
     // Assert
-    assert.throws(act, /--root/);
+    assert.throws(act, { message: 'init needs --root <abs>' });
   });
 
   test('refuses a bad profile', () => {
@@ -582,7 +695,7 @@ describe('init', () => {
     // Act
     const act = () => init(['--root', '/repo', '--profile', 'fast'], d);
     // Assert
-    assert.throws(act, /--profile/);
+    assert.throws(act, { message: '--profile must be quick|standard|deep' });
   });
 
   test('refuses a symlinked .gitignore and writes nothing', () => {
@@ -1123,6 +1236,26 @@ describe('findings', () => {
     const out = check(records);
     // Assert
     assert.deepEqual(rules(out), ['F6', 'F6']);
+  });
+
+  test('F6 skips a rejected record that names a file outside the scope', () => {
+    // Arrange
+    const base = { severity: null, fix_status: 'not_applicable', fix: '', regression_test: '', verdict: 'rejected' };
+    const records = [record({ ...base, file: 'src/c.js' }), record({ ...base, id: 'SA-002', file: '../x.js' })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(out, { ok: true, findings: 2 });
+  });
+
+  test('F6 flags a needs_validation record that names a file outside the scope', () => {
+    // Arrange
+    const base = { severity: null, fix_status: 'not_applicable', fix: '', regression_test: '' };
+    const records = [record({ ...base, verdict: 'needs_validation', file: 'src/c.js' })];
+    // Act
+    const out = check(records);
+    // Assert
+    assert.deepEqual(rules(out), ['F6']);
   });
 
   test('F7 flags a confirmed record without a fix', () => {

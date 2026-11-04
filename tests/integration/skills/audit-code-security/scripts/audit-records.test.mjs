@@ -34,6 +34,7 @@ const tmp = (tag) => {
   return dir;
 };
 const gitEnv = { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' };
+for (const key of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE']) delete gitEnv[key];
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', timeout: 30_000, env: gitEnv });
 
 // Runs the real CLI; returns status, parsed stdout (or null), and stderr.
@@ -233,6 +234,34 @@ describe('audit-records init', () => {
     assert.equal(r.status, 1);
     assert.match(r.err, /not a regular file/);
     assert.equal(readFileSync(target, 'utf8'), 'keep\n');
+  });
+
+  test('refuses a tracked .cdk-security-audit/.gitignore and leaves it unchanged', () => {
+    // Arrange
+    const other = makeRepo();
+    const ignoreFile = join(other, '.cdk-security-audit', '.gitignore');
+    mkdirSync(join(other, '.cdk-security-audit'));
+    writeFileSync(ignoreFile, 'keep\n');
+    git(other, 'add', '-f', '.cdk-security-audit/.gitignore');
+    // Act
+    const r = cli('init', '--root', other);
+    // Assert
+    assert.equal(r.status, 1);
+    assert.equal(r.err, 'audit-records: unsafe run dir: .cdk-security-audit/.gitignore is tracked by git\n');
+    assert.equal(readFileSync(ignoreFile, 'utf8'), 'keep\n');
+  });
+
+  test('lists a tracked gitlink in out_of_scope', () => {
+    // Arrange
+    const other = makeRepo();
+    mkdirSync(join(other, 'vendor', 'lib'), { recursive: true });
+    git(other, 'update-index', '--add', '--cacheinfo', `160000,${'a'.repeat(40)},vendor/lib`);
+    // Act
+    const { out } = cli('init', '--root', other);
+    const scope = JSON.parse(readFileSync(join(out.run, 'scope.json'), 'utf8'));
+    // Assert
+    assert.deepEqual(scope.out_of_scope, ['vendor/lib']);
+    assert.equal(scope.files.includes('vendor/lib'), false);
   });
 
   test('diffs a range from the merge base', () => {

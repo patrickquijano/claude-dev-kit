@@ -192,31 +192,8 @@ function readJson(d, file, label) {
   }
 }
 
-// init: creates the next run dir `<root>/.cdk-security-audit/run-<n>`, git-ignored through a self-ignoring `.gitignore`, and writes `scope.json`. It refuses a run dir git does not ignore and a `.gitignore` that is not a regular file.
-export function init(argv, d) {
-  const { flags, rest } = parseFlags(argv, ['--root', '--profile', '--range'], true);
-  const rootArg = flags['--root'];
-  if (!rootArg || !isAbsolute(rootArg)) throw new UsageError('init needs --root <abs>');
-  const profiles = loadSchema(d).properties.profile.enum;
-  const profile = flags['--profile'] ?? 'standard';
-  if (!profiles.includes(profile)) throw new UsageError(`--profile must be ${profiles.join('|')}`);
-  const rangeArg = flags['--range'];
-  const refs = rangeArg === undefined ? null : rangeArg.split('..');
-  if (refs && (rangeArg.includes('...') || refs.length !== 2 || !refs[0] || !refs[1]))
-    throw new UsageError('--range must be <a>..<b>');
-  const normal = rest.map((p) => p.replace(/\/+$/, '').replace(/^(?:\.\/)+/, ''));
-  if (!normal.every((p) => p === '.' || safeRelPath(p)))
-    throw new UsageError('a path must be repo-relative with no .. segment');
-  const named = normal.filter((p) => p !== '.');
-  const paths = normal.includes('.') ? [] : normal;
-  const git = makeGit(d, rootArg);
-  const root = d.realpathSync(rootArg);
-  if (d.realpathSync(git(['rev-parse', '--show-toplevel']).stdout.trim()) !== root)
-    throw new Error('--root is not the repository top level');
-  if (refs) refs.forEach((ref) => verifyRef(git, ref));
-  const head = git(['rev-parse', 'HEAD']).stdout.trim();
-  if (refs && git(['rev-parse', `${refs[1]}^{commit}`]).stdout.trim() !== head)
-    throw new UsageError(`--range ${refs[1].slice(0, 80)} must resolve to HEAD`);
+// Splits the tracked paths into `files`, `outOfScope`, and `sensitive`; `outOfScope` also holds tracked paths the audit cannot read (run dir files, gitlinks, missing files).
+function computeScope(d, git, root, { listed, refs, paths, named }) {
   // A symlink that leaves the repo, enters `.git`, or points at a secret-named file is hidden like a secret-named file.
   const isHiddenLink = (f) => {
     let target;
@@ -228,9 +205,7 @@ export function init(argv, d) {
     }
     return !under(target, root) || under(target, join(root, '.git')) || isSensitive(target);
   };
-  const entries = git(['ls-files', '-z'])
-    .stdout.split('\0')
-    .filter(Boolean)
+  const entries = listed
     .filter((f) => !under(f, RUN_BASE))
     .map((f) => ({ f, stat: d.lstatSync(join(root, f), { throwIfNoEntry: false }) }))
     .filter(({ stat }) => stat && (stat.isFile() || stat.isSymbolicLink()));
@@ -238,7 +213,8 @@ export function init(argv, d) {
   const tracked = entries.map(({ f }) => f).sort(byteSort);
   for (const p of named)
     if (!tracked.some((f) => under(f, p))) throw new UsageError(`path matches no tracked file: ${p.slice(0, 80)}`);
-  const matched = paths.length ? tracked.filter((f) => paths.some((p) => under(f, p))) : tracked;
+  const inPaths = (f) => !paths.length || paths.some((p) => under(f, p));
+  const matched = tracked.filter(inPaths);
   // Secret-named files are listed apart from the scope, so no hunt reads them and the report still names them.
   const isHidden = (f) => isSensitive(f) || hidden.has(f);
   const sensitive = matched.filter(isHidden);
@@ -250,6 +226,13 @@ export function init(argv, d) {
     files = candidates.filter((f) => changed.has(f));
     outOfScope = candidates.filter((f) => !changed.has(f));
   }
+  const kept = new Set(tracked);
+  const skipped = listed.filter((f) => !kept.has(f) && inPaths(f));
+  return { files, outOfScope: [...outOfScope, ...skipped].sort(byteSort), sensitive };
+}
+
+// Creates the next `run-<n>` dir under a self-ignoring run base and returns its path; it refuses a base git does not ignore and a `.gitignore` that is not a regular file.
+function createRunDir(d, git, root) {
   const runBase = join(root, RUN_BASE);
   const baseExisted = d.lstatSync(runBase, { throwIfNoEntry: false }) !== undefined;
   d.mkdirSync(runBase, { recursive: true });
@@ -290,6 +273,39 @@ export function init(argv, d) {
     .map((m) => Number(m[1]));
   const run = join(runBase, `run-${Math.max(0, ...numbers) + 1}`);
   d.mkdirSync(run);
+  return run;
+}
+
+// init: creates the next run dir `<root>/.cdk-security-audit/run-<n>`, git-ignored through a self-ignoring `.gitignore`, and writes `scope.json`. It refuses a run dir git does not ignore, a tracked or non-regular `.gitignore`; `out_of_scope` also lists tracked paths the audit cannot read.
+export function init(argv, d) {
+  const { flags, rest } = parseFlags(argv, ['--root', '--profile', '--range'], true);
+  const rootArg = flags['--root'];
+  if (!rootArg || !isAbsolute(rootArg)) throw new UsageError('init needs --root <abs>');
+  const profiles = loadSchema(d).properties.profile.enum;
+  const profile = flags['--profile'] ?? 'standard';
+  if (!profiles.includes(profile)) throw new UsageError(`--profile must be ${profiles.join('|')}`);
+  const rangeArg = flags['--range'];
+  const refs = rangeArg === undefined ? null : rangeArg.split('..');
+  if (refs && (rangeArg.includes('...') || refs.length !== 2 || !refs[0] || !refs[1]))
+    throw new UsageError('--range must be <a>..<b>');
+  const normal = rest.map((p) => p.replace(/\/+$/, '').replace(/^(?:\.\/)+/, ''));
+  if (!normal.every((p) => p === '.' || safeRelPath(p)))
+    throw new UsageError('a path must be repo-relative with no .. segment');
+  const named = normal.filter((p) => p !== '.');
+  const paths = normal.includes('.') ? [] : normal;
+  const git = makeGit(d, rootArg);
+  const root = d.realpathSync(rootArg);
+  if (d.realpathSync(git(['rev-parse', '--show-toplevel']).stdout.trim()) !== root)
+    throw new Error('--root is not the repository top level');
+  if (refs) refs.forEach((ref) => verifyRef(git, ref));
+  const head = git(['rev-parse', 'HEAD']).stdout.trim();
+  if (refs && git(['rev-parse', `${refs[1]}^{commit}`]).stdout.trim() !== head)
+    throw new UsageError(`--range ${refs[1].slice(0, 80)} must resolve to HEAD`);
+  const listed = git(['ls-files', '-z']).stdout.split('\0').filter(Boolean);
+  if (listed.includes(`${RUN_BASE}/.gitignore`))
+    throw new Error(`unsafe run dir: ${RUN_BASE}/.gitignore is tracked by git`);
+  const { files, outOfScope, sensitive } = computeScope(d, git, root, { listed, refs, paths, named });
+  const run = createRunDir(d, git, root);
   const range = rangeArg ?? null;
   const scope = { root, head, profile, range, paths, files, out_of_scope: outOfScope, sensitive };
   d.writeFileSync(join(run, 'scope.json'), `${JSON.stringify(scope, null, 2)}\n`);
@@ -404,7 +420,8 @@ function recordErrors(record, ctx) {
   if (!(confirmed ? ['fixed', 'open'] : ['not_applicable']).includes(record.fix_status))
     errors.push(fail('F4', 'fix_status must be fixed or open when confirmed, else not_applicable'));
   if (!ctx.units.has(record.coverage_id)) errors.push(fail('F5', 'coverage_id is not in ledger.json'));
-  if (typeof record.file === 'string') {
+  // A rejected record may name a file outside the scope (SKILL.md step 4b).
+  if (typeof record.file === 'string' && record.verdict !== 'rejected') {
     if (!safeRelPath(record.file)) errors.push(fail('F6', 'file must be repo-relative with no .. segment'));
     else if (!ctx.files.has(record.file)) errors.push(fail('F6', 'file is not in scope.json files'));
   }
