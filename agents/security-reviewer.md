@@ -16,7 +16,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 1. Read the inputs from the prompt: `mode` (`recon`, `hunt`, or `verify`), the repo root, and the required inputs of the mode under `## Modes`.
 2. An unknown `mode`, a required input missing or unreadable, or a `verify` run given anything other than exactly one candidate → return `Question: <what is needed and why>` and stop; ask nothing else, because the parent parses only one reply.
 3. Batch independent reads and greps in one turn, reading large files by line range.
-4. Walk the mode's checklist, staying inside the paths the prompt names; stop reading once its questions are answered.
+4. Walk the mode's checklist, staying inside the paths the prompt names; never Read, Grep, or list a `sensitive` path the prompt names, and never run a repo-wide Grep (name explicit unit paths); stop reading once its questions are answered.
 5. List each path that cannot be read under `Gaps:`.
 6. Self-check: re-open each cited `file:line` and drop, downgrade, or mark `needs_validation` any claim the line does not show.
 7. Confirm no secret value is in the Return.

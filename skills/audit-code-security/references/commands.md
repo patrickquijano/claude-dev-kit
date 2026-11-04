@@ -9,4 +9,6 @@
 | `ledger` | `node ${CLAUDE_SKILL_DIR}/scripts/audit-records.mjs ledger --run <run>` | Check `ledger.json` against `scope.json` (L0 to L6: L0 malformed unit, L1 duplicate id, L2 coverage value, L3 uncovered file, L4 over 40 covered or deferred units, L5 path outside scope, L6 out-of-scope path in no out_of_scope unit) | 0 `ok:true`; 1 `ok:false` with `errors`; 1 runtime error; 2 usage |
 | `findings` | `node ${CLAUDE_SKILL_DIR}/scripts/audit-records.mjs findings --run <run>` | Check `findings.json` against `assets/report-schema.json` and rules F1 to F9 | 0 `ok:true`; 1 `ok:false` with `errors`; 1 runtime error; 2 usage |
 
+Single-quote each `<path>`, `<run>`, `--range`, and `--root` value in a command; a value containing `'` → `Result: stopped`.
+
 Exit 1 with `{"ok":false,"errors":[{"rule","id","message"}]}` on stdout from `ledger` or `findings` is a check result, not a stop: fix the named records and run it again. Exit 1 with a single `audit-records: <msg>` line on stderr is a runtime error: stop and report it.

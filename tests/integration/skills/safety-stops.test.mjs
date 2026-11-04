@@ -19,6 +19,7 @@ const skillText = (name) =>
 
 // Each entry is a fact stop that refuses without asking; `--yes` never skips it.
 const STOPS = {
+  'audit-code-security': [/not ignored by git/, /never .*--yes/],
   'merge-github-pull-request': [
     /draft/i,
     /conflict/i,
