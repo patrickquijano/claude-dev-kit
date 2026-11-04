@@ -8,7 +8,7 @@ allowed-tools: Read Glob Grep Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/audit-
 
 # Audit Code Security
 
-Input: $ARGUMENTS (strip `--yes` first; then `--profile <name>` (default `standard`), `--range <a>..<b>`, and the remaining words as path scope)
+Input: $ARGUMENTS (strip `--yes` first; then `--profile <name>` (default `standard`), `--range <a>..<b>`, and the remaining words as path scope); `--range` needs `<b>` to resolve to `HEAD` (exit 2 otherwise)
 
 ## Context
 
@@ -38,7 +38,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
    - 1c. `files` is 0 → `Result: nothing-to-do`; a non-zero `sensitive` count and the `<run>/scope.json` path go under `Open:`.
    - 1d. Read the `out_of_scope` and `sensitive` paths from `<run>/scope.json` (`init` prints only their counts) for `REPORT.md`, whose `Not hunted:` lists the `sensitive` names; `Open:` gets only their counts and the `<run>/scope.json` path.
 2. **Recon and ledger.** Spawn the recon mode (`phases.md`) with the absolute `<run>/scope.json` path.
-   - 2a. Write `<run>/ledger.json` from its `Units` (`phases.md`), writing the recon `no source` unit with `coverage: out_of_scope`; list only the `no source` paths under `Open:`, and list them with the step 1d paths in `REPORT.md`. When step 1d `out_of_scope` is non-empty, add one unit `U-OOS` with all those paths, `entry_points: []`, `sinks: []`, `coverage: out_of_scope`, and `wave: null`; recon never sees them and no hunt covers them.
+   - 2a. Write `<run>/ledger.json` from its `Units` (`phases.md`), expanding a directory-prefix `<paths>` to `scope.json` files, writing the recon `no source` unit with `coverage: out_of_scope`; list only the `no source` paths under `Open:`, and list them with the step 1d paths in `REPORT.md`. When step 1d `out_of_scope` is non-empty, add one unit `U-OOS` with all those paths, `entry_points: []`, `sinks: []`, `coverage: out_of_scope`, and `wave: null`; recon never sees them and no hunt covers them.
    - 2b. Run `ledger`.
    - 2c. Failed rules (`ok: false`) → fix the ledger and re-run `ledger`, at most 2 times, so a ledger the recon output cannot repair does not loop; leftovers go to `Open:`.
    - 2d. A `Question:` or `blocked` return → `Open:` and `Stopped: 2: needs input`.
@@ -46,7 +46,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 3. **Hunting waves.** Spawn one hunt per `covered` unit per wave (`phases.md`).
    - **Round limit.** Iterate at most 3 rounds; at the start of each round list the open findings and the fixes, then apply them; then report what is left. Here each round is one wave and the profile wave budget (`phases.md` Waves and budgets) lowers the limit; the round's targets are the units not yet hunted and the fix is one hunt spawn each.
    - Units left after the last wave become `deferred` in the ledger (`wave: null`); re-run `ledger`.
-4. **Verify.** Spawn one fresh verify per candidate, each with exactly one candidate (verify mode, `phases.md`). A hunt-level `needs_validation` candidate skips the spawn and becomes a record with `verdict: needs_validation`, `refutation: not verified: <candidate depends_on>`, `severity: null`, empty `fix` and `regression_test`, and `fix_status: not_applicable`.
+4. **Verify.** Spawn one fresh verify per candidate, each with exactly one candidate (verify mode, `phases.md`). A hunt-level `needs_validation` candidate skips the spawn and becomes a record with `verdict: needs_validation`, `refutation: not verified: <candidate depends_on>`, `severity: null`, empty `fix` and `regression_test`, and `fix_status: not_applicable`. Each profile caps the verify spawns (`phases.md` Verify cap); a candidate past the cap takes the same path with `refutation: not verified: over the verify cap`.
    - **Round limit.** Iterate at most 2 rounds; at the start of each round list the open findings and the fixes, then apply them; then report what is left. Here round 1 verifies every candidate and round 2 re-verifies those whose return was malformed or carried a `Question:`.
    - 4a. Assign ids `SA-001`, `SA-002`, … in the order candidates leave step 4, hunt-level `needs_validation` ones included (`${CLAUDE_SKILL_DIR}/references/findings.md`).
    - 4b. For each `confirmed` and each `needs_validation` record (verify or hunt level), Read its `file:line` only when `file` is a `scope.json` `files` entry (never a `sensitive` path, never with `..`), else treat the evidence as not found, and confirm the evidence is there; a `confirmed` mismatch → re-verify once; still mismatched, or any `needs_validation` mismatch → `rejected` with `refutation: evidence not found at <file:line>`, `severity: null`, empty `fix` and `regression_test`, and `fix_status: not_applicable`.

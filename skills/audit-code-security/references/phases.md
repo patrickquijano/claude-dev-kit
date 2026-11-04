@@ -4,7 +4,7 @@ Briefs and file shapes for steps 2-4. Every spawn value is literal (absolute roo
 
 ## Contents
 
-- Recon brief · Ledger · Waves and budgets · Hunt brief · Verify brief · Malformed returns
+- Recon brief · Ledger · Waves and budgets · Verify cap · Hunt brief · Verify brief · Malformed returns
 
 ## Recon brief
 
@@ -12,7 +12,7 @@ Spawn the `cdk:security-reviewer` subagent (fallback: a read-only subagent that 
 
 - `mode: recon`
 - the absolute repo root
-- the absolute `<run>/scope.json` path: its `files` list (path scope and range already applied) is the only in-scope set; build units only from those files
+- the absolute `<run>/scope.json` path: its `files` list (path scope and range already applied) is the only in-scope set; build units only from those files, and a unit's `<paths>` may be a directory prefix ending `/`
 - `profile: <profile>` (opaque; it only ranks sinks)
 - the product-type checklist from the attack-class reference
 
@@ -41,6 +41,7 @@ Write `<run>/ledger.json` from the `Units` lines (`<coverage_id> | <paths> | <fi
 
 - `coverage_id`: unique, stable (`U-01`, `U-02`, …).
 - `coverage`: `covered` (to be hunted), `deferred` (not hunted for lack of waves), or `out_of_scope` (never hunted: the recon `no source` unit and the single `U-OOS` unit that holds every `scope.json` `out_of_scope` path).
+- A recon `<paths>` entry ending `/` is a directory prefix: expand it to the `scope.json` `files` entries under it; a file under two prefixes goes to the longest prefix. Ledger `paths` stay files.
 - `wave`: the wave number once hunted, otherwise `null`.
 - Every `scope.json` `files` entry belongs to exactly one unit (L3 fails a file in no unit or in more than one); `paths` lists repo-relative files, not directories; the 40-unit cap counts only `covered` and `deferred` units. Run `ledger`; the checks are in `commands.md` output (rules L0 to L6; L6 is an out-of-scope path in no out_of_scope unit).
 
@@ -52,6 +53,11 @@ Write `<run>/ledger.json` from the `Units` lines (`<coverage_id> | <paths> | <fi
 - After a unit is hunted set its `wave` to the wave number. After the last wave, every unit still `null` becomes `deferred`.
 - A later wave takes only units with `wave: null`; a unit whose hunt returned `Status: partial` is reset to `wave: null` so the next wave re-hunts it.
 - Re-run `ledger` after each ledger edit.
+
+## Verify cap
+
+- Verify spawns per profile: quick 10, standard 25, deep 50. This is an assumption; report it under `Open:`.
+- Verify candidates in the order they leave the hunt waves; a candidate past the cap is not spawned and takes the hunt-level `needs_validation` path (SKILL.md step 4) with `refutation: not verified: over the verify cap`.
 
 ## Hunt brief
 
