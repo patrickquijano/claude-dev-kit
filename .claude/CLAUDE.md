@@ -6,7 +6,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 - Skills: `skills/<name>/SKILL.md` — workflows invoked by the user or another skill, with `scripts/`, `references/`, and `assets/` beside it.
 - Project skills: `.claude/skills/<name>/SKILL.md` — repo tooling, not shipped; `release-plugin` runs the full release (`.claude/rules/release.md`).
-- Subagents: `agents/` — workers spawned by skills; read-only except the editing agents (`plan-implementer`, `rubric-improver`).
+- Subagents: `agents/` — workers spawned by skills; read-only except the editing agent (`plan-implementer`).
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
 - Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
