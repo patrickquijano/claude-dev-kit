@@ -8,7 +8,7 @@ Read when a decision question is about to be asked.
 
 ## Table
 
-Print before each question; options in alphabetical order.
+Print before each question; options in alphabetical order, so row order implies no preference.
 
 | Option | <criterion> (w) | …   | Total |
 | ------ | --------------- | --- | ----- |
@@ -17,7 +17,7 @@ Print before each question; options in alphabetical order.
 
 ## Weights
 
-- 3–6 criteria taken from the user's stated goals, never from a preferred option.
+- 3–6 criteria (fewer cannot separate the options; more spreads the 100 points so thin that one criterion barely moves the total) taken from the user's stated goals, never from a preferred option.
 - Integer weights summing to 100, fixed and printed before any option is scored.
 - No stated goals → ask for them first.
 
@@ -40,12 +40,12 @@ State one line per criterion for what 1, 3, and 5 mean. Every score cites a sour
 ## Recommend
 
 - Mark Recommended only on the highest total.
-- Top two ≤5 points apart → mark none and say "close call".
+- Top two ≤5 points apart → mark none and say "close call" (a gap that small is within scoring noise).
 - The lead depends on unverified scores → say so.
 
 ## Sensitivity
 
-For every ordered pair of criteria, move 10 weight points from one to the other (floor 0) and recompute. If the winner changes, name the shift and the new winner.
+For every ordered pair of criteria, move 10 weight points from one to the other (floor 0) and recompute, to show how far the pick depends on the weights. If the winner changes, name the shift and the new winner.
 
 ## Options
 

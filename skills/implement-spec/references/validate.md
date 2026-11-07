@@ -21,14 +21,15 @@ G2: unmet — <what failed, file:line>
 
 ## Fix
 
-- Re-spawn the implementer per Spawn briefs in `SKILL.md` with a fix list of every finding and failed check in files this run changed. Then spawn a fresh verifier on the new changed paths.
+- Apply a fix list of every finding and failed check in files this run changed per the spawn rule in `SKILL.md` (inline, one implementer, or parallel groups). Then spawn a fresh verifier on the new changed paths.
 - A failure in a file this run did not change → do not send it; list it under `Open:` with the evidence.
 
 ## Change-set check
 
-Run after every implementer return (step 6 and each fix round). Run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
+Run after every implementation (step 6 and each fix attempt); with parallel implementers, once after all returns. Without git, compare a fresh content snapshot of the write scope, or of the planned files when no scope was passed (the Dirty set is empty beyond it), with the pre-flight snapshot instead of `status`, `diff-stat`, and `dirty-diff`, and apply the same rules below. With git, run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
 
 - A newly changed path that is not planned, or a Dirty path whose diff changed and the picked approach does not name: never revert or remove it (that could drop the user's own edits); keep it and list the path under `Open:`.
+- No git: also flag any path added or removed outside the snapshot (compare a fresh Glob of the root with the pre-flight root file list), and any path in `Changed:` that was not planned, under `Open:`. Edits to existing unplanned files stay undetected without git; note that under `Open:`.
 
 ## Iterate
 

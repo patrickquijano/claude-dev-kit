@@ -26,9 +26,9 @@ A1 (recommended): <summary, one line>
   Risk: low | medium | high — <why>
 ```
 
-Ask one AskUserQuestion:
+Ask one structured question:
 
-- Options: `<A1 name> (Recommended)` | `<A2 name>` | `<A3 name>` | `Stop`.
+- Options: `<A1 name> (Recommended)` | `<A2 name>` | `<A3 name>` | `Stop`; a close call per `grill.md` marks none Recommended.
 - Each option description holds its trade-off in one line; the recommendation carries its reason.
 - Only one workable approach → print it with why no other fits, and skip the ask.
 - `--yes` picks the recommended approach and records it. `Stop` → `Result: cancelled`.
