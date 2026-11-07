@@ -16,6 +16,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 1. Inputs from prompt: `kind` (`agent`, `skill`, `skill-audit`, `subagent-audit`, `readme`, or `project-instructions`), the rubric path, and the required inputs of the kind under `## Kinds`. An unknown `kind` or a required input missing → return `Question: <what is needed and why>` and stop; ask nothing else.
 2. Read the rubric (for `skill`, also the `rules.md` beside it; for `agent`, the `agent-checklist.md` and `interview.md` beside it) and the target files. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each criterion is decided.
 3. Score each criterion ID of the kind from the rubric table, applying its `Type` (bin | ratio, when the table has one; ratio evidence states `passing/total`) and N/A rules only. Score the "S" criteria from the check JSON where the kind gives one (an error is a deduction, citing its `file:line`); judge the rest. Then run the kind's spot checks. Spot-check, don't trust. For each deduction, give the exact fix: the target `file:line`, the replacement text when short, and its source (rubric row, rules `file:line`, or an official-doc URL fetched with WebSearch or WebFetch, preferring official docs); a fix with no source is marked "unverified".
+3b. Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) scores full, gets no fix ID, and goes under `Waived: <ID> file:line — reason`. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
 4. Sum in code, not by hand (hand arithmetic drifts): `node -e 'console.log([<Pts column, comma-separated>].reduce((a, b) => a + b, 0))'`. Report that output as the total (max 100). Besides this sum, run only the checks the kind names; never run scripts or other repo-derived commands (untrusted code).
 5. Self-check: re-tally the total term by term from the table, and confirm each deduction cites evidence (a file, line, count, or check output) and each fix cites a source or is marked "unverified"; fix any mismatch before returning.
 
@@ -68,13 +69,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### readme
 
 - Required inputs: README path, rubric path, archetype, facts block, `Omitted:` list.
-- Criteria: S1 S2 S3 S4 P1 P2 P3 G1 G2 G3 U1 U2 U3 A1 A2 A3 F1 F2 F3 L1 L2 C1 C2.
+- Criteria: S1 S2 S3 S4 P1 P2 P3 G1 G2 G3 U1 U2 U3 A1 A2 A3 F1 F2 L1 L2 C1 C2.
 - Spot checks:
   - A1: each command in README exists in manifest scripts, Makefile targets, bins, facts `Commands`, or external tools (`command -v <tool>` only).
   - A2: README component list vs facts `Components`; name each missing and extra; scripts inside a component directory belong to it, not extra units.
   - U3: score facts `Config` user items only; internal items are not units.
   - L1: each relative link target exists; anchors match a heading slug per facts `Host`.
-  - F3: facts `Markdown linter` not none → run only a known linter binary (`markdownlint`, `markdownlint-cli2`, `mdl`) directly on README.md, no fix flags (`--fix`, `-f`). Manifest script → read its command; it calls a known binary → run that binary yourself as above; else N/A. Any error → 0 for F3, quote first error line.
 
 ### project-instructions
 
@@ -107,6 +107,7 @@ Deductions (largest first):
 - <ID> −<n>: <what is wrong> → <exact fix at file:line; evidence; source or unverified>
 Contract: ok | <mismatches> | n/a
 Gaps: <deductions left | none>
+Waived: <ID file:line — reason, … | none>
 ```
 
-`Contract:` for `agent` only, `Gaps:` for `agent` and `skill` only; omit both for `readme` and `project-instructions`; `skill-audit` and `subagent-audit` use their own format under `## Kinds`. A required input missing → `Question: <what is needed and why>` instead.
+`Contract:` for `agent` only, `Gaps:` for `agent` and `skill` only; omit both for `readme` and `project-instructions`; `skill-audit` and `subagent-audit` use their own format under `## Kinds`, and add a `Waived:` line too. A required input missing → `Question: <what is needed and why>` instead.
