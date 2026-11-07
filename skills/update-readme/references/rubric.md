@@ -24,15 +24,18 @@ Type: `bin` = full or 0; `ratio` = max × (passing units ÷ total units), floor 
 | A1  | Accuracy vs repo         | Unit = command shown; exists (package script, Makefile target, bin, facts `Commands`, external tool).                                                                  | ratio | 6   |
 | A2  | Accuracy vs repo         | Unit = facts `Components` item (scripts inside a component directory belong to it) listed, plus each listed item not in repo counts as failing unit.                   | ratio | 6   |
 | A3  | Accuracy vs repo         | Unit = path, name, version, in-repo URL; correct. External URLs not fetched.                                                                                           | ratio | 3   |
-| F1  | Code blocks & formatting | Unit = code block; fenced with language tag.                                                                                                                           | ratio | 3   |
-| F2  | Code blocks & formatting | Input and output in separate blocks; omissions marked with code comments, not `...`.                                                                                   | bin   | 2   |
-| F3  | Code blocks & formatting | Repo markdown linter passes on README. No safe linter (see scorer) → N/A.                                                                                              | bin   | 3   |
+| F1  | Code blocks & formatting | Unit = code block; fenced with language tag.                                                                                                                           | ratio | 5   |
+| F2  | Code blocks & formatting | Input and output in separate blocks; omissions marked with code comments, not `...`.                                                                                   | bin   | 3   |
 | L1  | Links                    | Unit = relative link; target file exists, anchor matches the lowercase-hyphen heading slug.                                                                            | ratio | 3   |
 | L2  | Links                    | Unit = link; descriptive text, not "here", "link", "click".                                                                                                            | ratio | 2   |
 | C1  | Community & legal        | License: SPDX id, link to actual license file, last section.                                                                                                           | bin   | 4   |
 | C2  | Community & legal        | Contributing/dev setup + support/contact present; links CONTRIBUTING, CODE_OF_CONDUCT if they exist.                                                                   | bin   | 3   |
 
 Category totals: Structure 15, Purpose 15, Getting started 20, Usage 15, Accuracy 15, Formatting 8, Links 5, Community 7 = 100.
+
+## Negligible waiver
+
+A would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) is negligible: it scores full, gets no fix ID, and appears under `Waived: <ID> file:line — reason`. Waived items never enter `Open:`. Never waive a gate FAIL, or anything that affects correctness, a safety stop, or a validator result.
 
 ## N/A rules
 

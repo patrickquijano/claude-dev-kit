@@ -36,6 +36,7 @@ The parent checks each finding:
 - `fix` is present; else respawn that kind once for the missing fixes, then write the fix inline.
 - Id: `F-<sha256(path|line|kind|evidence)[:8]>`.
 - Merge duplicates on path + line + issue; sort by severity (`Blocking`, `Suggestion`, `Nitpick`), then path, then line.
+- Negligible: every `Nitpick` (taste) and any finding with no effect on behavior, security, or maintainability → `Waived: <id>: <reason>`; it is not counted as open, never fixed, and never in a fix spec.
 
 ## Coverage and sweep
 
@@ -50,7 +51,7 @@ Run `delta` (`fix.md`), then the round-1 kinds (`intent` only when it ran in rou
 - `Obsolete`: the line or file is gone.
 - `Open`: anything else, or uncertain.
 
-`Open` and new findings re-enter step 4. After round 3, run this review once more as the closing review; its findings are not fixed and go under `Open:`.
+After each review print `Round <n>: Open <n> (Blocking <a>, Suggestion <b>, Nitpick 0)` and one line per open item `<id> [severity] <path>:<line> — <fix>`; waived items are not counted. `Open` and new findings re-enter step 4. After the last round of a block, the re-review above is the closing review of its fixes; items still open there are asked as `Extend 3 more rounds | Stop` (`SKILL.md` Rules), else go under `Open:`.
 
 ## Spawn briefs
 

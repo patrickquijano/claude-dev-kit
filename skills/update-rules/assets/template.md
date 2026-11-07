@@ -26,7 +26,7 @@ Fill `{{...}}` from facts and answers. Apply each `<!-- -->` instruction, then s
 
 ## Precedence
 
-<!-- Project policy from step 3 answer, not Claude Code load order. -->
+<!-- Project policy: existing order or step 3 answer; a gap takes the recommended order, no question. Not Claude Code load order. -->
 
 - Order: {{precedence order; recommended: explicit user request > path-scoped rule > this file > unconditional rules > skill defaults}}.
 - Conflict between two instructions → {{conflict policy}}.

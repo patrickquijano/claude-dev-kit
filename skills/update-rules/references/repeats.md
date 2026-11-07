@@ -4,7 +4,7 @@ Step 3 of `SKILL.md`: instructions that repeat are offered as a rule or a skill.
 
 ## Sources
 
-Count an instruction as repeated when the same meaning appears in the input text, the input files, the existing `CLAUDE.md` and `.claude/rules/**/*.md`, or the memory files. Build on the analyzer's `duplicate` tags in the facts `Instructions` list; judge the rest from those lines.
+Count an instruction as repeated when the same meaning appears in the input text, the input files, the existing `CLAUDE.md` and `.claude/rules/**/*.md`, or the auto-memory files. Build on the analyst's `duplicate` tags in the facts `Instructions` list; judge the rest from those lines.
 
 ## Thresholds
 

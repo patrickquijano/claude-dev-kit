@@ -12,17 +12,17 @@ Conditional detail for the workflow steps.
   - One found → edit it in place; never relocate it.
   - Several found → AskUserQuestion which one, the root file Recommended.
   - None → say so and create it at the root.
-- Score-only (input `score`, or the request is score, review, or audit only): run steps 3, 13, 14, 16. Type = input's, else the top detected type, no question.
+- Score-only (input `score`, or the request is score, review, or audit only): run steps 1, 2, 3, 4 (no question), 13, 14, 16. Type = input's, else the top detected type.
 - Score-only, no README at all → report it, suggest create mode, end `Result: nothing-to-do`.
 - Only a non-`.md` README (`README`, `README.rst`, ...) → update mode on its content converted to Markdown; keep the old file and name it in `Converted from:`. Score-only never writes, so it scores the file as is.
 
 ## Host
 
-Map the `remote-url` result to `github`, `gitlab`, `bitbucket`, `gitea`, or `generic` by its hostname. An unknown host or no remote → `generic`. The main thread decides; the analyst's `Host:` line is ignored.
+Map the `remote-url` result to `github`, `gitlab`, `bitbucket`, `gitea`, or `generic` by its hostname. An unknown host or no remote → `generic`. The main thread decides; the analyst's `Host:` line is ignored, so one mapping applies whether or not the analyst ran.
 
 ## Fallback
 
-AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. Write unavailable → stop: `Result: stopped`, `Stopped: 11: write unavailable`. The fallback list is numbered, one option per number. Unattended runs ask nothing: pick each Recommended option, write the files, omit unanswerable items and list them in `Omitted:`.
+AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. The fallback list is numbered, one option per number. Unattended runs ask nothing: pick each Recommended option, write the files, omit unanswerable items and list them in `Omitted:`.
 
 ## Questions
 
@@ -35,23 +35,23 @@ The template, length, and layout questions share one format.
 
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a template, length, or layout question, a Gaps question, an analyst `Question:` ask, the Public | Private | Omit question, or an improver question) → stop at once, write and format nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" is an answer, not a cancel.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a template, length, or layout question, a Gaps question, an analyst `Question:` ask, the Public | Private | Omit question) → stop at once, write nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" is an answer, not a cancel.
 
 ## Verify
 
 - Run `count-lines` on every written file; each must be at most the max.
 - Check that every relative link in the README set resolves to an existing file, and its anchor, if any, to a heading.
-- Report `Verify: lines <pass | fail>; links <resolved>/<total>`. A failure gets one inline fix and a re-verify; what still fails goes to `Open:`.
+- Report `Verify: lines <pass | fail>; links <resolved>/<total>`. A failure gets one implement-spec fix goal and a re-verify; what still fails goes to `Open:`.
 
 ## Improve round
 
-Below 95 and rounds < 3: rounds + 1.
+Entered from SKILL.md step 15: rounds + 1.
 
-Spawn the improver subagent (brief per `SKILL.md` step 15) with root, rubric path, README path, archetype, the chosen max, the scorer return (table and deductions), the facts block (answers merged), `Omitted:`, the round number, and last round's unresolved items. It edits the README and its split files only, each at most the max.
+Build the Spec brief (memory lookup per SKILL.md Rules): root, rubric path, README path, archetype, the chosen max, one goal per deduction (ID, file:line, Before → After) with last round's unresolved items first, the facts block (answers merged), `Omitted:` as non-goals, every path outside the README set as non-goals, `Tests: none (documentation)`, and "Do not run any formatter or linter." Invoke implement-spec with it; it edits the README and its split files only, each at most the max.
 
-- Its `Question:` or `Questions:` → AskUserQuestion with an "Omit" option (max 4 per call); re-spawn once with the answers, in the same round. `--yes` or unattended runs (no one to answer) ask nothing: add them to `Omitted:`. Its `Blocked:` items go to `Open:`.
-- Show its `Map:`, `Proactive:`, and `Expected:`, format its `Files changed:` (step 11), then always rescore (step 13; SKILL.md Rules) and report (step 14); its `Expected:` is never the score.
+- A fact gap (license, URL, version, contact, badge) → AskUserQuestion with an "Omit" option (max 4 per call). `--yes` or unattended runs ask nothing: add it to `Omitted:`. implement-spec's `Open:` items and cap stops go into the leftovers; the caller still rescores and reaches the cap ask.
+- Then rescore (step 13) and report (step 14), per SKILL.md Rules.
 
 ## Leftovers
 
-After the loop ends (pass, or cap reached), list each row of the last scorer return's `Deductions` in `Open:` as `criterion (lost pts): scorer fix`, plus each improver `Blocked:` item as `<ID>: reason`. Pass with no deductions and no `Blocked:` items → `Open: none`. Do not re-enter the loop or edit further; score-only never writes.
+After the loop ends (pass, or cap reached), list each row of the last scorer return's `Deductions` in `Open:` as `ID (lost pts) file:line: fix`, plus each implement-spec `Open:` item as `<ID>: reason`, and print each scorer `Waived:` row under `Waived:`. Pass with no deductions and no implement-spec `Open:` items → `Open: none`. Do not re-enter the loop or edit further; score-only never writes.

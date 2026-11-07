@@ -57,7 +57,6 @@ Never offer `per-package` for a non-monorepo type. A `docs/` directory that exis
 - Every written file is at most the max.
 - An oversized section splits by H3 into separate files.
 - The root README keeps each moved H2 heading, a one-line summary, and a relative link to the file.
-- Never delete content: every moved section appears in a linked file.
 - A required section moved out stays in the root as heading plus link (`rubric.md`).
 - A split file has one H1, relative links only, and a link back to the root README.
 - A ToC appears in each file of 100 lines or more, per `portable.md`.
