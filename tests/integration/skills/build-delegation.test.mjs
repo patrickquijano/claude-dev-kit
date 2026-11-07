@@ -7,21 +7,20 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const skills = ['build-skill', 'build-subagent'];
 
-describe('build skills delegate writes to planner then implementer', () => {
+describe('build skills delegate writes to implement-spec', () => {
   for (const skill of skills) {
     const dir = join(root, 'skills', skill);
     const read = (rel) => readFileSync(join(dir, rel), 'utf8');
 
-    test(`${skill} names the planner before the implementer`, () => {
+    test(`${skill} writes through implement-spec and names no planner or implementer`, () => {
       // Arrange
       const text = read('SKILL.md');
       // Act
-      const planner = text.indexOf('cdk:implementation-planner');
-      const implementer = text.indexOf('cdk:plan-implementer');
+      const invokes = text.includes('cdk:implement-spec');
+      const spawns = /implementation-planner|plan-implementer/.test(text);
       // Assert
-      assert.ok(planner >= 0, 'planner not named');
-      assert.ok(implementer >= 0, 'implementer not named');
-      assert.ok(planner < implementer, 'planner must come first');
+      assert.ok(invokes, 'implement-spec not named');
+      assert.equal(spawns, false);
     });
 
     test(`${skill} links references/briefs.md`, () => {
@@ -33,7 +32,7 @@ describe('build skills delegate writes to planner then implementer', () => {
       assert.ok(linked);
     });
 
-    test(`${skill} briefs.md has both briefs`, () => {
+    test(`${skill} briefs.md has the Spec brief and the fix-round variant`, () => {
       // Arrange
       const path = join(dir, 'references', 'briefs.md');
       // Act
@@ -41,8 +40,8 @@ describe('build skills delegate writes to planner then implementer', () => {
       const text = exists ? readFileSync(path, 'utf8') : '';
       // Assert
       assert.ok(exists, 'briefs.md missing');
-      assert.match(text, /^## Planner brief$/m);
-      assert.match(text, /^## Implementer brief$/m);
+      assert.match(text, /^## Spec brief$/m);
+      assert.match(text, /^## Fix-round variant$/m);
     });
 
     test(`${skill} no longer keeps fixes inline`, () => {

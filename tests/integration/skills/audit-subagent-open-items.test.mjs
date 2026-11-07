@@ -19,11 +19,12 @@ describe('audit-subagent closes every open item', () => {
     'names the researcher subagent': /cdk:topic-researcher/,
     'scores through the subagent-audit kind': /kind `subagent-audit`/,
     'has a Decisions: Output line': /^Decisions: </m,
-    'offers Decline the rest at the cap': /Decline the rest/,
+    'offers Extend 3 more rounds or Stop at the cap': /Extend 3 more rounds \| Stop/,
     'ends ACCEPTED only with no open item': /ACCEPTED[^.\n]*and no open item/,
     'defines the item ledger': /Item ledger/,
     'reports item counts': /^Items: </m,
-    're-plans unmapped fix IDs': /Unmapped IDs → respawn the planner once/,
+    'delegates fixes to implement-spec':
+      /Invoke the `cdk:implement-spec` skill \(fallback: run the implement-spec skill\)/,
     'checks line coverage': /Coverage: Glob/
   };
 

@@ -1,11 +1,11 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const skills = ['audit-skill', 'audit-subagent', 'build-skill', 'build-subagent'];
+const skills = ['audit-skill', 'audit-subagent', 'build-subagent', 'review-code-changes'];
 const skillFile = (skill) => readFileSync(join(root, 'skills', skill, 'SKILL.md'), 'utf8');
 
 describe('write delegation policy across audit and build skills', () => {
@@ -20,43 +20,29 @@ describe('write delegation policy across audit and build skills', () => {
       assert.deepEqual(offenders, []);
     });
 
-    test(`${skill} names the planner`, () => {
+    test(`${skill} names implement-spec and no planner or implementer`, () => {
       // Arrange
-      const text = skillFile(skill);
+      const dir = join(root, 'skills', skill);
+      const files = ['SKILL.md', ...readdirSync(join(dir, 'references')).map((f) => join('references', f))];
       // Act
-      const planner = text.indexOf('cdk:implementation-planner');
-      // Assert
-      assert.ok(planner >= 0, 'planner not named');
-    });
-
-    test(`${skill} states the more-than-3-files rule with plan-implementer`, () => {
-      // Arrange
-      const text = skillFile(skill);
-      // Act
-      const rule = /more than 3 files[^\n]*cdk:plan-implementer|cdk:plan-implementer[^\n]*more than 3 files/i.test(
-        text
+      const invokes = skillFile(skill).includes('cdk:implement-spec');
+      const offenders = files.filter((f) =>
+        /cdk:implementation-planner|cdk:plan-implementer/.test(readFileSync(join(dir, f), 'utf8'))
       );
       // Assert
-      assert.ok(rule, 'rule missing');
-    });
-
-    test(`${skill} names the planner before the implementer`, () => {
-      // Arrange
-      const text = skillFile(skill);
-      // Act
-      const planner = text.indexOf('cdk:implementation-planner');
-      const implementer = text.indexOf('cdk:plan-implementer');
-      // Assert
-      assert.ok(planner < implementer, 'planner must come first');
+      assert.ok(invokes, 'implement-spec not named');
+      assert.deepEqual(offenders, []);
     });
   }
+});
 
-  test('rubric-improver has no audit kinds', () => {
+describe('task-worker is removed', () => {
+  test('agent file is gone', () => {
     // Arrange
-    const text = readFileSync(join(root, 'agents', 'rubric-improver.md'), 'utf8');
+    const path = join(root, 'agents', 'task-worker.md');
     // Act
-    const stale = /skill-audit|subagent-audit/.test(text);
+    const exists = existsSync(path);
     // Assert
-    assert.equal(stale, false);
+    assert.equal(exists, false);
   });
 });

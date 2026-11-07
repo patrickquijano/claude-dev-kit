@@ -124,13 +124,7 @@ describe('repo agents', () => {
 
   test('only the plain-request agents use Use proactively', () => {
     // Arrange
-    const expected = [
-      'change-verifier',
-      'codebase-explorer',
-      'implementation-planner',
-      'task-worker',
-      'topic-researcher'
-    ];
+    const expected = ['change-verifier', 'codebase-explorer', 'implementation-planner', 'topic-researcher'];
     // Act
     const proactive = agents
       .filter((name) => {
