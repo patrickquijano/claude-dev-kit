@@ -12,6 +12,7 @@
 - Score only what you have read. Never score from memory or assumption.
 - Line coverage: read every file in the skill folder from line 1 to its last line (by line range when large). Run the line-level checks (C2.4 vague words, G4 secrets, G5 destructive commands, G6 paths) on every line. Report each file in section 10.
 - Fix for every deduction: every gate FAIL and every sub-criterion scored below its max gets at least one fix (VERIFIED in section 6 or unverified in section 7), each with an exact Before -> After. If no text change can recover it, write `no fix: <reason>`.
+- Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) scores full, gets no fix ID, and is listed on its own `Waived: <ID> file:line — reason` line after the section 11 map, never as a map row. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
 
 ## Gates (pass/fail)
 
@@ -169,4 +170,4 @@ Handling:
 8. Path to ACCEPTED (required when REJECTED): the minimum VERIFIED fixes that bring the skill to 90 or higher with all gates passing, with the running projected score. If VERIFIED fixes alone cannot reach 90, say so and list what remains.
 9. Self-check before returning the report: every score cites evidence; every fix has E2 plus a source; no fix relies on an unretrieved source; projected score arithmetic is correct; every file has a section 10 row ending at its last line; every deduction is in section 11 with a fix ID or `no fix: <reason>`.
 10. Line coverage: path | lines <n> | read 1-<n> | line checks run. One row per file; a file not read fully is `partial <range>` with the reason.
-11. Deduction map: rubric or gate ID | points lost | fix IDs | `no fix: <reason>`. Every deduction appears.
+11. Deduction map: rubric or gate ID | points lost | fix IDs | `no fix: <reason>`. Every deduction appears; a waived item is not a deduction, so it has no row and the self-check does not require a fix ID for it.

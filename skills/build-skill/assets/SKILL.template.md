@@ -1,6 +1,6 @@
 # Skill template
 
-Copy one skeleton, replace every `<…>`, drop the comments. Field rules: the frontmatter table in the rules reference.
+Copy one skeleton, replace every `<…>`, drop the comments. Field rules: the frontmatter table in `rules.md`.
 
 ````markdown
 ---

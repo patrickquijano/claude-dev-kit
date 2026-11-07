@@ -8,7 +8,7 @@ The weighted question that sets a skill's invocation flags. Ask it every run (cr
 
 ## Options
 
-Pick the set by the skill's kind. Each option states facts from the Invocation matrix in the rules reference (a bundled snapshot; re-checking its Sources is optional).
+Pick the set by the skill's kind. Each option states facts from the Invocation matrix in `rules.md` (a bundled snapshot; re-checking its Sources is optional).
 
 | Kind            | Option          | Flags                            | Who can invoke  | Description in context  | Preload into subagents |
 | --------------- | --------------- | -------------------------------- | --------------- | ----------------------- | ---------------------- |
@@ -20,8 +20,6 @@ Pick the set by the skill's kind. Each option states facts from the Invocation m
 | Background-only | Allow           | none                             | User and Claude | Yes                     | Allowed                |
 
 ## Criteria
-
-Weights sum to 100.
 
 | Criterion                                         | Weight |
 | ------------------------------------------------- | ------ |
@@ -35,8 +33,7 @@ Weights sum to 100.
 
 - Score each option 1–5 per criterion on the anchors in `grill.md`: 5 fits the criterion, 1 fights it. The criteria above are the default criteria and their weights are fixed integers summing to 100.
 - Cite evidence for every score: the target's `file:line` (for example `allowed-tools` has Bash, or a step writes a file or pushes) or a bundled fact (the Invocation matrix row plus its Sources URL). No evidence → mark it "unverified".
-- Total = Σ(weight × score) / 5 (0–100). Recommended only on the highest total.
-- Close call (top two ≤5 apart) → no Recommended, say "close call", and the user picks; run the sensitivity check in `grill.md`.
+- Close call: apply the Recommend and Sensitivity rules in `grill.md`.
 - Facts come from the bundled snapshot, labeled as such. Re-checking them on the web is optional, never required.
 
 ## Question
