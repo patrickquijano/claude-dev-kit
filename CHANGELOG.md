@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-08
+
+### Added
+
+- `/cdk:audit-skill` and `/cdk:audit-subagent` take `--score-only`, which scores and reports every item under `Open:` with its fix and never edits.
+- `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` list negligible items under `Waived:`; a waived item is never fixed or counted as open.
+- `/cdk:implement-spec` runs without git, taking a target directory and a write scope from its caller and snapshotting the scope as its baseline.
+
+### Changed
+
+- `/cdk:implement-spec` plans with `cdk:implementation-planner` and edits inline for at most 3 planned files; more than 3 go to `cdk:plan-implementer`, in parallel groups when the plan splits.
+- `/cdk:build-skill`, `/cdk:build-subagent`, `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` make every write through `/cdk:implement-spec`.
+- `/cdk:build-subagent` scores through `/cdk:audit-subagent --score-only` and spawns no subagent itself.
+- `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` ask `Extend 3 more rounds | Stop` at the 3-round cap; `--yes` stops and lists what is left under `Open:`.
+- `/cdk:review-code-changes` no longer runs a closing review after the last round, and it waives every nitpick instead of fixing it.
+- The skills that fix through `/cdk:implement-spec` keep their fix memories in Claude auto memory, never in the plugin directory, and run no formatter or linter.
+- `/cdk:build-subagent` proposes actor-noun names and writes `color`, `model`, and `effort` when you supply them.
+- `cdk:rubric-scorer` waives a deduction whose fix would not change how a reader acts on the file, and the README rubric no longer has the Markdown linter check (F3).
+
+### Removed
+
+- Remove the `cdk:rubric-improver` and `cdk:task-worker` subagents; the skills that used them now go through `/cdk:implement-spec`, so any prompt that names either subagent no longer works.
+
 ## [0.8.14] - 2026-11-04
 
 ### Added
@@ -525,7 +548,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...v0.9.0
 [0.8.14]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...v0.8.14
 [0.8.13]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...v0.8.13
 [0.8.12]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.11...v0.8.12
