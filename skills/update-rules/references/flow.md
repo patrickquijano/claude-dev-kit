@@ -12,7 +12,7 @@ AskUserQuestion unavailable → ask the pending question as plain text with its 
 
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a conflict or gap question) → stop at once, write nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. Files already written stay; report them as `created` or `updated`. Choosing "Omit" is an answer, not a cancel.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a conflict or gap question, a step 8b improve-round question, the `Extend 3 more rounds | Stop` question) → stop at once, write nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. Files already written stay; report them as `created` or `updated`. Choosing "Omit" or "Stop" is an answer, not a cancel.
 
 ## Combine
 
@@ -35,10 +35,10 @@ Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only scorer subagent) w
 ## Improve
 
 - Round counter +1.
-- Spec: requirement "raise the score to >=95 by fixing these deductions"; one goal per deduction ID (rubric ID, file:line, Before → After); non-goals: every path outside the write scope and every `Omitted:` item; the facts block with answers merged; the rubric, principles, and placement-rules absolute paths; the sweep list (line budget, required sections, duplicate or conflicting lines across files, every command, path, and glob touched verified with Glob or Grep); `Tests: none (documentation)`; "Do not run any formatter or linter."
+- Spec: requirement "raise the score to >=95 by fixing these deductions"; one goal per deduction ID (rubric ID, file:line, Before → After); non-goals: every path outside the write scope and every `Omitted:` item; `Write scope:` the files the goals name; `Approach: fixed to each goal's Before → After`; the facts block with answers merged; the rubric, principles, and placement-rules absolute paths; the sweep list (line budget, required sections, duplicate or conflicting lines across files, every command, path, and glob touched verified with Glob or Grep); `Tests: none (documentation)`; "Do not run any formatter or linter."
 - Ask: a fact gap → AskUserQuestion with an "Omit" option (max 4 per call); a choice → one decision question per the grill procedure (SKILL.md `## Files`), criteria from the user's goal (the 95 pass score) plus the repo trade-off order from facts.
 - `--yes` or unattended runs follow the SKILL.md Rules: the Recommended option goes under `Open:`; fact gaps go to `Omitted:` (`Open:` for score deductions).
-- Apply: invoke implement-spec once with the spec (all groups in one call; the always-loaded files share one line budget). Its `Open:` items and cap stops are merged into `Open:`; the caller still rescores and reaches the cap ask. `Status: partial` or an edit outside the scope → `Open:`.
+- Apply: invoke implement-spec once with the spec (all groups in one call; the always-loaded files share one line budget). Its `Open:` items and cap stops are merged into `Open:`; the caller still rescores and reaches the cap ask. An unmet goal (its `Goals:` line) or a `Files:` path outside the write scope → `Open:`.
 - After the return, run SKILL.md step 8d.
 
 ## Spawn briefs

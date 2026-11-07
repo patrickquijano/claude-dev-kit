@@ -66,7 +66,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    a. Run `check-agent` per `verify.md` `## Run the check`.
    b. A fix list (rubric id, line, message) → invoke implement-spec with the fix-round variant of the brief; at most 3 rounds.
    c. ``Invoke the `cdk:audit-subagent` skill (fallback: run the audit-subagent skill)`` as `cdk:audit-subagent --score-only <absolute target path>`; it scores with a fresh context and never edits, and returns the `Subagents:` line, `Open:` items (ID, lost points, file:line, Before → After), and `Waived:`, at most 200 lines.
-   d. Not ACCEPTED, or open items remain → invoke implement-spec with a spec whose goals are the open items (using a matching remembered fix) and whose expectation is "rescore ACCEPTED". Its `Open:` and cap stops join the open list; rescore still runs.
+   d. Not ACCEPTED, or VERIFIED fixes remain → invoke implement-spec with a spec whose goals are only the VERIFIED fixes (fix ID, Before → After, using a matching remembered fix) and whose expectation is "rescore ACCEPTED"; UNVERIFIED items go to `Open:` unapplied. Its `Open:` and cap stops join the open list; rescore still runs.
    e. Re-run `check-agent`.
    f. Rescore with 9c; a rescore that confirms a fix → write its fix memory.
    g. At the 3-round cap with open items left, ask per the round-cap rule.

@@ -8,7 +8,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const skills = ['audit-skill', 'audit-subagent', 'build-subagent', 'review-code-changes'];
 const skillFile = (skill) => readFileSync(join(root, 'skills', skill, 'SKILL.md'), 'utf8');
 
-describe('write delegation policy across audit and build skills', () => {
+describe('write delegation policy across audit, build, and review skills', () => {
   for (const skill of skills) {
     test(`${skill} never names rubric-improver or task-worker`, () => {
       // Arrange

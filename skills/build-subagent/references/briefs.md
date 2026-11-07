@@ -31,6 +31,6 @@ Return: implement-spec's Output block only (`Files:`, `Open:`, `Stopped:`), at m
 Same brief with the goals replaced by the fixes, each with the acceptance criterion "the check passes or the deduction is gone":
 
 - check-agent: the findings, one goal per row (rubric id, line, message).
-- audit: the open items from `audit-subagent --score-only` (rubric ID, `file:line`, Before → After, with a matching remembered fix put into the After text); the expectation is "rescore ACCEPTED".
+- audit: only the VERIFIED fixes from `audit-subagent --score-only` (rubric ID, `file:line`, Before → After, with a matching remembered fix put into the After text); UNVERIFIED items go to `Open:` unapplied; the expectation is "rescore ACCEPTED".
 
 A fix round fixes the root cause and never edits only to silence a check.

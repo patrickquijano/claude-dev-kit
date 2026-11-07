@@ -56,7 +56,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    a. Read `MEMORY.md` (Rules, fix memory).
    a2. ``Invoke the `cdk:audit-skill` skill (fallback: run the audit-skill skill)`` as `cdk:audit-skill --score-only <absolute target path>`.
    The audit scores in a fresh-context subagent, never from this session's drafting, and never edits. It returns the `Skills:` line, `Open:` items (ID, lost points, file:line, Before → After), and `Waived:`, at most 200 lines.
-   b. Not ACCEPTED, or VERIFIED fixes remain → invoke implement-spec with a spec whose goals are the fix IDs (Before → After, using a matching remembered fix) and whose expectation is "rescore ACCEPTED". Its `Open:` and cap stops join the open list; rescore still runs.
+   b. Not ACCEPTED, or VERIFIED fixes remain → invoke implement-spec with a spec whose goals are only the VERIFIED fixes (fix ID, Before → After, using a matching remembered fix) and whose expectation is "rescore ACCEPTED"; UNVERIFIED items go to `Open:` unapplied. Its `Open:` and cap stops join the open list; rescore still runs.
    c. Re-run step 7.
    d. Rescore with 8a2.
    e. For each fix the rescore confirms, write its fix memory (Rules, fix memory).

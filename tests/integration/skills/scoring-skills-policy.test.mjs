@@ -130,6 +130,157 @@ describe('rubrics waive negligible items', () => {
   });
 });
 
+const readRel = (rel) => readFileSync(join(root, rel), 'utf8');
+
+describe('update-readme and update-rules brief a write scope and a fixed approach', () => {
+  test('update-readme SKILL.md names the write scope and the fixed approach', () => {
+    // Arrange
+    const text = skillMd('update-readme');
+    // Act
+    const rule =
+      /^- Every write in steps 11, 12 \(verify fix\), and 15 .*Write scope: the README set.*Approach: fixed to each goal's Before → After/m;
+    // Assert
+    assert.match(text, rule);
+  });
+
+  test('update-readme flow.md improve round names the write scope', () => {
+    // Arrange
+    const text = readRel('skills/update-readme/references/flow.md');
+    // Act
+    const rule = /^Build the Spec brief .*Write scope: the README set.*Approach: fixed to each goal's Before → After/m;
+    // Assert
+    assert.match(text, rule);
+  });
+
+  test('update-rules SKILL.md names the write scope and the step 8c goal', () => {
+    // Arrange
+    const text = skillMd('update-rules');
+    // Act
+    const scope =
+      /^- Every write in step 5 and step 8 .*`Write scope:`.*`Approach: fixed to each goal's Before → After`/m;
+    const goal = /step 8c improve-round goal/;
+    // Assert
+    assert.match(text, scope);
+    assert.match(text, goal);
+  });
+
+  test('update-rules SKILL.md has no step 8 plan', () => {
+    // Arrange
+    const text = skillMd('update-rules');
+    // Act
+    const stale = /step 8 plan/.test(text);
+    // Assert
+    assert.equal(stale, false);
+  });
+
+  test('update-rules flow.md names the write scope and the unmet-goal rule', () => {
+    // Arrange
+    const text = readRel('skills/update-rules/references/flow.md');
+    // Act
+    const scope =
+      /^- Spec: .*`Write scope:` the files the goals name; `Approach: fixed to each goal's Before → After`/m;
+    const unmet =
+      /^- Apply: .*An unmet goal \(its `Goals:` line\) or a `Files:` path outside the write scope → `Open:`/m;
+    // Assert
+    assert.match(text, scope);
+    assert.match(text, unmet);
+  });
+
+  test('update-rules flow.md no longer keys on Status: partial', () => {
+    // Arrange
+    const text = readRel('skills/update-rules/references/flow.md');
+    // Act
+    const stale = /Status: partial/.test(text);
+    // Assert
+    assert.equal(stale, false);
+  });
+
+  test('update-rules evals.md describes the extend ask, not a hard cap', () => {
+    // Arrange
+    const text = readRel('skills/update-rules/references/evals.md');
+    // Act
+    const stale = /At most 3 improve rounds/.test(text);
+    const extend = /3 more per Extend/.test(text);
+    // Assert
+    assert.equal(stale, false);
+    assert.ok(extend, 'extend wording missing');
+  });
+});
+
+describe('audit skills keep --score-only out of the write path', () => {
+  for (const skill of ['audit-skill', 'audit-subagent']) {
+    test(`${skill} --score-only runs steps 1–4 then 10 and never edits`, () => {
+      // Arrange
+      const text = skillMd(skill);
+      // Act
+      const rule = /^- `--score-only` runs steps 1–4 and then 10, never edits/m;
+      const decide = /^\d+\. \*\*Decide\.\*\* `--score-only` → go to step 10\./m;
+      const stale = /^- `--score-only`[^\n]*(step 6|implement-spec)/m;
+      // Assert
+      assert.match(text, rule);
+      assert.match(text, decide);
+      assert.doesNotMatch(text, stale);
+    });
+  }
+});
+
+describe('implement-spec resolves Root from the caller first', () => {
+  test('the caller-passed target directory wins over the git top-level', () => {
+    // Arrange
+    const text = skillMd('implement-spec');
+    // Act
+    const first =
+      /^1\. \*\*Root\.\*\* Resolve Root: the caller-passed target directory, else the git top-level, else the working directory;/m;
+    const stale = /Resolve Root: the git top-level/;
+    // Assert
+    assert.match(text, first);
+    assert.doesNotMatch(text, stale);
+  });
+
+  test('evals.md has the target-dir case', () => {
+    // Arrange
+    const text = readRel('skills/implement-spec/references/evals.md');
+    // Act
+    const row = /^\| target-dir +\|.*not the git top-level/m;
+    // Assert
+    assert.match(text, row);
+  });
+});
+
+describe('implement-spec stops are split into input stops and cap stops', () => {
+  for (const skill of ['update-readme', 'update-rules']) {
+    test(`${skill} SKILL.md treats other stops as cap stops`, () => {
+      // Arrange
+      const text = skillMd(skill);
+      // Act
+      const cap = /any other `Stopped:` is a cap stop/.test(text);
+      const stale = /Its `Stopped:` becomes/.test(text);
+      // Assert
+      assert.ok(cap, 'cap-stop rule missing');
+      assert.equal(stale, false);
+    });
+
+    test(`${skill} flow.md lists the extend question as a cancel`, () => {
+      // Arrange
+      const text = readRel(`skills/${skill}/references/flow.md`);
+      // Act
+      const rule = /^The user dismisses.*the `Extend 3 more rounds \| Stop` question/m;
+      // Assert
+      assert.match(text, rule);
+    });
+  }
+
+  test('update-readme SKILL.md stops at the cap on Stop or --yes', () => {
+    // Arrange
+    const text = skillMd('update-readme');
+    // Act
+    const rule =
+      /^ {4}At the cap with open items, ask the extend question \(Rules\): .*Stop or `--yes` → `Result: stopped`/m;
+    // Assert
+    assert.match(text, rule);
+  });
+});
+
 describe('rubric-improver is removed', () => {
   test('agent file is gone', () => {
     // Arrange

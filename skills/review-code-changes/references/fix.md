@@ -22,7 +22,7 @@ Write `<scratch>/fix-spec-<n>.md` with Write only. It holds only open findings t
 
 ## Implement
 
-Write the distinct goal files, with the test files the goals name, to `<scratch>/paths.txt`. Run `verify` on them; `ok` false → `Result: stopped`. Run `snapshot`. Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill) with the absolute spec path, and `--yes` only when the user passed it. Its `Stopped:` → `Result: stopped` with the same reason; its `Open:` → `Open:`. A goal it skips or leaves unmet stays open for the re-review.
+Write the distinct goal files, with the test files the goals name, to `<scratch>/paths.txt`. Run `verify` on them; `ok` false → `Result: stopped`. Run `snapshot`. Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill) with the absolute spec path, and `--yes` only when the user passed it. A `Stopped:` whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason; any other `Stopped:` is a cap stop: its `Open:` joins `Open:` and the loop goes on to the re-review. A goal it skips or leaves unmet stays open for the re-review.
 
 ## Delta
 

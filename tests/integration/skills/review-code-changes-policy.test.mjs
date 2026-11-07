@@ -54,6 +54,26 @@ describe('review-code-changes policy', () => {
     assert.ok(ask);
   });
 
+  test('treats an implement-spec stop other than needs input as a cap stop', () => {
+    // Arrange
+    const skill = skillMd('review-code-changes');
+    const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
+    // Act
+    const input = 'whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`';
+    const skillRule = new RegExp(`^- Fixes go through .*${input}.*any other \`Stopped:\` is a cap stop`, 'm').test(
+      skill
+    );
+    const fixRule = new RegExp(
+      `^Write the distinct goal files.*${input}.*any other \`Stopped:\` is a cap stop`,
+      'm'
+    ).test(fix);
+    const stale = /Its `Stopped:` (becomes|→) `Result: stopped`/.test(skill + fix);
+    // Assert
+    assert.ok(skillRule, 'SKILL.md cap-stop rule missing');
+    assert.ok(fixRule, 'fix.md cap-stop rule missing');
+    assert.equal(stale, false);
+  });
+
   test('asks no approval question', () => {
     // Arrange
     const text = skillMd('review-code-changes');

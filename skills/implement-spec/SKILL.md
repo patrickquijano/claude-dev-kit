@@ -36,7 +36,7 @@ A Context value of `<none>` means that read failed or there is no git repo; the 
 
 ## Workflow
 
-1. **Root.** Resolve Root: the git top-level, else the caller-passed target directory, else the working directory; there is no stop for a missing repo.
+1. **Root.** Resolve Root: the caller-passed target directory, else the git top-level, else the working directory; there is no stop for a missing repo.
 1b. **Baseline (git).** Keep Status as the pre-flight baseline (the Dirty paths) and save `dirty-diff` for each tracked Dirty path and the content of each untracked one.
 1c. **Baseline (no git).** Instead of 1b: save a content snapshot of the spec's write scope (path and content hash per file, or the content of a small file) as the baseline (no write scope passed: snapshot each planned file at step 5, before step 6); also record a root file list (Glob) before the run; the Dirty set is empty beyond the snapshot.
 2. **Analyze.** Always spawn the planner (Spawn briefs) with the input (a file path, or the requirement text, or a URL with its fetched text). Its block feeds the later steps: `Restatement` → the one-paragraph restatement, `Questions` → step 3, `Goals` and `Non-goals` → step 4, `Approaches` → the step 5 cards, `Steps` and `Risks` → the printed plan and the implementer brief.

@@ -44,6 +44,28 @@ describe('build skills delegate writes to implement-spec', () => {
       assert.match(text, /^## Fix-round variant$/m);
     });
 
+    test(`${skill} applies only VERIFIED fixes from the audit`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const rule =
+        /^ +[bd]\. Not ACCEPTED, or VERIFIED fixes remain .*goals are only the VERIFIED fixes.*UNVERIFIED items go to `Open:`/m;
+      // Assert
+      assert.match(text, rule);
+    });
+
+    test(`${skill} briefs.md audit line takes only VERIFIED fixes`, () => {
+      // Arrange
+      const text = read(join('references', 'briefs.md'));
+      // Act
+      const rule =
+        /^- audit: only the VERIFIED fixes from `audit-(skill|subagent) --score-only`.*UNVERIFIED items go to `Open:`/m;
+      const stale = /^- audit: the (fix IDs|open items) from/m;
+      // Assert
+      assert.match(text, rule);
+      assert.doesNotMatch(text, stale);
+    });
+
     test(`${skill} no longer keeps fixes inline`, () => {
       // Arrange
       const text = read('SKILL.md');
