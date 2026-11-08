@@ -30,6 +30,7 @@ Return: implement-spec's Output block only (`Files:`, `Open:`, `Stopped:`), at m
 Same brief with the goals replaced by the fixes, each with the acceptance criterion "the check passes or the deduction is gone":
 
 - validate: the `validate-skill` fix list, one goal per row (check id, file, line, message).
-- audit: only the VERIFIED fixes from `audit-skill --score-only` (rubric ID, `file:line`, Before → After, with a matching remembered fix put into the After text); UNVERIFIED items go to `Open:` unapplied; the expectation is "rescore ACCEPTED".
+- audit: only the VERIFIED fixes from `audit-skill --score-only` (rubric ID, `file:line`, Before → After, with a matching remembered fix put into the After text); UNVERIFIED items go to `Open:` unapplied; the expectation is "rescore ACCEPTED"; any edit to a `scripts/` executable is a non-goal and is listed under `Open:` instead.
+- eval: a failing eval case from step 9, one goal per case and model (case id, model, the failed `pass` line, Before → After wording), with the acceptance criterion "the case passes on that model".
 
 A fix round fixes the root cause and never weakens a check.

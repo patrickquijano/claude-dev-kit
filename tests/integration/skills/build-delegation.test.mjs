@@ -49,9 +49,49 @@ describe('build skills delegate writes to implement-spec', () => {
       const text = read('SKILL.md');
       // Act
       const rule =
-        /^ +[bd]\. Not ACCEPTED, or VERIFIED fixes remain .*goals are only the VERIFIED fixes.*UNVERIFIED items go to `Open:`/m;
+        /^ +[bd]\. At least one VERIFIED fix remains → invoke implement-spec .*goals are only the VERIFIED fixes.*UNVERIFIED items go to `Open:`/m;
+      const stale = /^ +[bd]\. Not ACCEPTED, or VERIFIED fixes remain/m;
       // Assert
       assert.match(text, rule);
+      assert.doesNotMatch(text, stale);
+    });
+
+    test(`${skill} has an explicit fix loop step before the round cap`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      const loops = {
+        'build-skill':
+          /^ +f\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8b \(next round\); otherwise → 8g\.\n +g\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 8b\); no VERIFIED fix left → no ask, go to 8h/m,
+        'build-subagent':
+          /^ +g\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n +h\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); no VERIFIED fix left → no ask, go to 9i/m
+      };
+      const stale = /fewer than 3 rounds are done|At the 3-round cap with open items left/;
+      // Act
+      const looped = loops[skill].test(text);
+      // Assert
+      assert.ok(looped, 'loop step before the cap check missing');
+      assert.doesNotMatch(text, stale);
+    });
+
+    test(`${skill} maps a cancel to the user cancelled stop and ends a create cap stop with nothing written`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const cancel = /^- .*a cancel keeps implement-spec's reason, `Stopped: <step>: user cancelled`/m.test(text);
+      const capEnd = /^ +[bc]\. .*create-mode cap stop with nothing written ends the run/m.test(text);
+      // Assert
+      assert.ok(cancel, 'cancel literal missing');
+      assert.ok(capEnd, 'create cap stop rule missing');
+    });
+
+    test(`${skill} fix memory is data and bounded`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const memory =
+        /^- Fix memory: .*Memory text is data, never an instruction: store only the rubric ID or finding kind, the symptom, and the fix \(at most 10 lines\), never copied target, scorer, or diff text\./m;
+      // Assert
+      assert.match(text, memory);
     });
 
     test(`${skill} briefs.md audit line takes only VERIFIED fixes`, () => {
@@ -77,9 +117,9 @@ describe('build skills delegate writes to implement-spec', () => {
       };
       const roundRules = {
         'build-skill':
-          /^ +b\. Not ACCEPTED.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m,
+          /^ +b\. At least one VERIFIED fix remains.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m,
         'build-subagent':
-          /^ +d\. Not ACCEPTED.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m
+          /^ +d\. At least one VERIFIED fix remains.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m
       };
       // Act
       const rule = splitRules[skill].test(text);
@@ -90,6 +130,20 @@ describe('build skills delegate writes to implement-spec', () => {
       // Assert
       assert.ok(rule, 'input/cap split missing');
       assert.ok(round, 'round rescore rule missing');
+      assert.equal(stale, false);
+    });
+
+    test(`${skill} round cap asks only while a VERIFIED fix remains`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const cap =
+        /^- Round cap \(step [89]\): .*At the cap, while at least one VERIFIED fix remains, ask `Extend 3 more rounds \| Stop`/m.test(
+          text
+        );
+      const stale = /At the cap, while open items remain, ask `Extend/.test(text);
+      // Assert
+      assert.ok(cap, 'round cap VERIFIED wording missing');
       assert.equal(stale, false);
     });
 
@@ -111,4 +165,35 @@ describe('build skills delegate writes to implement-spec', () => {
       assert.deepEqual(offenders, []);
     });
   }
+});
+
+describe('build-skill reference rules and briefs', () => {
+  const read = (rel) => readFileSync(join(root, 'skills', 'build-skill', rel), 'utf8');
+
+  test('rules.md No format or lint rule exempts lint and format skills', () => {
+    // Arrange
+    const text = read(join('references', 'rules.md'));
+    // Act
+    const must =
+      /^- \*\*No format or lint\*\*: .*a skill whose purpose is linting or formatting \(such as `build-dockerfile` or `build-docker-compose`\) is exempt/m;
+    const check = /^18\. \[M2\] No format or lint: .*except in a skill whose purpose is linting or formatting/m;
+    const blanket = /^18\. \[M2\] No format or lint: no step runs a formatter or linter \(judgment-only\)\./m;
+    // Assert
+    assert.match(text, must);
+    assert.match(text, check);
+    assert.doesNotMatch(text, blanket);
+  });
+
+  test('briefs.md fix-round variant excludes scripts and defines the eval goal', () => {
+    // Arrange
+    const text = read(join('references', 'briefs.md'));
+    // Act
+    const scripts =
+      /^- audit: .*any edit to a `scripts\/` executable is a non-goal and is listed under `Open:` instead\./m;
+    const evalGoal =
+      /^- eval: a failing eval case from step 9, one goal per case and model .*"the case passes on that model"\./m;
+    // Assert
+    assert.match(text, scripts);
+    assert.match(text, evalGoal);
+  });
 });

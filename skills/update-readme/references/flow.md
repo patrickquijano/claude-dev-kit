@@ -35,7 +35,7 @@ The template, length, and layout questions share one format.
 
 ## Cancelled
 
-The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a template, length, or layout question, a Gaps question, an analyst `Question:` ask, the Public | Private | Omit question, an improve-round fact-gap question, the `Extend 3 more rounds | Stop` question) → stop at once, write nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" or "Stop" is an answer, not a cancel.
+The user dismisses, cancels, or declines an AskUserQuestion this skill needs answered (a template, length, or layout question, a Gaps question, an analyst `Question:` ask, the Public | Private | Omit question, an improve-round fact-gap question, the `Extend 3 more rounds | Stop` question) → stop at once, write nothing further, and print the Output with `Result: cancelled`, `Stopped: <step>: user cancelled`. A README already written stays; report it as `created` or `updated`. Choosing "Omit" or "Stop" is an answer, not a cancel. A cancel reported by implement-spec is different: SKILL.md Rules map it to `Result: stopped`, `Stopped: <step>: user cancelled`.
 
 ## Verify
 
@@ -47,9 +47,9 @@ The user dismisses, cancels, or declines an AskUserQuestion this skill needs ans
 
 Entered from SKILL.md step 15: rounds + 1.
 
-Build the Spec brief (memory lookup per SKILL.md Rules): root, rubric path, README path, archetype, the chosen max, one goal per deduction (ID, file:line, Before → After) with last round's unresolved items first, the facts block (answers merged), `Omitted:` as non-goals, every path outside the README set as non-goals, `Write scope: the README set (README path plus its linked split files)`, `Approach: fixed to each goal's Before → After`, `Tests: none (documentation)`, and "Do not run any formatter or linter." Invoke implement-spec with it; it edits the README and its split files only, each at most the max.
+Build the Spec brief (memory lookup per SKILL.md Rules): root, rubric path, README path, archetype, the chosen max, one goal per deduction (ID, file:line, Before → After) with last round's unresolved items first, the facts block (answers merged), `Omitted:` as non-goals, every path outside the README set as non-goals, `Write scope: the README set (README path plus its linked split files and each split file listed at step 11)`, `Approach: fixed to each goal's Before → After`, `Tests: none (documentation)`, and "Do not run any formatter or linter." Invoke implement-spec with it; it edits the README and its split files only, each at most the max.
 
-- A fact gap (license, URL, version, contact, badge) → AskUserQuestion with an "Omit" option (max 4 per call). `--yes` or unattended runs ask nothing: add it to `Omitted:`. implement-spec's `Open:` items and cap stops go into the leftovers; the caller still rescores and reaches the cap ask.
+- Before invoking implement-spec, resolve each fact gap (license, URL, version, contact, badge) → AskUserQuestion with an "Omit" option (max 4 per call). `--yes` or unattended runs ask nothing: add it to `Omitted:`. implement-spec's `Open:` items and cap stops go into the leftovers; the caller still rescores and reaches the cap ask.
 - Then rescore (step 13) and report (step 14), per SKILL.md Rules.
 
 ## Leftovers

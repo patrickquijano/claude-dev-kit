@@ -30,8 +30,8 @@ Ask one structured question:
 
 - Options: `<A1 name> (Recommended)` | `<A2 name>` | `<A3 name>` | `Stop`; a close call per `grill.md` marks none Recommended.
 - Each option description holds its trade-off in one line; the recommendation carries its reason.
-- Only one workable approach → print it with why no other fits, and skip the ask.
-- `--yes` picks the recommended approach and records it. `Stop` → `Result: cancelled`.
+- Only one workable approach, or a spec that fixes the approach → print it with why no other fits, and skip the ask.
+- `--yes` picks the recommended approach and records it; on a close call it still takes the recommended one and records the close call under `Open:`. `Stop` → `Result: cancelled`, `Stopped: <step>: user cancelled`.
 
 ## Printed plan
 

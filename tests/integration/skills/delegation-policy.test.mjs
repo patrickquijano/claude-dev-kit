@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const skills = ['audit-skill', 'audit-subagent', 'build-subagent', 'review-code-changes'];
+const skills = ['audit-skill', 'build-skill', 'audit-subagent', 'build-subagent', 'review-code-changes'];
 const skillFile = (skill) => readFileSync(join(root, 'skills', skill, 'SKILL.md'), 'utf8');
 
 describe('write delegation policy across audit, build, and review skills', () => {
