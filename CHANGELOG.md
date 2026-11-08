@@ -28,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Remove the `cdk:rubric-improver` and `cdk:task-worker` subagents; the skills that used them now go through `/cdk:implement-spec`, so any prompt that names either subagent no longer works.
+- Remove the `cdk:rubric-improver` subagent; the skills that used it now go through `/cdk:implement-spec`, so any prompt that names it no longer works.
+- Remove the `cdk:task-worker` subagent, a read-only investigator that no skill called; any prompt that names it no longer works.
 
 ## [0.8.14] - 2026-11-04
 
