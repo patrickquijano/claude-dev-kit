@@ -23,6 +23,8 @@ MUST
 - **Subagent calls**: a spawn names the plugin subagent first: ``Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only subagent that scores the skill against the rubric)``. No plugin agent fits → describe the role in plain words only. Each spawn has an inline fallback for when no subagent is available. Never spawn the generic built-ins `Explore` or `general-purpose`.
 - **Bypass flag**: a task skill accepts `--yes` (unattended: no questions, recommended options taken, assumptions under `Open:`). Only a flag the user passed counts; a skill never adds one itself. A skill asks no approval question before a side-effect step: it runs directly. A gate (a question that only approves the next step) is not allowed; a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) is required before an irreversible step and is never skipped by `--yes`. A decision question may offer `Stop`, and `Stop` ends with `Result: stopped`.
 - **Git ownership**: A skill other than `switch-branch` never switches, creates, or checks out a branch. A skill other than `commit-changes` never commits. Others invoke the owning skill in the skill-call form above (fallback: plain language). Exceptions: `rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `setup-git` are not branch switches or commits.
+- **Memory**: a skill that keeps memory writes a memory file plus its `MEMORY.md` pointer to Claude's auto-memory dir. It takes the path from the session's auto-memory context and never guesses it; if none is found, it lists the item under `Open:`. It never writes memory under `${CLAUDE_SKILL_DIR}` or anywhere in its skill directory.
+- **No format or lint**: a skill runs no formatter or linter and has no step that does, because repo hooks and CI own that; a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (such as `build-dockerfile` or `build-docker-compose`), is exempt for that purpose.
 - Fully qualified MCP names (Server:tool).
 - At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases (should-be-skill, should-be-subagent, should-be-neither, hybrid) when the skill makes a fit decision.
 
@@ -126,7 +128,7 @@ Same name at several levels: user over project; plugin skills are namespaced, so
 
 Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it reports. Walk every line against the target, quote the evidence, and re-check after each fix (3 rounds at most).
 
-1. [F1] `name`: kebab-case a-z0-9, ≤64 chars, equals the folder, no "anthropic" or "claude", verb-first.
+1. [F1] `name`: kebab-case a-z0-9, ≤64 chars, equals the folder, no "anthropic" or "claude". [F8] Not actor-named: the last part ends in -er, -or, -ist, or -ant and the first part is not a leading verb (warning, not an error).
 2. [F3] `description`: present, ≤200 chars (count), no XML tags, names no skill or subagent; with `when_to_use` ≤1,536.
 3. [F9] `description` has no "I", "you", "your", "we", "our", or "my".
 4. [F6] Every frontmatter key is in the fields table; the YAML opens on line 1 and closes.
@@ -142,6 +144,8 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 14. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn names the plugin subagent first with a plain-words fallback (role in plain words only when no plugin agent fits) and has an inline fallback (judgment-only: the script does not check it).
 15. [Q2] A task skill's `argument-hint` has `[--yes]`; `Input:` strips it; a Rules bullet states what `--yes` does and that it never skips a safety stop (judgment-only).
 16. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
+17. [M1] Memory: a skill that keeps memory writes to Claude's auto-memory dir (path from the session context, else `Open:`), never under its skill directory (judgment-only).
+18. [M2] No format or lint: no step runs a formatter or linter, except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (judgment-only).
 
 ## Sources
 

@@ -38,6 +38,10 @@ N/A → full points; evidence states rule. Use only these rules.
 - Item in prompt `Omitted:` list → criterion needing it N/A: architecture → V2; precedence → P1; boundaries → B1; focused changes → F1; done → D1; maintenance → M1; principles → E1. A default requirement in `Omitted:` drops only that part of E1.
 - E1: catalog group or default requirement with no place in the repo per facts `Architecture`/`Stack`/`Patterns`/`Commands` (e.g. no services → no operational readiness) → that part N/A. Secret handling met by a `CLAUDE.md` Boundaries secrets line; evidence names the missing fact.
 
+## Negligible waiver
+
+A would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) is negligible: it scores full, gets no fix ID, and appears under `Waived: <ID> file:line — reason`. Waived items never enter `Open:`. Never waive a gate FAIL, or anything that affects correctness, a safety stop, or a validator result.
+
 ## Placement rules
 
 - Always-loaded `CLAUDE.md`: overview, architecture, commands, precedence, boundaries, focused changes, definition of done, maintenance.
@@ -46,7 +50,6 @@ N/A → full points; evidence states rule. Use only these rules.
 - Engineering principles: trade-off order in `CLAUDE.md` Precedence; repo-wide principles in unconditional `.claude/rules/principles.md`; stack-specific principles in path-scoped rules. Details: `principles.md`.
 - `@import`: use only to reuse an existing doc; it still loads into context.
 - Hard requirement Claude must never break → also suggest a hook; memory files are advisory.
-- Never write `CLAUDE.local.md`, `~/.claude/**`, or managed policy files. Exception: the auto-memory directory takes only the `Known issues` move (a `feedback` memory plus its `MEMORY.md` pointer).
 
 ## Sources
 

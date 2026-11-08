@@ -17,7 +17,7 @@ Print before each question; options in alphabetical order.
 
 ## Weights
 
-- 3–6 criteria taken from the user's stated goals, never from a preferred option.
+- 3–6 criteria taken from the user's stated goals, never from a preferred option; a question whose file fixes default criteria and weights uses those, still printed before any option is scored, and skips the "No stated goals" bullet.
 - Integer weights summing to 100, fixed and printed before any option is scored.
 - No stated goals → ask for them first.
 

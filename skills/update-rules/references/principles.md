@@ -8,7 +8,7 @@ Correctness > security > clarity > simplicity > maintainability > testability > 
 
 ## Adaptation
 
-- Principles are decision guidance, not hard rules. Write generated lines as imperatives; reserve "never" for security and data-loss items.
+- Principles are decision guidance, not hard rules. Write generated lines as imperatives; reserve "never" for security, data-loss, and the change-scope items in `## Placement`.
 - Emit an item only where the repo has a place it applies (facts `Architecture`, `Stack`, `Patterns`, `Commands`). Example: idempotency only when the repo has retries, jobs, migrations, or deploy scripts.
 - Write each item as a repo-specific action, not a definition. Name the repo's own tool, path, or command when facts show one ("validate input with zod in `src/api/`"); else keep a short generic line. Claude knows the definitions.
 - Never invent requirements, tools, thresholds, coverage targets, log formats, or commands.

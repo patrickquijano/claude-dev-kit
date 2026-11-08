@@ -22,8 +22,6 @@ From `rules.md` F1. A candidate that fails one is dropped and listed with the ru
 
 ## Criteria
 
-Weights sum to 100.
-
 | Criterion                                             | Weight |
 | ----------------------------------------------------- | ------ |
 | Names the action: verb first, then the object         | 30     |
@@ -36,9 +34,8 @@ Weights sum to 100.
 
 - Score each candidate 1–5 per criterion on the anchors in `grill.md`: 5 fits, 1 fights. The criteria above are the default criteria and their weights are fixed integers summing to 100.
 - Cite evidence for every score: a sibling name, a `file:line`, a user quote, or a bundled fact. No evidence → mark it "unverified".
-- Total = Σ(weight × score) / 5 (0–100). Recommended only on the highest total.
 - Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either).
-- Close call (top two ≤5 apart) → no Recommended, say "close call", and the user picks; run the sensitivity check in `grill.md`.
+- Close call: apply the Recommend and Sensitivity rules in `grill.md`.
 - Facts come from the bundled snapshot; a web re-check is optional, never required.
 
 ## Question

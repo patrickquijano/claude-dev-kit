@@ -1,6 +1,6 @@
 # Verify
 
-Steps 2, 4, 9–11 of `SKILL.md`: locate, baseline an improve, the check, validation, the delegation test, and `Open:`. Scoring and score-driven fixes belong to the `cdk:audit-subagent` skill, invoked in step 9.
+Steps 2, 4, 9–11 of `SKILL.md`: locate, baseline an improve, the check, validation, the delegation test, and `Open:`. Scoring belongs to the `cdk:audit-subagent` skill, invoked in step 9 with `--score-only`; it never edits, and score-driven fixes go through implement-spec (`SKILL.md` step 9d).
 
 ## Locate
 

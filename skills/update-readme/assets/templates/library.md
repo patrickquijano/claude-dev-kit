@@ -1,6 +1,6 @@
 # {{name}}
 
-<!-- Badges, one per line, only real ones (CI, version, license). Delete if none. -->
+<!-- CI badge only, per portable.md Badges; keep existing badges. Delete if none. -->
 
 {{one-line description, ≤120 chars, starts with or paraphrases manifest description}}
 

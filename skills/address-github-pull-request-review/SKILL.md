@@ -1,6 +1,6 @@
 ---
 name: address-github-pull-request-review
-description: Fixes and replies to review threads, review-body items, and failing checks on a GitHub PR. Use to address PR feedback, answer reviewer comments, or fix failing checks. Not for reviewing a PR (cdk:review-github-pull-request) or GitLab merge requests.
+description: Fixes and replies to review threads, review-body items, and failing checks on a GitHub PR. Use to address PR feedback, answer reviewer comments, or fix failing checks. Not for reviewing PRs or GitLab.
 compatibility: Claude Code only. Needs node, git, and an authenticated gh CLI. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | owner/repo#N | number] [--dry-run]'
 allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh run view *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff) Bash(git diff -- *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_me
