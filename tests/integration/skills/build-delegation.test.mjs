@@ -66,6 +66,33 @@ describe('build skills delegate writes to implement-spec', () => {
       assert.doesNotMatch(text, stale);
     });
 
+    test(`${skill} splits implement-spec input stops from cap stops`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      const splitRules = {
+        'build-skill':
+          /^- Before each implement-spec invocation.*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m,
+        'build-subagent':
+          /^- Every write, including.*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m
+      };
+      const roundRules = {
+        'build-skill':
+          /^ +b\. Not ACCEPTED.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m,
+        'build-subagent':
+          /^ +d\. Not ACCEPTED.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m
+      };
+      // Act
+      const rule = splitRules[skill].test(text);
+      const round = roundRules[skill].test(text);
+      const staleText =
+        /Its `Stopped:` becomes `Result: stopped`|Its `Open:` and cap stops join|`Stopped` → `Result: stopped`/;
+      const stale = staleText.test(text) || /an implement-spec stop is reported as/.test(read('references/evals.md'));
+      // Assert
+      assert.ok(rule, 'input/cap split missing');
+      assert.ok(round, 'round rescore rule missing');
+      assert.equal(stale, false);
+    });
+
     test(`${skill} no longer keeps fixes inline`, () => {
       // Arrange
       const text = read('SKILL.md');

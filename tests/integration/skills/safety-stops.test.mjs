@@ -17,7 +17,7 @@ const skillText = (name) =>
     .map((file) => readFileSync(file, 'utf8'))
     .join('\n');
 
-// Each entry is a fact stop that refuses without asking; `--yes` never skips it. The audit-code-security entries pin step 1b's stop and step 5a.1's `--yes` default.
+// Each entry is a fact stop that refuses without asking, or a write-scope limit; `--yes` never skips it. The audit-code-security entries pin step 1b's stop and step 5a.1's `--yes` default.
 const STOPS = {
   'audit-code-security': [
     /Stopped: 1: run directory not ignored by git/,
@@ -36,7 +36,14 @@ const STOPS = {
   'setup-husky': [/foreign|another tool/i, /core\.hooksPath/],
   'push-commits': [/unsigned/i],
   'upgrade-dependencies': [/dirty|uncommitted/i],
-  'build-skill': [/cdk:audit-skill/]
+  'build-skill': [
+    /cdk:audit-skill/,
+    /^- Never delete unless .*\(`Result: stopped`, `Stopped: <step>: delete without git`\).*`--yes` never skips this stop/m
+  ],
+  'audit-skill': [
+    /^- non-goals: every path outside the target, any edit to a `scripts\/` executable/m,
+    /^- Every fix to a target skill .*any edit to a `scripts\/` executable is out of scope/m
+  ]
 };
 
 describe('safety stops are kept', () => {

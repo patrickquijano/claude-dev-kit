@@ -46,7 +46,7 @@ Goal: apply the VERIFIED and user-approved audit fixes to one skill directory. R
 Expectations:
 
 - numbered goals, one per fix ID, each with the acceptance criterion "the After text is present at `file:line` and the deduction is gone on rescore".
-- non-goals: every path outside the target, any item not in the fix list, and any change to the target's job, name, or scope.
+- non-goals: every path outside the target, any edit to a `scripts/` executable (list it under `Open:` instead), any item not in the fix list, and any change to the target's job, name, or scope.
 
 Instructions:
 
