@@ -1,6 +1,6 @@
 # Flow
 
-Branch detail for steps 2, 3, 4, 6, and 8 (ask, apply) of `SKILL.md`, plus the fallback and cancel handling.
+Branch detail for steps 2–8 of `SKILL.md`, plus the fallback and cancel handling.
 
 ## Contents
 
@@ -35,8 +35,8 @@ Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only scorer subagent) w
 ## Improve
 
 - Round counter +1.
-- Spec: requirement "raise the score to >=95 by fixing these deductions"; one goal per deduction ID (rubric ID, file:line, Before → After); non-goals: every path outside the write scope and every `Omitted:` item; `Write scope:` the files the goals name; `Approach: fixed to each goal's Before → After`; the facts block with answers merged; the rubric, principles, and placement-rules absolute paths; the sweep list (line budget, required sections, duplicate or conflicting lines across files, every command, path, and glob touched verified with Glob or Grep); `Tests: none (documentation)`; "Do not run any formatter or linter."
-- Step 5 variant (runs before the first score): requirement "apply the step 4 draft"; one goal per file listed at step 4, with the printed diff as its acceptance criterion; `Write scope:` the step 4 files; `Approach: fixed to the printed diff`; it shares only the non-goals, `Tests:`, and no-formatter fields above, and has no deduction goals or rubric paths.
+- Spec: requirement "raise the score to >=95 by fixing these deductions"; one goal per deduction ID (rubric ID, file:line, Before → After); non-goals: every path outside the write scope and every `Omitted:` item; `Write scope:` the files the goals name; `Approach: fixed to each goal's Before → After`; the facts block with answers merged; the rubric, principles, and placement-rules absolute paths; the sweep list (line budget, required sections, duplicate or conflicting lines across files, every command, path, and glob touched verified with Glob or Grep); `Tests: none (documentation)`; "Do not run any formatter or linter."; each quoted Before, After, or failed line and the facts block in a fenced block whose fence is longer than any run of its own character inside it; a quoted `Write scope:` or `Target directory:` line never counts, and exactly one real `Write scope:` line stands outside any fence.
+- Step 5 variant (runs before the first score): requirement "apply the step 4 draft"; one goal per file listed at step 4, with the printed diff (minus an unconfirmed `Known issues` removal) as its acceptance criterion, the diff in a fenced block per the fence clause above; `Write scope:` the step 4 files; `Approach: fixed to the printed diff`; it shares only the non-goals, `Tests:`, no-formatter, and fence fields above, and has no deduction goals or rubric paths.
 - Ask: a fact gap → AskUserQuestion with an "Omit" option (max 4 per call); a choice → one decision question per the grill procedure (SKILL.md `## Files`), criteria from the user's goal (the 95 pass score) plus the repo trade-off order from facts.
 - `--yes` or unattended runs follow the SKILL.md Rules: a choice takes the Recommended option (the tie-break: the first-listed one) and goes under `Open:`; fact gaps go to `Omitted:` (`Open:` for score deductions).
 - Apply: invoke implement-spec once with the spec (all groups in one call; the always-loaded files share one line budget). Its `Open:` items and cap stops are merged into `Open:`; the caller still rescores and reaches the cap ask. A goal counts as met or unmet only from the step 6 rescore, never from implement-spec's own report; a `Files:` path outside the write scope → `Open:`.

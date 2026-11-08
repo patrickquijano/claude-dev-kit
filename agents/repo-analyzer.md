@@ -65,7 +65,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Commands: package scripts, Makefile targets, `justfile`, `Taskfile.yml`, CI jobs. Record exact names.
 - Components: user-facing units (CLI commands, exported modules, plugin `skills/`, `agents/`, `hooks/`, packages in workspaces). Scripts inside a component directory belong to it, not separate components. Record name, path, one-line purpose from its own file.
 - Config: `.env.example`, config files, env vars read in code (Grep `process.env`, `os.environ`, `getenv`). Split user-set from internal: host-injected vars (e.g. `CLAUDE_*`), CI-internal vars, and dev-tooling config are internal.
-- Community: LICENSE (SPDX id from text, owner), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates, markdown linter config (`.markdownlint*`, `lint:md` script), formatter config.
+- Community: LICENSE (SPDX id from text, owner), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates.
 - Existing README (if any): headings, stated commands/components; mark each stale item (command or component not in repo, missing component).
 - Host: `git -C <root> remote get-url origin` → github | gitlab | other (anchor slug rules).
 - Archetype: pick one of `library | cli | application | plugin | monorepo | minimal | docs` with one-line reason.
@@ -90,7 +90,6 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Commands: package scripts, Makefile targets, `justfile`, `Taskfile.yml`, CI jobs, hook scripts. Record exact commands for build, test, lint, format, validate.
 - Architecture: top-level components (dirs, packages, plugins, services), role from their own files, how they connect.
 - Rule globs: each `paths` glob → count of matching tracked files (Grep the `ls-files` output).
-- Formatter: exact per-file command for markdown (e.g. `npx prettier --write <file>` when prettier config exists) | none.
 - Stack: languages, frameworks, and test, logging, security-scan, and config tooling, each with its dirs as globs matching tracked files and the manifest or config file that proves it. Record only what files show.
 - Patterns: design or architectural patterns the code already uses (repositories, adapters, DI container, middleware chain, event bus, retry or circuit-breaker library, CQRS handlers), each with the path that shows it. Record only names, dirs, or imports that prove the pattern.
 - Gaps: rubric topics with no instruction and no derivable fact: architecture, precedence, boundaries (destructive ops, secrets, protected branches, hook bypass, outward actions), focused changes, definition of done, maintenance, principles (no design trade-off order or engineering principles rule).
@@ -162,8 +161,6 @@ Config: user: <var/file — meaning, ...> | internal: <var/file, ...>
 License: <SPDX — owner — file | none>
 Visibility: <public | private | unknown> (from host/manifest `private` flag; unknown when not derivable)
 Community files: <list or none>
-Markdown linter: <exact command on one file | none>
-Formatter: <exact per-file command, e.g. `npx prettier --write README.md` when prettier config exists | none>
 Host: <github | gitlab | other>
 Existing README: <none | headings list>
 Stale: <item — reason, ... | none>
@@ -205,7 +202,6 @@ Conflicts: <A source vs B source — summary, ... | none>
 Commands: <purpose: exact command, ...>
 Architecture: <component — path — role, ...>
 Rule globs: <file: glob → n matches, ...>
-Formatter: <command | none>
 Stack: <kind: name — globs — evidence file, ... | none>
 Patterns: <pattern — path, ... | none>
 Gaps: <topic, ... | none>

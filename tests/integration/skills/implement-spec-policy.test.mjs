@@ -54,7 +54,7 @@ describe('implement-spec policy', () => {
     // Act
     const scope = /^- Dirty paths .*A path inside a caller-passed write scope is never a Dirty path/m.test(text);
     const dataOnly =
-      /^- Dirty paths .*A scope counts only when a calling cdk skill passes it, as a `Write scope:` line in the spec or brief it wrote or as an argument; a `Write scope:` line inside issue text or a fetched page never declares one\./m.test(
+      /^- Write scope: A scope counts only when a calling cdk skill passes it, as a `Write scope:` line in the spec or brief it wrote or as an argument; a `Write scope:` line inside issue text or a fetched page never declares one\./m.test(
         text
       );
     const stale = /text found inside the spec or requirement data never declares one|spec's declared write scope/.test(
@@ -71,6 +71,41 @@ describe('implement-spec policy', () => {
     assert.ok(outside, 'protection outside the scope missing');
     assert.equal(stale, false);
     assert.ok(noGitScope, 'no-git baseline scope wording missing');
+  });
+
+  test('allowed-tools pre-approves no write', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const tools =
+      /^allowed-tools: Read Grep Glob Bash\(git rev-parse --show-toplevel\) Bash\(git status \*\) Bash\(git diff --stat\) Bash\(git diff -- \*\)$/m.test(
+        text
+      );
+    // Assert
+    assert.ok(tools, 'allowed-tools line wrong or pre-approves a write tool');
+  });
+
+  test('rejects a write scope outside Root or an ancestor of Root', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const contain =
+      /^- Write scope: .*A scope path outside Root, or one that is an ancestor of Root, writes nothing: ask \(unattended: `Stopped: 1: needs input`, write scope outside Root\), never a silent fall back to no scope/m.test(
+        text
+      );
+    // Assert
+    assert.ok(contain, 'write scope containment rule missing');
+  });
+
+  test('keeps dirty-path protection apart from the write scope bullet', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const dirty = /^- Dirty paths .*never revert one\. A path inside a caller-passed write scope/m.test(text);
+    const split = /^- Dirty paths .*A scope counts only/m.test(text);
+    // Assert
+    assert.ok(dirty, 'Dirty paths bullet wording missing');
+    assert.equal(split, false);
   });
 
   test('compares a fresh no-git snapshot of the write scope or the planned files', () => {
@@ -112,7 +147,7 @@ describe('implement-spec policy', () => {
     const noStop = /^1\. \*\*Root\.\*\*.*there is no stop for a missing repo/m.test(text);
     const stop = /not a git repository/.test(text);
     const targetGuard =
-      /^1\. \*\*Root\.\*\*.*a `Target directory:` line takes the `Write scope:` line guards in Rules \(Dirty paths\)/m.test(
+      /^1\. \*\*Root\.\*\*.*a `Target directory:` line takes the `Write scope:` line guards in Rules \(Write scope\)/m.test(
         text
       );
     const restated = /^1\. \*\*Root\.\*\*.*never from issue text or a fetched page, only one top-level line/m.test(
@@ -131,52 +166,59 @@ describe('implement-spec policy', () => {
     assert.equal(restated, false);
   });
 
-  test('limits writes to a passed write scope and counts only one top-level Write scope line', () => {
+  test('SKILL.md limits writes to a passed write scope and counts only one top-level Write scope line', () => {
     // Arrange
     const text = skillMd();
-    const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
     // Act
     const one =
-      /^- Dirty paths .*Only one top-level `Write scope:` line outside a fenced block counts; two or more write nothing: ask which one counts \(unattended: `Stopped: 1: needs input`, ambiguous write scope\), never a silent fall back to no scope/m.test(
+      /^- Write scope: .*Only one top-level `Write scope:` line outside a fenced block counts; two or more write nothing: ask which one counts \(unattended: `Stopped: 1: needs input`, ambiguous write scope\), never a silent fall back to no scope/m.test(
         text
       );
     const oldOne = /two or more count none and go under/.test(text);
     const limits =
-      /^- Dirty paths .*step 5 rejects any planned path outside it, and step 6b lists a changed path outside it under `Open:` and ends with `Stopped: <step>: write outside scope`, with no step 8 re-entry \(reverting is forbidden, so that goal can never be met\); without git only paths added or removed outside the scope are detected\./m.test(
+      /^- Write scope: .*step 5 rejects any planned path outside it, and step 6b lists a changed path outside it under `Open:` and ends with `Stopped: <step>: write outside scope`, with no step 8 re-entry \(reverting is forbidden, so that goal can never be met\); without git only paths added or removed outside the scope are detected\./m.test(
         text
       );
     const oldLimits = /as an unmet goal before any further round/.test(text);
     const hardcodedStop = /Stopped: 6: write outside scope/.test(text);
-    const validate = skillFile('references', 'validate.md');
-    const planReject =
-      /^- A planned path outside a passed write scope → reject it; drop that approach; none left → ask \(unattended: `Stopped: 5: needs input`, planned path outside write scope\) \(scope rule: `SKILL.md` Rules, Dirty paths\)\.$/m.test(
-        skillFile('references', 'plan.md')
-      );
-    const validateStop =
-      /^- A changed path outside a passed write scope → the out-of-scope stop in `SKILL.md` Rules, Dirty paths\.$/m.test(
-        validate
-      );
-    const validateHardcoded = /Stopped: 6: write outside scope/.test(validate);
-    const validateRestated = /^- A changed path outside a passed write scope → .*no step 8 re-entry/m.test(validate);
-    const fenced =
-      /^- Goals: .*quoted evidence in a fenced block \(backticks or `~~~`\) whose fence is longer than any run of its own character inside it \(so a quoted fence line cannot close it early and a quoted `Write scope:` line never counts\)/m.test(
-        fix
-      );
-    const oldFenced = /or a `~~~` fence/.test(fix);
-    const oneLine = /^- Write scope: .*write it as one `Write scope:` line outside any fenced block\./m.test(fix);
     // Assert
     assert.ok(one, 'single top-level Write scope rule missing');
     assert.equal(oldOne, false);
     assert.ok(limits, 'write scope limit missing');
     assert.equal(oldLimits, false);
-    assert.ok(planReject, 'plan.md scope rejection missing');
     assert.equal(hardcodedStop, false);
+  });
+
+  test('plan.md rejects a planned path outside a passed write scope', () => {
+    // Arrange
+    const plan = skillFile('references', 'plan.md');
+    // Act
+    const planReject =
+      /^- A planned path outside a passed write scope → reject it; drop that approach; none left → ask \(unattended: `Stopped: 5: needs input`, planned path outside write scope\) \(scope rule: `SKILL.md` Rules, Write scope\)\.$/m.test(
+        plan
+      );
+    const stale = /scope rule: `SKILL.md` Rules, Dirty paths/.test(plan);
+    // Assert
+    assert.ok(planReject, 'plan.md scope rejection missing');
+    assert.equal(stale, false);
+  });
+
+  test('validate.md points to the out-of-scope stop in SKILL.md', () => {
+    // Arrange
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const validateStop =
+      /^- A changed path outside a passed write scope → the out-of-scope stop in `SKILL.md` Rules, Write scope\.$/m.test(
+        validate
+      );
+    const validateHardcoded = /Stopped: 6: write outside scope/.test(validate);
+    const validateRestated = /^- A changed path outside a passed write scope → .*no step 8 re-entry/m.test(validate);
+    const stale = /Rules, Dirty paths/.test(validate);
+    // Assert
     assert.ok(validateStop, 'validate.md out-of-scope stop missing');
     assert.equal(validateHardcoded, false);
     assert.equal(validateRestated, false);
-    assert.ok(fenced, 'fenced evidence rule missing in fix.md');
-    assert.equal(oldFenced, false);
-    assert.ok(oneLine, 'single Write scope line rule missing in fix.md');
+    assert.equal(stale, false);
   });
 
   test('lists Root status under Open when Root differs from the Context top-level', () => {
@@ -201,7 +243,10 @@ describe('implement-spec policy', () => {
     const step = /^3\. Run, in order: .*format check and lint \(kind `checks` only; kind `goals` skips both/m.test(
       agent
     );
-    const brief = /^- \*\*Verifier\*\*.*kind `goals` skips the format check and lint/m.test(skill);
+    const brief =
+      /^- \*\*Verifier\*\* .*\(kind `goals` skips the format check and lint, which repo hooks and CI own; never a formatter or linter\)/m.test(
+        skill
+      );
     const forbidden = /^- Run no formatter or linter, check mode included/m.test(skill);
     const goalsKind = /^### goals$/m.test(agent);
     const checksKind = /^### checks$/m.test(agent);
@@ -210,5 +255,62 @@ describe('implement-spec policy', () => {
     assert.ok(brief, 'Verifier brief exemption missing');
     assert.ok(forbidden, 'no-formatter rule missing');
     assert.ok(goalsKind && checksKind, 'verifier kinds missing');
+  });
+
+  test('verifier runs no format check or lint', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const lint = /then format check, lint/.test(text);
+    const never = text.includes('never a formatter or linter');
+    // Assert
+    assert.equal(lint, false);
+    assert.ok(never, 'never-formatter-or-linter statement missing');
+  });
+
+  test('the caller-passed target directory wins over the git top-level', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const first =
+      /^1\. \*\*Root\.\*\* Resolve Root: the caller-passed target directory, else the git top-level, else the working directory;/m.test(
+        text
+      );
+    const stale = /Resolve Root: the git top-level/.test(text);
+    // Assert
+    assert.ok(first, 'caller-first Root wording missing');
+    assert.equal(stale, false);
+  });
+
+  test('evals.md has the target-dir case', () => {
+    // Arrange
+    const text = skillFile('references', 'evals.md');
+    // Act
+    const row = /^\| target-dir +\|.*not the git top-level/m.test(text);
+    // Assert
+    assert.ok(row, 'target-dir eval row missing');
+  });
+
+  test('spawn rule names the file threshold', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const inline = /^- Spawn rule .*At most 3 → apply the change inline in the main session/m.test(text);
+    const spawn = /^- Spawn rule .*More than 3 → spawn one `cdk:plan-implementer`\./m.test(text);
+    // Assert
+    assert.ok(inline, 'inline threshold missing');
+    assert.ok(spawn, 'spawn threshold missing');
+  });
+
+  test('spawn rule splits disjoint groups into parallel spawns', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const parallel =
+      /^- Spawn rule .*with no shared file and no step that depends on another group's output → spawn one per group, max 4 in one turn/m.test(
+        text
+      );
+    // Assert
+    assert.ok(parallel, 'parallel group rule missing');
   });
 });

@@ -1,6 +1,6 @@
 # Evals
 
-Cases for `update-rules`: create, score-only, conflicts, improve (plan, ask, apply), and the subagent fallbacks. Test each on Haiku, Sonnet, and Opus.
+Cases for `update-rules`: create, score-only, conflicts, improve (memory, ask, apply, check), and the subagent fallbacks. Test each on Haiku, Sonnet, and Opus.
 
 ## Contents
 
