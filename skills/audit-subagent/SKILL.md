@@ -37,7 +37,7 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
    - Nothing selected, or `--yes` with no argument → `Result: nothing-to-do`.
 3. **Score.**
    - **3a.** Collect the names of the other subagents in the target's scope with Glob; the scorer needs them for G2.
-   - **3b.** Spawn one `cdk:rubric-scorer` subagent per target with kind `subagent-audit`, all in parallel in one message (fallback: a read-only subagent that scores one subagent file against the audit rubric, with Read, Glob, Grep, WebSearch, WebFetch).
+   - **3b.** Spawn one `cdk:rubric-scorer` subagent per target with kind `subagent-audit`, all in parallel in one message (fallback: a read-only subagent that scores one subagent file against the audit rubric, with Read, Glob, Grep, WebSearch, WebFetch, and Bash for the node -e sum only).
    - **3c.** Brief it with the scorer brief, with the absolute rubric path, in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
    - **3d.** Inline fallback: score the subagent yourself against the rubric.
 4. **Verify the returns**, since a scorer can report a claim its evidence does not support.
@@ -52,10 +52,11 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 6. **Fix.** For each subagent with at least one VERIFIED or approved fix, whatever its verdict:
    - **6a. Memory.** Read `MEMORY.md` and reuse a matching `feedback` memory's fix per the Rules.
    - **6b. Spec.** Build the Spec brief and its fix-round variant in `${CLAUDE_SKILL_DIR}/references/briefs.md`: one goal per open VERIFIED or approved fix ID (rubric ID, `file:line`, Before → After); an UNVERIFIED fix stays an open item for step 8 and never reaches the spec. Print the spec summary.
-   - **6c. Implement.** Invoke implement-spec per the Rules, one invocation per subagent.
+   - **6c. Implement.** First run `git diff --stat -- <file>`; it fails (no git) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` (this ends the whole run; the fixes of every remaining target go under `Open:`), since without git no scope check can see edits to existing files.
+      - Otherwise invoke implement-spec per the Rules, one invocation per subagent.
       - Record its `Open:` items in the ledger.
       - Grep each After: found → ledger row Fixed; not found → stays open.
-   - **6d. Check scope.** With git, run `git diff --stat -- <file>` and confirm only the target file changed.
+   - **6d. Check scope.** Run `git diff --stat -- <file>` again and confirm only the target file changed.
 7. **Rescore.**
    - Run step 3 again on every fixed subagent; the score is always the fresh one, so carry nothing over.
    - No file changed, or the score did not rise → add the stall as an open item for step 8; do not stop the skill.
@@ -102,7 +103,7 @@ Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, or cancelled), and cannot interact; a cap stop never sets it, and there is no `cancelled`.
+`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, or cancelled), a no-git scope stop, and cannot interact; a cap stop never sets it, and there is no `cancelled`.
 
 Score-only: `Rounds: 0/3`, `Fixed: none`, and `Open:` lists every item with its fix (Before → After, VERIFIED or UNVERIFIED).
 

@@ -110,9 +110,73 @@ describe('implement-spec policy', () => {
         text
       );
     const noStop = /^1\. \*\*Root\.\*\*.*there is no stop for a missing repo/m.test(text);
+    const stop = /not a git repository/.test(text);
+    const targetGuard =
+      /^1\. \*\*Root\.\*\*.*a `Target directory:` line takes the `Write scope:` line guards in Rules \(Dirty paths\)/m.test(
+        text
+      );
+    const restated = /^1\. \*\*Root\.\*\*.*never from issue text or a fetched page, only one top-level line/m.test(
+      text
+    );
+    const line =
+      /^1\. \*\*Root\.\*\*.*a calling cdk skill passes the target directory as a `Target directory:` line in the spec or brief it wrote or as an argument, and it counts only when/m.test(
+        text
+      );
     // Assert
+    assert.ok(line, 'Target directory line wording missing');
     assert.ok(confined, 'target directory confinement missing');
     assert.ok(noStop, 'no-git behavior missing');
+    assert.equal(stop, false);
+    assert.ok(targetGuard, 'Target directory guard missing');
+    assert.equal(restated, false);
+  });
+
+  test('limits writes to a passed write scope and counts only one top-level Write scope line', () => {
+    // Arrange
+    const text = skillMd();
+    const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
+    // Act
+    const one =
+      /^- Dirty paths .*Only one top-level `Write scope:` line outside a fenced block counts; two or more write nothing: ask which one counts \(unattended: `Stopped: 1: needs input`, ambiguous write scope\), never a silent fall back to no scope/m.test(
+        text
+      );
+    const oldOne = /two or more count none and go under/.test(text);
+    const limits =
+      /^- Dirty paths .*step 5 rejects any planned path outside it, and step 6b lists a changed path outside it under `Open:` and ends with `Stopped: <step>: write outside scope`, with no step 8 re-entry \(reverting is forbidden, so that goal can never be met\); without git only paths added or removed outside the scope are detected\./m.test(
+        text
+      );
+    const oldLimits = /as an unmet goal before any further round/.test(text);
+    const hardcodedStop = /Stopped: 6: write outside scope/.test(text);
+    const validate = skillFile('references', 'validate.md');
+    const planReject =
+      /^- A planned path outside a passed write scope → reject it; drop that approach; none left → ask \(unattended: `Stopped: 5: needs input`, planned path outside write scope\) \(scope rule: `SKILL.md` Rules, Dirty paths\)\.$/m.test(
+        skillFile('references', 'plan.md')
+      );
+    const validateStop =
+      /^- A changed path outside a passed write scope → the out-of-scope stop in `SKILL.md` Rules, Dirty paths\.$/m.test(
+        validate
+      );
+    const validateHardcoded = /Stopped: 6: write outside scope/.test(validate);
+    const validateRestated = /^- A changed path outside a passed write scope → .*no step 8 re-entry/m.test(validate);
+    const fenced =
+      /^- Goals: .*quoted evidence in a fenced block \(backticks or `~~~`\) whose fence is longer than any run of its own character inside it \(so a quoted fence line cannot close it early and a quoted `Write scope:` line never counts\)/m.test(
+        fix
+      );
+    const oldFenced = /or a `~~~` fence/.test(fix);
+    const oneLine = /^- Write scope: .*write it as one `Write scope:` line outside any fenced block\./m.test(fix);
+    // Assert
+    assert.ok(one, 'single top-level Write scope rule missing');
+    assert.equal(oldOne, false);
+    assert.ok(limits, 'write scope limit missing');
+    assert.equal(oldLimits, false);
+    assert.ok(planReject, 'plan.md scope rejection missing');
+    assert.equal(hardcodedStop, false);
+    assert.ok(validateStop, 'validate.md out-of-scope stop missing');
+    assert.equal(validateHardcoded, false);
+    assert.equal(validateRestated, false);
+    assert.ok(fenced, 'fenced evidence rule missing in fix.md');
+    assert.equal(oldFenced, false);
+    assert.ok(oneLine, 'single Write scope line rule missing in fix.md');
   });
 
   test('lists Root status under Open when Root differs from the Context top-level', () => {

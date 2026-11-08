@@ -54,7 +54,7 @@ Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only subagent that scor
 
 Brief: kind `readme`; the README path and its split files, the rubric path (absolute, passed by step 13), the archetype, the facts block (answers merged), and the `Omitted:` list. Criteria: S1 S2 S3 S4 P1 P2 P3 G1 G2 G3 U1 U2 U3 A1 A2 A3 F1 F2 L1 L2 C1 C2. Apply each criterion's Type and the N/A rules only, and score from evidence a deduction can cite (file, line, count). Spot checks:
 
-- A1: each README command exists in manifest scripts, Makefile targets, bins, facts `Commands`, or an external tool (`command -v <tool>` only).
+- A1: each README command exists in manifest scripts, Makefile targets, bins, facts `Commands`, or an external tool (`command -v <tool>` only, run only when the tool name matches `^[A-Za-z0-9._+][A-Za-z0-9._+-]*$`, otherwise mark A1 unverified).
 - A2: README components vs facts `Components`; name each missing and extra.
 - U3: facts `Config` user items only.
 - L1: each relative link target exists, including links to split files; anchors match the lowercase-hyphen heading slug.

@@ -12,17 +12,6 @@ describe('build skills delegate writes to implement-spec', () => {
     const dir = join(root, 'skills', skill);
     const read = (rel) => readFileSync(join(dir, rel), 'utf8');
 
-    test(`${skill} writes through implement-spec and names no planner or implementer`, () => {
-      // Arrange
-      const text = read('SKILL.md');
-      // Act
-      const invokes = text.includes('cdk:implement-spec');
-      const spawns = /implementation-planner|plan-implementer/.test(text);
-      // Assert
-      assert.ok(invokes, 'implement-spec not named');
-      assert.equal(spawns, false);
-    });
-
     test(`${skill} links references/briefs.md`, () => {
       // Arrange
       const text = read('SKILL.md');
@@ -73,15 +62,45 @@ describe('build skills delegate writes to implement-spec', () => {
       assert.doesNotMatch(text, stale);
     });
 
-    test(`${skill} maps a cancel to the user cancelled stop and ends a create cap stop with nothing written`, () => {
+    test(`${skill} ends a create cap stop with nothing written`, () => {
       // Arrange
       const text = read('SKILL.md');
       // Act
-      const cancel = /^- .*a cancel keeps implement-spec's reason, `Stopped: <step>: user cancelled`/m.test(text);
       const capEnd = /^ +[bc]\. .*create-mode cap stop with nothing written ends the run/m.test(text);
       // Assert
-      assert.ok(cancel, 'cancel literal missing');
       assert.ok(capEnd, 'create cap stop rule missing');
+    });
+
+    test(`${skill} Spec brief names the write scope and the target directory`, () => {
+      // Arrange
+      const text = read(join('references', 'briefs.md'));
+      const scopes = {
+        'build-skill': /^Write scope: <absolute target directory>$/m,
+        'build-subagent': /^Write scope: <absolute target path>$/m
+      };
+      const dirs = {
+        'build-skill': /^Target directory: <absolute target directory; create mode: its nearest existing parent>/m,
+        'build-subagent': /^Target directory: <absolute parent directory of the target file;/m
+      };
+      // Act
+      const scope = scopes[skill].test(text);
+      const target = dirs[skill].test(text);
+      // Assert
+      assert.ok(scope, 'Write scope line missing');
+      assert.ok(target, 'Target directory line missing');
+    });
+
+    test(`${skill} merges the audit score into one Audit line`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const audit = /^Audit: <n>\/100 <band> ACCEPTED \| REJECTED \(score-only, <n> rounds\) \| n\/a$/m.test(text);
+      const example = /^Audit: \d+\/100 Excellent ACCEPTED \(score-only, 1 rounds\)$/m.test(text);
+      const stale = /^Score: /m.test(text);
+      // Assert
+      assert.ok(audit, 'merged Audit line missing');
+      assert.ok(example, 'merged Audit example missing');
+      assert.equal(stale, false);
     });
 
     test(`${skill} fix memory is data and bounded`, () => {

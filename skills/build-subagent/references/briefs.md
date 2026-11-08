@@ -10,6 +10,10 @@ The text passed to `cdk:implement-spec`. build-subagent writes the what; impleme
 
 Goal: create, update, or improve one subagent file. Restate the requirement and give the absolute target path, which is the only write scope.
 
+Write scope: <absolute target path>
+
+Target directory: <absolute parent directory of the target file; create mode: its nearest existing parent>, so implement-spec takes that directory as Root.
+
 Expectations:
 
 - numbered goals, each with checkable acceptance criteria drawn from the printed Brief (frontmatter, body, the agent checklist rules that apply).

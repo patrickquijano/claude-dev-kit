@@ -43,6 +43,8 @@ The text passed to `cdk:implement-spec` (fix round). This skill writes the what;
 
 Goal: apply the VERIFIED and user-approved audit fixes to one skill directory. Restate the requirement and give the absolute target path, which is the only write scope.
 
+Write scope: <absolute target skill directory>
+
 Expectations:
 
 - numbered goals, one per fix ID except a fix to a `scripts/` executable (a non-goal below), each with the acceptance criterion "the After text is present at `file:line` and the deduction is gone on rescore".

@@ -29,6 +29,7 @@ G2: unmet — <what failed, file:line>
 Run after every implementation (step 6 and each fix attempt); with parallel implementers, once after all returns. Without git, compare a fresh content snapshot of the write scope, or of the planned files when no scope was passed (the Dirty set is empty beyond it), with the pre-flight snapshot instead of `status`, `diff-stat`, and `dirty-diff`, and apply the same rules below. With git, run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content).
 
 - A newly changed path that is not planned, or a Dirty path whose diff changed and the picked approach does not name: never revert or remove it (that could drop the user's own edits); keep it and list the path under `Open:`.
+- A changed path outside a passed write scope → the out-of-scope stop in `SKILL.md` Rules, Dirty paths.
 - No git: also flag any path added or removed outside the snapshot (compare a fresh Glob of the root with the pre-flight root file list), and any path in `Changed:` that was not planned, under `Open:`. Edits to existing unplanned files stay undetected without git; note that under `Open:`.
 
 ## Iterate

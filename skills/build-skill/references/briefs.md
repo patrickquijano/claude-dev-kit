@@ -10,6 +10,10 @@ The text passed to `cdk:implement-spec`. build-skill writes the what; implement-
 
 Goal: create, update, or improve one skill. Restate the requirement and give the absolute target directory, which is the only write scope.
 
+Write scope: <absolute target directory>
+
+Target directory: <absolute target directory; create mode: its nearest existing parent>, because implement-spec ignores a directory that does not exist yet.
+
 Expectations:
 
 - numbered goals, each with checkable acceptance criteria (frontmatter, body, bundled files, and the target's evals file).

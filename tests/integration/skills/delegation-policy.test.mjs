@@ -19,7 +19,10 @@ describe('write delegation policy across audit, build, and review skills', () =>
       // Assert
       assert.deepEqual(offenders, []);
     });
+  }
 
+  // scoring-skills-policy covers the other four skills; review-code-changes is only checked here.
+  for (const skill of ['review-code-changes']) {
     test(`${skill} names implement-spec and no planner or implementer`, () => {
       // Arrange
       const dir = join(root, 'skills', skill);

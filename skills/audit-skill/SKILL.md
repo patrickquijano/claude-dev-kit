@@ -49,8 +49,8 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 6. **Fix.** For each skill with at least one VERIFIED or approved fix, whatever its verdict:
    - **6a. Memory.** Read `MEMORY.md` and reuse a matching `feedback` memory's fix per the Rules.
    - **6b. Spec.** Build the Spec brief and its fix-round variant in `${CLAUDE_SKILL_DIR}/references/briefs.md`: one goal per open VERIFIED or approved fix ID (rubric ID, `file:line`, Before → After), except a fix to a `scripts/` executable, which is a non-goal and stays under `Open:`; an UNVERIFIED fix stays an open item for step 8 and never reaches the spec. Print the spec summary.
-   - **6c. Implement.** Invoke implement-spec per the Rules, one invocation per skill. Record its `Open:` items in the ledger; after it returns, Grep each After: found → ledger row Fixed; not found → stays open.
-   - **6d. Check scope.** With git, run `git diff --stat -- <dir>` and confirm only that directory changed.
+   - **6c. Implement.** First run `git diff --stat -- <dir>`; it fails (no git) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` (this ends the whole run; the fixes of every remaining target go under `Open:`), since without git no scope check can see edits to existing files. Otherwise invoke implement-spec per the Rules, one invocation per skill. Record its `Open:` items in the ledger; after it returns, Grep each After: found → ledger row Fixed; not found → stays open.
+   - **6d. Check scope.** Run `git diff --stat -- <dir>` again and confirm only that directory changed.
 7. **Rescore.**
    - Run step 3 again on every fixed skill; report only the fresh score and carry nothing over.
    - No file changed, or the score did not rise → add the stall as an open item for step 8; do not stop the skill.
@@ -97,7 +97,7 @@ Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, or cancelled), and cannot interact; a cap stop never sets it, and there is no `cancelled`.
+`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, or cancelled), a no-git scope stop, and cannot interact; a cap stop never sets it, and there is no `cancelled`.
 
 Score-only: `Rounds: 0/3`, `Fixed: none`, and `Open:` lists every item with its fix (Before → After, VERIFIED or UNVERIFIED).
 

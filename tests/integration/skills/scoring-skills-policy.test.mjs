@@ -63,11 +63,19 @@ describe('scoring skills share one policy', () => {
         const text = skillMd(skill);
         // Act
         const rule = text.includes('Claude auto memory');
-        const kind = text.includes('cdk-fix-');
+        const kinds = {
+          'audit-skill': /^- Fix memory\b.*`name: cdk-fix-skill-<rubric-id>-<slug>`/m,
+          'audit-subagent': /^- Fix memory\b.*`name: cdk-fix-subagent-<rubric-id>-<slug>`/m,
+          'build-skill': /^- Fix memory\b.*`name: cdk-fix-skill-<rubric-id>-<slug>`/m,
+          'build-subagent': /^- Fix memory\b.*`name: cdk-fix-subagent-<rubric-id>-<slug>`/m,
+          'update-readme': /^- Fix memory\b.*`name: cdk-fix-readme-<rubric-id>-<slug>`/m,
+          'update-rules': /^- Fix memory\b.*`name: cdk-fix-rules-<rubric-id>-<slug>`/m
+        };
+        const kind = kinds[skill].test(text);
         const guard = text.includes('never write under `${CLAUDE_SKILL_DIR}`');
         // Assert
         assert.ok(rule, 'auto-memory rule missing');
-        assert.ok(kind, 'cdk-fix- name missing');
+        assert.ok(kind, 'cdk-fix-<kind>- name missing or wrong prefix');
         assert.ok(guard, 'skill-dir write guard missing');
       });
 
@@ -86,17 +94,6 @@ describe('scoring skills share one policy', () => {
 });
 
 describe('implement-spec runs outside git and runs no lint', () => {
-  test('has no not-a-git-repository stop', () => {
-    // Arrange
-    const text = skillMd('implement-spec');
-    // Act
-    const stop = /not a git repository/.test(text);
-    const noStop = text.includes('there is no stop for a missing repo');
-    // Assert
-    assert.equal(stop, false);
-    assert.ok(noStop, 'no-stop statement missing');
-  });
-
   test('verifier runs no format check or lint', () => {
     // Arrange
     const text = skillMd('implement-spec');
@@ -150,9 +147,12 @@ describe('update-readme and update-rules brief a write scope and a fixed approac
     // Arrange
     const text = readRel('skills/update-readme/references/flow.md');
     // Act
-    const rule = /^Build the Spec brief .*Write scope: the README set.*Approach: fixed to each goal's Before → After/m;
+    const rule =
+      /^Build the Spec brief per SKILL\.md Rules \(.*`Write scope:`, `Approach:`.*\), plus the improve-round extras: .*`Omitted:` as non-goals\./m;
+    const duplicate = /Write scope: the README set/;
     // Assert
     assert.match(text, rule);
+    assert.doesNotMatch(text, duplicate);
   });
 
   test('update-rules SKILL.md names the write scope and the step 8c goal', () => {
@@ -160,11 +160,15 @@ describe('update-readme and update-rules brief a write scope and a fixed approac
     const text = skillMd('update-rules');
     // Act
     const scope =
-      /^- Every write in step 5 and step 8 .*`Write scope:`.*`Approach: fixed to each goal's Before → After`/m;
+      /^- Every write in step 5 and step 8 .*fields are listed once, in `\$\{CLAUDE_SKILL_DIR\}\/references\/flow\.md` `## Improve` \(Spec\); the step 5 variant is defined in flow\.md `## Improve` \(Spec and Step 5 variant\); each file stays inside the write scope above/m;
     const goal = /step 8c improve-round goal/;
+    const removed = /Approach: fixed to the printed diff/;
+    const duplicate = /Tests: none \(documentation\)/;
     // Assert
     assert.match(text, scope);
     assert.match(text, goal);
+    assert.doesNotMatch(text, removed);
+    assert.doesNotMatch(text, duplicate);
   });
 
   test('update-rules SKILL.md has no step 8 plan', () => {
@@ -183,19 +187,14 @@ describe('update-readme and update-rules brief a write scope and a fixed approac
     const scope =
       /^- Spec: .*`Write scope:` the files the goals name; `Approach: fixed to each goal's Before → After`/m;
     const unmet =
-      /^- Apply: .*An unmet goal \(its `Goals:` line\) or a `Files:` path outside the write scope → `Open:`/m;
+      /^- Apply: .*A goal counts as met or unmet only from the step 6 rescore, never from implement-spec's own report; a `Files:` path outside the write scope → `Open:`\./m;
+    const stale = /Status: partial/;
+    const goalsLine = /`Goals:` line/;
     // Assert
     assert.match(text, scope);
     assert.match(text, unmet);
-  });
-
-  test('update-rules flow.md no longer keys on Status: partial', () => {
-    // Arrange
-    const text = readRel('skills/update-rules/references/flow.md');
-    // Act
-    const stale = /Status: partial/.test(text);
-    // Assert
-    assert.equal(stale, false);
+    assert.doesNotMatch(text, stale);
+    assert.doesNotMatch(text, goalsLine);
   });
 
   test('update-rules evals.md describes the extend ask, not a hard cap', () => {
@@ -259,12 +258,10 @@ describe('implement-spec stops are split into input stops and cap stops', () => 
       const cap = /^- Every write .*any other `Stopped:` is a cap stop: its `Open:` joins `Open:`/m;
       const input =
         /^- Every write .*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`/m;
-      const cancel = /^- Every write .*`Stopped: <step>: user cancelled`/m;
       const stale = /Its `Stopped:` becomes/;
       // Assert
       assert.match(text, cap, 'cap-stop rule missing');
       assert.match(text, input, 'input-stop rule missing');
-      assert.match(text, cancel, 'cancel literal missing');
       assert.doesNotMatch(text, stale);
     });
 
@@ -303,39 +300,90 @@ describe('implement-spec stops are split into input stops and cap stops', () => 
     const text = skillMd('update-readme');
     // Act
     const rule =
-      /^ {4}At the cap with open items, ask the extend question \(Rules\): .*Stop or `--yes` → `Result: stopped`/m;
+      /^ {4}At the cap with <95 and open items, ask the extend question \(Rules\): .*Stop or `--yes` → `Result: stopped`/m;
+    const trigger =
+      /^- Pass score = 95\/100.* At the cap, while the score is below 95 and open items remain, ask `Extend/m;
     // Assert
     assert.match(text, rule);
+    assert.match(text, trigger);
+  });
+
+  test('update-rules SKILL.md asks to extend only while the score is below 95', () => {
+    // Arrange
+    const text = skillMd('update-rules');
+    // Act
+    const trigger =
+      /^- Pass score = 95\/100.* At the cap, while the score is below 95 and open items remain, ask `Extend/m;
+    const stale = /At the cap, while open items remain/;
+    // Assert
+    assert.match(text, trigger);
+    assert.doesNotMatch(text, stale);
   });
 });
 
-describe('audit skills split implement-spec stops into input stops and cap stops', () => {
-  const stops = {
-    'audit-skill': {
-      input:
-        /^- Every fix to a target skill goes through .*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`/m,
-      cap: /^- Every fix to a target skill goes through .*any other `Stopped:` is a cap stop/m,
-      cancel: /^- Every fix to a target skill goes through .*`Stopped: <step>: user cancelled`/m
-    },
-    'audit-subagent': {
-      input:
-        /^- Every fix to a target subagent goes through .*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`/m,
-      cap: /^- Every fix to a target subagent goes through .*any other `Stopped:` is a cap stop/m,
-      cancel: /^- Every fix to a target subagent goes through .*`Stopped: <step>: user cancelled`/m
-    }
+describe('audit skills brief a write scope and stop without git', () => {
+  const briefs = {
+    'audit-skill': /^Write scope: <absolute target skill directory>$/m,
+    'audit-subagent': /^Write scope: <absolute target subagent file>$/m
+  };
+  const noGit = {
+    'audit-skill':
+      /^ {3}- \*\*6c\. Implement\.\*\* First run `git diff --stat -- <dir>`; it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m,
+    'audit-subagent':
+      /^ {3}- \*\*6c\. Implement\.\*\* First run `git diff --stat -- <file>`; it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m
   };
   for (const skill of ['audit-skill', 'audit-subagent']) {
-    test(`${skill} SKILL.md states the input-stop, cap-stop, and cancel literals`, () => {
+    test(`${skill} Spec brief has a literal Write scope line`, () => {
+      // Arrange
+      const text = readRel(`skills/${skill}/references/briefs.md`);
+      // Act
+      const scope = briefs[skill].test(text);
+      const dir = /^Target directory: <absolute parent directory of the target file>/m.test(text);
+      // Assert
+      assert.ok(scope, 'Write scope line missing');
+      assert.equal(dir, skill === 'audit-subagent');
+    });
+
+    test(`${skill} stops with no git before invoking implement-spec`, () => {
       // Arrange
       const text = skillMd(skill);
       // Act
-      const { input, cap, cancel } = stops[skill];
+      const stop = noGit[skill].test(text);
+      const footer = /^`stopped` covers .*, a no-git scope stop, and cannot interact; a cap stop never sets it/m.test(
+        text
+      );
+      const stale = /^ +- \*\*6d\. Check scope\.\*\* With git/m.test(text);
       // Assert
-      assert.match(text, input, 'input-stop rule missing');
-      assert.match(text, cap, 'cap-stop rule missing');
-      assert.match(text, cancel, 'cancel literal missing');
+      assert.ok(stop, 'no-git stop missing at 6c');
+      assert.ok(footer, 'no-git scope stop missing from the stopped sentence');
+      assert.equal(stale, false);
     });
   }
+
+  test('audit-subagent fallback scorer keeps Bash for the node -e sum only', () => {
+    // Arrange
+    const text = skillMd('audit-subagent');
+    // Act
+    const rule = /^ {3}- \*\*3b\.\*\* .*WebSearch, WebFetch, and Bash for the node -e sum only\)\./m.test(text);
+    // Assert
+    assert.ok(rule, 'node -e sum tool missing from the fallback');
+  });
+});
+
+describe('update-readme scorer runs command -v on a safe name only', () => {
+  test('spawns.md restricts the tool name and marks A1 unverified otherwise', () => {
+    // Arrange
+    const text = readRel('skills/update-readme/references/spawns.md');
+    // Act
+    const spawn = /^Spawn the `cdk:rubric-scorer` subagent .*Bash for `command -v <tool>` only\)\./m;
+    const check =
+      /^- A1: .*run only when the tool name matches `\^\[A-Za-z0-9\._\+\]\[A-Za-z0-9\._\+-\]\*\$`, otherwise mark A1 unverified\)\./m;
+    const old = /\^\[A-Za-z0-9\._\+-\]\+\$/;
+    // Assert
+    assert.match(text, spawn, 'spawn line should end at command -v only');
+    assert.match(text, check, 'name check on command -v missing at A1');
+    assert.doesNotMatch(text, old, 'old name pattern still present');
+  });
 });
 
 describe('update-rules SKILL.md moves Known issues to memory before removing the section', () => {
@@ -353,7 +401,7 @@ describe('update-rules SKILL.md moves Known issues to memory before removing the
   });
 });
 
-describe('update-rules flow.md ties --yes choices and counts goals', () => {
+describe('update-rules flow.md ties --yes choices to Open and defines the step 5 variant', () => {
   test('--yes takes the first-listed Recommended option and lists it under Open', () => {
     // Arrange
     const text = readRel('skills/update-rules/references/flow.md');
@@ -364,12 +412,12 @@ describe('update-rules flow.md ties --yes choices and counts goals', () => {
     assert.match(text, rule);
   });
 
-  test('the Goals line holds one entry per spec goal', () => {
+  test('step 5 variant applies the step 4 draft with the printed diff as the criterion', () => {
     // Arrange
     const text = readRel('skills/update-rules/references/flow.md');
     // Act
     const rule =
-      /^- Apply: .*The `Goals:` line must hold one `met \| unmet` entry per spec goal; a missing entry counts as unmet\./m;
+      /^- Step 5 variant \(runs before the first score\): requirement "apply the step 4 draft"; one goal per file listed at step 4, with the printed diff as its acceptance criterion; `Write scope:` the step 4 files; `Approach: fixed to the printed diff`; it shares only the non-goals, `Tests:`, and no-formatter fields above/m;
     // Assert
     assert.match(text, rule);
   });

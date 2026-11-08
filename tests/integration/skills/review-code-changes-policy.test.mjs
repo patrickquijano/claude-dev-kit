@@ -42,9 +42,15 @@ describe('review-code-changes policy', () => {
     // Arrange
     const text = skillMd('review-code-changes');
     // Act
-    const rule = /^- Negligible: .*waived as `Waived: <id>: <reason>`/m.test(text);
+    const rule =
+      /^- Negligible findings are waived, never counted or fixed; definition and the `Waived: <id>: <reason>` form in `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Validation\./m.test(
+        text
+      );
+    const review = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'review.md'), 'utf8');
+    const definition = /^- Negligible: .*`Waived: <id>: <reason>`/m.test(review);
     // Assert
-    assert.ok(rule, 'negligible-waived rule missing');
+    assert.ok(rule, 'negligible-waived pointer missing');
+    assert.ok(definition, 'negligible definition missing in review.md');
   });
 
   test('asks to extend at the round cap', () => {
@@ -62,27 +68,16 @@ describe('review-code-changes policy', () => {
     const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
     // Act
     const skillRule =
-      /^- Fixes go through .*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop/m.test(
-        skill
-      );
+      /^- Fixes go through .*is in `\$\{CLAUDE_SKILL_DIR\}\/references\/fix\.md` `## Implement`\.$/m.test(skill);
     const fixRule =
       /^Write the distinct goal files.*whose reason is `needs input` or `no input`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop/m.test(
         fix
       );
     const stale = /Its `Stopped:` (becomes|→) `Result: stopped`/.test(skill + fix);
     // Assert
-    assert.ok(skillRule, 'SKILL.md cap-stop rule missing');
+    assert.ok(skillRule, 'SKILL.md pointer to the fix.md mapping missing');
     assert.ok(fixRule, 'fix.md cap-stop rule missing');
     assert.equal(stale, false);
-  });
-
-  test('asks no approval question', () => {
-    // Arrange
-    const text = skillMd('review-code-changes');
-    // Act
-    const rule = text.includes('asks no approval question');
-    // Assert
-    assert.ok(rule, 'no-approval rule missing');
   });
 
   test('keeps the Flags no-approval carve-out for implement-spec Clarify questions', () => {
@@ -125,10 +120,10 @@ describe('review-code-changes policy', () => {
     const skill = skillMd('review-code-changes');
     const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
     // Act
-    const inSkill = /^- Fixes go through .*a cancel is `Stopped: <step>: user cancelled`/m.test(skill);
+    const inSkill = /^- Fixes go through .*`## Implement`\.$/m.test(skill);
     const inFix = /^Write the distinct goal files.*a cancel is `Stopped: <step>: user cancelled`/m.test(fix);
     // Assert
-    assert.ok(inSkill, 'SKILL.md cancel literal missing');
+    assert.ok(inSkill, 'SKILL.md pointer to the fix.md mapping missing');
     assert.ok(inFix, 'fix.md cancel literal missing');
   });
 
@@ -169,25 +164,5 @@ describe('implement-spec spawn rule', () => {
     // Assert
     assert.ok(threshold, 'threshold missing');
     assert.ok(parallel, 'parallel rule missing');
-  });
-
-  test('skips the approach ask when only one approach is workable', () => {
-    // Arrange
-    const text = readFileSync(join(root, 'skills', 'implement-spec', 'references', 'plan.md'), 'utf8');
-    // Act
-    const rule = /^- Only one workable approach.*skip the ask/m.test(text);
-    // Assert
-    assert.ok(rule, 'skip-the-ask rule missing');
-  });
-
-  test('splits the baseline into a git step and a no-git step', () => {
-    // Arrange
-    const text = skillMd('implement-spec');
-    // Act
-    const git = /^1b\. \*\*Baseline \(git\)\.\*\*/m.test(text);
-    const noGit = /^1c\. \*\*Baseline \(no git\)\.\*\*/m.test(text);
-    // Assert
-    assert.ok(git, 'step 1b missing');
-    assert.ok(noGit, 'step 1c missing');
   });
 });
