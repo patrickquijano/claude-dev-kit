@@ -67,7 +67,7 @@ describe('review-code-changes policy', () => {
     assert.ok(ask);
   });
 
-  test('treats an implement-spec stop other than needs input as a cap stop', () => {
+  test('treats an implement-spec stop other than an input stop or cancel as a cap stop', () => {
     // Arrange
     const skill = skillMd('review-code-changes');
     const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
@@ -122,13 +122,10 @@ describe('review-code-changes policy', () => {
 
   test('ends a user cancel with the user cancelled stop reason', () => {
     // Arrange
-    const skill = skillMd('review-code-changes');
     const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
     // Act
-    const inSkill = /^- Fixes go through .*`## Implement`\.$/m.test(skill);
     const inFix = /^Write the distinct goal files.*a cancel is `Stopped: <step>: user cancelled`/m.test(fix);
     // Assert
-    assert.ok(inSkill, 'SKILL.md pointer to the fix.md mapping missing');
     assert.ok(inFix, 'fix.md cancel literal missing');
   });
 

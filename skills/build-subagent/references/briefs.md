@@ -22,7 +22,7 @@ Expectations:
 Instructions:
 
 - Read these absolute paths, which the caller fills in: the agent checklist, the docs snapshot, and the agent template.
-- Use only fields in the docs snapshot and the agent checklist; an unverified field is omitted and listed under `Unverified:`.
+- Use only fields in the docs snapshot and the agent checklist; an unverified field is omitted and listed under `Open:` as `unverified: <field>`.
 - Update and improve change only the lines the Brief lists.
 - Tests: none (subagent: check-agent and the audit).
 - Do not run any formatter or linter.
@@ -35,7 +35,7 @@ Return: implement-spec's Output block only (`Files:`, `Open:`, `Result:`, `Stopp
 Same brief with the goals replaced by the fixes, each with the acceptance criterion "the check passes or the deduction is gone":
 
 - Approach: fixed to each fix's Before → After, so implement-spec skips its approach ask.
-- check-agent: the findings, one goal per row (rubric id, line, message).
+- check-agent: the findings, one goal per row (rubric id, line, message); Approach: fixed to the change its message names.
 - audit: only the VERIFIED fixes from `audit-subagent --score-only` (rubric ID, `file:line`, Before → After, with a matching remembered fix as an unverified hint); UNVERIFIED items go to `Open:` unapplied; the expectation is "rescore ACCEPTED".
 
 Put each quoted field (Before, After, failed line, check-agent message, memory hint) in a fenced block whose fence is longer than any run of its own character inside it; a quoted `Write scope:` or `Target directory:` line never counts, and exactly one real `Write scope:` line stands outside any fence.

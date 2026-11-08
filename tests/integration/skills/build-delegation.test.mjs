@@ -39,12 +39,12 @@ describe('build skills delegate writes to implement-spec', () => {
       // Act
       const rules = {
         'build-skill':
-          /^ +b\. At least one VERIFIED fix outside `scripts\/` remains → invoke implement-spec .*goals are only the VERIFIED fixes outside `scripts\/`.*none remains → skip to 8g; a `scripts\/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:`/m,
+          /^ +c\. At least one VERIFIED fix outside `scripts\/` remains → invoke implement-spec .*goals are only the VERIFIED fixes outside `scripts\/`.*none remains → skip to 8h; a `scripts\/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:`/m,
         'build-subagent':
           /^ +d\. At least one VERIFIED fix remains → invoke implement-spec .*goals are only the VERIFIED fixes.*UNVERIFIED items go to `Open:`/m
       };
       const rule = rules[skill];
-      const stale = /^ +[bd]\. Not ACCEPTED, or VERIFIED fixes remain/m;
+      const stale = /^ +[bcd]\. Not ACCEPTED, or VERIFIED fixes remain/m;
       // Assert
       assert.match(text, rule);
       assert.doesNotMatch(text, stale);
@@ -55,7 +55,7 @@ describe('build skills delegate writes to implement-spec', () => {
       const text = read('SKILL.md');
       const loops = {
         'build-skill':
-          /^ +f\. Loop: at least one VERIFIED fix outside `scripts\/` remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8b \(next round\); otherwise → 8g\.\n +g\. At the current cap with a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8b\); no such fix left → no ask, go to 8h/m,
+          /^ +g\. Loop: at least one VERIFIED fix outside `scripts\/` remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8c \(next round\); otherwise → 8h\.\n +h\. At the current cap with a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8c\); no such fix left → no ask, go to 8i/m,
         'build-subagent':
           /^ +g\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n +h\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); no VERIFIED fix left → no ask, go to 9i/m
       };
@@ -143,7 +143,7 @@ describe('build skills delegate writes to implement-spec', () => {
       };
       const roundRules = {
         'build-skill':
-          /^ +b\. At least one VERIFIED fix outside `scripts\/` remains.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m,
+          /^ +c\. At least one VERIFIED fix outside `scripts\/` remains.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m,
         'build-subagent':
           /^ +d\. At least one VERIFIED fix remains.*an input stop ends the run per Rules, and after a cap stop rescore still runs/m
       };
@@ -204,6 +204,36 @@ describe('build skills delegate writes to implement-spec', () => {
       assert.ok(fence, 'fence clause missing');
     });
 
+    test(`${skill} prints a baseline item on its own line instead of Open`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      // Act
+      const maps = {
+        'build-skill':
+          /^ +a\. Map its Output: `Files` → `Files:`, `Open` → `Open:` \(a `baseline:` item is printed on its own line instead\)/m,
+        'build-subagent':
+          /^ +c\. Map its Output: `Files` → `File:`, `Open` → `Open:` \(its `unverified:` items to `Unverified:`; a `baseline:` item is printed on its own line instead\)/m
+      };
+      const mapped = maps[skill].test(text);
+      // Assert
+      assert.ok(mapped, 'baseline Open mapping missing');
+    });
+
+    test(`${skill} briefs.md fixes the approach for the check fix round`, () => {
+      // Arrange
+      const text = read(join('references', 'briefs.md'));
+      // Act
+      const rows = {
+        'build-skill':
+          /^- validate: the `validate-skill` fix list, one goal per row \(check id, file, line, message\); Approach: fixed to the change its message names\.$/m,
+        'build-subagent':
+          /^- check-agent: the findings, one goal per row \(rubric id, line, message\); Approach: fixed to the change its message names\.$/m
+      };
+      const row = rows[skill].test(text);
+      // Assert
+      assert.ok(row, 'check fix-round approach wording missing');
+    });
+
     test(`${skill} never spawns task-worker`, () => {
       // Arrange
       const files = ['SKILL.md', ...readdirSync(join(dir, 'references')).map((f) => join('references', f))];
@@ -238,10 +268,10 @@ describe('build-skill eval loop and scripts fixes', () => {
     // Act
     const rerun = /^ +c\. Re-run step 7, then re-run that model; 3 rounds at most\.$/m.test(text);
     const rescore =
-      /^ +d\. After the eval loop, when a wording fix was applied, rescore once with 8a2; its items go to `Open:`\.$/m.test(
+      /^ +d\. After the eval loop, when a wording fix was applied, rescore once with 8b; its items go to `Open:`\.$/m.test(
         text
       );
-    const stale = /Re-run step 7 and 8a2/.test(text);
+    const stale = /\b8a2\b/.test(text);
     // Assert
     assert.ok(rerun, 'step 9c wording missing');
     assert.ok(rescore, 'step 9d rescore missing');

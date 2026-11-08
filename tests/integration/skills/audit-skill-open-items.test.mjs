@@ -10,7 +10,8 @@ describe('audit-skill closes every open item', () => {
   const cases = {
     'names the researcher subagent': /cdk:topic-researcher/,
     'has a Decisions: Output line': /^Decisions: </m,
-    'offers Extend 3 more rounds or Stop at the cap': /Extend 3 more rounds \| Stop/,
+    'offers Extend 3 more rounds or Stop at the cap':
+      /^ {3}- After 3 rounds with open items left, ask `Extend 3 more rounds \| Stop`/m,
     'ends ACCEPTED only with no open item': /ACCEPTED[^.\n]*and no open item/,
     'defines the item ledger': /Item ledger/,
     'reports item counts': /^Items: </m,
@@ -46,7 +47,7 @@ describe('audit-skill closes every open item', () => {
     'reports the out-of-scope count in Items':
       /^Items: <total> reported, <fixed> fixed, <declined> declined, <out-of-scope> out-of-scope, <open> open$/m,
     'is done when every item is Fixed, Declined, or out-of-scope':
-      /^Done when: every skill is ACCEPTED and `Open: none`, and every ledger item is Fixed, Declined, or out-of-scope \(listed under `Open:`\), or the user stopped at the cap/m,
+      /^Done when: every skill is ACCEPTED and `Open:` lists only out-of-scope rows or `none`, and every ledger item is Fixed, Declined, or out-of-scope \(listed under `Open:`\), or the user stopped at the cap/m,
     'loops only on open rows in 8c':
       /^ {3}- \*\*8c\. Loop\.\*\* Count only `open` rows: any left → step 6 \(next round\); none → step 5\./m,
     'points the round cap to step 9':
@@ -54,7 +55,17 @@ describe('audit-skill closes every open item', () => {
     'pre-approves the git -C reads and no diff stat':
       /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(git -C \* rev-parse --show-toplevel\) Bash\(git -C \* status --porcelain=v1\) Bash\(node -e \*\)$/m,
     'snapshots the root status at 6c and compares at 6d':
-      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m
+      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m,
+    'keeps the content of dirty paths outside the target at 6c':
+      /^ {3}- \*\*6c\. Implement\.\*\* .*Read and keep the content of each file entry in that snapshot that lies outside the target;/m,
+    'states that status cannot see ignored files or outside paths':
+      /^ {3}- \*\*6d\. Check scope\.\*\* .*`status` cannot see ignored files or paths outside the repo\.$/m,
+    'keeps a baseline item out of the ledger':
+      /^- Every fix to a target skill[^\n]*Its `Open:` items join the ledger, except a `baseline:` item \(implement-spec's step 1b repo status\), which is printed on its own line and never enters the ledger\./m,
+    'records Open items at 6c except baseline':
+      /^ {3}- \*\*6c\. Implement\.\*\* .*Record its `Open:` items in the ledger, except a `baseline:` item/m,
+    'limits its own spawns to scorer and researcher':
+      /^- Scorers and researchers are subagents that cannot spawn subagents; this skill spawns only the scorer and researcher subagents, never another one; the planner, implementer, and verifier spawns inside implement-spec follow its own spawn rule,/m
   };
 
   for (const [name, pattern] of Object.entries(cases)) {

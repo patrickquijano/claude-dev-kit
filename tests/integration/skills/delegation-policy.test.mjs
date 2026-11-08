@@ -22,21 +22,20 @@ describe('write delegation policy across audit, build, and review skills', () =>
   }
 
   // scoring-skills-policy covers the other four skills; review-code-changes is only checked here.
-  for (const skill of ['review-code-changes']) {
-    test(`${skill} names implement-spec and no planner or implementer`, () => {
-      // Arrange
-      const dir = join(root, 'skills', skill);
-      const files = ['SKILL.md', ...readdirSync(join(dir, 'references')).map((f) => join('references', f))];
-      // Act
-      const invokes = skillFile(skill).includes('cdk:implement-spec');
-      const offenders = files.filter((f) =>
-        /cdk:implementation-planner|cdk:plan-implementer/.test(readFileSync(join(dir, f), 'utf8'))
-      );
-      // Assert
-      assert.ok(invokes, 'implement-spec not named');
-      assert.deepEqual(offenders, []);
-    });
-  }
+  test('review-code-changes names implement-spec and no planner or implementer', () => {
+    // Arrange
+    const skill = 'review-code-changes';
+    const dir = join(root, 'skills', skill);
+    const files = ['SKILL.md', ...readdirSync(join(dir, 'references')).map((f) => join('references', f))];
+    // Act
+    const invokes = skillFile(skill).includes('cdk:implement-spec');
+    const offenders = files.filter((f) =>
+      /cdk:implementation-planner|cdk:plan-implementer/.test(readFileSync(join(dir, f), 'utf8'))
+    );
+    // Assert
+    assert.ok(invokes, 'implement-spec not named');
+    assert.deepEqual(offenders, []);
+  });
 });
 
 describe('task-worker is removed', () => {

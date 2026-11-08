@@ -47,7 +47,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 5. **Spec.** Build the spec per the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`: numbered goals with checkable acceptance criteria, non-goals, and instructions from `rules.md`, `complexity.md`, the template, and the evals template (absolute `${CLAUDE_SKILL_DIR}` paths, because implement-spec resolves that variable to its own directory), plus the recorded name, flags, and complexity class; the target's `references/evals.md` is a goal (step 9).
    a. Print the spec summary.
 6. **Implement.** Invoke implement-spec per Rules with the spec; it asks the approach question.
-   a. Map its Output: `Files` → `Files:`, `Open` → `Open:`, `Stopped` → per Rules (input stop → `Result: stopped`; cap stop → `Open:`, then step 7, except 6b).
+   a. Map its Output: `Files` → `Files:`, `Open` → `Open:` (a `baseline:` item is printed on its own line instead), `Stopped` → per Rules (input stop → `Result: stopped`; cap stop → `Open:`, then step 7, except 6b).
    b. A create-mode cap stop with nothing written ends the run (`Result: stopped`, `Stopped: 6: nothing written`) and never continues to step 7, because there is no target to validate.
 7. **Validate.**
    a. Run `node ${CLAUDE_SKILL_DIR}/scripts/validate-skill.mjs <skill-dir> --kind <task|reference|background-only>`; no node → walk the manual checklist in `rules.md`.
@@ -55,20 +55,20 @@ Input: $ARGUMENTS (strip `--yes` first)
    c. Re-run 7a; at most 3 rounds.
 8. **Score and improve.**
    a. Read `MEMORY.md` (Rules, fix memory).
-   a2. ``Invoke the `cdk:audit-skill` skill (fallback: run the audit-skill skill)`` as `cdk:audit-skill --score-only <absolute target path>`.
+   b. ``Invoke the `cdk:audit-skill` skill (fallback: run the audit-skill skill)`` as `cdk:audit-skill --score-only <absolute target path>`.
    The audit scores in a fresh-context subagent, never from this session's drafting, and never edits. It returns the `Skills:` line, `Open:` items (ID, lost points, file:line, Before → After), and `Waived:`, at most 200 lines.
-   b. At least one VERIFIED fix outside `scripts/` remains → invoke implement-spec with a spec whose goals are only the VERIFIED fixes outside `scripts/` (fix ID, Before → After, with a matching remembered fix as an unverified hint) and whose expectation is "rescore ACCEPTED"; none remains → skip to 8g; a `scripts/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:` unapplied. Its `Open:` joins the open list; an input stop ends the run per Rules, and after a cap stop rescore still runs.
-   c. Re-run step 7.
-   d. Rescore with 8a2.
-   e. For each fix the rescore confirms, write its fix memory (Rules, fix memory).
-   f. Loop: at least one VERIFIED fix outside `scripts/` remains and fewer rounds are done than the current cap (3, plus 3 per Extend) → step 8b (next round); otherwise → 8g.
-   g. At the current cap with a VERIFIED fix outside `scripts/` still open, ask per the round-cap rule (Extend → step 8b); no such fix left → no ask, go to 8h, because another round can fix nothing.
-   h. Every item not fixed goes to `Open:` as `ID (lost pts) file:line: fix`; negligible items from `Waived:` go to `Waived:`; a result still REJECTED after a Stop is reported, not looped again.
+   c. At least one VERIFIED fix outside `scripts/` remains → invoke implement-spec with a spec whose goals are only the VERIFIED fixes outside `scripts/` (fix ID, Before → After, with a matching remembered fix as an unverified hint) and whose expectation is "rescore ACCEPTED"; none remains → skip to 8h; a `scripts/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:` unapplied. Its `Open:` joins the open list; an input stop ends the run per Rules, and after a cap stop rescore still runs.
+   d. Re-run step 7.
+   e. Rescore with 8b.
+   f. For each fix the rescore confirms, write its fix memory (Rules, fix memory).
+   g. Loop: at least one VERIFIED fix outside `scripts/` remains and fewer rounds are done than the current cap (3, plus 3 per Extend) → step 8c (next round); otherwise → 8h.
+   h. At the current cap with a VERIFIED fix outside `scripts/` still open, ask per the round-cap rule (Extend → step 8c); no such fix left → no ask, go to 8i, because another round can fix nothing.
+   i. Every item not fixed goes to `Open:` as `ID (lost pts) file:line: fix`; negligible items from `Waived:` go to `Waived:`; a result still REJECTED after a Stop is reported, not looped again.
 9. **Evals.** Run the target's `references/evals.md` cases (written in step 6 per `${CLAUDE_SKILL_DIR}/references/evals.md`, linked from its `## Files`) on Haiku, Sonnet, and Opus.
    a. List each case or model not run under `Open:` as untested, never as passed.
    b. A failing case → fix the wording through implement-spec (fix-round brief).
    c. Re-run step 7, then re-run that model; 3 rounds at most.
-   d. After the eval loop, when a wording fix was applied, rescore once with 8a2; its items go to `Open:`.
+   d. After the eval loop, when a wording fix was applied, rescore once with 8b; its items go to `Open:`.
 10. **Report.** Print the Output block.
 
 ## Files

@@ -57,7 +57,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 8. **Write.**
    a. Update and improve: back up first with `Write` in the main thread.
    b. Invoke implement-spec per Rules with the spec; it asks the approach question.
-   c. Map its Output: `Files` → `File:`, `Open` → `Open:` (its `Unverified` items to `Unverified:`), `Stopped` → per Rules (input stop → `Result: stopped`; cap stop → `Open:`, then step 9; a create-mode cap stop with nothing written ends the run with `Result: stopped`, `Stopped: 8: nothing written` and never continues to step 9, because there is no target to check).
+   c. Map its Output: `Files` → `File:`, `Open` → `Open:` (its `unverified:` items to `Unverified:`; a `baseline:` item is printed on its own line instead), `Stopped` → per Rules (input stop → `Result: stopped`; cap stop → `Open:`, then step 9; a create-mode cap stop with nothing written ends the run with `Result: stopped`, `Stopped: 8: nothing written` and never continues to step 9, because there is no target to check).
    d. Create follows `${CLAUDE_SKILL_DIR}/references/agent-checklist.md` and `${CLAUDE_SKILL_DIR}/assets/agent.template.md`; update and improve edit only the Brief's listed lines.
    e. A refresh from step 3 is never written; one that changes a field, enum, or removed-tool fact → `Open: check-agent lists need re-sync (report the changed fact; the skill's own snapshot is updated in its source repo)`.
    f. A new agents dir created → `Reload: restart`.

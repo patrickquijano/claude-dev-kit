@@ -19,7 +19,8 @@ describe('audit-subagent closes every open item', () => {
     'names the researcher subagent': /cdk:topic-researcher/,
     'scores through the subagent-audit kind': /kind `subagent-audit`/,
     'has a Decisions: Output line': /^Decisions: </m,
-    'offers Extend 3 more rounds or Stop at the cap': /Extend 3 more rounds \| Stop/,
+    'offers Extend 3 more rounds or Stop at the cap':
+      /^ {3}- After 3 rounds with open items left \(the cap stops[^)]*\), ask `Extend 3 more rounds \| Stop`/m,
     'ends ACCEPTED only with no open item': /ACCEPTED[^.\n]*and no open item/,
     'defines the item ledger': /Item ledger/,
     'reports item counts': /^Items: </m,
@@ -41,7 +42,15 @@ describe('audit-subagent closes every open item', () => {
     'pre-approves the git -C reads and no diff stat':
       /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(git -C \* rev-parse --show-toplevel\) Bash\(git -C \* status --porcelain=v1\) Bash\(node -e \*\)$/m,
     'compares the root status at 6d':
-      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m
+      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m,
+    'keeps the content of dirty paths outside the target at 6c':
+      /^ {6}- Read and keep the content of each file entry in that snapshot that lies outside the target\.$/m,
+    'states that status cannot see ignored files or outside paths':
+      /^ {3}- \*\*6d\. Check scope\.\*\* .*`status` cannot see ignored files or paths outside the repo\.$/m,
+    'keeps a baseline item out of the ledger':
+      /^ {6}- Record its `Open:` items in the ledger, except a `baseline:` item \(implement-spec's step 1b repo status\), which is printed on its own line and never enters the ledger\.$/m,
+    'limits its own spawns to scorer and researcher':
+      /^- Scorers and researchers are subagents that cannot spawn subagents; this skill spawns only the scorer and researcher subagents, never another one; the planner, implementer, and verifier spawns inside implement-spec follow its own spawn rule,/m
   };
 
   for (const [name, pattern] of Object.entries(cases)) {
