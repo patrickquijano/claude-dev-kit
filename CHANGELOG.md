@@ -20,9 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:implement-spec` plans with `cdk:implementation-planner` and edits inline for at most 3 planned files; more than 3 go to `cdk:plan-implementer`, in parallel groups when the plan splits.
 - `/cdk:build-skill`, `/cdk:build-subagent`, `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` make every write through `/cdk:implement-spec`.
 - `/cdk:build-subagent` scores through `/cdk:audit-subagent --score-only` and spawns no subagent itself.
-- `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` ask `Extend 3 more rounds | Stop` at the 3-round cap; `--yes` stops and lists what is left under `Open:`.
+- `/cdk:build-skill`, `/cdk:build-subagent`, `/cdk:audit-skill`, `/cdk:audit-subagent`, `/cdk:review-code-changes`, `/cdk:update-readme`, and `/cdk:update-rules` ask `Extend 3 more rounds | Stop` at the 3-round cap; `--yes` stops and lists what is left under `Open:`.
 - `/cdk:review-code-changes` no longer runs a closing review after the last round, and it waives every nitpick instead of fixing it.
 - The skills that fix through `/cdk:implement-spec` keep their fix memories in Claude auto memory, never in the plugin directory, and run no formatter or linter.
+- The `/cdk:implement-spec` verifier no longer runs the format check or lint for direct callers; repo hooks and CI own that.
 - `/cdk:build-subagent` proposes actor-noun names and writes `color`, `model`, and `effort` when you supply them.
 - `cdk:rubric-scorer` waives a deduction whose fix would not change how a reader acts on the file, and the README rubric no longer has the Markdown linter check (F3).
 
