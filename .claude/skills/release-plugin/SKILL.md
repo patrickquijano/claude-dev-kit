@@ -1,6 +1,6 @@
 ---
 name: release-plugin
-description: Releases this plugin end to end, from version bump to the published GitHub release. Use when asked to release, cut a release, ship a new version, or publish the plugin; only on an explicit request. Not for editing an existing release or only tagging (use cdk:create-github-release or cdk:create-git-tag).
+description: Releases the plugin, version bump to GitHub release. Use only on an explicit ask to release, cut a release, ship a new version, or publish the plugin. Not for editing a release or only tagging.
 argument-hint: '[--yes] [version]'
 disable-model-invocation: true
 compatibility: Claude Code only. Uses disable-model-invocation and argument-hint; claude.ai and API uploads reject unknown frontmatter keys.

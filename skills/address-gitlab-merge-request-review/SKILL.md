@@ -1,6 +1,6 @@
 ---
 name: address-gitlab-merge-request-review
-description: Fixes and replies to discussions, review-body items, and failing pipelines on a GitLab MR. Use to address MR feedback, answer reviewer comments, or fix a failing pipeline. Not for reviewing an MR or for GitHub pull requests.
+description: Fixes and replies to discussions, review-body items, and failing pipelines on a GitLab MR. Use to address MR feedback, answer reviewer comments, or fix a pipeline. Not for reviewing MRs or GitHub.
 compatibility: Claude Code only. Requires node and git, and GitLab 15.7 or later (the MR `/diffs` API); glab for commands with no MCP tool (mr-files, reviewers, closing-issues) and as the fallback when the MCP host check fails. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | group/project!iid | iid] [--dry-run]'
 allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git rev-parse HEAD) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git diff) Bash(git diff -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_project_members mcp__plugin_gitlab_gitlab__get_user
