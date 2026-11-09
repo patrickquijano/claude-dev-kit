@@ -19,14 +19,27 @@ Rigor: verify every path, command, and claim against the files before stating it
 4. Stop reading once the kind's questions are answered.
 5. Walk the kind's checklist against every hunk of every path in the batch list (never a path outside it, because the parent checks coverage per batch); kind `threads` has no batch list and follows its own steps under `## Kinds`.
 6. Read the surrounding code and any fetched callers and callees to judge a finding; findings anchor to changed lines. A path that cannot be read goes under `Gaps:`.
-7. Report each finding as a block `{severity, file, line, evidence, why, fix, confidence}`:
-   - `severity`: `Blocking` (must change before merge), `Suggestion` (worth changing), or `Nitpick` (taste).
-   - `file` and `line`: the head-SHA path and the new-side line inside a diff hunk; a finding outside a hunk or with no line is stated with `line: none`.
-   - `evidence` quotes the head code; `fix` is concrete; `confidence` is `high`, `medium`, or `low`. A finding without quoted evidence is `Unverified`: mark it so, never `Blocking`, because the parent posts a Blocking finding as a merge gate.
+7. Report each finding as a block headed `[severity] file:line`, then `problem`, `impact`, `fix`, `evidence`, and `confidence`:
+   - `severity`: exactly one of the levels under `## Severity`.
+   - `file:line`: the head-SHA path and the new-side line inside a diff hunk; a finding outside a hunk or with no line is stated as `file:none`.
+   - `problem` says what is wrong and `impact` what it causes; `evidence` quotes the head code; `fix` is concrete; `confidence` is `high`, `medium`, or `low`. A finding without quoted evidence, or with `low` confidence, is a `question`, never `critical` or `major`, because the parent treats those two as a merge gate.
    - Report every occurrence: a finding that recurs lists every `file:line` site, one block per site, because the author fixes only the sites listed.
 8. Need more context (callers, callees, tests of changed code) → list up to 10 head-SHA paths under `Need:`; the parent fetches each path before respawning, so a longer list delays the respawn.
-9. Self-check: re-open each finding's `file:line` in the head file and drop, downgrade, or mark `Unverified` any finding the line does not show; confirm `Coverage:` lists every path of the batch list (not for `threads`).
-10. Set `Status:` to `complete` (every path covered), `partial` (a gap or a `Need:`), or `blocked` (a `Question:`). Out of scope: fixing code, posting to a host, judging paths outside the batch list.
+9. Self-check: re-open each finding's `file:line` in the head file and drop, or downgrade to `question`, any finding the line does not show; confirm `Coverage:` lists every path of the batch list (not for `threads`).
+10. Set `Verdict:` (not for `threads`) to `BLOCK` when any finding is `critical` or `major`, else `APPROVE`.
+11. Set `Status:` to `complete` (every path covered), `partial` (a gap or a `Need:`), or `blocked` (a `Question:`). Out of scope: fixing code, posting to a host, judging paths outside the batch list.
+
+## Severity
+
+Each finding carries exactly one severity:
+
+- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality.
+- `major` (blocking): likely bug or serious design flaw.
+- `minor`: real issue with limited impact. Does not block merge in local review; in PR/MR review it must be resolved before approval.
+- `nit` (non-blocking): style/preference, no functional effect.
+- `question` (non-blocking): used when unsure a problem exists.
+
+In local review, only critical and major block merge. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
 
 ## Kinds
 
@@ -82,8 +95,14 @@ Area and sweep kinds:
 
 ```text
 Status: <complete | partial | blocked>
+Verdict: <BLOCK | APPROVE>
 Findings:
-- {severity, file, line, evidence, why, fix, confidence}
+- [<severity>] <file>:<line>
+  problem: <what is wrong>
+  impact: <what it causes>
+  fix: <concrete change>
+  evidence: <quoted head code>
+  confidence: <high | medium | low>
 Coverage:
 - <path> | hunks <n> | findings <n>
 Covered: <batches or paths read; sweep only>
@@ -92,7 +111,7 @@ Gaps: <unreadable files | none>
 Question: <only for a missing input; omit otherwise>
 ```
 
-`Coverage:` has one line per path of the batch list, and a path with no findings is still listed. No findings → `Findings: none`. Cap at 30 findings, most severe first, because the parent merges and posts every finding and a longer list buries the blocking ones; quote at most 3 lines of evidence per finding and point to `file:line` instead of pasting diff.
+`Coverage:` has one line per path of the batch list, and a path with no findings is still listed. No findings → `Findings: none`. Cap at 30 findings, most severe first, because the parent merges every finding and a longer list buries the blocking ones; quote at most 3 lines of evidence per finding and point to `file:line` instead of pasting diff.
 
 Kind `threads`:
 
@@ -113,8 +132,14 @@ Filled Return (`correctness`):
 
 ```text
 Status: complete
+Verdict: BLOCK
 Findings:
-- {severity: Blocking, file: src/run.mjs, line: 42, evidence: `const n = items.length`, why: items is null when the lookup fails, fix: guard with `items?.length ?? 0`, confidence: high}
+- [major] src/run.mjs:42
+  problem: `items` is null when the lookup fails
+  impact: the call throws and the request returns a 500
+  fix: guard with `items?.length ?? 0`
+  evidence: `const n = items.length`
+  confidence: high
 Coverage:
 - src/run.mjs | hunks 2 | findings 1
 Need: none
