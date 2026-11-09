@@ -52,8 +52,8 @@ describe('audit-skill closes every open item', () => {
       /^ {3}- \*\*8c\. Loop\.\*\* Count only `open` rows: any left → step 6 \(next round\); none → step 5\./m,
     'points the round cap to step 9':
       /^- Round = fix, rescore, address open items; the round cap \(3, plus 3 per Extend\) is in step 9, so a loop that does not converge returns to the user\.$/m,
-    'pre-approves only the node -e sum and no diff stat':
-      /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(node -e \*\)$/m,
+    'pre-approves the root and status git -C reads and the node -e sum, no diff stat':
+      /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(git -C \* rev-parse --show-toplevel\) Bash\(git -C \* status --porcelain=v1\) Bash\(node -e \*\)$/m,
     'snapshots the root status at 6c and compares at 6d':
       /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m,
     'keeps the content of dirty paths outside the target at 6c':

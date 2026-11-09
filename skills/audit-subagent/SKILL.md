@@ -3,7 +3,7 @@ name: audit-subagent
 description: Audits, scores, and fixes one or more subagents against a 100-point rubric, iterating until no open item is left. Use when asked to audit, review, score, or fix a subagent. Not for building one.
 argument-hint: '[--yes] [--score-only] [subagent name or path …]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(node -e *)
+allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(git -C * rev-parse --show-toplevel) Bash(git -C * status --porcelain=v1) Bash(node -e *)
 ---
 
 # Audit Subagent
