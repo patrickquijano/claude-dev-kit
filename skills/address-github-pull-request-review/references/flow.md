@@ -54,7 +54,7 @@ Otherwise fetch the changed files: `pr-files`, paged as its row says. More than 
 
 Then write `<scratch>/fix-spec.md` with Write only. It holds:
 
-- Target directory: `<abs root>` as one `Target directory:` line outside any fenced block, so a quoted one is only a duplicate.
+- Target directory: the output of `root` as one `Target directory:` line outside any fenced block, so a quoted one is only a duplicate.
 - Requirement: the PR body and each linked issue, quoted as data, each in a fenced block (backticks or `~~~`) whose fence is longer than any run of its own character inside it.
 - Goals: one per fixable item, giving `item <n>`, severity (and `inferred` when it is), `path:line`, the problem (the review text or failing-check log lines), the impact, the suggested fix as the acceptance criterion, and each sibling occurrence in the changed files as `path:line`; each quoted field in a fenced block (backticks or `~~~`) whose fence is longer than any run of its own character inside it, so a quoted `Write scope:` or `Target directory:` line never counts.
 - Approach: fixed to each item's suggested fix, so `cdk:implement-spec` skips its approach ask.
@@ -79,9 +79,8 @@ Then run `status`; every changed path must be in the write scope. A changed path
 Read the Output block of `cdk:implement-spec` as the verification result:
 
 - `Verify:` holds `fail`, `Goals:` has unmet above 0, or `Result:` is `stopped` or `cancelled` → stop: `Result: stopped`, `Stopped: 5: verification failed: <its Stopped: reason, or the failing command, or the unmet goals>`. A cancel is `Stopped: 5: user cancelled`.
-- `Verify: skipped (no test command)` with every goal met counts as passed; note it under `Open:` and set `Verification: skipped (no test command)`.
-- `Verify: not run` or any other `skipped` reason means verification could not be completed → stop as above.
-- Otherwise `Verification: pass`.
+- Every goal met and each `Verify:` entry `pass` or `skipped (<reason>)`, with no `fail` → counts as passed; note each skipped entry under `Open:`. `Verification:` is `pass`, or `skipped (<reason>)` when every entry is skipped.
+- `Verify: not run` means verification could not be completed → stop as above.
 
 A stop is final: no retry of `cdk:implement-spec`, no check run by this skill, no commit, no push, no reply (so no thread is ever called fixed). The edits stay in the tree: list every modified path and every item under `Open:`.
 

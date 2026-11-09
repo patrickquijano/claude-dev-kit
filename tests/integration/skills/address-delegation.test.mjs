@@ -89,8 +89,7 @@ describe('address skills delegate fixes to implement-spec', () => {
       const failure = outcome.includes('`Verify:` holds `fail`') && /unmet above 0/.test(outcome);
       const results = outcome.includes('`stopped` or `cancelled`');
       const stops = /Stopped: 5: verification failed/.test(outcome) && /Stopped: 5: user cancelled/.test(outcome);
-      const skipped =
-        outcome.includes('`Verify: skipped (no test command)`') && /noted? it under `Open:`/.test(outcome);
+      const skipped = outcome.includes('`skipped (<reason>)`') && /note each skipped entry under `Open:`/.test(outcome);
       const final = /no retry/.test(outcome) && /no reply/.test(outcome);
       // Assert
       assert.ok(failure && results && stops && skipped && final, 'Outcome stop conditions incomplete');
@@ -212,7 +211,7 @@ describe('address skills delegate fixes to implement-spec', () => {
         : /^- Requirement: the MR description and each `closing-issues` entry, quoted as data, each in a fenced block \(backticks or `~~~`\) whose fence is longer than any run of its own character inside it\.$/m;
       // Act
       const target =
-        /^- Target directory: `<abs root>` as one `Target directory:` line outside any fenced block, so a quoted one is only a duplicate\.$/m.test(
+        /^- Target directory: the output of `root` as one `Target directory:` line outside any fenced block, so a quoted one is only a duplicate\.$/m.test(
           spec
         );
       const fenced = requirement.test(spec);
