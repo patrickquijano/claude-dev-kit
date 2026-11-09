@@ -34,17 +34,19 @@ describe('scoring skills share one policy', () => {
         assert.equal(spawns, false);
       });
 
-      test('asks to extend at the round cap', () => {
+      test('asks to extend at the round cap, or for audit skills stops at 2 rounds with no Extend', () => {
         // Arrange
         const text = skillMd(skill);
         // Act
         const ask = (
           skill.startsWith('audit-')
-            ? /^ {3}- After 3 rounds with open items left[^,\n]*, ask `Extend 3 more rounds \| Stop`/m
+            ? /^ {3}- Otherwise → `Open:` lists the blocking rows, `Result: stopped`, `Stopped: 9: round cap` after round 2/m
             : /^- .*ask `Extend 3 more rounds \| Stop` \(Recommended first/m
         ).test(text);
+        const noExtend = !skill.startsWith('audit-') || !/Extend 3 more rounds/.test(text);
         // Assert
         assert.ok(ask);
+        assert.ok(noExtend, 'audit skills must not ask to extend');
       });
 
       test('prints Waived and Open in the Output', () => {
@@ -213,8 +215,9 @@ describe('audit skills keep --score-only out of the write path', () => {
       const text = skillMd(skill);
       // Act
       const rule = /^- `--score-only` runs steps 1–4 and then 10, never edits/m;
-      const decide = /^\d+\. \*\*Decide\.\*\* `--score-only` → go to step 10\./m;
-      const stale = /^- `--score-only`[^\n]*(step 6|implement-spec)/m;
+      const decide =
+        /^\d+\. \*\*Decide\.\*\*(?: `--score-only` → go to step 10\.|\n {3}- `--score-only` → go to step 10\.)/m;
+      const stale = /^- `--score-only`[^\n]*(step 7|implement-spec)/m;
       // Assert
       assert.match(text, rule);
       assert.match(text, decide);
@@ -302,15 +305,15 @@ describe('audit skills brief a write scope and stop without git', () => {
   };
   const noGit = {
     'audit-skill':
-      /^ {3}- \*\*6c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel`; it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m,
+      /^ {3}- \*\*7c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel`; it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 7: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m,
     'audit-subagent':
-      /^ {3}- \*\*6c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel` \(`<dir>` is the target file's directory\); it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m
+      /^ {3}- \*\*7c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel` \(`<dir>` is the target file's directory\); it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 7: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m
   };
   const scopeCheck = {
     'audit-skill':
-      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m,
+      /^ {3}- \*\*7d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 7: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m,
     'audit-subagent':
-      /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m
+      /^ {3}- \*\*7d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 7: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m
   };
   for (const skill of ['audit-skill', 'audit-subagent']) {
     test(`${skill} Spec brief has a literal Write scope line`, () => {
@@ -330,14 +333,14 @@ describe('audit skills brief a write scope and stop without git', () => {
       // Act
       const stop = noGit[skill].test(text);
       const footer =
-        /^`stopped` covers .*`write outside scope`, or cancelled\), a no-git scope stop, and cannot interact; a (?:retry-)?cap stop never sets it/m.test(
+        /^`stopped` covers .*`write outside scope`, or cancelled\), a no-git scope stop, the round cap, and a no-progress stop; an? (?:implement-spec |retry-)?cap stop never sets it/m.test(
           text
         );
-      const stale = /^ +- \*\*6d\. Check scope\.\*\* With git/m.test(text);
+      const stale = /^ +- \*\*7d\. Check scope\.\*\* With git/m.test(text);
       const check = scopeCheck[skill].test(text);
       // Assert
-      assert.ok(stop, 'no-git stop missing at 6c');
-      assert.ok(check, 'status-based scope check missing at 6d');
+      assert.ok(stop, 'no-git stop missing at 7c');
+      assert.ok(check, 'status-based scope check missing at 7d');
       assert.ok(footer, 'no-git scope stop missing from the stopped sentence');
       assert.equal(stale, false);
     });
