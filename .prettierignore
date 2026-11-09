@@ -1,6 +1,6 @@
-# Markdown is owned by markdownlint.
-*.md
-*.markdown
+# /cdk:update-readme and /cdk:update-changelog own these.
+README.md
+CHANGELOG.md
 node_modules/
 package-lock.json
 .husky/_/
