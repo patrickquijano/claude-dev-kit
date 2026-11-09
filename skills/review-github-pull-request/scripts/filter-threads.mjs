@@ -1,5 +1,5 @@
-// Thread triage for review-github-pull-request: which open threads to judge, and which the reviewer may resolve.
-// Reads one `review-threads` JSON file and prints JSON on stdout. CLI: `filter --file <json> --author <login> --self <login> --head <sha>`.
+// Thread triage for review-github-pull-request: which own open threads to judge.
+// Reads one `review-threads` JSON file and prints JSON on stdout. CLI: `filter --file <json> --author <login> --self <login> --head <sha> --marker <text>`.
 import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -30,40 +30,56 @@ export function threadNodes(json) {
   return nodes;
 }
 
-// A thread is judged when the PR author spoke last, the comment predates the head, it is outdated, or its opener answered an author reply.
-export function classifyThreads({ nodes, author, self, head }) {
+const GATING = new Set(['critical', 'major', 'minor']);
+const SEVERITY = /^\s*\[(critical|major|minor|nit|question)\]/;
+
+// The severity a comment body starts with, or null when it has no valid prefix.
+export function parseSeverity(body) {
+  return SEVERITY.exec(String(body ?? ''))?.[1] ?? null;
+}
+
+// Own threads only: opened by self with the marker. A resolved own gating thread is judged unless self resolved it; an open one is judged when the PR author spoke last, the comment predates the head, it is outdated, or self answered an author reply.
+export function classifyThreads({ nodes, author, self, head, marker }) {
   const judged = [];
   const unjudged = [];
   const unresolvable = [];
+  const nongating = [];
+  let ignored = 0;
   for (const t of nodes) {
-    if (t.isResolved) continue;
-    if (!t.viewerCanResolve) {
+    const resolved = Boolean(t.isResolved);
+    if (resolved && same(t.resolvedBy?.login, self)) continue;
+    const comments = t.comments?.nodes ?? [];
+    const first = comments[0];
+    const severity = parseSeverity(first?.body);
+    if (!same(first?.author?.login, self) || !String(first?.body ?? '').includes(marker) || !severity) {
+      if (!resolved) ignored += 1;
+      continue;
+    }
+    if (!GATING.has(severity)) {
+      if (!resolved) nongating.push(t.id);
+      continue;
+    }
+    if (!resolved && !t.viewerCanResolve) {
       unresolvable.push(t.id);
       continue;
     }
-    const comments = t.comments?.nodes ?? [];
     const last = t.lastComment?.nodes?.[0] ?? comments[comments.length - 1];
-    const opener = comments[0]?.author?.login;
     const lastLogin = last?.author?.login;
     const authorRepliedBefore = comments.slice(1, -1).some((c) => same(c.author?.login, author));
+    const authorLast = same(lastLogin, author);
     const isJudged =
-      same(lastLogin, author) ||
+      resolved ||
+      authorLast ||
       Boolean(t.isOutdated) ||
       (last?.originalCommit?.oid ?? head) !== head ||
-      (same(lastLogin, opener) && authorRepliedBefore);
+      (same(lastLogin, self) && authorRepliedBefore);
     if (!isJudged) {
       unjudged.push(t.id);
       continue;
     }
-    judged.push({
-      id: t.id,
-      path: t.path ?? null,
-      line: t.line ?? null,
-      opener: opener ?? null,
-      resolvable: same(opener, author) || same(opener, self)
-    });
+    judged.push({ id: t.id, path: t.path ?? null, line: t.line ?? null, severity, authorLast });
   }
-  return { judged, unjudged, unresolvable, truncated: nodes.length >= PAGE };
+  return { judged, unjudged, unresolvable, nongating, ignored, truncated: nodes.length >= PAGE };
 }
 
 function arg(argv, name) {
@@ -81,13 +97,17 @@ const realDeps = {
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
-  const [file, author, self, head] = ['--file', '--author', '--self', '--head'].map((n) => arg(argv, n));
-  if (argv[0] !== 'filter' || !file || !author || !self || !head) {
-    d.error('usage: filter-threads.mjs filter --file <json> --author <login> --self <login> --head <sha>');
+  const [file, author, self, head, marker] = ['--file', '--author', '--self', '--head', '--marker'].map((n) =>
+    arg(argv, n)
+  );
+  if (argv[0] !== 'filter' || !file || !author || !self || !head || !marker) {
+    d.error(
+      'usage: filter-threads.mjs filter --file <json> --author <login> --self <login> --head <sha> --marker <text>'
+    );
     return 2;
   }
   const nodes = threadNodes(JSON.parse(d.readFileSync(file, 'utf8')));
-  d.log(JSON.stringify({ ok: true, ...classifyThreads({ nodes, author, self, head }) }));
+  d.log(JSON.stringify({ ok: true, ...classifyThreads({ nodes, author, self, head, marker }) }));
   return 0;
 }
 
