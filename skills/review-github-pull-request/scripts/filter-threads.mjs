@@ -38,7 +38,7 @@ export function parseSeverity(body) {
   return SEVERITY.exec(String(body ?? ''))?.[1] ?? null;
 }
 
-// Own threads only: opened by self with the marker. A resolved own gating thread is judged unless self resolved it; an open one is judged when the PR author spoke last, the comment predates the head, it is outdated, or self answered an author reply.
+// Own threads only: opened by self with the marker. A resolved own gating thread is judged unless self resolved it; an open one is judged when the PR author spoke last (unless self is the PR author), the comment predates the head, it is outdated, or self answered an author reply.
 export function classifyThreads({ nodes, author, self, head, marker }) {
   const judged = [];
   const unjudged = [];
@@ -66,7 +66,7 @@ export function classifyThreads({ nodes, author, self, head, marker }) {
     const last = t.lastComment?.nodes?.[0] ?? comments[comments.length - 1];
     const lastLogin = last?.author?.login;
     const authorRepliedBefore = comments.slice(1, -1).some((c) => same(c.author?.login, author));
-    const authorLast = same(lastLogin, author);
+    const authorLast = !same(self, author) && same(lastLogin, author);
     const isJudged =
       resolved ||
       authorLast ||
