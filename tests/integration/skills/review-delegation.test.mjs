@@ -14,9 +14,7 @@ const subagent = 'cdk:code-reviewer';
 const delegating = [
   { skill: 'review-github-pull-request', named: ['SKILL.md', 'references/analyze.md', 'references/threads.md'] },
   { skill: 'review-gitlab-merge-request', named: ['SKILL.md', 'references/analyze.md', 'references/threads.md'] },
-  { skill: 'review-code-changes', named: ['SKILL.md', 'references/review.md'] },
-  { skill: 'address-github-pull-request-review', named: ['references/flow.md'] },
-  { skill: 'address-gitlab-merge-request-review', named: ['references/flow.md'] }
+  { skill: 'review-code-changes', named: ['SKILL.md', 'references/review.md'] }
 ];
 
 describe('skills delegate to the code-reviewer subagent', () => {
