@@ -198,6 +198,53 @@ describe('classifyThreads', () => {
     assert.deepEqual([res.judged, res.nongating, res.ignored], [[], [], 0]);
   });
 
+  test('judges a thread whose self opener answered an author reply', () => {
+    // Arrange
+    const nodes = [
+      thread({
+        middle: [
+          { author: { login: 'dev' }, body: 'why' },
+          { author: { login: 'me' }, body: 'because' }
+        ]
+      })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => [t.id, t.authorLast]),
+      [['t1', false]]
+    );
+  });
+
+  test('does not dispute an open thread when self is the PR author', () => {
+    // Arrange
+    const nodes = [thread()];
+    // Act
+    const res = classifyThreads({ nodes, ...base, author: 'me' });
+    // Assert
+    assert.deepEqual([res.judged, res.unjudged], [[], ['t1']]);
+  });
+
+  test('judges an answered thread without authorLast when self is the PR author', () => {
+    // Arrange
+    const nodes = [
+      thread({
+        middle: [
+          { author: { login: 'me' }, body: 'fixed' },
+          { author: { login: 'me' }, body: 'done' }
+        ]
+      })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base, author: 'me' });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => [t.id, t.authorLast]),
+      [['t1', false]]
+    );
+  });
+
   test('flags a full page as truncated', () => {
     // Arrange
     const nodes = Array.from({ length: 100 }, (_, i) => thread({ id: `t${i}` }));

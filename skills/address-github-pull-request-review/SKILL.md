@@ -3,7 +3,7 @@ name: address-github-pull-request-review
 description: Fixes and replies to review threads, review-body items, and failing checks on a GitHub PR. Use to address PR feedback, answer reviewer comments, or fix failing checks. Not for reviewing PRs or GitLab.
 compatibility: Claude Code only. Needs node, git, and an authenticated gh CLI. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | owner/repo#N | number] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh run view *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_me
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-pr-ref.mjs *) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh run view *) Bash(gh issue view *) Bash(gh repo view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) Bash(git rev-parse *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__issue_read mcp__plugin_github_github__get_me
 ---
 
 # Address GitHub Pull Request Review
@@ -102,7 +102,7 @@ Fixed: <item: short sha> | none
 Replied: <r> posted | dry run: <r> printed | none
 Skipped: <item: reason> | none
 Inferred: <item: severity, reason> | none
-Verification: pass | skipped (no test command) | failed (<reason>) | not run
+Verification: pass | skipped (<reason>) | failed (<reason>) | not run
 Commits: <short sha> <subject> | none
 Pushed: <head ref> @ <short sha> | not pushed (<reason>) | dry run: <command>
 Ledger: <outcomes>/<items>

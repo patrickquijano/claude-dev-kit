@@ -1,6 +1,6 @@
 # Post
 
-Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new thread body is `[severity] <problem> Impact: <impact> Fix: <fix>`, a blank line, then the marker.
+Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new thread body is `[severity] <problem>. <impact>. <fix>.` in plain English with no `Impact:` or `Fix:` label, a blank line, then the marker. The severity prefix is for threads only; the summary has none.
 
 ## Contents
 

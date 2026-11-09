@@ -3,7 +3,7 @@ name: address-gitlab-merge-request-review
 description: Fixes and replies to discussions, review-body items, and failing pipelines on a GitLab MR. Use to address MR feedback, answer reviewer comments, or fix a pipeline. Not for reviewing MRs or GitHub.
 compatibility: Claude Code only. Requires node and git, and GitLab 15.7 or later (the MR `/diffs` API); glab for commands with no MCP tool (mr-files, reviewers, closing-issues) and as the fallback when the MCP host check fails. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | group/project!iid | iid] [--dry-run]'
-allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_project_members mcp__plugin_gitlab_gitlab__get_user
+allowed-tools: Read Grep Glob Bash(node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab issue view *) Bash(git remote get-url *) Bash(git rev-parse --show-toplevel) Bash(git branch --show-current) Bash(git status *) Bash(git log --oneline -1 -- *) mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_pipeline mcp__plugin_gitlab_gitlab__get_job mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_project_members mcp__plugin_gitlab_gitlab__get_user
 ---
 
 # Address GitLab Merge Request Review
@@ -54,7 +54,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
    - 1d. No items → `Result: nothing-to-do`.
 2. **Triage.** `## Triage`.
    - 2a. Read each item's severity from its comment prefix; classify an unlabeled or legacy-labeled item by the severity criteria and mark it inferred; ambiguous → ask.
-   - 2b. Mark critical, major, and minor items fixable unless disputed; mark a question fixable only when its answer reveals a needed fix.
+   - 2b. Mark critical, major, and minor items fixable unless disputed, already-fixed, or needs-clarification (an untrusted author is always needs-clarification); mark a question fixable only when its answer reveals a needed fix.
    - 2c. Nits exist → ask `Fix nits too? No | Yes`; `--yes` is No.
    - 2d. Mark disputed, already-fixed, needs-clarification, answer-only, and unfixed nit items reply-only or listed (step 9).
 3. **Spec.** `## Spec`. No fixable item → skip 3a–3c; still print the plan (3d).
@@ -102,7 +102,7 @@ Replied: <r> posted | dry run: <r> printed | none
 Tool: mcp | glab | mcp+glab
 Skipped: <item: reason> | none
 Inferred: <item: severity, reason> | none
-Verification: pass | skipped (no test command) | failed (<reason>) | not run
+Verification: pass | skipped (<reason>) | failed (<reason>) | not run
 Commits: <short sha> <subject> | none
 Pushed: <source branch> @ <short sha> | not pushed (<reason>) | dry run: <command>
 Ledger: <outcomes>/<items>

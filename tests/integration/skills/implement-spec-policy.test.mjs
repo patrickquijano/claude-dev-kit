@@ -367,7 +367,10 @@ describe('implement-spec policy', () => {
         text
       );
     const iterate = /^- Round-level stop: .*`Stopped: 8: no progress`\./m.test(text);
-    const caps = /^- Caps .*`Stopped: <step>: no progress`/m.test(skill);
+    const caps =
+      /^- Caps .*ends the fix pass and goes to step 8 \(`Stopped: 7: no progress` only when step 8 cannot re-enter/m.test(
+        skill
+      );
     // Assert
     assert.ok(fix, 'validate.md Fix no-progress stop missing');
     assert.ok(iterate, 'validate.md Iterate round-level stop missing');

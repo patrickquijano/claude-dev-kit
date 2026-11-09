@@ -46,7 +46,7 @@ export function noteHead(note) {
   return p?.head_sha ?? p?.headSha ?? p?.diffRefs?.headSha ?? p?.diff_refs?.head_sha;
 }
 
-// Own threads only: opened by self with the marker. An own gating thread is judged when the MR author spoke last, the last note predates the head, self answered an author reply, or someone but self resolved it.
+// Own threads only: opened by self with the marker. An own gating thread is judged when the MR author spoke last (unless self is the MR author), the last note predates the head, self answered an author reply, or someone but self resolved it.
 export function classifyThreads({ nodes, author, self, head, marker }) {
   const judged = [];
   const unjudged = [];
@@ -83,7 +83,7 @@ export function classifyThreads({ nodes, author, self, head, marker }) {
     const last = notes[notes.length - 1];
     const lastLogin = last.author?.username;
     const authorRepliedBefore = notes.slice(1, -1).some((n) => same(n.author?.username, author));
-    const authorLast = same(lastLogin, author);
+    const authorLast = !same(self, author) && same(lastLogin, author);
     const isJudged =
       reopened || authorLast || (noteHead(last) ?? head) !== head || (same(lastLogin, self) && authorRepliedBefore);
     if (!isJudged) {

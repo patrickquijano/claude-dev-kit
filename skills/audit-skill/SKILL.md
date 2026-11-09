@@ -3,7 +3,7 @@ name: audit-skill
 description: Audits, scores, and fixes one or more skills against a 100-point rubric with gates, until no open item is left. Use when asked to audit, review, score, or fix a skill. Not for building one.
 argument-hint: '[--yes] [--score-only] [skill name or path …]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(node -e *)
+allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(git -C * rev-parse --show-toplevel) Bash(git -C * status --porcelain=v1) Bash(node -e *)
 ---
 
 # Audit Skill

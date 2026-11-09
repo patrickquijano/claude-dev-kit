@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { isProjectScoped, main, parseEvent, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
+import { isProjectScoped, main, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
 
 const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };
@@ -15,7 +15,7 @@ function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux' } = {}) {
     },
     platform,
     env: { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' },
-    readStdin: async () => stdin,
+    readJsonStdin: async () => JSON.parse(stdin),
     stdout: (text) => calls.stdout.push(text),
     stderr: (text) => calls.stderr.push(text)
   };
@@ -59,53 +59,6 @@ describe('isProjectScoped', () => {
     const result = isProjectScoped(parts);
     // Assert
     assert.equal(result, false);
-  });
-});
-
-describe('parseEvent', () => {
-  test('returns the parsed object for valid JSON', () => {
-    // Arrange
-    const data = '{"a":1}';
-    // Act
-    const result = parseEvent(data);
-    // Assert
-    assert.deepEqual(result, { a: 1 });
-  });
-
-  test('throws for JSON null', () => {
-    // Arrange
-    const data = 'null';
-    // Act
-    const act = () => parseEvent(data);
-    // Assert
-    assert.throws(act);
-  });
-
-  test('throws for empty input', () => {
-    // Arrange
-    const data = '';
-    // Act
-    const act = () => parseEvent(data);
-    // Assert
-    assert.throws(act, SyntaxError);
-  });
-
-  test('throws for invalid JSON', () => {
-    // Arrange
-    const data = '{nope';
-    // Act
-    const act = () => parseEvent(data);
-    // Assert
-    assert.throws(act);
-  });
-
-  test('throws for a JSON array', () => {
-    // Arrange
-    const data = '[1,2]';
-    // Act
-    const act = () => parseEvent(data);
-    // Assert
-    assert.throws(act);
   });
 });
 

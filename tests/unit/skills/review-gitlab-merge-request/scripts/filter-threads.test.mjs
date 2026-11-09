@@ -81,6 +81,15 @@ describe('parseSeverity', () => {
     // Assert
     assert.deepEqual(result, ['critical', null, null, null, null]);
   });
+
+  test('reads each valid severity label', () => {
+    // Arrange
+    const bodies = ['[major] x', '[minor] x', '[nit] x', '[question] x'];
+    // Act
+    const result = bodies.map(parseSeverity);
+    // Assert
+    assert.deepEqual(result, ['major', 'minor', 'nit', 'question']);
+  });
 });
 
 describe('noteHead', () => {
@@ -114,6 +123,27 @@ describe('classifyThreads', () => {
     assert.deepEqual(
       res.judged.map((t) => [t.id, t.path, t.line]),
       [['t1', 'a.js', 3]]
+    );
+  });
+
+  test('does not dispute an open thread when self is the MR author', () => {
+    // Arrange
+    const nodes = [thread()];
+    // Act
+    const res = classifyThreads({ nodes, ...base, author: 'me' });
+    // Assert
+    assert.deepEqual([res.judged, res.unjudged], [[], ['t1']]);
+  });
+
+  test('judges an answered thread without authorLast when self is the MR author', () => {
+    // Arrange
+    const nodes = [thread({ middle: [note('me'), note('me')] })];
+    // Act
+    const res = classifyThreads({ nodes, ...base, author: 'me' });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => [t.id, t.authorLast]),
+      [['t1', false]]
     );
   });
 

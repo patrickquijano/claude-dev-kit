@@ -50,6 +50,19 @@ describe('skills delegate to the code-reviewer subagent', () => {
       assert.deepEqual(missing, []);
     });
 
+    test(`${skill} analyze.md falls back to the full diff on a failed compare`, () => {
+      // Arrange
+      const text = read('skills', skill, 'references', 'analyze.md');
+      const pattern =
+        skill === 'review-github-pull-request'
+          ? /When that compare fails .*use the full diff instead \(`pr-diff`\) and say so under `Open:`/
+          : /When that compare fails .*use the full diff instead \(`mr-diff`\) and say so under `Open:`/;
+      // Act
+      const fallback = pattern.test(text);
+      // Assert
+      assert.ok(fallback, 'full-diff fallback or Open note missing');
+    });
+
     test(`${skill} threads.md spawns kind threads`, () => {
       // Arrange
       const text = read('skills', skill, 'references', 'threads.md');

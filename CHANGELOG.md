@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-11-09
+
+### Changed
+
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` write thread bodies in plain English with no `Impact:` or `Fix:` labels.
+- `/cdk:review-gitlab-merge-request` revokes its approval first and approves last, after the summary is posted, so a stop never leaves a stale approval.
+- `/cdk:implement-spec` ends a fix pass that makes no progress and re-enters step 8 instead of stopping at once.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` report a skipped verification with any reason, not only a missing test command.
+
+### Fixed
+
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` re-read each fixed or obsolete thread and carried item before resolving it; one the code does not show stays open.
+- `/cdk:address-gitlab-merge-request-review` asks for clarification on an unclear comment or one from an untrusted author instead of implementing it.
+- `/cdk:audit-skill`, `/cdk:audit-subagent`, and the address skills no longer prompt for the repo-root and status reads.
+
 ## [0.9.1] - 2026-11-09
 
 ### Added
@@ -566,7 +581,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...v0.9.0
 [0.8.14]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...v0.8.14

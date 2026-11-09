@@ -3,7 +3,7 @@
 // Hooks cannot run slash commands, so each valid project component edit prints a `/reload-skills` notice instead.
 import { spawnSync } from 'node:child_process';
 import { isAbsolute, relative, resolve } from 'node:path';
-import { MAX, contextOutput, readStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
+import { MAX, contextOutput, readJsonStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
 
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
@@ -13,7 +13,7 @@ const defaults = {
   spawn: spawnSync,
   platform: process.platform,
   env: process.env,
-  readStdin,
+  readJsonStdin,
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text)
 };
@@ -22,14 +22,6 @@ const defaults = {
 export function isProjectScoped(parts) {
   if (parts[0] !== '.claude' || parts.length < 2) return false;
   return parts.length === 2 ? PROJECT_FILES.includes(parts[1]) : PROJECT_DIRS.includes(parts[1]);
-}
-
-// Parses the event JSON; throws when it is empty, invalid, or not an object (the harness always sends an object).
-export function parseEvent(data) {
-  const event = JSON.parse(data);
-  if (!event || typeof event !== 'object' || Array.isArray(event))
-    throw new TypeError('hook input is not a JSON object');
-  return event;
 }
 
 // Plans the hook's work for one edited file: its project-relative path, whether to validate, and the notice to print.
@@ -73,7 +65,7 @@ export function validate(cwd, deps = defaults) {
 
 // Returns the exit code: 2 when validation reports a problem, else 0.
 export async function main(deps = defaults) {
-  const event = parseEvent(await deps.readStdin());
+  const event = await deps.readJsonStdin();
   const cwd = deps.env.CLAUDE_PROJECT_DIR || process.cwd();
   const work = plan(event.tool_input?.file_path, cwd);
   if (!work) return 0;
