@@ -31,7 +31,7 @@ Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no so
 
 - Unit: <coverage_id>
 - Actor: <actor>
-- Input: <input>
+- Input: <input />
 - Boundary: <boundary>
 - Impact: <impact>
 - Evidence: <evidence, at most 3 lines, secrets as [redacted]>
@@ -48,7 +48,7 @@ Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no so
 
 - Unit: <coverage_id>
 - Actor: <actor>
-- Input: <input>
+- Input: <input />
 - Boundary: <boundary>
 - Impact if true: <impact>
 - Evidence: <evidence, secrets as [redacted]>

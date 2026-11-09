@@ -1,7 +1,7 @@
 ---
 name: build-subagent
 description: Creates, updates, or improves a custom subagent in any scope, and checks it. Use when asked to build, fix, improve, or update a subagent. Not for skills, hooks, or CLAUDE.md.
-when_to_use: 'Build a subagent that lists TODOs; fix agents/reviewer.md; improve my code-review agent; update a subagent description or tools.'
+when_to_use: Build a subagent that lists TODOs; fix agents/reviewer.md; improve my code-review agent; update a subagent description or tools.
 compatibility: Claude Code only. Needs Node.js for check-agent. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [agent name or path] [what it should do]'
 allowed-tools: Read Glob Grep AskUserQuestion WebFetch(domain:code.claude.com) Bash(claude plugin validate *) Bash(claude --version) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-agent.mjs *) Bash(claude --print *) Bash(claude --debug --print *)

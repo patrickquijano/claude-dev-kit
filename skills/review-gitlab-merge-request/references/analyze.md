@@ -1,6 +1,6 @@
 # Analyze
 
-Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed open-thread check (`threads.md` `## Open-thread check`) only forces `REQUEST_CHANGES`.
+Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed gating check (`threads.md` `## Gating check`) only keeps the state at changes requested. In a re-review the scope is only the changes since the last reviewed SHA, and only `critical` and `major` findings are kept.
 
 ## Contents
 
@@ -10,7 +10,7 @@ Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, fin
 
 Write with the Write tool; fetch with `mr-view`, `mr-diff`, `file-at-sha`, `mr-issues`, `issue-view`.
 
-- `<Scratch>/diff.patch`: `mr-diff`. An empty diff → `Result: nothing-to-do`.
+- `<Scratch>/diff.patch`: `mr-diff`; in a re-review `compare-diff` from the last reviewed SHA to the head, converted to a unified patch (one `--- a/<old_path>`, `+++ b/<new_path>` pair per entry, then its `diff`). An empty diff → `Result: nothing-to-do` (a re-review still runs steps 3–4 and 8 for the own discussions).
 - `<Scratch>/head/<path>`: each changed file at the head SHA, not already written by step 3. A path failing the `SKILL.md` path rule, a deleted file, a binary file, or an oversized file is skipped and listed under `Skipped:`.
 - `<Scratch>/description.md`: title and body.
 - `<Scratch>/issues.md`: each issue from `mr-issues` plus any `#<iid>` the description names (`issue-view`, at most 5); failures → `Skipped:`.
@@ -22,7 +22,7 @@ Write with the Write tool; fetch with `mr-view`, `mr-diff`, `file-at-sha`, `mr-i
 
 ## Areas
 
-Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Task` step 7, and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
+Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Severity` (identical to `SKILL.md`), and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
 
 1. **intent:** goals and issue items met; nothing unrelated; docs, migrations, config, or changelog present where the conventions require; the design fits the codebase.
 2. **correctness:** null or empty input, boundaries, error paths, unhandled return values, concurrency, retries, cleanup, state, time and locale, callers and callees, backward compatibility.
@@ -31,11 +31,12 @@ Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`
 
 ## Findings
 
-Reviewers return a `Status:` line, `Findings:` blocks `{severity, file, line, evidence, why, fix, confidence}`, then `Coverage:`, `Need:`, `Gaps:`, and `Question:` (a sweep adds `Covered:`). `severity` is `Blocking` (must change before merge), `Suggestion` (worth changing), or `Nitpick` (taste); a reviewer never echoes a secret's value. The parent validates each:
+Reviewers return a `Status:` line, a `Verdict:` line (`BLOCK` or `APPROVE`), `Findings:` blocks headed `[severity] file:line` with `problem`, `impact`, `fix`, `evidence`, and `confidence`, then `Coverage:`, `Need:`, `Gaps:`, and `Question:` (a sweep adds `Covered:`). `severity` is one of the five levels in `SKILL.md` `## Severity`; a reviewer never echoes a secret's value. The parent validates each:
 
-- `file` and `line` are the head-SHA path and the new-side line inside a `diff.patch` hunk; a finding outside a hunk or with no line goes to the body.
-- `evidence` quotes the head code from `<Scratch>/head/`; a finding without it is `Unverified`: never inline, never Blocking, listed under `Unverified:`.
-- A recurring finding lists every `file:line` site, one block per site; sites beyond the inline Nitpick cap (`post.md`) go in the body.
+- `file` and `line` are the head-SHA path and the new-side line inside a `diff.patch` hunk; a finding outside a hunk or with no line goes to the summary. A kept `critical`, `major`, or `minor` one there is a **carried finding**: the summary lists it with its severity and a key `<path or none> | <issue> | <evidence>`, and `threads.md` `## Gating check` re-checks it on every re-review. The issue and the evidence each sit in a fenced block (backticks or `~~~`) whose fence is longer than any run of its own character inside it; `Carried:` and any control line are read only from lines outside a fence. The `post.md` rule "no line starting with `/`" also holds inside those fenced blocks (GitLab may run such a line as a quick action): write every issue or evidence line that would start with `/` with one leading space; a re-review ignores that added space when it searches or compares the evidence.
+- `evidence` quotes the head code from `<Scratch>/head/`; a finding without it is `Unverified`: never a thread, never gating, listed under `Unverified:`.
+- A re-review keeps only `critical` and `major` findings; any `minor`, `nit`, or `question` is dropped (`dropped (re-review)`), and a severity is never upgraded.
+- A recurring finding lists every `file:line` site, one block per site; `nit` and `question` sites beyond the inline cap (`post.md`) go in the summary.
 - `Coverage:` has one line per changed file in the batch: `path | hunks <n> | findings <n>`.
 
 ## Priority
@@ -52,17 +53,17 @@ The parent, after step 6: every changed file in the batch (not under `Skipped:`)
 
 ## Verdict
 
-Before the table, the parent re-reads each `Blocking` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an open thread (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
+Before the table, the parent re-reads each `critical` and `major` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an own discussion (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
 
-| Condition                                                                                                                                       | Event             |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Open-thread check failed (`threads.md` `## Open-thread check`), or any kept `Blocking` finding                                                  | `REQUEST_CHANGES` |
-| Draft MR; head pipeline not `success`; a `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn    | `COMMENT`         |
-| Otherwise; kept `Suggestion`, `Nitpick`, and `Unverified` items are posted as non-blocking                                                      | `APPROVE`         |
+| Condition                                                                                                                                                | Event             |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Any own gating discussion still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical`, `major`, or `minor` finding | `REQUEST_CHANGES` |
+| Draft MR; head pipeline not `success`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn           | `COMMENT`         |
+| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating                                                                       | `APPROVE`         |
 
-Rows apply top to bottom, first match wins: a draft MR with a kept `Blocking` finding gets `REQUEST_CHANGES`; a draft never gets `APPROVE`.
+Rows apply top to bottom, first match wins: a draft MR with a gating discussion gets `REQUEST_CHANGES`; a draft never gets `APPROVE`. GitLab has no request-changes review: `REQUEST_CHANGES` is expressed by the unresolved discussions and the summary note, and an own approval is removed. A carried finding still listed after the re-check counts as an unresolved gating discussion for the first row. `APPROVE` carries no gating findings; kept `nit` and `question` items post as non-gating discussions, and `Unverified` items go in the summary.
 
 ## Spawn briefs
 
-- Step 6, one read-only subagent per area (four, one parallel turn): "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that walks the `## Areas` list of the kind) with kind `<intent | correctness | security | quality>` to review one MR diff. Brief: root `<Scratch>` (absolute); head SHA `<full sha>`; files `<Scratch>/diff.patch`, `<Scratch>/head/`, `<Scratch>/description.md`, `<Scratch>/issues.md`, `<Scratch>/conventions.md`; batch list `<Scratch>/batch-<n>.txt` (cover only its paths); priority order from `## Priority` when coverage is partial; edit nothing and call no host tool. Return per `## Findings`." A malformed return → respawn per the `## Scratch` caps; a missing spawn tool or a second failure → review that area inline from the same scratch files and note it under `Errors:`.
-- Sweep (one read-only subagent per batch): "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that hunts for misses per `## Sweep`) with kind `sweep` for one batch of one MR diff. Brief: root `<Scratch>` (absolute); head SHA `<full sha>`; files `<Scratch>/diff.patch`, `<Scratch>/head/`, `<Scratch>/description.md`, `<Scratch>/issues.md`, `<Scratch>/conventions.md`, the validated findings of all batches `<Scratch>/findings.md`, and the batch list `<Scratch>/batch-<n>.txt` (ignore paths under `Skipped:`); edit nothing and call no host tool. Return per `## Findings`." A malformed return → respawn once; a missing spawn tool or a second failure → sweep that batch inline and note it under `Errors:`.
+- Step 6, one read-only subagent per area (four, one parallel turn): "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that walks the `## Areas` list of the kind) with kind `<intent | correctness | security | quality>` to review one MR diff (a re-review: only `critical` and `major` findings). Brief: root `<Scratch>` (absolute); head SHA `<full sha>`; files `<Scratch>/diff.patch`, `<Scratch>/head/`, `<Scratch>/description.md`, `<Scratch>/issues.md`, `<Scratch>/conventions.md`; batch list `<Scratch>/batch-<n>.txt` (cover only its paths); priority order from `## Priority` when coverage is partial; edit nothing and call no host tool. Return per `## Findings`, each block at most 8 lines with at most 3 evidence lines; `Coverage:` one line per file." A malformed return → respawn per the `## Scratch` caps; a missing spawn tool or a second failure → review that area inline from the same scratch files and note it under `Errors:`.
+- Sweep (one read-only subagent per batch): "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that hunts for misses per `## Sweep`) with kind `sweep` for one batch of one MR diff (a re-review: only `critical` and `major` findings). Brief: root `<Scratch>` (absolute); head SHA `<full sha>`; files `<Scratch>/diff.patch`, `<Scratch>/head/`, `<Scratch>/description.md`, `<Scratch>/issues.md`, `<Scratch>/conventions.md`, the validated findings of all batches `<Scratch>/findings.md`, and the batch list `<Scratch>/batch-<n>.txt` (ignore paths under `Skipped:`); edit nothing and call no host tool. Return per `## Findings`, each block at most 8 lines with at most 3 evidence lines." A malformed return → respawn once; a missing spawn tool or a second failure → sweep that batch inline and note it under `Errors:`.

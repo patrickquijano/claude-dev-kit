@@ -1,11 +1,10 @@
 ---
-# Aligned with .yamlfmt.yaml and the .prettierrc.json YAML override.
+# Aligned with .prettierrc.json (Prettier YAML) and .yamlfmt.yaml.
 extends: default
 
 # Replaces ignore-from-file: .gitignore so untracked scratch dirs are skipped without a .gitignore dependency.
 ignore: |
   node_modules/
-  package-lock.json
   .husky/_/
   .remember/
   .claude/prompts/
@@ -18,3 +17,5 @@ rules:
   truthy: {check-keys: false}
   # Same 2-space indent that yamlfmt writes.
   indentation: {spaces: 2}
+  # Prettier writes one space before a comment.
+  comments: {min-spaces-from-content: 1}

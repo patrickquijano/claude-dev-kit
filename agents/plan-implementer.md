@@ -1,6 +1,6 @@
 ---
 name: plan-implementer
-description: "Use when a plan is chosen, a verifier returns findings to reapply, or the plan's tests need adding. Edits only the plan's files, reports each criterion met or unmet. Never commits; not for planning."
+description: Use when a plan is chosen, a verifier returns findings to reapply, or the plan's tests need adding. Edits only the plan's files, reports each criterion met or unmet. Never commits; not for planning.
 tools: Read, Edit, Write, Grep, Glob
 model: sonnet
 effort: medium

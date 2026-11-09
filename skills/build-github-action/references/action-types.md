@@ -16,7 +16,7 @@ inputs:
   <input-id>:
     description: <meaning>
     required: false
-    default: '<value>'
+    default: <value>
 outputs:
   <output-id>:
     description: <meaning>
@@ -64,7 +64,7 @@ runs:
 name: Test <Action Name>
 on:
   pull_request:
-    paths: ['<action-dir>/**']
+    paths: [<action-dir>/**]
   workflow_dispatch:
 permissions:
   contents: read

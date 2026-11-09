@@ -10,7 +10,6 @@ trim_trailing_whitespace = true
 
 # Markdown
 [*.md]
-insert_final_newline = false
 trim_trailing_whitespace = false
 
 # Git files, EditorConfig

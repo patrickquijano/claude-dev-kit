@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-09
+
+### Added
+
+- `/cdk:review-code-changes` rates each finding `critical`, `major`, `minor`, `nit`, or `question` and commits its fixes through `/cdk:commit-changes`.
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` label each thread with a severity; `critical`, `major`, and `minor` gate approval, `nit` and `question` do not.
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` resolve their own addressed threads and approve when none is left.
+- `/cdk:implement-spec` runs the repo's checks once before editing and flags a missing edge-case test or an assertion that passes without the change.
+- `/cdk:implement-spec` skips the planner when a calling skill's spec fixes the approach and lists its goals and files.
+
+### Changed
+
+- `/cdk:review-code-changes` re-reviews only the delta for 3 rounds with no extension, then fixes `minor` findings once.
+- A re-review of a PR or MR keeps only `critical` and `major` findings.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` fix every fixable item in one `/cdk:implement-spec` call and spawn no subagent themselves.
+
 ## [0.9.0] - 2026-11-08
 
 ### Added
@@ -550,7 +566,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...v0.9.0
 [0.8.14]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.13...v0.8.14
 [0.8.13]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.12...v0.8.13

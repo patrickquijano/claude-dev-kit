@@ -2,18 +2,19 @@
 
 ## Terms
 
-| GitHub                   | GitLab                                                           |
-| ------------------------ | ---------------------------------------------------------------- |
-| Pull request             | Merge request (MR), `!<iid>`                                     |
-| Number                   | IID (per project, not a global id)                               |
-| Base / head branch       | Target / source branch                                           |
-| `owner/repo`             | Project path `group[/subgroup…]/project`                         |
-| Review thread            | Discussion (`resolvable` true, first note a diff note)           |
-| Resolve thread           | Resolve the discussion                                           |
-| Review event             | Verdict word in the summary note; `APPROVE` also approves the MR |
-| Checks                   | Head pipeline status                                             |
-| Closing issue references | Issues the MR closes (`closes_issues`)                           |
-| Draft                    | `draft` true (`Draft:` title prefix)                             |
+| GitHub                   | GitLab                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Pull request             | Merge request (MR), `!<iid>`                                                                                     |
+| Number                   | IID (per project, not a global id)                                                                               |
+| Base / head branch       | Target / source branch                                                                                           |
+| `owner/repo`             | Project path `group[/subgroup…]/project`                                                                         |
+| Review thread            | Discussion (`resolvable` true, first note a diff note); own = first note by Self with the marker                 |
+| Resolve thread           | Resolve the discussion (no reply)                                                                                |
+| Review state             | Unresolved own discussions plus the summary note (no request-changes); `APPROVE` approves, `unapprove` withdraws |
+| Edit the summary comment | `glab api` PUT on the note (no MCP edit); without `glab`, stop                                                   |
+| Checks                   | Head pipeline status                                                                                             |
+| Closing issue references | Issues the MR closes (`closes_issues`)                                                                           |
+| Draft                    | `draft` true (`Draft:` title prefix)                                                                             |
 
 ## Remote → host and project path
 

@@ -21,6 +21,6 @@ Run in order:
 ## State rules
 
 - `MERGED` or `CLOSED` → `Result: stopped`, `Stopped: resolve: PR is <state>`; post nothing.
-- `isDraft` true → continue; the verdict is never `APPROVE`: `COMMENT`, or `REQUEST_CHANGES` when the rules require it (`analyze.md` `## Verdict`).
+- `isDraft` true → continue; the verdict is never `APPROVE`: `COMMENT`, or `REQUEST_CHANGES` when a gating thread requires it (`analyze.md` `## Verdict`).
 - Keep: owner, repo, number, URL, title, author login, head SHA (`headRefOid`, the full 40 characters), base ref, and `isCrossRepository`. A fork PR is read-only and reviewed the same way, since nothing is checked out.
 - Own PR = author login equals Self; `post.md` `## Own PR` covers it.

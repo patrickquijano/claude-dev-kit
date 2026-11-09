@@ -1,14 +1,14 @@
 # Post
 
-Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting.
+Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new thread body is `[severity] <problem> Impact: <impact> Fix: <fix>`, a blank line, then the marker.
 
 ## Contents
 
-- Summary · Head check · Threads · Review · Own PR · Errors · Report
+- Pre-post report · Head check · Threads · Summary comment · State review · Own PR · Errors · Report
 
-## Summary
+## Pre-post report
 
-Before any write, print the verdict, the coverage, the finding counts, the inline and body split, and the thread writes planned: replies (addressed, not addressed) and resolves. Then post without waiting; a `Skipped` file, incomplete area, incomplete sweep, or coverage gap is listed under `Open:`.
+Before any write, print the mode, the verdict, the coverage, the finding counts, the new threads, and the resolves planned. Then post without waiting; a `Skipped` file, incomplete area, incomplete sweep, or coverage gap is listed under `Open:`.
 
 ## Head check
 
@@ -16,24 +16,31 @@ Run `head-sha`. State not `OPEN` → `Result: stopped`, `Stopped: post: PR is <s
 
 ## Threads
 
-Right after the head check and before the review: per judged thread, write the reply (`threads.md` `## Replies`) to `<Scratch>/reply-<k>.md`, then `thread-reply`; then `thread-resolve` only when the state is Fixed, Accepted, or Obsolete and `resolvable` is true (opened by the PR author or Self). Open threads are replied to and never resolved; unjudged threads get nothing. A failing thread write is reported under `Errors:` and left as is, never retried. Re-run `review-threads` once; each resolved thread must show `isResolved` true, else list it under `Errors:`.
+Right after the head check: `thread-resolve` for each own gating thread judged Fixed or Obsolete, with no reply. Open and unjudged threads get nothing added; disputed threads are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: post: cannot resolve thread <id>` with the exact error; never post a replacement comment. Re-run `review-threads` once; each resolved thread must show `isResolved` true, else stop the same way.
 
-## Review
+## Summary comment
 
-1. Write `<Scratch>/review.json` with `commit_id` = the full head SHA, `body`, and no `event`.
-2. `review-create` → a pending review pinned to that SHA.
-3. `add-comment` for each inline finding: Blocking and Suggestion findings plus at most 5 inline Nitpicks (the highest risk first); each body is `**<severity>:** <why> Fix: <fix>` in plain English. Every other finding goes in the body by area.
-4. The body holds: the verdict line, the `Coverage:` line, counts, the Open threads with URLs, body-level findings, `Skipped:` and `Unverified:` items. No attribution.
-5. `review-submit` with the verdict event. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
+Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating threads with URLs, summary-level findings, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution.
+
+- First review: `summary-post` once, after the new threads are queued (see below) and before the state review is submitted.
+- Re-review: `summary-update` on the own summary's comment id (counts, verdict, last reviewed SHA). Never `summary-post`. An update that fails → `Result: stopped`, `Stopped: post: cannot edit summary` with the exact error; submit nothing further.
+
+## State review
+
+The review is the state: `REQUEST_CHANGES` while any gating thread is unresolved, `APPROVE` when none is and no hold applies, `COMMENT` for a hold (`analyze.md` `## Verdict`). Its body is only the marker; the summary comment is the report.
+
+1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical`, `major`, and `minor` findings plus at most 5 inline `nit` or `question` findings (highest risk first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
+2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical` or `major` threads (a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
+3. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
 
 ## Own PR
 
-`APPROVE` rejected because the author is Self ("can not approve your own pull request") → resubmit the same pending review once as `COMMENT`, note it in the body line, and continue. Any other rejection of the event → resubmit as `COMMENT` once.
+GitHub rejects `REQUEST_CHANGES` and `APPROVE` on the author's own PR ("can not approve your own pull request"): submit the same pending review once as `COMMENT`, say in the summary that changes are requested through the unresolved threads, and continue. Any other rejection of the event → resubmit as `COMMENT` once.
 
 ## Errors
 
-Any other error from a write: print its exact line under `Errors:` and keep going to the report. A pending review left behind by a failed step is listed under `Open:` with its URL, never deleted.
+A failed resolve or summary edit stops (see above). Any other error from a write: print its exact line under `Errors:` and keep going to the report. A pending review left behind by a failed step is listed under `Open:` with its URL, never deleted.
 
 ## Report
 
-Print the Output block from `SKILL.md`. `Open:` lists Open threads with a code ask (the author acts), a failed or skipped write, and a left-behind pending review. `Next: none`; `Result: done` when the review was posted, else `stopped` with the step.
+Print the Output block from `SKILL.md`. `Open:` lists disputed threads (the user decides), unresolved own gating threads (the author acts), a failed or skipped write, and a left-behind pending review. `Next: none`; `Result: done` when the writes completed, else `stopped` with the step.

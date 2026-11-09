@@ -1,6 +1,6 @@
 ---
 name: merge-github-pull-request
-description: 'Merges one GitHub PR via the GitHub MCP server (gh fallback) with the chosen method and branch cleanup; admin bypass only when the user asks for it. Use when asked to merge a PR.'
+description: Merges one GitHub PR via the GitHub MCP server (gh fallback) with the chosen method and branch cleanup; admin bypass only when the user asks for it. Use when asked to merge a PR.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number]'
 allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh api repos/*/rules/branches/*) Bash(gh api repos/*/branches/*) Bash(gh api repos/*/commits/*) Bash(gh api user *)

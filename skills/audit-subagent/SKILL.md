@@ -3,7 +3,7 @@ name: audit-subagent
 description: Audits, scores, and fixes one or more subagents against a 100-point rubric, iterating until no open item is left. Use when asked to audit, review, score, or fix a subagent. Not for building one.
 argument-hint: '[--yes] [--score-only] [subagent name or path …]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(git -C * rev-parse --show-toplevel) Bash(git -C * status --porcelain=v1) Bash(node -e *)
+allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(node -e *)
 ---
 
 # Audit Subagent
@@ -19,7 +19,7 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 - Item ledger: every reported item (gate FAIL, deduction-map row, VERIFIED fix, unverified suggestion, implement-spec `Open:` item (never a `baseline:` item), stall) gets one row `id | subagent | rubric ID | file:line | status open|fixed|declined`. Rows match across rescores by rubric ID plus verbatim Before; a rescore adds rows and never deletes one; a row closes only as Fixed (After verified in the file) or Declined. `Open:`, `Waived:`, and `Decisions:` come from the ledger and the scorer return, so nothing is dropped.
 - Negligible items: the scorer waives a would-be deduction whose fix would not change how a model or reader acts on the file; it scores full, gets no fix ID, and is listed under `Waived:`. A waived item never enters the ledger or `Open:`.
 - No approval question for a step: nothing asks to confirm a step, since the user decides open items, not steps.
-- Every fix to a target subagent goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill)`` with the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`; this skill edits nothing itself except fix memory (Rules). Its write scope is each target subagent file, so a fix never touches another subagent or a skill. Print the spec summary first and do not wait; pass `--yes` only when the user did. A `Stopped:` whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`; any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues, because the rescore measures what the partial write fixed. Its `Open:` items join the ledger, except a `baseline:` item (implement-spec's step 1b repo status), which is printed on its own line and never enters the ledger.
+- Every fix to a target subagent goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill)`` with the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`; this skill edits nothing itself except fix memory (Rules). Its write scope is each target subagent file, so a fix never touches another subagent or a skill. Print the spec summary first and do not wait; pass `--yes` only when the user did. A `Stopped:` whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`; any other `Stopped:` is a retry-cap stop: its `Open:` items go to `Open:` and the run continues, because the rescore measures what the partial write fixed. Its `Open:` items join the ledger, except a `baseline:` item (implement-spec's step 1b repo status), which is printed on its own line and never enters the ledger.
 - Run no formatter or linter; repo hooks and CI own that, and the Spec brief says so.
 - Apply only VERIFIED fixes (E2 plus E1 or E3, per the rubric) or fixes the user approved in step 8 (`--yes` approval = the Recommended option), so every change rests on a checked source or the user's own choice.
 - Round = fix, rescore, address open items; the round cap is in step 9.
@@ -51,13 +51,14 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 5. **Decide.** `--score-only` → go to step 10. ACCEPTED (90 or more and all gates PASS) and no open item → go to step 10. Otherwise go to step 6: ACCEPTED does not end the loop while the scorer still lists a VERIFIED fix or an unverified suggestion.
 6. **Fix.** For each subagent with at least one VERIFIED or approved fix, whatever its verdict:
    - **6a. Memory.** Read `MEMORY.md` and reuse a matching `feedback` memory's fix per the Rules.
-   - **6b. Spec.** Build the Spec brief and its fix-round variant in `${CLAUDE_SKILL_DIR}/references/briefs.md`: one goal per open VERIFIED or approved fix ID (rubric ID, `file:line`, Before → After); an UNVERIFIED fix stays an open item for step 8 and never reaches the spec. Print the spec summary.
+   - **6b. Spec.** Build the Spec brief and its fix-round variant in `${CLAUDE_SKILL_DIR}/references/briefs.md`: one goal per open VERIFIED or approved fix ID (rubric ID, `file:line`, Before → After); an UNVERIFIED fix stays an open item for step 8 and never reaches the spec.
+   - **6b2. Print.** Print the spec summary.
    - **6c. Implement.** First run `git -C <dir> rev-parse --show-toplevel` (`<dir>` is the target file's directory); it fails (no git) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` (this ends the whole run; the fixes of every remaining target go under `Open:`), since without git no scope check can see edits to existing files.
-      - Otherwise run `git -C <root> status --porcelain=v1` (`<root>` is that output) as the round snapshot.
-      - Read and keep the content of each file entry in that snapshot that lies outside the target.
-      - Invoke implement-spec per the Rules, one invocation per subagent.
-      - Record its `Open:` items in the ledger, except a `baseline:` item (implement-spec's step 1b repo status), which is printed on its own line and never enters the ledger.
-      - Grep each After: found → ledger row Fixed; not found → stays open.
+     - Otherwise run `git -C <root> status --porcelain=v1` (`<root>` is that output) as the round snapshot.
+     - Read and keep the content of each file entry in that snapshot that lies outside the target.
+     - Invoke implement-spec per the Rules, one invocation per subagent.
+     - Record its `Open:` items in the ledger, except a `baseline:` item (implement-spec's step 1b repo status), which is printed on its own line and never enters the ledger.
+     - Grep each After: found → ledger row Fixed; not found → stays open.
    - **6d. Check scope.** Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file, or such a path whose content differs from the kept copy → list it under `Open:` (never revert), `Result: stopped`, `Stopped: 6: write outside scope`. `status` cannot see ignored files or paths outside the repo.
 7. **Rescore.**
    - Run step 3 again on every fixed subagent; the score is always the fresh one, so carry nothing over.
@@ -66,16 +67,16 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 8. **Address open items.**
    - Iterate the ledger, not the scorer list: every open row is researched in 8a or asked about in 8b.
    - **8a. Research.**
-      - For each subagent with UNVERIFIED suggestions, spawn `cdk:topic-researcher` in parallel (fallback: a read-only subagent with WebSearch and WebFetch that finds sources; inline fallback: search yourself).
-      - Brief it with the researcher brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
-      - WebFetch each returned source URL and confirm the fact.
-      - Promote a fix whose E1 or E3 source is confirmed to VERIFIED for the next step 6.
+     - For each subagent with UNVERIFIED suggestions, spawn `cdk:topic-researcher` in parallel (fallback: a read-only subagent with WebSearch and WebFetch that finds sources; inline fallback: search yourself).
+     - Brief it with the researcher brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
+     - WebFetch each returned source URL and confirm the fact.
+     - Promote a fix whose E1 or E3 source is confirmed to VERIFIED for the next step 6.
    - **8b. Decide.**
-      - **Ask.** For each item still open, AskUserQuestion with at most 4 options per question and 4 questions per call: `Apply anyway | Decline | Provide a source or fact` (for an implement-spec question, its candidate answers).
-      - **Recommend.** Put the Recommended option first with a weighted score and an unbiased one-line justification from the cited evidence.
-      - **Unattended.** `--yes` → the Recommended option.
-      - **Act.** Apply → an approved fix for step 6; Decline → closed; Provide → re-verify, then VERIFIED or ask again.
-      - **Record.** List every decision under `Decisions:`.
+     - **Ask.** For each item still open, AskUserQuestion with at most 4 options per question and 4 questions per call: `Apply anyway | Decline | Provide a source or fact` (for an implement-spec question, its candidate answers).
+     - **Recommend.** Put the Recommended option first with a weighted score and an unbiased one-line justification from the cited evidence.
+     - **Unattended.** `--yes` → the Recommended option.
+     - **Act.** Apply → an approved fix for step 6; Decline → closed; Provide → re-verify, then VERIFIED or ask again.
+     - **Record.** List every decision under `Decisions:`.
    - **8c. Loop.** Any open item left → step 6 (next round); none → step 5.
 9. **Cap.**
    - After 3 rounds with open items left (the cap stops a loop that is not converging from spending tokens unseen), ask `Extend 3 more rounds | Stop` (Recommended first, with a weighted score and a one-line justification, as in 8b).
@@ -105,7 +106,7 @@ Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, `write outside scope`, or cancelled), a no-git scope stop, and cannot interact; a cap stop never sets it, and there is no `cancelled`.
+`stopped` covers a Stop choice, an implement-spec input stop (`needs input`, `no input`, `write outside scope`, or cancelled), a no-git scope stop, and cannot interact; a retry-cap stop never sets it, and there is no `cancelled`.
 
 Score-only: `Rounds: 0/3`, `Fixed: none`, and `Open:` lists every item with its fix (Before → After, VERIFIED or UNVERIFIED).
 

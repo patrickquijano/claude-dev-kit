@@ -4,24 +4,35 @@ import {
   classifyThreads,
   discussionNodes,
   main,
-  noteHead
+  noteHead,
+  parseSeverity
 } from '../../../../../skills/review-gitlab-merge-request/scripts/filter-threads.mjs';
 
 const HEAD = 'a'.repeat(40);
 const OLD = 'b'.repeat(40);
+const MARKER = '<!-- cdk-review -->';
 const note = (login, sha = HEAD, extra = {}) => ({
   author: { username: login },
+  body: 'ok',
   position: { head_sha: sha, new_path: 'a.js', new_line: 3 },
   ...extra
 });
-const thread = ({ id = 't1', opener = 'rev', last = 'rev', sha = HEAD, middle = [], ...rest } = {}) => ({
+const thread = ({
+  id = 't1',
+  opener = 'me',
+  last = 'me',
+  sha = HEAD,
+  middle = [],
+  body = `[major] bug\n\n${MARKER}`,
+  ...rest
+} = {}) => ({
   id,
   resolvable: true,
   resolved: false,
-  notes: [note(opener, sha), ...middle, ...(last === opener && middle.length === 0 ? [] : [note(last, sha)])],
+  notes: [note(opener, sha, { body }), ...middle, ...(last === opener && middle.length === 0 ? [] : [note(last, sha)])],
   ...rest
 });
-const base = { author: 'dev', self: 'me', head: HEAD };
+const base = { author: 'dev', self: 'me', head: HEAD, marker: MARKER };
 
 describe('discussionNodes', () => {
   test('reads a bare REST array', () => {
@@ -58,6 +69,17 @@ describe('discussionNodes', () => {
     const act = () => discussionNodes(json);
     // Assert
     assert.throws(act, /no discussions/);
+  });
+});
+
+describe('parseSeverity', () => {
+  test('reads a leading severity label and rejects anything else', () => {
+    // Arrange
+    const bodies = ['[critical] x', '  [Nit] x', '[blocker] x', 'x [major]', undefined];
+    // Act
+    const result = bodies.map(parseSeverity);
+    // Assert
+    assert.deepEqual(result, ['critical', null, null, null, null]);
   });
 });
 
@@ -109,29 +131,48 @@ describe('classifyThreads', () => {
 
   test('judges a thread whose opener answered an author reply', () => {
     // Arrange
-    const nodes = [thread({ opener: 'rev', last: 'rev', middle: [note('dev'), note('rev')] })];
+    const nodes = [thread({ middle: [note('dev'), note('me')] })];
     // Act
     const res = classifyThreads({ nodes, ...base });
     // Assert
     assert.equal(res.judged.length, 1);
   });
 
-  test('marks a thread resolvable only when the MR author or self opened it', () => {
+  test('carries the severity and whether the author spoke last', () => {
     // Arrange
-    const nodes = [
-      thread({ id: 'mine', opener: 'me', last: 'dev' }),
-      thread({ id: 'theirs', opener: 'rev', last: 'dev' })
-    ];
+    const nodes = [thread({ last: 'dev', body: `[minor] x\n\n${MARKER}` })];
     // Act
     const res = classifyThreads({ nodes, ...base });
     // Assert
     assert.deepEqual(
-      res.judged.map((t) => [t.id, t.resolvable]),
-      [
-        ['mine', true],
-        ['theirs', false]
-      ]
+      res.judged.map((t) => [t.severity, t.authorLast]),
+      [['minor', true]]
     );
+  });
+
+  test('ignores threads that are not own or lack a valid severity prefix', () => {
+    // Arrange
+    const nodes = [
+      thread({ id: 'foreign', opener: 'rev', last: 'dev' }),
+      thread({ id: 'nomarker', last: 'dev', body: '[major] bug' }),
+      thread({ id: 'noprefix', last: 'dev', body: `bug\n\n${MARKER}` })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual([res.judged, res.unjudged, res.ignored], [[], [], 3]);
+  });
+
+  test('lists own nit and question threads as non-gating without judging them', () => {
+    // Arrange
+    const nodes = [
+      thread({ id: 'n', last: 'dev', body: `[nit] x\n\n${MARKER}` }),
+      thread({ id: 'q', last: 'dev', body: `[question] x\n\n${MARKER}` })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual([res.judged, res.nongating], [[], ['n', 'q']]);
   });
 
   test('leaves a thread with no change since the last note unjudged', () => {
@@ -146,9 +187,9 @@ describe('classifyThreads', () => {
   test('skips resolved, non-resolvable, and system-only discussions', () => {
     // Arrange
     const nodes = [
-      thread({ id: 'r', resolved: true }),
+      thread({ id: 'r', resolved: true, resolved_by: { username: 'me' } }),
       thread({ id: 'g', resolvable: false }),
-      { id: 's', resolvable: true, resolved: false, notes: [note('rev', HEAD, { system: true })] }
+      { id: 's', resolvable: true, resolved: false, notes: [note('me', HEAD, { system: true })] }
     ];
     // Act
     const res = classifyThreads({ nodes, ...base });
@@ -158,10 +199,11 @@ describe('classifyThreads', () => {
 
   test('reads the flags from the notes of a REST discussion', () => {
     // Arrange
-    const rest = (id, flags) => ({ id, notes: [note('rev', HEAD, flags), note('dev', HEAD, flags)] });
+    const body = `[major] bug\n\n${MARKER}`;
+    const rest = (id, flags) => ({ id, notes: [note('me', HEAD, { ...flags, body }), note('dev', HEAD, flags)] });
     const nodes = [
       rest('open', { resolvable: true, resolved: false }),
-      rest('done', { resolvable: true, resolved: true }),
+      rest('done', { resolvable: true, resolved: true, resolved_by: { username: 'me' } }),
       rest('plain', { resolvable: false })
     ];
     // Act
@@ -172,6 +214,69 @@ describe('classifyThreads', () => {
       ['open']
     );
     assert.deepEqual(res.unjudged, []);
+  });
+
+  test('judges an own gating thread resolved by someone but self', () => {
+    // Arrange
+    const nodes = [
+      thread({ id: 'dev', resolved: true, resolved_by: { username: 'dev' } }),
+      thread({ id: 'mcp', resolved: true, resolvedBy: { username: 'Dev' } })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => t.id),
+      ['dev', 'mcp']
+    );
+  });
+
+  test('judges a REST discussion resolved by the author or by an unknown user', () => {
+    // Arrange
+    const body = `[major] bug\n\n${MARKER}`;
+    const flags = { resolvable: true, resolved: true };
+    const nodes = [
+      {
+        id: 'rest',
+        notes: [note('me', HEAD, { ...flags, body }), note('dev', HEAD, { ...flags, resolved_by: { username: 'dev' } })]
+      },
+      { id: 'anon', notes: [note('me', HEAD, { ...flags, body }), note('me', HEAD, flags)] }
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual(
+      res.judged.map((t) => t.id),
+      ['rest', 'anon']
+    );
+  });
+
+  test('skips an own gating thread resolved by self', () => {
+    // Arrange
+    const nodes = [
+      thread({ id: 'a', resolved: true, resolved_by: { username: 'Me' } }),
+      thread({ id: 'b', resolved: true, resolvedBy: { username: 'me' } }),
+      thread({ id: 'control', last: 'dev' })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual([res.judged.map((t) => t.id), res.unjudged, res.nongating, res.ignored], [['control'], [], [], 0]);
+  });
+
+  test('skips a resolved thread that is not own gating even when someone else resolved it', () => {
+    // Arrange
+    const by = { resolved: true, resolved_by: { username: 'dev' } };
+    const nodes = [
+      thread({ id: 'foreign', opener: 'rev', last: 'dev', ...by }),
+      thread({ id: 'nit', last: 'dev', body: `[nit] x\n\n${MARKER}`, ...by }),
+      thread({ id: 'nomarker', last: 'dev', body: '[major] bug', ...by }),
+      thread({ id: 'control', last: 'dev' })
+    ];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual([res.judged.map((t) => t.id), res.unjudged, res.nongating, res.ignored], [['control'], [], [], 0]);
   });
 
   test('flags a full page as truncated', () => {
@@ -196,7 +301,7 @@ describe('main', () => {
   test('prints the classification and exits 0', () => {
     // Arrange
     out = [];
-    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', 'me', '--head', HEAD];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', 'me', '--head', HEAD, '--marker', MARKER];
     // Act
     const code = main(argv, deps([thread({ last: 'dev' })]));
     // Assert
@@ -211,6 +316,16 @@ describe('main', () => {
     const code = main(argv, deps([]));
     // Assert
     assert.deepEqual([code, err.length], [2, 1]);
+  });
+
+  test('requires the marker flag', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main(argv, deps([]));
+    // Assert
+    assert.equal(code, 2);
   });
 
   test('reports usage and exits 2 on an unknown command', () => {

@@ -1,6 +1,6 @@
 ---
 paths:
-  - '.claude-plugin/**'
+  - .claude-plugin/**
 ---
 
 # Plugin

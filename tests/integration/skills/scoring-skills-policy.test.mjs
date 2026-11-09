@@ -104,7 +104,7 @@ describe('rubrics waive negligible items', () => {
       const text = readFileSync(join(root, rel), 'utf8');
       // Act
       const rule =
-        /^(?:- Negligible waiver: a|3b\. Negligible waiver: a|A) would-be deduction whose fix would not change how a model or reader acts on the file .*`Waived: <ID> file:line — reason`.*Never waive/m;
+        /^(?:- Negligible waiver: a| {0,3}3b\. Negligible waiver: a|A) would-be deduction whose fix would not change how a model or reader acts on the file .*`Waived: <ID> file:line — reason`.*Never waive/m;
       // Assert
       assert.match(text, rule);
     });
@@ -330,7 +330,7 @@ describe('audit skills brief a write scope and stop without git', () => {
       // Act
       const stop = noGit[skill].test(text);
       const footer =
-        /^`stopped` covers .*`write outside scope`, or cancelled\), a no-git scope stop, and cannot interact; a cap stop never sets it/m.test(
+        /^`stopped` covers .*`write outside scope`, or cancelled\), a no-git scope stop, and cannot interact; a (?:retry-)?cap stop never sets it/m.test(
           text
         );
       const stale = /^ +- \*\*6d\. Check scope\.\*\* With git/m.test(text);
