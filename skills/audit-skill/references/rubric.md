@@ -17,6 +17,7 @@
 ## Gates (pass/fail)
 
 Any gate failure means the skill is REJECTED regardless of score. Still report the full score.
+
 - G1: SKILL.md exists at the folder root and begins with valid YAML frontmatter.
 - G2: `name` is present, lowercase letters/digits/hyphens only, 64 characters or fewer, and matches the folder name.
 - G3: `description` is present, non-empty, 1024 characters or fewer, and contains no angle brackets.
@@ -29,12 +30,14 @@ Any gate failure means the skill is REJECTED regardless of score. Still report t
 Classify every major task in the audited skill as DELEGATE or INLINE.
 
 DELEGATE a task to a subagent if at least one is true:
+
 - D1 Context bloat: it reads or searches many files, or produces large intermediate output (roughly 10+ files or long logs) where the main session only needs the conclusion.
 - D2 Parallelism: it splits into 2+ independent subtasks that do not depend on each other's results.
 - D3 Isolation: it needs different tool permissions, a different model, or a clean context from the main session.
 - D4 Independent verification: a reviewer or checker should not see how the work was produced.
 
 Keep a task INLINE if any is true (these override D1-D3, but not D4):
+
 - I1 Small and sequential: a few tool calls or one short step.
 - I2 Depends heavily on conversation context the subagent would not have.
 - I3 Needs interactive back-and-forth with the user.
@@ -110,12 +113,14 @@ For each task record: task | DELEGATE or INLINE | rule(s) that apply (D1-D4, I1-
 ## Verdict and acceptance
 
 Diagnostic bands (for reporting how far a skill is from acceptance):
+
 - 90-100: Excellent
 - 75-89: Good
 - 60-74: Needs work
 - Below 60: Poor
 
 Acceptance rule (binary, the only outcome that counts as a pass):
+
 - ACCEPTED = overall score is 90 or higher (verdict Excellent) AND all six gates (G1-G6) PASS.
 - Otherwise REJECTED. A gate failure forces REJECTED even at a score of 100, and the verdict is then reported as "FAIL (gate)" no matter the band.
 - Never round up to reach 90. Never waive a gate. Never report ACCEPTED with any open finding that would drop the score below 90 if confirmed.
@@ -125,11 +130,13 @@ Acceptance rule (binary, the only outcome that counts as a pass):
 No fix may rest on assumption, memory, habit, or unsourced "best practice". Every proposed fix must be backed by BOTH an observed defect and a verified source.
 
 Evidence types:
+
 - E1 Primary source: official Anthropic documentation or engineering publications (Claude Code docs, skill authoring guidance, Anthropic engineering blog), fetched during this audit.
 - E2 Observed defect: a quoted line or line number in the audited skill folder showing the problem.
 - E3 Corroborating source: peer-reviewed research, standards documents, or established vendor documentation for a non-Anthropic tool the skill depends on (for example a CLI's official docs), fetched during this audit.
 
 Rules:
+
 - A fix is VERIFIED only if it has E2 plus at least one of E1 or E3.
 - Every source entry must contain: URL, retrieval date, the specific fact it supports, stated in your own words (a quote, if used, must be under 15 words).
 - The source must directly support the fix. A source that is merely related does not count.
@@ -140,11 +147,13 @@ Rules:
 - Do not invent URLs, titles, quotes, version numbers, or benchmark results. If you did not retrieve it, you cannot cite it.
 
 Confidence per fix:
+
 - High: E2 + E1 that directly states the requirement.
 - Medium: E2 + E1 that supports it indirectly, or E2 + E3.
 - Low: E2 only (UNVERIFIED).
 
 Handling:
+
 - Only VERIFIED fixes count toward "points recovered", the projected score, and the Path to ACCEPTED.
 - UNVERIFIED fixes go in a separate "Unverified suggestions" list. State what evidence would verify each one. They never count toward the projected score.
 - Projected score arithmetic must be shown: current score + points recovered per VERIFIED fix = projected score, using the rubric point values.

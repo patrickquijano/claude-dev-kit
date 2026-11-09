@@ -22,6 +22,7 @@ Applies to one Claude Code subagent definition (a Markdown file with YAML frontm
 ## Gates (pass/fail)
 
 Any gate failure means the subagent is REJECTED regardless of score. Still report the full score.
+
 - G1: The file is Markdown and begins with valid YAML frontmatter.
 - G2: `name` is present, uses lowercase letters and hyphens only, and is unique within the audited scope.
 - G3: `description` is present and non-empty.
@@ -36,12 +37,14 @@ Any gate failure means the subagent is REJECTED regardless of score. Still repor
 Decide whether this work should be a subagent at all.
 
 It SHOULD be a subagent if at least one is true:
+
 - D1 Context bloat: it reads or searches many files or produces large intermediate output where the parent needs only the conclusion.
 - D2 Parallelism: it is one of 2+ independent tasks that can run at the same time.
 - D3 Isolation: it needs different tool permissions, a different model, or a clean context.
 - D4 Independent verification: a reviewer should not see how the work was produced.
 
 It should NOT be a subagent (use inline work or a skill instead) if any is true, unless D4 applies:
+
 - I1 Small and sequential: a few tool calls or one short step.
 - I2 Depends heavily on conversation context the subagent would not receive.
 - I3 Needs interactive back-and-forth with the user.
@@ -116,12 +119,14 @@ Record: purpose | rules that apply (D1-D4, I1-I4) | verdict (justified / not jus
 ## Verdict and acceptance
 
 Diagnostic bands:
+
 - 90-100: Excellent
 - 75-89: Good
 - 60-74: Needs work
 - Below 60: Poor
 
 Acceptance rule (binary):
+
 - ACCEPTED = overall score is 90 or higher AND all gates PASS (G7 UNCONFIRMED does not block, but must be reported).
 - Otherwise REJECTED. A gate failure forces "FAIL (gate)" regardless of score.
 - Never round up to reach 90. Never waive a gate. Never report ACCEPTED with an open finding that would drop the score below 90 if confirmed.
@@ -131,11 +136,13 @@ Acceptance rule (binary):
 No fix may rest on assumption, memory, habit, or unsourced "best practice". Every fix needs BOTH an observed defect and a verified source.
 
 Evidence types:
+
 - E1 Primary source: official Anthropic documentation or engineering publications (Claude Code subagent docs, prompting guidance), fetched during this audit.
 - E2 Observed defect: a quoted line or line number in the audited file showing the problem.
 - E3 Corroborating source: peer-reviewed research, standards documents, or official docs of a non-Anthropic tool the subagent depends on, fetched during this audit.
 
 Rules:
+
 - A fix is VERIFIED only if it has E2 plus at least one of E1 or E3.
 - Every source entry must contain: URL, retrieval date, the specific fact it supports in your own words (any quote under 15 words).
 - The source must directly support the fix. Related-but-indirect sources do not count.
@@ -146,11 +153,13 @@ Rules:
 - Do not invent URLs, titles, quotes, versions, or benchmark results.
 
 Confidence per fix:
+
 - High: E2 + E1 that directly states the requirement.
 - Medium: E2 + E1 that supports it indirectly, or E2 + E3.
 - Low: E2 only (UNVERIFIED).
 
 Handling:
+
 - Only VERIFIED fixes count toward points recovered, the projected score, and the Path to ACCEPTED.
 - UNVERIFIED fixes go in a separate list with the evidence that would verify each. They never count toward the projected score.
 - Show projected score arithmetic: current score + points recovered per VERIFIED fix.

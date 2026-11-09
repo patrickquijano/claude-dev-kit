@@ -3,7 +3,7 @@ name: audit-skill
 description: Audits, scores, and fixes one or more skills against a 100-point rubric with gates, until no open item is left. Use when asked to audit, review, score, or fix a skill. Not for building one.
 argument-hint: '[--yes] [--score-only] [skill name or path …]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(git -C * rev-parse --show-toplevel) Bash(git -C * status --porcelain=v1) Bash(node -e *)
+allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash(node -e *)
 ---
 
 # Audit Skill
@@ -49,7 +49,12 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 6. **Fix.** For each skill with at least one VERIFIED or approved fix outside `scripts/`, whatever its verdict:
    - **6a. Memory.** Read `MEMORY.md` and reuse a matching `feedback` memory's fix per the Rules.
    - **6b. Spec.** Build the Spec brief and its fix-round variant in `${CLAUDE_SKILL_DIR}/references/briefs.md`: one goal per open VERIFIED or approved fix ID (rubric ID, `file:line`, Before → After), except a fix to a `scripts/` executable, which is a non-goal and stays under `Open:` with its ledger row set to `out-of-scope`; an UNVERIFIED fix stays an open item for step 8 and never reaches the spec. Print the spec summary.
-   - **6c. Implement.** First run `git -C <dir> rev-parse --show-toplevel`; it fails (no git) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` (this ends the whole run; the fixes of every remaining target go under `Open:`), since without git no scope check can see edits to existing files. Otherwise run `git -C <root> status --porcelain=v1` (`<root>` is that output) as the round snapshot, and Read and keep the content of each file entry in that snapshot that lies outside the target; then invoke implement-spec per the Rules, one invocation per skill. Record its `Open:` items in the ledger, except a `baseline:` item (implement-spec's step 1b repo status), which is printed on its own line and never enters the ledger; after it returns, Grep each After: found → ledger row Fixed; not found → stays open.
+   - **6c. Implement.** First run `git -C <dir> rev-parse --show-toplevel`; it fails (no git) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 6: no git` (this ends the whole run; the fixes of every remaining target go under `Open:`), since without git no scope check can see edits to existing files. Otherwise:
+     - Run `git -C <root> status --porcelain=v1` (`<root>` is that output) as the round snapshot.
+     - Read and keep the content of each snapshot entry outside the target.
+     - Invoke implement-spec per the Rules, one invocation per skill.
+     - Record its `Open:` items in the ledger per the Rules.
+     - After it returns, Grep each After: found → ledger row Fixed; not found → stays open.
    - **6d. Check scope.** Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` (never revert), `Result: stopped`, `Stopped: 6: write outside scope`. `status` cannot see ignored files or paths outside the repo.
 7. **Rescore.**
    - Run step 3 again on every fixed skill; report only the fresh score and carry nothing over.
@@ -58,16 +63,16 @@ Input: $ARGUMENTS (strip `--yes` and `--score-only` first)
 8. **Address open items.**
    - Iterate the ledger, not the scorer list: every open row is researched in 8a or asked about in 8b.
    - **8a. Research.**
-      - For each skill with UNVERIFIED suggestions, spawn `cdk:topic-researcher` in parallel (fallback: a read-only subagent with WebSearch and WebFetch that finds sources; inline fallback: search yourself).
-      - Brief it with the researcher brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
-      - WebFetch each returned source URL and confirm the fact.
-      - Promote a fix whose E1 or E3 source is confirmed to VERIFIED for the next step 6.
+     - For each skill with UNVERIFIED suggestions, spawn `cdk:topic-researcher` in parallel (fallback: a read-only subagent with WebSearch and WebFetch that finds sources; inline fallback: search yourself).
+     - Brief it with the researcher brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
+     - WebFetch each returned source URL and confirm the fact.
+     - Promote a fix whose E1 or E3 source is confirmed to VERIFIED for the next step 6.
    - **8b. Decide.**
-      - For each item still open (never an `out-of-scope` row), AskUserQuestion within the step 2 question limits: `Apply anyway | Decline | Provide a source or fact` (for an implement-spec question, its candidate answers).
-      - Put the Recommended option first with a weighted score and an unbiased one-line justification from the cited evidence.
-      - `--yes` → the Recommended option.
-      - Apply → an approved fix for step 6; Decline → closed; Provide → re-verify, then VERIFIED or ask again.
-      - List every decision under `Decisions:`.
+     - For each item still open (never an `out-of-scope` row), AskUserQuestion within the step 2 question limits: `Apply anyway | Decline | Provide a source or fact` (for an implement-spec question, its candidate answers).
+     - Put the Recommended option first with a weighted score and an unbiased one-line justification from the cited evidence.
+     - `--yes` → the Recommended option.
+     - Apply → an approved fix for step 6; Decline → closed; Provide → re-verify, then VERIFIED or ask again.
+     - List every decision under `Decisions:`.
    - **8c. Loop.** Count only `open` rows: any left → step 6 (next round); none → step 5.
 9. **Cap.**
    - After 3 rounds with open items left, ask `Extend 3 more rounds | Stop` (Recommended first, with a weighted score and a one-line justification, as in 8b).

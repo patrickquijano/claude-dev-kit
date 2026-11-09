@@ -35,7 +35,7 @@ describe('audit-skill closes every open item', () => {
     'has a terminal out-of-scope ledger status':
       /^- Item ledger: [^\n]*status open\|fixed\|declined\|out-of-scope`[^\n]*`out-of-scope` is terminal \(a `scripts\/` fix, listed under `Open:`, never asked in 8b\)/m,
     'never asks about an out-of-scope row in 8b':
-      /^ {6}- For each item still open \(never an `out-of-scope` row\), AskUserQuestion/m,
+      /^ {5,6}- For each item still open \(never an `out-of-scope` row\), AskUserQuestion/m,
     'ends a run with out-of-scope items as a closing state':
       /^- Open item: [^\n]*A run ends when every open item is Fixed, Declined, or out-of-scope, or the user stops at the round cap; `Open:` always lists every item not Fixed or Declined, so out-of-scope rows too/m,
     'does not say a row closes only as Fixed or Declined':
@@ -52,18 +52,17 @@ describe('audit-skill closes every open item', () => {
       /^ {3}- \*\*8c\. Loop\.\*\* Count only `open` rows: any left → step 6 \(next round\); none → step 5\./m,
     'points the round cap to step 9':
       /^- Round = fix, rescore, address open items; the round cap \(3, plus 3 per Extend\) is in step 9, so a loop that does not converge returns to the user\.$/m,
-    'pre-approves the git -C reads and no diff stat':
-      /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(git -C \* rev-parse --show-toplevel\) Bash\(git -C \* status --porcelain=v1\) Bash\(node -e \*\)$/m,
+    'pre-approves only the node -e sum and no diff stat':
+      /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(node -e \*\)$/m,
     'snapshots the root status at 6c and compares at 6d':
       /^ {3}- \*\*6d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 6: write outside scope`\./m,
     'keeps the content of dirty paths outside the target at 6c':
-      /^ {3}- \*\*6c\. Implement\.\*\* .*Read and keep the content of each file entry in that snapshot that lies outside the target;/m,
+      /^ {5,6}- Read and keep the content of each snapshot entry outside the target\.$/m,
     'states that status cannot see ignored files or outside paths':
       /^ {3}- \*\*6d\. Check scope\.\*\* .*`status` cannot see ignored files or paths outside the repo\.$/m,
     'keeps a baseline item out of the ledger':
       /^- Every fix to a target skill[^\n]*Its `Open:` items join the ledger, except a `baseline:` item \(implement-spec's step 1b repo status\), which is printed on its own line and never enters the ledger\./m,
-    'records Open items at 6c except baseline':
-      /^ {3}- \*\*6c\. Implement\.\*\* .*Record its `Open:` items in the ledger, except a `baseline:` item/m,
+    'records Open items at 6c except baseline': /^ {5,6}- Record its `Open:` items in the ledger per the Rules\.$/m,
     'limits its own spawns to scorer and researcher':
       /^- Scorers and researchers are subagents that cannot spawn subagents; this skill spawns only the scorer and researcher subagents, never another one; the planner, implementer, and verifier spawns inside implement-spec follow its own spawn rule,/m
   };
