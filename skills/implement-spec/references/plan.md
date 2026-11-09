@@ -9,9 +9,12 @@ Print the planner's `Goals` and `Non-goals` in this format; print each goal as a
 ```text
 G1: <outcome, one line>
   Accept: <test | command | observable behavior that proves it>
+  Edges: <boundary | empty | invalid | error cases> | none (<why>)
 ```
 
 - A criterion names something that can be run or observed; "works well" is not one.
+- A goal that changes behavior names a test (path or test name) in `Accept:`; a command or observable check is only for a non-behavioral goal (docs, config).
+- `Edges:` lists the boundary, empty, invalid, and error cases the goal must handle, each of which gets a test; `none` needs a reason.
 - Add `Non-goals:` with what the change will not do, one line each.
 - A goal without a checkable criterion → rewrite it or ask in step 3.
 
@@ -36,7 +39,7 @@ Ask one structured question:
 
 ## Printed plan
 
-After the pick, print the plan (restatement, goals with criteria, non-goals, chosen approach, the planner's `Steps` and `Risks`, and each Dirty path the approach must edit, or none), then go to step 6 with no wait.
+After the pick, print the plan (restatement, goals with criteria, non-goals, chosen approach, the planner's `Steps` and `Risks`, and each Dirty path the approach must edit, or none), then go to step 5c (baseline) with no wait.
 
 ## Re-entry from step 8
 
@@ -44,3 +47,4 @@ After the pick, print the plan (restatement, goals with criteria, non-goals, cho
 - Revise only what the unmet criterion or failed check points at: the goals, the approach, or both.
 - Keep met goals as they are; carry over what was learned into the revised card.
 - A revised approach is asked again as above; an unattended run keeps the recommended one.
+- After the printed plan go to step 6; never re-run step 5c (the baseline runs once per run).

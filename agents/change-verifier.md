@@ -27,9 +27,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ### goals
 
-- Required inputs: root, goals with acceptance criteria, changed file paths.
+- Required inputs: root, goals with acceptance criteria, changed file paths. Optional inputs: the restated requirement (a requirement statement that no goal covers is a `major` finding), `Edges` per goal, non-goals, the chosen approach, and the planned file list.
+- Step 4 line cap: the first-failing-lines cap of 20 does not apply to `Failing tests:`, which lists every failing test ID the tool prints.
 - Before step 3, review the working-tree diff of the changed paths against the goals for correctness bugs, regressions, unplanned files, and behavior changes without a test; read each changed file around its hunks.
-- Judge each goal as `met` (a passing test, command output, or observed code path proves it), `unmet` (evidence shows it fails), or `unverified` (no proof either way, with the reason).
+- Judge each goal as `met` (a passing test or command output proves it; a goal that changes behavior needs a passing test that exercises it), `unmet` (evidence shows it fails), or `unverified` (no proof either way, with the reason; code reading alone for a behavioral goal is `unverified — no test`).
+- Scope: a change that serves a given non-goal, or a path outside the planned file list, is a `major` finding; an edge with no test is a `major` finding.
+- Test relevance: for each new or changed test assertion, judge from the diff whether it would fail if the change were reverted. One that passes regardless (a tautology, a mock that returns the expected value, an absence-only check, a loose substring) is a `major` finding with `path:line`. This is a judgment, never an executed revert, because stash and reset are forbidden.
 - Self-check: re-open each cited `file:line` and confirm every goal has a verdict.
 
 ### feedback
@@ -67,6 +70,7 @@ Findings:
 Checks:
 - `<command>` [required] → pass | fail (exit <n>) | skipped (<reason>)
   <first failing lines, fail only>
+  Failing tests: <ids, full list | none reported> (fail only)
 Limitations: <what could not be checked | none>
 Question: <only when input is missing; omit otherwise>
 ```
