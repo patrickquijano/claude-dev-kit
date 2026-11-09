@@ -10,10 +10,10 @@ Read when a decision question is about to be asked.
 
 Print before each question; options in alphabetical order.
 
-| Option | <criterion> (w) | … | Total |
-| ------ | --------------- | - | ----- |
-| A      | 4 [url]         | … | 76    |
-| B      | 3 unverified    | … | 64    |
+| Option | <criterion> (w) | …   | Total |
+| ------ | --------------- | --- | ----- |
+| A      | 4 [url]         | …   | 76    |
+| B      | 3 unverified    | …   | 64    |
 
 ## Weights
 

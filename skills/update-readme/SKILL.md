@@ -83,6 +83,7 @@ Input: $ARGUMENTS (strip `--yes` first)
     6. Run step 14.
 
     At the cap with <95 and open items, ask the extend question (Rules): Extend → back to 15.1; Stop or `--yes` → `Result: stopped`, `Stopped: 14: below 95 after <rounds> rounds`, then step 16.
+
 16. **Leftovers.** Always runs, after the loop ends or when step 14 reports `done`: list leftovers per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Leftovers`, then print the Output.
 
 ## Files

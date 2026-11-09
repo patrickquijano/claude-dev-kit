@@ -31,4 +31,4 @@ Call `get_project` with the project path. Use MCP only when it succeeds and the 
 
 - 403 → (also on a reply) the token lacks access or the `api` scope: run `glab auth login --hostname <host>` with a token that has the `api` scope, or reconnect the GitLab MCP.
 - 404 → the project path or IID is wrong, or the account cannot see the project: re-check `origin` and the input, then confirm membership.
-- Report the fix in `Stopped: <step>: <reason>` (0 at setup, 1 in Identify, 3 in Plan, 10 on a reply); never print a token.
+- Report the fix in `Stopped: <step>: <reason>` (0 at setup, 1 in Identify, 3 in Spec, 9 on a reply); never print a token.

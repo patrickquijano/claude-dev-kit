@@ -51,7 +51,7 @@ Trigger `push` to the deploy branch or `workflow_dispatch` with an `environment`
 ```yaml
 on:
   schedule:
-    - cron: '<minute> <hour> * * *'
+    - cron: <minute> <hour> * * *
   workflow_dispatch:
 jobs:
   <job-id>:

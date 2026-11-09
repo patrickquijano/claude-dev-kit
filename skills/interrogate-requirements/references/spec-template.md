@@ -9,7 +9,7 @@ Read at step 9. Fill every section; write "None" for an empty one, never delete 
 ## Skeleton
 
 ```markdown
-# <Title>
+# <title>
 
 ## Goal
 

@@ -1,9 +1,9 @@
 ---
 paths:
-  - '.husky/**'
-  - 'skills/setup-husky/assets/**'
-  - '.commitlintrc.json'
-  - '.gitattributes'
+  - .husky/**
+  - skills/setup-husky/assets/**
+  - .commitlintrc.json
+  - .gitattributes
 ---
 
 # Git hooks

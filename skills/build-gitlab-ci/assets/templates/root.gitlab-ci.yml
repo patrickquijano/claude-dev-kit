@@ -18,7 +18,7 @@ default:
     - !reference [.<shared-cleanup>, after_script]
 
 variables:
-  '<VARIABLE_NAME>': <value>
+  <VARIABLE_NAME>: <value>
 
 include:
   - local: /.gitlab/ci/*.gitlab-ci.yml

@@ -21,7 +21,7 @@ MUST
 - **Own files**: the skill reads only its own bundled files through `${CLAUDE_SKILL_DIR}` and never through a `${CLAUDE_PLUGIN_ROOT}` path.
 - **Skill calls**: the skill may invoke another skill as ``Invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill)``. Never a skill command on a `Next:` line (plain words there).
 - **Subagent calls**: a spawn names the plugin subagent first: ``Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only subagent that scores the skill against the rubric)``. No plugin agent fits → describe the role in plain words only. Each spawn has an inline fallback for when no subagent is available. Never spawn the generic built-ins `Explore` or `general-purpose`.
-- **Bypass flag**: a task skill accepts `--yes` (unattended: no questions, recommended options taken, assumptions under `Open:`). Only a flag the user passed counts; a skill never adds one itself. A skill asks no approval question before a side-effect step: it runs directly. A gate (a question that only approves the next step) is not allowed; a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) is required before an irreversible step and is never skipped by `--yes`. A decision question may offer `Stop`, and `Stop` ends with `Result: stopped`.
+- **Bypass flag**: a task skill accepts `--yes` (unattended: no questions, recommended options taken, assumptions under `Open:`). Only a flag the user passed counts; a skill never adds one itself. A skill asks no approval question before a side-effect step: it runs directly. A gate (a question that only approves the next step) is not allowed; a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) is required before an irreversible step and is never skipped by `--yes`. A decision question may offer `Stop`, and `Stop` ends with `Result: stopped`; a skill that callers delegate to may end a user `Stop` with `Result: cancelled` and `Stopped: <step>: user cancelled` so callers can tell a cancel from a cap stop (`implement-spec` is the existing case).
 - **Git ownership**: A skill other than `switch-branch` never switches, creates, or checks out a branch. A skill other than `commit-changes` never commits. Others invoke the owning skill in the skill-call form above (fallback: plain language). Exceptions: `rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `setup-git` are not branch switches or commits.
 - **Memory**: a skill that keeps memory writes a memory file plus its `MEMORY.md` pointer to Claude's auto-memory dir. It takes the path from the session's auto-memory context and never guesses it; if none is found, it lists the item under `Open:`. It never writes memory under `${CLAUDE_SKILL_DIR}` or anywhere in its skill directory.
 - **No format or lint**: a skill runs no formatter or linter and has no step that does, because repo hooks and CI own that; a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (such as `build-dockerfile` or `build-docker-compose`), is exempt for that purpose.
@@ -49,28 +49,28 @@ DON'T
 
 Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false`. Malformed YAML loads the body with empty metadata. Claude Code ignores unknown or misspelled keys silently, so names must match exactly. Portable fields are marked P; all others are Claude Code-only.
 
-| Field                      | P | Type, default                                                           | Set when                                         |
-| -------------------------- | - | ----------------------------------------------------------------------- | ------------------------------------------------ |
-| `name`                     | P | kebab string; default the directory name; an action (verb-first)        | Always                                           |
-| `description`              | P | string; default the first body line                                     | Always                                           |
-| `license`                  | P | string                                                                  | Distribution needs it                            |
-| `compatibility`            | P | string, ≤500 chars                                                      | Always for a Claude Code-only skill              |
-| `metadata`                 | P | map; never reuse field names as keys                                    | Your own tooling needs it                        |
-| `allowed-tools`            | P | space or comma string, or list; pre-approves tools, does not restrict   | Known-safe tools the skill uses, least privilege |
-| `when_to_use`              |   | string, appended to `description` in the listing (together ≤1,536)      | Trigger phrases crowd the description            |
-| `argument-hint`            |   | string, e.g. `[issue-number]`                                           | The skill takes arguments                        |
-| `arguments`                |   | space string or list; names for `$name`                                 | The body reads named positional args             |
-| `disallowed-tools`         |   | same shapes as `allowed-tools`                                          | Remove tools while active                        |
-| `disable-model-invocation` |   | bool, false                                                             | Side-effect or timing-sensitive task             |
-| `user-invocable`           |   | bool, true                                                              | `false` for background-only                      |
-| `context`                  |   | `fork`                                                                  | Explicit task needing isolation                  |
-| `agent`                    |   | subagent name; only with `context: fork`; omit unless the user names it | The user names one                               |
-| `background`               |   | bool, true; only with `context: fork`                                   | `false` when the result is needed this turn      |
-| `model`                    |   | `/model` value or `inherit`; this turn only                             | A different model is needed                      |
-| `effort`                   |   | `low` `medium` `high` `xhigh` `max`                                     | A fixed effort is needed                         |
-| `paths`                    |   | globs, comma string or list                                             | A reference that applies to certain files only   |
-| `hooks`                    |   | hook config, kept for the session                                       | A rule must hold every time                      |
-| `shell`                    |   | `bash` (default) or `powershell`                                        | Injection blocks need PowerShell                 |
+| Field                      | P   | Type, default                                                           | Set when                                         |
+| -------------------------- | --- | ----------------------------------------------------------------------- | ------------------------------------------------ |
+| `name`                     | P   | kebab string; default the directory name; an action (verb-first)        | Always                                           |
+| `description`              | P   | string; default the first body line                                     | Always                                           |
+| `license`                  | P   | string                                                                  | Distribution needs it                            |
+| `compatibility`            | P   | string, ≤500 chars                                                      | Always for a Claude Code-only skill              |
+| `metadata`                 | P   | map; never reuse field names as keys                                    | Your own tooling needs it                        |
+| `allowed-tools`            | P   | space or comma string, or list; pre-approves tools, does not restrict   | Known-safe tools the skill uses, least privilege |
+| `when_to_use`              |     | string, appended to `description` in the listing (together ≤1,536)      | Trigger phrases crowd the description            |
+| `argument-hint`            |     | string, e.g. `[issue-number]`                                           | The skill takes arguments                        |
+| `arguments`                |     | space string or list; names for `$name`                                 | The body reads named positional args             |
+| `disallowed-tools`         |     | same shapes as `allowed-tools`                                          | Remove tools while active                        |
+| `disable-model-invocation` |     | bool, false                                                             | Side-effect or timing-sensitive task             |
+| `user-invocable`           |     | bool, true                                                              | `false` for background-only                      |
+| `context`                  |     | `fork`                                                                  | Explicit task needing isolation                  |
+| `agent`                    |     | subagent name; only with `context: fork`; omit unless the user names it | The user names one                               |
+| `background`               |     | bool, true; only with `context: fork`                                   | `false` when the result is needed this turn      |
+| `model`                    |     | `/model` value or `inherit`; this turn only                             | A different model is needed                      |
+| `effort`                   |     | `low` `medium` `high` `xhigh` `max`                                     | A fixed effort is needed                         |
+| `paths`                    |     | globs, comma string or list                                             | A reference that applies to certain files only   |
+| `hooks`                    |     | hook config, kept for the session                                       | A rule must hold every time                      |
+| `shell`                    |     | `bash` (default) or `powershell`                                        | Injection blocks need PowerShell                 |
 
 Description: one job; third person; the words users say; distinctive. A side-effect task with `disable-model-invocation: true` ends with "Use only when the user explicitly asks to <action>." Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it, or suggest `disable-model-invocation: true`.
 

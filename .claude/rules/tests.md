@@ -1,7 +1,7 @@
 ---
 paths:
   - '**/*.mjs'
-  - 'tests/**'
+  - tests/**
 ---
 
 # Tests
