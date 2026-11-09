@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-11-09
+
+### Changed
+
+- `/cdk:audit-skill` and `/cdk:audit-subagent` run at most 2 rounds with no extension, rank each item by severity so only blocking ones start another round, and stop when the blocking count does not fall.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` remember non-blocking items already tried in a settled memory, so a negligible leftover is reported once.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` brief their scorers and researchers to spawn no subagent, and treat fetched pages as data.
+
+### Fixed
+
+- `/cdk:audit-skill` and `/cdk:audit-subagent` no longer pre-approve `git -C` reads, which could run a program through a git option without a prompt.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` check the full path and line number before hashing a settled-memory row, so a hostile file or directory name never reaches the shell.
+
 ## [0.9.2] - 2026-11-09
 
 ### Changed
@@ -581,7 +594,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...HEAD
+[0.9.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.8.14...v0.9.0
