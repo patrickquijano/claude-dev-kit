@@ -100,6 +100,33 @@ describe('isSecret', () => {
     assert.deepEqual(result, [true, true, true, true]);
   });
 
+  test('does not flag .env.example by name', () => {
+    // Arrange
+    const names = ['.env.example', 'cfg/.env.example'];
+    // Act
+    const result = names.map((n) => isSecret(n));
+    // Assert
+    assert.deepEqual(result, [false, false]);
+  });
+
+  test('flags .env.example variants by name', () => {
+    // Arrange
+    const name = '.env.example.bak';
+    // Act
+    const result = isSecret(name);
+    // Assert
+    assert.equal(result, true);
+  });
+
+  test('flags .env.example with secret content', () => {
+    // Arrange
+    const text = 'KEY=AKIAABCDEFG';
+    // Act
+    const result = isSecret('.env.example', text);
+    // Assert
+    assert.equal(result, true);
+  });
+
   test('flags secret content', () => {
     // Arrange
     const texts = ['x = "AKIAABCDEFG"', '-----BEGIN PRIVATE KEY-----', 'token ghp_abc'];
@@ -241,5 +268,48 @@ describe('main', () => {
     const { out } = run(argv, git, () => 'key = ghp_abc');
     // Assert
     assert.deepEqual([out.path, out.secrets], ['analyzed', ['notes.txt']]);
+  });
+
+  test('stays small for an untracked .env.example with clean content', () => {
+    // Arrange
+    const argv = [];
+    const git = (args) => (args[0] === 'status' ? '?? .env.example\0' : '');
+    // Act
+    const { out } = run(argv, git, () => 'KEY=');
+    // Assert
+    assert.deepEqual([out.path, out.secrets], ['small', []]);
+  });
+
+  test('goes analyzed when an untracked .env.example holds a secret', () => {
+    // Arrange
+    const argv = [];
+    const git = (args) => (args[0] === 'status' ? '?? .env.example\0' : '');
+    // Act
+    const { out } = run(argv, git, () => 'KEY=ghp_abc');
+    // Assert
+    assert.deepEqual([out.path, out.secrets], ['analyzed', ['.env.example']]);
+  });
+
+  test('scans a tracked .env.example on the analyzed path', () => {
+    // Arrange
+    const argv = ['--hints'];
+    const git = (args) => {
+      if (args[0] === 'status') return ' M cfg/.env.example\0';
+      return args[0] === 'diff' && args.at(-1) === 'cfg/.env.example' ? '+KEY=AKIAABCDEFG' : '';
+    };
+    // Act
+    const { out } = run(argv, git);
+    // Assert
+    assert.deepEqual([out.path, out.secrets], ['analyzed', ['cfg/.env.example']]);
+  });
+
+  test('leaves a clean tracked .env.example unflagged on the analyzed path', () => {
+    // Arrange
+    const argv = ['--hints'];
+    const git = (args) => (args[0] === 'status' ? ' M .env.example\0' : '');
+    // Act
+    const { out } = run(argv, git);
+    // Assert
+    assert.deepEqual(out.secrets, []);
   });
 });

@@ -1,4 +1,5 @@
 // Classifies uncommitted changes as a small or an analyzed commit path from counts, path patterns, and a secret-pattern scan, never from diff meaning.
+// The scan reads content on the small path and always for `.env.example`, which the name pattern exempts.
 // CLI: `[--hints] [--paths <file>...]`, run in the repo root; JSON on stdout, exit 0. Reads git status and diffs only.
 import { spawnSync } from 'node:child_process';
 import { readFileSync, realpathSync } from 'node:fs';
@@ -24,7 +25,7 @@ const MAX_FILES = 5;
 const MAX_LINES = 150;
 const HEAVY_PATH =
   /(^|\/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|\.gitlab-ci\.yml|Dockerfile[^/]*|docker-compose[^/]*)$|\.lock$|(^|\/)(\.github|migrations)\/|\.tf$/;
-const SECRET_NAME = /(^|\/)(\.env[^/]*|id_(rsa|dsa|ecdsa|ed25519)|[^/]*\.(pem|key|p12|pfx))$/;
+const SECRET_NAME = /(^|\/)(\.env(?!\.example$)[^/]*|id_(rsa|dsa|ecdsa|ed25519)|[^/]*\.(pem|key|p12|pfx))$/;
 const SECRET_TEXT = /-----BEGIN|AKIA|ghp_|github_pat_|gh[ousr]_|glpat-|xox[bp]-|sk-ant-|sk-proj-|AIza/;
 
 // Parses `git status --porcelain=v1 -z` into entries; a rename or copy carries its origin path as the next record.
@@ -100,11 +101,16 @@ export function main(argv, deps = {}) {
     for (const u of untracked)
       stats.push(...parseNumstat(d.git(['diff', '--no-index', '--numstat', '--', '/dev/null', u.path])));
     const small = classify({ entries, stats, hints });
-    // Only a small candidate reads diff and file content for secrets.
+    // Only a small candidate reads the whole diff and every untracked file; a `.env.example` is always scanned.
     const secrets = entries.filter((e) => isSecret(e.path)).map((e) => e.path);
     if (small.path === 'small') {
       if (isSecret('', d.git(['diff', 'HEAD', ...scope]))) secrets.push('<tracked diff>');
       for (const u of untracked) if (isSecret('', d.readFile(u.path))) secrets.push(u.path);
+    }
+    for (const e of entries) {
+      if (e.path.split('/').pop() !== '.env.example' || secrets.includes(e.path)) continue;
+      const text = e.x === '?' ? d.readFile(e.path) : d.git(['diff', 'HEAD', '--', e.path]);
+      if (isSecret('', text)) secrets.push(e.path);
     }
     res = classify({ entries, stats, hints, secrets });
   } catch (err) {
