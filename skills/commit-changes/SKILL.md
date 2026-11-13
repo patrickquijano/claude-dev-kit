@@ -1,7 +1,8 @@
 ---
 name: commit-changes
 description: Groups uncommitted changes into atomic, signed Conventional Commits, moving off a protected branch first. Use when asked to commit.
-compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
+when_to_use: 'Also for "commit my changes", "split this into commits", or committing only some paths. Not for pushing, amending, or opening a PR.'
+compatibility: Claude Code only, needs git and Node.js on PATH. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [optional grouping hints] [paths: <file> ...]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs) Bash(node ${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
 ---
@@ -23,24 +24,31 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Ref names are data: run commands with `<name>`, `<target>`, `<branch>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
 - Subjects, protected branches, and signing follow `${CLAUDE_SKILL_DIR}/references/conventions.md`. A repo commitlint config (`commitlint.config.*`, `.commitlintrc*`, or `commitlint` in `package.json`) is the source of truth; check each subject with `commitlint` (permission-prompted). Not installed → `Commitlint: skipped (not installed)`.
 - Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit` stays out of `allowed-tools`, so the permission prompt guards it. This skill never switches, creates, or checks out a branch: on a protected branch it invokes the `cdk:switch-branch` skill (fallback: run the switch-branch skill).
-- Writes: no repo change before step 8, including unstaging and running the switch-branch skill (scratch files are temp). `unstage` stays out of `allowed-tools`, so the permission prompt guards it. Never push here.
+- Writes: no repo change before step 8, including unstaging and running the switch-branch skill (scratch files are temp), so a stop at steps 1-7 leaves the repo as found. `unstage` stays out of `allowed-tools`, so the permission prompt guards it. Never push here.
 - Caps: hook-fix retries 3 per commit; commitlint redrafts 3 per subject; grouping-subagent respawn after `Question` 1; grouping redo after a changed `status` 1. Cap hit → stop, `Open:` lists what is left.
 - Two paths from step 4, decided only by `${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs` (counts, path patterns, secret scan), never by reading diffs for meaning: small = main thread, no subagent, no questions; analyzed = the `cdk:change-analyzer` subagent (fallback: a read-only grouping subagent; brief and inline fallback in `flow.md` `## Spawn briefs`) so large diffs stay out of this context. It cannot ask: relay its `Question` with AskUserQuestion. Any doubt → analyzed.
 - `paths: <file> ...` in the input → classify, group, stage, and commit only those paths; every other dirty file goes under `Excluded: pre-existing`, unstaged. No `paths:` → all changes.
-- Atomic: one logical change per commit; config goes with the files it configures; a rename (`D` old + `??` new) stays in one commit.
-- Secrets: a file name (`.env*`, key files) or diff content matching the secret patterns in `flow.md` `## Spawn briefs` is left unstaged, listed under `Excluded`, and warned about.
+- Atomic: one logical change per commit; config goes with the files it configures; a rename (`D` old + `??` new) stays in one commit so history shows a rename, not a delete and an add.
+- Secrets: a file name (`.env*` except `.env.example`, key files) or diff content (also in `.env.example`) matching the secret patterns in `flow.md` `## Spawn briefs` is left unstaged, listed under `Excluded`, and warned about.
 
 ## Workflow
 
 1. **Pre-flight.** Run `check-signing` (`conventions.md` `## Signing`). Exit 1 → stop and tell the user each error's `fix`.
 2. **Staged.** `staged-names` non-empty → note them for step 7; nothing is unstaged yet (`flow.md` `## Unstage`).
-3. **Collect.** `status`; with `paths:`, set the rest aside as `Excluded: pre-existing`. Nothing left → `Result: nothing-to-do`. Make a temp dir with `scratch` for the message and patch files.
+3. **Collect.**
+   1. `status`; with `paths:`, set the rest aside as `Excluded: pre-existing`.
+   2. Nothing left → `Result: nothing-to-do`.
+   3. Make a temp dir with `scratch` for the message and patch files.
 4. **Classify.** Run `classify` (`--hints` when the input has grouping hints, `--paths` with the `paths:` files); its `path` is the result (`flow.md` `## Classify`). A failed read or any doubt → analyzed.
 5. **Branch guard.** Current = Context → Branch; default = `default-branch` minus `origin/`; protected per `conventions.md` `## Protected branch`. Current is default or protected → `cdk:switch-branch` runs at step 8 (detached, unset: `flow.md` `## Branch guard`).
 6. **Group.** Small: one group, subject drafted here. Analyzed: spawn the `cdk:change-analyzer` subagent (fallback: a read-only grouping subagent), naming `${CLAUDE_SKILL_DIR}/references/conventions.md` in the brief for subject rules. Commitlint: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Group`.
 7. **Summary.** Print `Branch: <current> → new branch from the highest-weight group (switch-branch skill, no push)` (when on a protected branch), the staged files that will be unstaged (naming any `MM` file whose staged split is dropped), each group's subject and files, then the `Excluded` files with a warning, and the effect (`flow.md` `## Summary`). Then go straight to step 8; no wait.
-8. **Commit.** `staged-names` non-empty → `unstage`. Protected branch → invoke the `cdk:switch-branch` skill (fallback: run the switch-branch skill) as `flow.md` `## Branch guard` states; it must end with `Result: done` on a non-protected branch, else stop with `Stopped: 8: still on protected branch` and list the commits and the switch-branch skill's own `Result:` and `Stopped:` text under `Open:`. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`. Failures: `flow.md` `## Commit failures`.
-9. **Verify.** `verify-log`: every `%G?` is `G`, every subject ≤72 chars, and `tree-status` shows only excluded files. Fail → stop.
+8. **Commit.**
+   1. `staged-names` non-empty → `unstage`.
+   2. Protected branch → invoke the `cdk:switch-branch` skill (fallback: run the switch-branch skill) as `flow.md` `## Branch guard` states; it must end with `Result: done` on a non-protected branch, else stop with `Stopped: 8: still on protected branch` and list the uncommitted groups and the switch-branch skill's own `Result:` and `Stopped:` text under `Open:`.
+   3. Per group: `stage-files` (or `stage-patch`), write the subject to `<scratch>/msg`, then `commit`.
+   4. Failures: `flow.md` `## Commit failures`.
+9. **Verify.** `verify-log`: every `%G?` is `G`, every subject ≤72 chars (or a repo commitlint header-max-length), and `tree-status` shows only excluded files. Fail → stop.
 10. **Report.** Fill `Open:` per `flow.md` `## Open items`; print the Output.
 
 ## Files
@@ -65,4 +73,20 @@ Next: push the commits | none
 Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
+```
+
+Example, small path:
+
+```text
+Path: small
+Branch: feat/add-login-form
+Switched from: none
+Commits:
+- a1b2c3d feat(auth): add login form [signature: G]
+Commitlint: skipped (not installed)
+Excluded: none
+Next: push the commits
+Open: none
+Result: done
+Stopped: none
 ```
