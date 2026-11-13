@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] - 2026-11-14
+
+### Changed
+
+- `/cdk:commit-changes` always scans the content of a `.env.example` for secret patterns and leaves a file that matches unstaged.
+
+### Fixed
+
+- `/cdk:commit-changes` no longer excludes `.env.example` by name, so the template file is committed like any other config file.
+- `/cdk:commit-changes` reports a secret hit in the tracked diff that names no file as an open item instead of guessing a path.
+
 ## [0.9.3] - 2026-11-09
 
 ### Changed
@@ -594,7 +605,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...HEAD
+[0.9.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.0...v0.9.1
