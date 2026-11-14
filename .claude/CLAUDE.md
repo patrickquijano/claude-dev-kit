@@ -31,11 +31,18 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Trade-off order: correctness > security > clarity > simplicity > maintainability > testability > measured performance.
 - Conflict between two instructions → ask user; never resolve silently.
 
+## Replies
+
+- Address the user by first name at the start of every reply: the first word of the effective `git config user.name` (local, then global, then system), resolved once per session.
+- Empty or failed → ask once with AskUserQuestion (a free-text first-name option; never guess it from paths, emails, remotes, commit authors, or the OS account name), then, only if the answer is one word with no quotes or shell metacharacters, run `git config --local user.name '<first-name>'` and `git config --global user.name '<first-name>'`.
+- Never write the name into any repo file, commit, PR, issue, or memory; the two `git config` writes above are the only exception. Skill Output blocks keep their fixed format, with the name only in the prose before them.
+- Verify: before commit, `git diff --cached -U0 --no-renames` has no added (`+`) line containing the session's name (from `git config user.name` or the user's answer).
+
 ## Boundaries
 
 - Ask first before `git reset --hard`, deleting branches, or `rm` of tracked files, except where a running `cdk` skill's own step does it, and that step still obeys the skill's safety stops (a fact check that refuses, such as an unmerged branch).
 - Never commit or push directly to a protected branch (`.claude/rules/git.md`); work on a Conventional Branch.
-- Never commit secrets or credentials, or read or print the contents of `.env*`, private key, or credential files; read secrets from env vars.
+- Never commit secrets or credentials, or read or print the contents of `.env*` (except `.env.example`, a committed template), private key, or credential files; read secrets from env vars.
 - Edit `README.md` only through `/cdk:update-readme` and `CHANGELOG.md` only through `/cdk:update-changelog` or `release-plugin` applying their instructions; no other rule, instruction, skill, or subagent changes them.
 - Ask first before `git push` (branches or tags), publishing a release, creating or updating an issue, creating a merge request or changing its title, description, branches, or merge options, approving, or merging. A running `cdk` skill's own step covers its push, merge, issue, and release actions with no ask, but never past that skill's safety stops (moved head, protected target, foreign-owned file); the ask applies to actions Claude takes outside a skill. A version tag push publishes its release via `release.yml`, so one confirmation covers both. Commit only when the user explicitly asks. Review comments, thread replies and resolves, and reviewer requests need no ask; the permission prompt stays the second guard.
 
