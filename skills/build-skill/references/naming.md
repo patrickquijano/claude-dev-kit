@@ -43,4 +43,4 @@ From `rules.md` F1. A candidate that fails one is dropped and listed with the ru
 - Print the score table before the question, then one AskUserQuestion with the Recommended name first (none on a close call; options then alphabetical), the option descriptions per `grill.md`, and both top totals.
 - Each option's `preview` holds its breakdown: criterion, weight, score, evidence.
 - Other → run the hard-rule check, score it the same way, and show the question once more.
-- Record the name; the rubric's F1 scores against it. Without AskUserQuestion, ask in plain text with the same table.
+- Record the name; `rules.md` F1 (checked by `validate-skill`) applies to it. Without AskUserQuestion, ask in plain text with the same table.

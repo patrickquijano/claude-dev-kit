@@ -10,10 +10,12 @@
 - Use only the stated point values; no in-between scores.
 - N/A handling: if a sub-criterion does not apply, mark it N/A and exclude it from the denominator. Final score = earned / available x 100, rounded to the nearest whole number.
 - Score only what you have read. Never score from memory or assumption.
-- Line coverage: read every file in the skill folder from line 1 to its last line (by line range when large). Run the line-level checks (C2.4 vague words, G4 secrets, G5 destructive commands, G6 paths) on every line. Report each file in section 10.
+- Line coverage: read every file in the skill folder from line 1 to its last line (by line range when large). Run the line-level checks (C2.4 vague words that leave an action, input, or stop undecided, G4 secrets, G5 destructive commands, G6 paths) on every line. Report each file in section 10.
 - Fix for every deduction: every gate FAIL and every sub-criterion scored below its max gets at least one fix (VERIFIED in section 6 or unverified in section 7), each with an exact Before -> After. If no text change can recover it, write `no fix: <reason>`.
-- Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) scores full, gets no fix ID, and is listed on its own `Waived: <ID> file:line — reason` line after the section 11 map, never as a map row. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
+- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the skill triggers, what it does or outputs, a safety stop, whether its result can be verified, or its token, step, or spawn cost. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action.
+- Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (fails Materiality: wording, synonyms, voice, style, ordering, cosmetics) scores full, gets no fix ID, and is listed on its own `Waived: <ID> file:line — reason` line after the section 11 map, never as a map row. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
 - Severity: tag every fix `blocking` or `non-blocking`. Blocking: a gate FAIL; a deduction that affects correctness, a safety stop, or a validator result; a fix in the Path to ACCEPTED (the target stays below 90 without it). Everything else is non-blocking. The caller re-checks the tags.
+- Invocation flags: never score, deduct for, or propose a fix (VERIFIED, unverified, or Outside rubric) that adds, removes, or changes `disable-model-invocation` or `user-invocable`; C5.2 judges confirmation steps in the body, not these flags.
 
 ## Gates (pass/fail)
 
@@ -51,16 +53,16 @@ For each task record: task | DELEGATE or INLINE | rule(s) that apply (D1-D4, I1-
 ## C1. Trigger accuracy and description (20)
 
 - C1.1 States WHAT it does (5): 5 = one concrete verb + object; 2 = vague ("helps with", "handles"); 0 = missing.
-- C1.2 States WHEN to use (7): 7 = 3 or more realistic user phrasings or contexts; 3 = 1-2; 0 = none.
+- C1.2 States WHEN to use (7): 7 = 2 or more realistic user phrasings or contexts; 3 = 1; 0 = none.
 - C1.3 States boundaries / when NOT to use (4): 4 = explicit exclusions or neighbor-skill separation; 2 = implied only; 0 = none.
-- C1.4 Economy and precision (4): 4 = within limit and every sentence adds trigger information; 2 = padded or partly redundant; 0 = over-broad enough to fire on unrelated requests, or over the limit.
+- C1.4 Economy and precision (4): 4 = within limit, no sentence widens or blurs triggering, and every sentence adds trigger information; 2 = a sentence widens triggering toward a neighbor's requests or blurs when to fire, or a sentence adds no trigger information (costs tokens every session); 0 = over-broad enough to fire on unrelated requests, or over the limit.
 
 ## C2. Instruction clarity (15)
 
-- C2.1 Steps are imperative, ordered, one action each (5): 5 = all steps; 3 = most (some bundle multiple actions or use passive voice); 0 = prose with no discernible steps.
-- C2.2 Rationale given for non-obvious rules (3): 3 = every non-obvious rule has a why; 1 = some; 0 = none.
+- C2.1 Steps are imperative, ordered, one action each (5): 5 = all steps; 3 = a step bundles actions so that one is likely skipped, or the order is unclear; 0 = prose with no discernible steps.
+- C2.2 Rationale given for rules a model would plausibly break without their reason (3): 3 = every such rule has a why; 1 = some; 0 = none.
 - C2.3 Inputs, outputs, and exact output format defined, with at least one example (4): 4 = all three present; 2 = format described but no example; 0 = absent.
-- C2.4 Vague wording count (3): count occurrences of "appropriate", "as needed", "etc.", "properly", "if necessary", "relevant", "good". 3 = 0-2; 1 = 3-6; 0 = 7 or more. List each occurrence found.
+- C2.4 Vague wording count (3): count occurrences of "appropriate", "as needed", "etc.", "properly", "if necessary", "relevant", "good", only where the word leaves an action, input, or stop undecided. 3 = 0-2; 1 = 3-6; 0 = 7 or more. List each counted occurrence.
 
 ## C3. Task fit and completeness (13)
 
@@ -73,7 +75,7 @@ For each task record: task | DELEGATE or INLINE | rule(s) that apply (D1-D4, I1-
 
 - C4.1 SKILL.md body length (3): 3 = 500 lines or fewer; 1 = 501-700; 0 = over 700.
 - C4.2 Detail offloaded to reference files with "read X when Y" pointers (3): 3 = clear conditional pointers (or body small enough that none are needed); 1 = references exist but unconditional or unclear; 0 = long detail inline with no offloading when body exceeds 300 lines.
-- C4.3 No duplication and no generic filler the model already knows (2): 2 = none; 1 = minor; 0 = substantial (tutorials, repeated sections).
+- C4.3 No duplication and no generic filler the model already knows (2): 2 = none; 1 = duplication or generic text that costs tokens on every run; 0 = substantial (tutorials, repeated sections).
 
 ## C5. Tool permissions and safety (10)
 
@@ -95,8 +97,8 @@ For each task record: task | DELEGATE or INLINE | rule(s) that apply (D1-D4, I1-
 
 ## C8. Consistency (7)
 
-- C8.1 No contradictions between frontmatter, body, and references (3): 3 = none; 1 = one; 0 = two or more.
-- C8.2 Consistent terminology (2): 2 = one term per concept; 1 = minor drift; 0 = frequent drift.
+- C8.1 No contradictions between frontmatter, body, and references (3): 3 = none; 1 = one; 0 = two or more. Count only contradictions that lead a model to different actions.
+- C8.2 Consistent terminology (2): 2 = one term per concept; 1 = drift that makes a model treat one concept as two; 0 = that drift for two or more concepts.
 - C8.3 Description matches actual behavior (2): 2 = matches; 1 = partial mismatch; 0 = materially different.
 
 ## C9. Verifiability (5)

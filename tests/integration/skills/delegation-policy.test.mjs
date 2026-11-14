@@ -38,6 +38,37 @@ describe('write delegation policy across audit, build, and review skills', () =>
   });
 });
 
+describe('README agent rows list each kind or mode', () => {
+  test('each agent that declares kind or mode has the same tokens in its README row', () => {
+    // Arrange
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    const names = [];
+    const declared = {};
+    for (const file of readdirSync(join(root, 'agents')).filter((f) => f.endsWith('.md'))) {
+      const step = readFileSync(join(root, 'agents', file), 'utf8').match(/^1\. .*$/m);
+      const group = step ? step[0].match(/`(?:kind|mode)` \(([^)]*)\)/) : null;
+      if (!group) continue;
+      const name = file.slice(0, -'.md'.length);
+      names.push(name);
+      declared[name] = [...group[1].matchAll(/`([a-z-]+)`/g)].map((m) => m[1]).sort();
+    }
+    // Act
+    const offenders = names.filter((name) => {
+      const line = readme.split('\n').find((l) => l.startsWith(`| \`cdk:${name}\` `));
+      const cell = line ? line.split('|')[2] : '';
+      const listed = new Set();
+      for (const g of cell.matchAll(/\(([^()]*)\)/g)) {
+        for (const t of g[1].matchAll(/`([a-z-]+)`/g)) listed.add(t[1]);
+      }
+      return JSON.stringify([...listed].sort()) !== JSON.stringify([...new Set(declared[name])].sort());
+    });
+    // Assert
+    // 10 agents declare kind or mode today; this stops a vacuous pass.
+    assert.ok(names.length >= 10, `only ${names.length} agents declare kind or mode`);
+    assert.deepEqual(offenders, []);
+  });
+});
+
 describe('task-worker is removed', () => {
   test('agent file is gone', () => {
     // Arrange

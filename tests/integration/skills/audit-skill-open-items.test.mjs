@@ -79,7 +79,17 @@ describe('audit-skill closes every open item', () => {
     'reports Residual in the Output': /^Residual: <ID file:line — tried\|untried, … \| none>$/m,
     'reports Rounds out of 2': /^Rounds: <n>\/2$/m,
     'ends ACCEPTED with no open row':
-      /^5\. \*\*Decide\.\*\*\n {3}- `--score-only` → go to step 10\.\n {3}- ACCEPTED \(90 or more and all gates PASS\) and no `open` row → go to step 10\./m
+      /^5\. \*\*Decide\.\*\*\n {3}- `--score-only` → go to step 10\.\n {3}- ACCEPTED \(90 or more and all gates PASS\) and no `open` row → go to step 10\./m,
+    'leaves an ACCEPTED target unedited when no blocking row is open':
+      /^ {3}- ACCEPTED \(90 or more and all gates PASS\) and no `open` row → go to step 10\.\n {3}- Each ACCEPTED target with no blocking `open` row: its non-blocking `open` rows outside `scripts\/` become `residual` \(untried\) and its `scripts\/` rows `out-of-scope`, so an accepted skill is never edited for a leftover; no `open` row left on any target → go to step 10\.\n {3}- Each ACCEPTED target with a blocking `open` row: its non-blocking `open` rows outside `scripts\/` become `residual` \(untried\) and its `scripts\/` rows `out-of-scope`, so its fix round takes only the blocking rows\.\n {3}- Otherwise go to step 6\.$/m,
+    'counts an untried leftover on an ACCEPTED target as residual':
+      /^- Item ledger: [^\n]*`residual` \(non-blocking and terminal: tried once and still deducted, first found on a rescore, or left untried on an ACCEPTED target\)/m,
+    'settles an untried residual left on an ACCEPTED target':
+      /^- Settled memory [^\n]*plus the `residual` rows with `tries` of 1 or more or left untried on an ACCEPTED target, so a row/m,
+    'tags each score-only Open item with its severity':
+      /^Score-only: [^\n]*each `Open:` item ends with `— blocking` or `— non-blocking` per the Severity rule\.$/m,
+    'starts the example from a REJECTED target':
+      /^Example \(one skill, REJECTED at first, accepted after one fix round,/m
   };
 
   for (const [name, pattern] of Object.entries(cases)) {
@@ -92,6 +102,34 @@ describe('audit-skill closes every open item', () => {
       assert.ok(found, `audit-skill lost: ${pattern}`);
     });
   }
+
+  test('drops the fix round for an ACCEPTED target', () => {
+    // Arrange
+    const text = readFileSync(skillPath, 'utf8');
+    // Act
+    const stale = /still gets one fix round/.test(text);
+    // Assert
+    assert.equal(stale, false);
+  });
+});
+
+describe('audit-skill evals cover ACCEPTED targets and waivers', () => {
+  const evalsPath = join(dirname(skillPath), 'references', 'evals.md');
+
+  test('lists accepted-continues, accepted-no-fix-round, and immaterial-waived rows', () => {
+    // Arrange
+    const text = readFileSync(evalsPath, 'utf8');
+    // Act
+    const rows = text;
+    // Assert
+    assert.match(rows, /^\| accepted-continues \| A skill at 92 ACCEPTED with a blocking `open` row/m);
+    assert.match(
+      rows,
+      /^\| accepted-continues \|[^\n]*the non-blocking `open` rows are not fixed in round 1 and go under `Residual:` as untried \|$/m
+    );
+    assert.match(rows, /^\| accepted-no-fix-round \|[^\n]*`Rounds: 0\/2`/m);
+    assert.match(rows, /^\| immaterial-waived \|[^\n]*listed under `Waived:`/m);
+  });
 });
 
 describe('audit-skill Spec brief keeps goals and non-goals consistent', () => {

@@ -39,15 +39,42 @@ describe('build skills delegate writes to implement-spec', () => {
       // Act
       const rules = {
         'build-skill':
-          /^ +c\. At least one VERIFIED fix outside `scripts\/` remains → invoke implement-spec .*goals are only the VERIFIED fixes outside `scripts\/`.*none remains → skip to 8h; a `scripts\/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:`/m,
+          /^ +c\. At least one VERIFIED fix outside `scripts\/` remains and the `Skills:` line says REJECTED → invoke implement-spec .*goals are only the VERIFIED fixes outside `scripts\/`.*the `Skills:` line says ACCEPTED and at least one `blocking` VERIFIED fix outside `scripts\/` remains → the same call with only those blocking fixes as goals, and each non-blocking fix goes to `Open:`, because an accepted skill is edited only for a defect that changes behavior; ACCEPTED with no blocking fix → skip to 8i with no fix round; otherwise none remains → skip to 8h; a `scripts\/` fix goes straight to `Open:`, and UNVERIFIED items go to `Open:`/m,
         'build-subagent':
-          /^ +d\. At least one VERIFIED fix remains → invoke implement-spec .*goals are only the VERIFIED fixes.*UNVERIFIED items go to `Open:`/m
+          /^ +d\. At least one VERIFIED fix remains and the `Subagents:` line says REJECTED → invoke implement-spec .*goals are only the VERIFIED fixes.*the `Subagents:` line says ACCEPTED and at least one `blocking` VERIFIED fix remains → the same call with only those blocking fixes as goals, and each non-blocking fix goes to `Open:`, because an accepted subagent is edited only for a defect that changes behavior; ACCEPTED with no blocking fix → skip to 9i with no fix round; otherwise none remains → skip to 9h, and UNVERIFIED items go to `Open:`/m
       };
       const rule = rules[skill];
-      const stale = /^ +[bcd]\. Not ACCEPTED, or VERIFIED fixes remain/m;
+      const stale =
+        /^ +[bcd]\. Not ACCEPTED, or VERIFIED fixes remain|only churns wording|^ +g\. Loop: at least one VERIFIED fix remains/m;
       // Assert
       assert.match(text, rule);
       assert.doesNotMatch(text, stale);
+    });
+
+    test(`${skill} fixes only blocking VERIFIED fixes of an ACCEPTED score and never extends on ACCEPTED`, () => {
+      // Arrange
+      const text = read('SKILL.md');
+      const evals = read(join('references', 'evals.md'));
+      // Act
+      const cap =
+        /^- Round cap \(step [89]\): .*An ACCEPTED score runs one fix round, only for its blocking VERIFIED fixes.*an ACCEPTED rescore with no blocking VERIFIED fix (outside `scripts\/` )?left ends the loop, and an ACCEPTED result never asks to extend\./m.test(
+          text
+        );
+      const severity = /Before → After, severity `blocking` or `non-blocking`\), and `Waived:`/.test(text);
+      const noAsk =
+        /^ +h\. At the current cap, with the rescore REJECTED and a VERIFIED fix.*; ACCEPTED or no .*fix left → no ask, go to [89]i/m.test(
+          text
+        );
+      const evalRows =
+        /^\| accepted-stops \|.*only non-blocking VERIFIED fixes.*no `Extend 3 more rounds` ask.*\|$/m.test(evals) &&
+        /^\| accepted-blocking-fix \|.*only goal is the blocking fix; no `Extend 3 more rounds` ask; the non-blocking fix is listed under `Open:`/m.test(
+          evals
+        );
+      // Assert
+      assert.ok(cap, 'ACCEPTED blocking-only round cap wording missing');
+      assert.ok(severity, 'severity field missing from the audit return');
+      assert.ok(noAsk, 'ACCEPTED must not ask to extend');
+      assert.ok(evalRows, 'accepted-stops or accepted-blocking-fix eval missing');
     });
 
     test(`${skill} has an explicit fix loop step before the round cap`, () => {
@@ -55,9 +82,9 @@ describe('build skills delegate writes to implement-spec', () => {
       const text = read('SKILL.md');
       const loops = {
         'build-skill':
-          /^ +g\. Loop: at least one VERIFIED fix outside `scripts\/` remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8c \(next round\); otherwise → 8h\.\n\n +h\. At the current cap with a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8c\); no such fix left → no ask, go to 8i/m,
+          /^ +g\. Loop: \(the rescore is REJECTED and at least one VERIFIED fix outside `scripts\/` remains, or it is ACCEPTED and a blocking VERIFIED fix outside `scripts\/` remains\) and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8c \(next round\); otherwise → 8h\.\n\n +h\. At the current cap, with the rescore REJECTED and a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8c\); ACCEPTED or no such fix left → no ask, go to 8i/m,
         'build-subagent':
-          /^ +g\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n\n +h\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); no VERIFIED fix left → no ask, go to 9i/m
+          /^ +g\. Loop: \(the rescore is REJECTED and at least one VERIFIED fix remains, or it is ACCEPTED and a blocking VERIFIED fix remains\) and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n\n +h\. At the current cap, with the rescore REJECTED and a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); ACCEPTED or no VERIFIED fix left → no ask, go to 9i/m
       };
       const stale = /fewer than 3 rounds are done|At the 3-round cap with open items left/;
       // Act
@@ -165,9 +192,9 @@ describe('build skills delegate writes to implement-spec', () => {
       // Act
       const caps = {
         'build-skill':
-          /^- Round cap \(step 8\): .*At the cap, while at least one VERIFIED fix outside `scripts\/` remains, ask `Extend 3 more rounds \| Stop`/m,
+          /^- Round cap \(step 8\): score → fix → rescore is capped at 3 rounds\. An ACCEPTED score runs one fix round, only for its blocking VERIFIED fixes outside `scripts\/`; an ACCEPTED rescore with no blocking VERIFIED fix outside `scripts\/` left ends the loop, and an ACCEPTED result never asks to extend\. At the cap, while the rescore is REJECTED and at least one VERIFIED fix outside `scripts\/` remains, ask `Extend 3 more rounds \| Stop`/m,
         'build-subagent':
-          /^- Round cap \(step 9\): .*At the cap, while at least one VERIFIED fix remains, ask `Extend 3 more rounds \| Stop`/m
+          /^- Round cap \(step 9\): .*At the cap, while the rescore is REJECTED and at least one VERIFIED fix remains, ask `Extend 3 more rounds \| Stop`/m
       };
       const cap = caps[skill].test(text);
       const stale = /At the cap, while open items remain, ask `Extend/.test(text);
@@ -279,6 +306,47 @@ describe('build-skill eval loop and scripts fixes', () => {
   });
 });
 
+describe('build-skill invocation flags and eval rows', () => {
+  const read = (rel) => readFileSync(join(root, 'skills', 'build-skill', rel), 'utf8');
+
+  test('SKILL.md and rules.md forbid touching the invocation flags', () => {
+    // Arrange
+    const skill = read('SKILL.md');
+    const rules = read(join('references', 'rules.md'));
+    // Act
+    const skillBullet = skill.includes(
+      'Never ask about, suggest, or score `disable-model-invocation` or `user-invocable`'
+    );
+    const rulesBullet = rules.includes('Never add, remove, or suggest `disable-model-invocation` or `user-invocable`');
+    // Assert
+    assert.ok(skillBullet, 'build-skill SKILL.md invocation bullet missing');
+    assert.ok(rulesBullet, 'rules.md invocation bullet missing');
+  });
+
+  test('invocation.md is gone and rules.md has no invocation matrix or F13', () => {
+    // Arrange
+    const rules = read(join('references', 'rules.md'));
+    // Act
+    const exists = existsSync(join(root, 'skills', 'build-skill', 'references', 'invocation.md'));
+    // Assert
+    assert.equal(exists, false);
+    assert.doesNotMatch(rules, /## Invocation matrix/);
+    assert.doesNotMatch(rules, /\[F13\]/);
+  });
+
+  test('no-invocation-question eval requires the side-effect description clause', () => {
+    // Arrange
+    const evals = read(join('references', 'evals.md'));
+    // Act
+    const row =
+      /^\| no-invocation-question \|.*No invocation question; no `disable-model-invocation` or `user-invocable` in the built skill; no `Invocation:` line in the report; the description ends with "Use only when the user explicitly asks to push tags\." \|$/m.test(
+        evals
+      );
+    // Assert
+    assert.ok(row, 'no-invocation-question pass text missing the description clause');
+  });
+});
+
 describe('build-skill reference rules and briefs', () => {
   const read = (rel) => readFileSync(join(root, 'skills', 'build-skill', rel), 'utf8');
 
@@ -289,8 +357,8 @@ describe('build-skill reference rules and briefs', () => {
     const must =
       /^- \*\*No format or lint\*\*: .*a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter \(such as `build-dockerfile` or `build-docker-compose`\), is exempt/m;
     const check =
-      /^18\. \[M2\] No format or lint: .*except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter/m;
-    const blanket = /^18\. \[M2\] No format or lint: no step runs a formatter or linter \(judgment-only\)\./m;
+      /^17\. \[M2\] No format or lint: .*except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter/m;
+    const blanket = /^17\. \[M2\] No format or lint: no step runs a formatter or linter \(judgment-only\)\./m;
     // Assert
     assert.match(text, must);
     assert.match(text, check);
@@ -307,6 +375,31 @@ describe('build-skill reference rules and briefs', () => {
     // Assert
     assert.match(text, rule);
     assert.doesNotMatch(text, stale);
+  });
+
+  test('naming.md records the name under rules.md F1', () => {
+    // Arrange
+    const text = read(join('references', 'naming.md'));
+    // Act
+    const record = /^- Record the name; `rules\.md` F1 \(checked by `validate-skill`\) applies to it\./m;
+    const stale = /rubric ID F1|F1 rubric|rubric's F1/;
+    // Assert
+    assert.match(text, record);
+    assert.doesNotMatch(text, stale);
+  });
+
+  test('template and rules.md description lines keep the side-effect clause and omit disable-model-invocation', () => {
+    // Arrange
+    const template = read(join('assets', 'SKILL.template.md'));
+    const rules = read(join('references', 'rules.md'));
+    // Act
+    const templateLine = template.match(/^description: .*$/m)?.[0] ?? '';
+    const rulesLine = rules.match(/^Description: .*$/m)?.[0] ?? '';
+    // Assert
+    assert.match(templateLine, /side effects → end: Use only when the user explicitly asks to <action>\./);
+    assert.match(rulesLine, /A side-effect task ends with "Use only when the user explicitly asks to <action>\."/);
+    assert.doesNotMatch(templateLine, /disable-model-invocation/);
+    assert.doesNotMatch(rulesLine, /disable-model-invocation/);
   });
 
   test('briefs.md fix-round variant excludes scripts and defines the eval goal', () => {

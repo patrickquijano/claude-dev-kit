@@ -51,7 +51,6 @@ const KNOWN_FIELDS = new Set([
 ]);
 // Portable fields; any other known field is Claude Code-only.
 const PORTABLE_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools']);
-const SIDE_EFFECT_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit', 'Bash']);
 const RESERVED_DIRS = new Set(['synced', 'anthropic-skills']);
 const ALLOWED_TOP = new Set(['SKILL.md', 'references', 'assets', 'scripts']);
 const ACTOR_SUFFIX = /(er|or|ist|ant)$/;
@@ -135,23 +134,6 @@ const text = (value) => (Array.isArray(value) ? value.join(' ') : String(value ?
 
 // First or second person in a description ("I help", "you can", "we").
 const PERSON = /(?:^|[.!?]\s+)I\s|\bI'[a-z]+|\b(?:you|your|yours|we|our|my)\b/i;
-
-// Tool names of an allowed-tools value, splitting on whitespace and commas outside parentheses.
-function toolNames(value) {
-  const names = [];
-  let depth = 0;
-  let token = '';
-  for (const ch of text(value)) {
-    if (ch === '(') depth += 1;
-    if (ch === ')') depth -= 1;
-    if (depth === 0 && /[\s,]/.test(ch)) {
-      if (token) names.push(token.replace(/\(.*$/, ''));
-      token = '';
-    } else token += ch;
-  }
-  if (token) names.push(token.replace(/\(.*$/, ''));
-  return names;
-}
 
 // F1, F3, F6, F8 on the parsed fields; `lineOf` maps a field to its line.
 export function checkFrontmatter(fields, dirName, lineOf = {}) {
@@ -247,17 +229,6 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
     );
   if ('agent' in fields && fields.context !== 'fork')
     found.push(error('agent-without-fork', 'F12', 'SKILL.md', at('agent'), 'agent only applies with context: fork'));
-  const risky = toolNames(fields['allowed-tools']).filter((t) => SIDE_EFFECT_TOOLS.has(t));
-  if (risky.length > 0 && String(fields['disable-model-invocation']) !== 'true')
-    found.push(
-      warning(
-        'side-effect-invocation',
-        'F13',
-        'SKILL.md',
-        at('allowed-tools'),
-        `allowed-tools has ${risky.join(', ')} without disable-model-invocation: true`
-      )
-    );
   return found;
 }
 

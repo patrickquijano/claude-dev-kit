@@ -4,7 +4,7 @@ Bundled snapshot of the skill rules. Read it, never guess a rule; the web is opt
 
 ## Contents
 
-- RULES · Frontmatter fields · Invocation matrix · Substitutions · Scope paths · Fallbacks · Manual checklist · Sources
+- RULES · Frontmatter fields · Substitutions · Scope paths · Fallbacks · Manual checklist · Sources
 
 ## RULES
 
@@ -15,7 +15,7 @@ MUST
 - Portable frontmatter only (name, description, license, compatibility, metadata, allowed-tools). Claude Code-only fields (context, agent, disable-model-invocation, etc.) are allowed but the skill must be marked Claude Code-only, with a warning that claude.ai/API uploads reject unknown keys.
 - Body under 500 lines. Detail goes in references/ or scripts/, one level deep. References over 100 lines get a table of contents.
 - Critical rules at the top (compaction keeps only the start).
-- Set the invocation flags the user picked in the invocation question; keep least-privilege `allowed-tools`.
+- Never add, remove, or suggest `disable-model-invocation` or `user-invocable`; keep an existing value as-is; keep least-privilege `allowed-tools`.
 - `context: fork` only for explicit task skills. The body must hold everything the task needs; set `background: false` if the result is needed this turn.
 - Paths: ${CLAUDE_SKILL_DIR}, forward slashes.
 - **Own files**: the skill reads only its own bundled files through `${CLAUDE_SKILL_DIR}` and never through a `${CLAUDE_PLUGIN_ROOT}` path.
@@ -61,8 +61,8 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 | `argument-hint` | - | string, e.g. `[issue-number]` | The skill takes arguments |
 | `arguments` | - | space string or list; names for `$name` | The body reads named positional args |
 | `disallowed-tools` | - | same shapes as `allowed-tools` | Remove tools while active |
-| `disable-model-invocation` | - | bool, false | Side-effect or timing-sensitive task |
-| `user-invocable` | - | bool, true | `false` for background-only |
+| `disable-model-invocation` | - | bool, false | Never suggested; keep an existing value |
+| `user-invocable` | - | bool, true | Never suggested; keep an existing value |
 | `context` | - | `fork` | Explicit task needing isolation |
 | `agent` | - | subagent name; only with `context: fork`; omit unless the user names it | The user names one |
 | `background` | - | bool, true; only with `context: fork` | `false` when the result is needed this turn |
@@ -72,26 +72,7 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 | `hooks` | - | hook config, kept for the session | A rule must hold every time |
 | `shell` | - | `bash` (default) or `powershell` | Injection blocks need PowerShell |
 
-Description: one job; third person; the words users say; distinctive. A side-effect task with `disable-model-invocation: true` ends with "Use only when the user explicitly asks to <action>." Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it, or suggest `disable-model-invocation: true`.
-
-## Invocation matrix
-
-| Flags                            | User `/name` | Claude auto-invokes | Description in context |
-| -------------------------------- | ------------ | ------------------- | ---------------------- |
-| none                             | yes          | yes                 | yes                    |
-| `disable-model-invocation: true` | yes          | no                  | no                     |
-| `user-invocable: false`          | no           | yes                 | yes                    |
-| both                             | no           | no                  | no                     |
-
-`user-invocable: false` only hides the skill from the `/` menu. `disable-model-invocation: true` also blocks preloading into subagents.
-
-| Kind and signal (default the recommendation starts from) | Set |
-| --- | --- |
-| Task with side effects | `disable-model-invocation: true` |
-| Task, read-only or reversible | Omit both flags |
-| Reference | Omit both flags; add `paths` when it applies to certain files only |
-| Background-only | `user-invocable: false` |
-| Task needing isolation, body self-contained | `context: fork`; never for a reference or background-only skill |
+Description: one job; third person; the words users say; distinctive. A side-effect task ends with "Use only when the user explicitly asks to <action>." Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it.
 
 ## Substitutions
 
@@ -134,18 +115,17 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 4. [F6] Every frontmatter key is in the fields table; the YAML opens on line 1 and closes.
 5. [F10] A Claude Code-only key is present → `compatibility` says "Claude Code" and warns that claude.ai/API uploads reject unknown keys.
 6. [F11] `context: fork` → `background` is set (`false` when the result is needed this turn). [F12] `agent` only with `context: fork`.
-7. [F13] `allowed-tools` lists Write, Edit, or Bash → the flags match the recorded invocation choice (warning when `disable-model-invocation: true` is absent; a recorded Allow choice → the warning is informational, not a deduction).
-8. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; name a plugin agent first with a plain-words fallback.
-9. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
-10. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
-11. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
-12. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
-13. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
-14. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn names the plugin subagent first with a plain-words fallback (role in plain words only when no plugin agent fits) and has an inline fallback (judgment-only: the script does not check it).
-15. [Q2] A task skill's `argument-hint` has `[--yes]`; `Input:` strips it; a Rules bullet states what `--yes` does and that it never skips a safety stop (judgment-only).
-16. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
-17. [M1] Memory: a skill that keeps memory writes to Claude's auto-memory dir (path from the session context, else `Open:`), never under its skill directory (judgment-only).
-18. [M2] No format or lint: no step runs a formatter or linter, except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (judgment-only).
+7. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; name a plugin agent first with a plain-words fallback.
+8. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
+9. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
+10. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
+11. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
+12. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
+13. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn names the plugin subagent first with a plain-words fallback (role in plain words only when no plugin agent fits) and has an inline fallback (judgment-only: the script does not check it).
+14. [Q2] A task skill's `argument-hint` has `[--yes]`; `Input:` strips it; a Rules bullet states what `--yes` does and that it never skips a safety stop (judgment-only).
+15. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
+16. [M1] Memory: a skill that keeps memory writes to Claude's auto-memory dir (path from the session context, else `Open:`), never under its skill directory (judgment-only).
+17. [M2] No format or lint: no step runs a formatter or linter, except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (judgment-only).
 
 ## Sources
 

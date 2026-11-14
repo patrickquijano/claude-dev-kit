@@ -112,6 +112,124 @@ describe('rubrics waive negligible items', () => {
     });
   }
 
+  test('audit-skill rubric sub-criteria sum to 100', () => {
+    // Arrange
+    const text = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
+    const rows = [...text.matchAll(/^- C\d+\.\d+ .*?\((\d+)\):/gm)];
+    // Act
+    const total = rows.reduce((sum, m) => sum + Number(m[1]), 0);
+    // Assert
+    assert.equal(rows.length, 33);
+    assert.equal(total, 100);
+  });
+
+  test('audit-skill rubric deducts only for material defects', () => {
+    // Arrange
+    const text = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
+    // Act
+    const rule =
+      /^- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the skill triggers, what it does or outputs, a safety stop, whether its result can be verified, or its token, step, or spawn cost\. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action\.\n- Negligible waiver: /m;
+    const tiers = [
+      /^- C1\.2 .*: 7 = 2 or more realistic user phrasings or contexts; 3 = 1; 0 = none\.$/m,
+      /^- C1\.4 .*2 = a sentence widens triggering toward a neighbor's requests or blurs when to fire, or a sentence adds no trigger information/m,
+      /^- C2\.1 .*3 = a step bundles actions so that one is likely skipped, or the order is unclear;/m,
+      /^- C2\.2 Rationale given for rules a model would plausibly break without their reason \(3\)/m,
+      /^- C2\.4 .*only where the word leaves an action, input, or stop undecided\..*List each counted occurrence\.$/m,
+      /^- C4\.3 .*1 = duplication or generic text that costs tokens on every run;/m,
+      /^- C8\.1 .*Count only contradictions that lead a model to different actions\.$/m,
+      /^- C8\.2 .*1 = drift that makes a model treat one concept as two;/m
+    ];
+    const stale = /use passive voice|1 = minor;|1 = minor drift|3 or more realistic user phrasings/;
+    // Assert
+    assert.match(text, rule);
+    for (const tier of tiers) assert.match(text, tier);
+    assert.doesNotMatch(text, stale);
+  });
+
+  test('audit-skill never scores or fixes invocation flags', () => {
+    // Arrange
+    const rubric = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
+    const evals = readFileSync(join(root, 'skills/audit-skill/references/evals.md'), 'utf8');
+    // Act
+    const rule =
+      /^- Invocation flags: never score, deduct for, or propose a fix \(VERIFIED, unverified, or Outside rubric\) that adds, removes, or changes `disable-model-invocation` or `user-invocable`; C5\.2 judges confirmation steps in the body, not these flags\.$/m;
+    const row =
+      /^\| no-invocation-flag-fix \| A skill with Write in `allowed-tools` and no `disable-model-invocation` \| Scores it with no flag finding \| No deduction, fix, or `Outside rubric` item that adds, removes, or changes `disable-model-invocation` or `user-invocable` \|$/m;
+    // Assert
+    assert.match(rubric, rule, 'invocation flags rule missing');
+    assert.match(evals, row, 'no-invocation-flag-fix row missing');
+  });
+
+  test('audit-subagent rubric sub-criteria sum to 100', () => {
+    // Arrange
+    const text = readFileSync(join(root, 'skills/audit-subagent/references/rubric.md'), 'utf8');
+    const rows = [...text.matchAll(/^- C\d+\.\d+ .*?\((\d+)\):/gm)];
+    // Act
+    const total = rows.reduce((sum, m) => sum + Number(m[1]), 0);
+    // Assert
+    assert.equal(rows.length, 32);
+    assert.equal(total, 100);
+  });
+
+  test('audit-subagent rubric deducts only for material defects', () => {
+    // Arrange
+    const text = readFileSync(join(root, 'skills/audit-subagent/references/rubric.md'), 'utf8');
+    // Act
+    const rule =
+      /^- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the parent delegates to the subagent, what it does or returns, a safety stop, whether its result can be verified, or its token, step, or spawn cost\. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action\.\n- Negligible waiver: .*\(fails Materiality: wording, synonyms, voice, style, ordering, cosmetics\)/m;
+    const tiers = [
+      /^- C1\.2 .*: 6 = 2 or more concrete situations or trigger phrasings; 3 = 1; 0 = none\.$/m,
+      /^- C3\.1 .*3 = a step bundles actions so one is likely skipped, or the order is unclear;/m,
+      /^- C3\.2 Rationale given for rules a model would plausibly break without their reason \(3\)/m,
+      /^- C3\.3 .*only where the word leaves an action, input, or stop undecided\..*List each counted occurrence\.$/m,
+      /^- C3\.4 .*1 = filler or generic text that costs tokens on every run \(e\.g\. generic persona lines\); 0 = substantial\.$/m,
+      /^- C8\.1 .*Count only contradictions that lead a model to different actions\.$/m,
+      /^- C8\.2 .*0 = drift that makes a model treat one concept as two\.$/m
+    ];
+    const coverage = /\(C3\.3 vague words that leave an action, input, or stop undecided, G4 secrets/;
+    const stale = /3 or more concrete situations|1-2; 0 = none|1 = minor \(|3 = most;|non-obvious rule|0 = drift\.$/m;
+    // Assert
+    assert.match(text, rule);
+    assert.match(text, coverage);
+    for (const tier of tiers) assert.match(text, tier);
+    assert.doesNotMatch(text, stale);
+  });
+
+  const padding = {
+    'audit-skill':
+      /^- C1\.4 .*4 = within limit, no sentence widens or blurs triggering, and every sentence adds trigger information; 2 = .*, or a sentence adds no trigger information \(costs tokens every session\); 0 = /m,
+    'audit-subagent':
+      /^- C1\.4 .*3 = no sentence widens or blurs when to delegate, and every sentence adds trigger information; 1 = .*, or a sentence adds no trigger information \(costs tokens every session\); 0 = /m
+  };
+  for (const [skill, pattern] of Object.entries(padding)) {
+    test(`${skill} rubric C1.4 deducts a sentence that adds no trigger information`, () => {
+      // Arrange
+      const text = readRel(`skills/${skill}/references/rubric.md`);
+      // Act
+      const found = pattern.test(text);
+      // Assert
+      assert.ok(found, 'C1.4 padding tier missing');
+    });
+  }
+
+  test('rubric-scorer lists exactly the four current kinds', () => {
+    // Arrange
+    const text = readRel('agents/rubric-scorer.md');
+    const step = text.match(/^1\. Inputs from prompt: `kind` \((.*?)\), the rubric path/m);
+    // Act
+    const kinds = step ? [...step[1].matchAll(/`([a-z-]+)`/g)].map((m) => m[1]) : [];
+    // Assert
+    assert.deepEqual(kinds, ['skill-audit', 'subagent-audit', 'readme', 'project-instructions']);
+    assert.match(
+      text,
+      /^description: Scores a skill or subagent audit, README\.md, or CLAUDE\.md and rules against its 100-point rubric after an edit, verifying commands, paths, and links\. Read-only\.$/m
+    );
+    assert.doesNotMatch(text, /^### agent$/m);
+    assert.doesNotMatch(text, /^### skill$/m);
+    assert.doesNotMatch(text, /Contract:/);
+    assert.doesNotMatch(text, /check JSON/);
+  });
+
   test('update-readme rubric still sums to 100', () => {
     // Arrange
     const text = readFileSync(join(root, 'skills/update-readme/references/rubric.md'), 'utf8');
