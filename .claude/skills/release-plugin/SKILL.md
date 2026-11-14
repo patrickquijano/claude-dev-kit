@@ -2,8 +2,7 @@
 name: release-plugin
 description: Releases the plugin, version bump to GitHub release. Use only on an explicit ask to release, cut a release, ship a new version, or publish the plugin. Not for editing a release or only tagging.
 argument-hint: '[--yes] [version]'
-disable-model-invocation: true
-compatibility: Claude Code only. Uses disable-model-invocation and argument-hint; claude.ai and API uploads reject unknown frontmatter keys.
+compatibility: Claude Code only. Uses argument-hint; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Read Edit Bash(git rev-parse *) Bash(git status *) Bash(date +%F) Bash(gh run list *) Bash(gh run watch *) Bash(gh release view *)
 ---
 
@@ -46,7 +45,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Invoke the `cdk:open-github-pull-request` skill.
    - Record the PR URL from its Output (none → stop).
    - Record the release head branch `<head>` from `git rev-parse --abbrev-ref HEAD`.
-10. Invoke the `cdk:merge-github-pull-request <url>` skill: squash, branch kept (step 12 deletes it only after the release check); record `<merged head sha>` from the `PR: … @ <sha>` line of its Output.
+10. Invoke the `cdk:merge-github-pull-request <url>` skill: squash, branch kept (unless the host deletes head branches on merge; step 12 deletes it only after the release check); record `<merged head sha>` from the `PR: … @ <sha>` line of its Output.
 11. **Release check.**
     - Run `git switch <default>`.
     - Run `git pull --ff-only` (the tag must sit on the default tip).
@@ -60,7 +59,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 15. **Wait for the release workflow.**
     - Run `git rev-parse v<version>^{commit}`.
     - Run `gh run list --workflow release.yml --commit <sha> --event push --json databaseId,status,conclusion --limit 1`; no run yet → re-run the list, at most 5 times, so a run that never starts ends the wait.
-    - Run `gh run watch <id> --exit-status --compact`; a non-zero exit → `Stopped: 15: release workflow failed`, `Workflow: failure`, with Next: recover the release with `/cdk:create-github-release`.
+    - Run `gh run watch <id> --exit-status --compact`; a non-zero exit → `Stopped: 15: release workflow failed`, `Workflow: failure`, with Next: recover the release through `cdk:create-github-release`.
     - Success → `Workflow: success`, then `gh release view v<version> --json url` for `Release:`.
     - No `gh` → `Workflow: not watched`, listed under `Open:`.
 16. **Report.** Print the Output.
@@ -99,7 +98,7 @@ Workflow: failure
 Release: none
 Steps: 1-14
 Open: none
-Next: recover the release with /cdk:create-github-release
+Next: recover the release through `cdk:create-github-release`
 Result: stopped
 Stopped: 15: release workflow failed
 ```

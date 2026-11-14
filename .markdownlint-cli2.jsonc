@@ -1,6 +1,6 @@
 {
   "config": {
-    "MD013": false, // long lines are fine in prose and tables
+    "MD013": false, // prose is never wrapped; long lines are expected
     "MD024": false, // changelog and eval files repeat headings
     "MD025": false, // templates hold more than one H1
     "MD031": false, // compact fenced blocks inside lists

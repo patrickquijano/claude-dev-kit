@@ -49,28 +49,28 @@ DON'T
 
 Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false`. Malformed YAML loads the body with empty metadata. Claude Code ignores unknown or misspelled keys silently, so names must match exactly. Portable fields are marked P; all others are Claude Code-only.
 
-| Field                      | P   | Type, default                                                           | Set when                                         |
-| -------------------------- | --- | ----------------------------------------------------------------------- | ------------------------------------------------ |
-| `name`                     | P   | kebab string; default the directory name; an action (verb-first)        | Always                                           |
-| `description`              | P   | string; default the first body line                                     | Always                                           |
-| `license`                  | P   | string                                                                  | Distribution needs it                            |
-| `compatibility`            | P   | string, ≤500 chars                                                      | Always for a Claude Code-only skill              |
-| `metadata`                 | P   | map; never reuse field names as keys                                    | Your own tooling needs it                        |
-| `allowed-tools`            | P   | space or comma string, or list; pre-approves tools, does not restrict   | Known-safe tools the skill uses, least privilege |
-| `when_to_use`              |     | string, appended to `description` in the listing (together ≤1,536)      | Trigger phrases crowd the description            |
-| `argument-hint`            |     | string, e.g. `[issue-number]`                                           | The skill takes arguments                        |
-| `arguments`                |     | space string or list; names for `$name`                                 | The body reads named positional args             |
-| `disallowed-tools`         |     | same shapes as `allowed-tools`                                          | Remove tools while active                        |
-| `disable-model-invocation` |     | bool, false                                                             | Side-effect or timing-sensitive task             |
-| `user-invocable`           |     | bool, true                                                              | `false` for background-only                      |
-| `context`                  |     | `fork`                                                                  | Explicit task needing isolation                  |
-| `agent`                    |     | subagent name; only with `context: fork`; omit unless the user names it | The user names one                               |
-| `background`               |     | bool, true; only with `context: fork`                                   | `false` when the result is needed this turn      |
-| `model`                    |     | `/model` value or `inherit`; this turn only                             | A different model is needed                      |
-| `effort`                   |     | `low` `medium` `high` `xhigh` `max`                                     | A fixed effort is needed                         |
-| `paths`                    |     | globs, comma string or list                                             | A reference that applies to certain files only   |
-| `hooks`                    |     | hook config, kept for the session                                       | A rule must hold every time                      |
-| `shell`                    |     | `bash` (default) or `powershell`                                        | Injection blocks need PowerShell                 |
+| Field | P | Type, default | Set when |
+| --- | --- | --- | --- |
+| `name` | P | kebab string; default the directory name; an action (verb-first) | Always |
+| `description` | P | string; default the first body line | Always |
+| `license` | P | string | Distribution needs it |
+| `compatibility` | P | string, ≤500 chars | Always for a Claude Code-only skill |
+| `metadata` | P | map; never reuse field names as keys | Your own tooling needs it |
+| `allowed-tools` | P | space or comma string, or list; pre-approves tools, does not restrict | Known-safe tools the skill uses, least privilege |
+| `when_to_use` | - | string, appended to `description` in the listing (together ≤1,536) | Trigger phrases crowd the description |
+| `argument-hint` | - | string, e.g. `[issue-number]` | The skill takes arguments |
+| `arguments` | - | space string or list; names for `$name` | The body reads named positional args |
+| `disallowed-tools` | - | same shapes as `allowed-tools` | Remove tools while active |
+| `disable-model-invocation` | - | bool, false | Side-effect or timing-sensitive task |
+| `user-invocable` | - | bool, true | `false` for background-only |
+| `context` | - | `fork` | Explicit task needing isolation |
+| `agent` | - | subagent name; only with `context: fork`; omit unless the user names it | The user names one |
+| `background` | - | bool, true; only with `context: fork` | `false` when the result is needed this turn |
+| `model` | - | `/model` value or `inherit`; this turn only | A different model is needed |
+| `effort` | - | `low` `medium` `high` `xhigh` `max` | A fixed effort is needed |
+| `paths` | - | globs, comma string or list | A reference that applies to certain files only |
+| `hooks` | - | hook config, kept for the session | A rule must hold every time |
+| `shell` | - | `bash` (default) or `powershell` | Injection blocks need PowerShell |
 
 Description: one job; third person; the words users say; distinctive. A side-effect task with `disable-model-invocation: true` ends with "Use only when the user explicitly asks to <action>." Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it, or suggest `disable-model-invocation: true`.
 
@@ -85,23 +85,23 @@ Description: one job; third person; the words users say; distinctive. A side-eff
 
 `user-invocable: false` only hides the skill from the `/` menu. `disable-model-invocation: true` also blocks preloading into subagents.
 
-| Kind and signal (default the recommendation starts from) | Set                                                                |
-| -------------------------------------------------------- | ------------------------------------------------------------------ |
-| Task with side effects                                   | `disable-model-invocation: true`                                   |
-| Task, read-only or reversible                            | Omit both flags                                                    |
-| Reference                                                | Omit both flags; add `paths` when it applies to certain files only |
-| Background-only                                          | `user-invocable: false`                                            |
-| Task needing isolation, body self-contained              | `context: fork`; never for a reference or background-only skill    |
+| Kind and signal (default the recommendation starts from) | Set |
+| --- | --- |
+| Task with side effects | `disable-model-invocation: true` |
+| Task, read-only or reversible | Omit both flags |
+| Reference | Omit both flags; add `paths` when it applies to certain files only |
+| Background-only | `user-invocable: false` |
+| Task needing isolation, body self-contained | `context: fork`; never for a reference or background-only skill |
 
 ## Substitutions
 
-| Token                                            | Value                                                              |
-| ------------------------------------------------ | ------------------------------------------------------------------ |
-| `$ARGUMENTS`                                     | All arguments as typed; appended as `ARGUMENTS: <value>` if absent |
-| `$ARGUMENTS[N]`, `$N`                            | 0-based argument; quotes group                                     |
-| `$name`                                          | Named argument declared in `arguments`                             |
-| `${CLAUDE_SKILL_DIR}`                            | This skill's directory; use it in script and file paths            |
-| `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | Plugin skills only; never used to reach another skill              |
+| Token | Value |
+| --- | --- |
+| `$ARGUMENTS` | All arguments as typed; appended as `ARGUMENTS: <value>` if absent |
+| `$ARGUMENTS[N]`, `$N` | 0-based argument; quotes group |
+| `$name` | Named argument declared in `arguments` |
+| `${CLAUDE_SKILL_DIR}` | This skill's directory; use it in script and file paths |
+| `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | Plugin skills only; never used to reach another skill |
 
 Escape a literal dollar as `\$1.00`. Injection (an exclamation mark before a backticked command) runs before Claude reads the skill and aborts the invocation on a non-zero exit; prefer Read for the skill's own files. An injection in SKILL.md needs an `||` fallback, and none belongs in `references/`.
 

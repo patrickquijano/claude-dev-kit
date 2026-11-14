@@ -55,11 +55,11 @@ The parent, after step 6: every changed file in the batch (not under `Skipped:`)
 
 Before the table, the parent re-reads each `critical` and `major` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an own thread (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
 
-| Condition                                                                                                                                                                                                           | Event             |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Any own gating thread still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical`, `major`, or `minor` finding                                                                | `REQUEST_CHANGES` |
-| Own PR (GitHub rejects review events on it); draft PR; any failing or pending check in `statusCheckRollup`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn | `COMMENT`         |
-| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating                                                                                                                                  | `APPROVE`         |
+| Condition | Event |
+| --- | --- |
+| Any own gating thread still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical`, `major`, or `minor` finding | `REQUEST_CHANGES` |
+| Own PR (GitHub rejects review events on it); draft PR; any failing or pending check in `statusCheckRollup`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn | `COMMENT` |
+| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating | `APPROVE` |
 
 A carried summary finding still Open counts as an own gating thread for the first row. Rows apply top to bottom, first match wins: a draft PR with a gating thread gets `REQUEST_CHANGES`; a draft never gets `APPROVE`. Own-PR gating cannot be expressed as a review event: post `COMMENT`, and the summary states that changes are requested through the unresolved threads. `APPROVE` carries no new gating findings; a first review may add up to 5 `nit` or `question` threads (`post.md`).
 

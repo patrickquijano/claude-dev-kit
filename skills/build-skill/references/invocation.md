@@ -10,14 +10,14 @@ The weighted question that sets a skill's invocation flags. Ask it every run (cr
 
 Pick the set by the skill's kind. Each option states facts from the Invocation matrix in `rules.md` (a bundled snapshot; re-checking its Sources is optional).
 
-| Kind            | Option          | Flags                            | Who can invoke  | Description in context  | Preload into subagents |
-| --------------- | --------------- | -------------------------------- | --------------- | ----------------------- | ---------------------- |
-| Task            | Disable         | `disable-model-invocation: true` | User only       | No                      | Blocked                |
-| Task            | Allow           | none                             | User and Claude | Yes                     | Allowed                |
-| Reference       | Allow           | none                             | User and Claude | Yes                     | Allowed                |
-| Reference       | Allow + `paths` | `paths: <globs>`                 | User and Claude | Yes, for matching files | Allowed                |
-| Background-only | Background-only | `user-invocable: false`          | Claude only     | Yes                     | Allowed                |
-| Background-only | Allow           | none                             | User and Claude | Yes                     | Allowed                |
+| Kind | Option | Flags | Who can invoke | Description in context | Preload into subagents |
+| --- | --- | --- | --- | --- | --- |
+| Task | Disable | `disable-model-invocation: true` | User only | No | Blocked |
+| Task | Allow | none | User and Claude | Yes | Allowed |
+| Reference | Allow | none | User and Claude | Yes | Allowed |
+| Reference | Allow + `paths` | `paths: <globs>` | User and Claude | Yes, for matching files | Allowed |
+| Background-only | Background-only | `user-invocable: false` | Claude only | Yes | Allowed |
+| Background-only | Allow | none | User and Claude | Yes | Allowed |
 
 ## Criteria
 

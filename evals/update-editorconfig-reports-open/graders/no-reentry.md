@@ -2,5 +2,4 @@
 type: llm
 ---
 
-PASS if, after the Fix step starts, earlier workflow steps (file type detection, existing config read, initialize, write, check) do not run again.
-FAIL if the skill re-runs any earlier step after Fix began.
+PASS if, after the Fix step starts, earlier workflow steps (file type detection, existing config read, initialize, write, check) do not run again. FAIL if the skill re-runs any earlier step after Fix began.

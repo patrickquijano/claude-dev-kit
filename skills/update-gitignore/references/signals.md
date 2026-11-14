@@ -8,17 +8,17 @@ Read manifests and tool configs, then look for what they produce on disk. A cand
 
 ## Categories
 
-| Category     | Typical paths                                                              | Evidence                                                                        |
-| ------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Dependencies | `node_modules/`, `vendor/`, `.venv/`, `.pnpm-store/`, `Pods/`              | Lockfile or manifest tracked, directory untracked                               |
-| Build output | `dist/`, `build/`, `target/`, `bin/`, `obj/`, `.next/`, `out/`             | Build script or tool config names it as output; directory untracked             |
-| Caches       | `.cache/`, `__pycache__/`, `.pytest_cache/`, `.eslintcache`, `.turbo/`     | Tool config or file present untracked                                           |
-| Test output  | `coverage/`, `htmlcov/`, `test-results/`, `playwright-report/`, `*.lcov`   | Test script or config names it; directory untracked                             |
-| Logs         | `*.log`, `logs/`, `npm-debug.log*`                                         | Such files untracked                                                            |
-| Secrets      | `.env`, `.env.*`, `*.pem`, `*.key`, `credentials.json`                     | File untracked; keep `!.env.example` style templates tracked with a `!` pattern |
-| Local config | `*.local.*`, `.claude/settings.local.json`, `docker-compose.override.yml`  | File untracked and named local or override                                      |
-| Editor / OS  | `.idea/`, `.vscode/*`, `*.swp`, `.DS_Store`, `Thumbs.db`                   | Present untracked; keep tracked `.vscode/` files with a `!` pattern             |
-| Generated    | `*.tsbuildinfo`, `.terraform/`, `.vulnerability-reports/`, `*.generated.*` | Tool config or header comment marks it generated                                |
+| Category | Typical paths | Evidence |
+| --- | --- | --- |
+| Dependencies | `node_modules/`, `vendor/`, `.venv/`, `.pnpm-store/`, `Pods/` | Lockfile or manifest tracked, directory untracked |
+| Build output | `dist/`, `build/`, `target/`, `bin/`, `obj/`, `.next/`, `out/` | Build script or tool config names it as output; directory untracked |
+| Caches | `.cache/`, `__pycache__/`, `.pytest_cache/`, `.eslintcache`, `.turbo/` | Tool config or file present untracked |
+| Test output | `coverage/`, `htmlcov/`, `test-results/`, `playwright-report/`, `*.lcov` | Test script or config names it; directory untracked |
+| Logs | `*.log`, `logs/`, `npm-debug.log*` | Such files untracked |
+| Secrets | `.env`, `.env.*`, `*.pem`, `*.key`, `credentials.json` | File untracked; keep `!.env.example` style templates tracked with a `!` pattern |
+| Local config | `*.local.*`, `.claude/settings.local.json`, `docker-compose.override.yml` | File untracked and named local or override |
+| Editor / OS | `.idea/`, `.vscode/*`, `*.swp`, `.DS_Store`, `Thumbs.db` | Present untracked; keep tracked `.vscode/` files with a `!` pattern |
+| Generated | `*.tsbuildinfo`, `.terraform/`, `.vulnerability-reports/`, `*.generated.*` | Tool config or header comment marks it generated |
 
 ## Evidence sources
 

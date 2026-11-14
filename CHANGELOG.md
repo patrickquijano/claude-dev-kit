@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-11-14
+
+### Changed
+
+- `/cdk:merge-github-pull-request` skips the branch-cleanup question when the repository already deletes merged branches, and reports `Branch: deleted (host setting)`.
+- `/cdk:setup-formatters` and `/cdk:setup-linters` now configure Prettier with `proseWrap: never` and a Markdown lint setup that expects unwrapped prose.
+
 ## [0.9.4] - 2026-11-14
 
 ### Changed
@@ -605,7 +612,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...HEAD
+[0.9.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...v0.9.3
 [0.9.2]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.1...v0.9.2

@@ -8,7 +8,7 @@
 
 Format: tool — config file — recommended defaults — check command. `<x>` = the exec form for installed binaries from `package-manager.md` (`npx --no-install`, `pnpm exec`, `yarn`, `bunx --no-install`). Preference `.jsonc` > `.json` > `.yaml`. A tool that supports none of these uses its native format, as listed. Configured = any config file the tool reads already exists, including a `package.json` key. `none` = tool defaults are the recommendation; write no config and ask nothing. Write only keys whose value differs from the tool's default: a key that restates a default is dropped (checked against each tool's docs). A configured tool whose config differs from these defaults → show the diff and ask `Overwrite` | `Keep`.
 
-- Prettier — `.prettierrc.json` (Prettier reads no `.jsonc`) — `{ "printWidth": 120, "singleQuote": true, "trailingComma": "none" }`, plus `"plugins"` with `@prettier/plugin-xml` when Prettier formats XML and `@prettier/plugin-php` when it formats PHP — `<x> prettier --check .`.
+- Prettier — `.prettierrc.json` (Prettier reads no `.jsonc`) — `{ "printWidth": 120, "proseWrap": "never", "singleQuote": true, "trailingComma": "none" }`, plus `"plugins"` with `@prettier/plugin-xml` when Prettier formats XML and `@prettier/plugin-php` when it formats PHP — `<x> prettier --check .`.
 - yamlfmt — `.yamlfmt.yaml` (YAML only) — the `## YAML alignment` `formatter` block, no `max_line_length` — `yamlfmt -lint .`.
 - shfmt — `.editorconfig` — none — `shfmt -d <shell files>`; Bats files in their own run: `shfmt -d -ln bats <Bats files>`.
 - Ruff (format) — `ruff.toml`, or `[tool.ruff]` in `pyproject.toml` — none — `ruff format --check .`.
