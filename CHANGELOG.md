@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.6] - 2026-11-14
+
+### Changed
+
+- `/cdk:build-skill` no longer asks an invocation question and never adds `disable-model-invocation` or `user-invocable` to a built skill.
+- `/cdk:build-skill` ends a side-effect skill's description with "Use only when the user explicitly asks to <action>." so it is not auto-invoked on a loose match.
+- `/cdk:audit-skill` no longer scores invocation flags or proposes adding or removing them.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` fix only the blocking items of an accepted target and report its other items under `Residual:`.
+- `/cdk:build-skill` and `/cdk:build-subagent` keep fixing after an accepted rescore while a blocking verified fix remains, within the round cap.
+- `cdk:rubric-scorer` scores only the `skill-audit`, `subagent-audit`, `readme`, and `project-instructions` kinds.
+
+### Removed
+
+- The `validate-skill` script's `side-effect-invocation` warning for skills whose `allowed-tools` can write without `disable-model-invocation: true`.
+
 ## [0.9.5] - 2026-11-14
 
 ### Changed
@@ -612,7 +627,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.6...HEAD
+[0.9.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...v0.9.4
 [0.9.3]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.2...v0.9.3
