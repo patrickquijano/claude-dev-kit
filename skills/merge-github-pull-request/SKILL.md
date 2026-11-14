@@ -56,7 +56,7 @@ Fallbacks: <step: MCP lacks <field>> | none
 Blockers: <blocker list> | none
 Refusal: <host's exact error> | none
 Merge commit: <sha> | not merged
-Branch: deleted | kept | not offered (<reason>)
+Branch: deleted | deleted (host setting) | kept | not offered (<reason>)
 Open: <item: who acts> | none
 Next: <follow-up> | none
 Result: done | nothing-to-do | stopped

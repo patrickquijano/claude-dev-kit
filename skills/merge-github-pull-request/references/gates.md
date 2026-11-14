@@ -50,7 +50,7 @@ Offer only methods `merge-methods` allows; drop Merge when `rules` has `required
 
 ## Branch cleanup
 
-Under `--yes` the recommended option is taken; the stops above still apply. Head in a fork (`isCrossRepository` true) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior.
+Under `--yes` the recommended option is taken; the stops above still apply. Head in a fork (`isCrossRepository` true) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `deleteBranchOnMerge` true and head not in a fork → do not ask; merge with the Keep tool (no `--delete-branch`, so the local branch stays); state that the host deletes the head branch on merge (repo setting).
 
 | Option        | Recommended when                                                                                                       | Reason                                                                        |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -71,10 +71,13 @@ Admin bypass runs only when the user's input asks for it and eligibility holds. 
 
 ## Post-merge check
 
-| Check                             | Expected | Mismatch                     |
-| --------------------------------- | -------- | ---------------------------- |
-| `merge-commit` state              | merged   | `Open: merge not confirmed`  |
-| `merge-parents`, squash or rebase | 1        | `Open: merge_method ignored` |
-| `merge-parents`, merge            | 2        | `Open: merge_method ignored` |
-| `branch-exists` after Delete      | 404      | `Open: branch still present` |
-| `branch-exists` after Keep        | 200      | `Open: branch missing`       |
+| Check                                           | Expected | Mismatch                     |
+| ----------------------------------------------- | -------- | ---------------------------- |
+| `merge-commit` state                            | merged   | `Open: merge not confirmed`  |
+| `merge-parents`, squash or rebase               | 1        | `Open: merge_method ignored` |
+| `merge-parents`, merge                          | 2        | `Open: merge_method ignored` |
+| `branch-exists` after Delete                    | 404      | `Open: branch still present` |
+| `branch-exists` after Keep, no host auto-delete | 200      | `Open: branch missing`       |
+| `branch-exists`, host auto-delete               | 404      | none                         |
+
+With host auto-delete, report `Branch: deleted (host setting)` on 404 and `kept` on 200 (the host may keep a branch it cannot delete).
