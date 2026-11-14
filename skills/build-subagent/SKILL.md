@@ -38,40 +38,73 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Interact check.** `--yes` → skip this check. Otherwise load `AskUserQuestion` with ToolSearch if it is deferred; still not in the tool list, or running as a subagent → `Result: stopped`, `Stopped: 1: cannot interact`; nothing else runs.
 2. **Locate.**
+
    a. Pull job, name, triggers, inputs, tools, writes, and return from the input.
+
    b. Glob all scopes per `${CLAUDE_SKILL_DIR}/references/verify.md` `## Locate`.
+
    c. More than one match with different names → ask which.
+
    d. The same name at two scopes → warn which one shadows and ask which file; step 4 then picks the mode.
+
 3. **Preflight.**
+
    a. Fit per `interview.md` `## Fit`: not a subagent → note the better mechanism once, then proceed.
+
    b. Freshness and unreachable docs per the `Freshness:` line of `docs-snapshot.md` (a refresh is read into memory for this run only and never written to the skill's own files, which live in the plugin cache); snapshot missing too → write only `name`, `description`, the derived `color`, and fields the user supplies (including `model` and `effort`), each other field labeled Unverified.
+
    c. Run `claude-version` and compare it with `docs-snapshot.md` `## Version gates`; a feature above the local version is noted as unavailable, with no question.
+
 4. **Mode.**
+
    a. No match → create; one match with a stated change → update; "improve" or no change → improve (ask when unclear).
+
    b. Improve: run `check-agent` as the Baseline per `verify.md` `## Baseline`.
+
    c. Several jobs → `interview.md` `## Several jobs`.
+
 5. **Interview.** Items 1–13 (items 1–2 carry the step 3–4 answer; item 12 is the optional-capabilities question), per `interview.md` `## Items` and `## Protocol`; update and improve per `## Update and improve`.
 6. **Brief.** Print it per `interview.md` `## Brief` with `Target: <absolute path>`, then continue with no wait.
 7. **Spec.**
+
    a. Build the spec per the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md` from the printed Brief, the absolute target path, the mode, and the absolute paths of the agent checklist, docs snapshot, and agent template; print the spec summary (mode, target path, recorded choices, goals) and do not wait.
+
 8. **Write.**
+
    a. Update and improve: back up first with `Write` in the main thread.
+
    b. Invoke implement-spec per Rules with the spec; it asks the approach question.
+
    c. Map its Output: `Files` → `File:`, `Open` → `Open:` (its `unverified:` items to `Unverified:`; a `baseline:` item is printed on its own line instead), `Stopped` → per Rules (input stop → `Result: stopped`; cap stop → `Open:`, then step 9; a create-mode cap stop with nothing written ends the run with `Result: stopped`, `Stopped: 8: nothing written` and never continues to step 9, because there is no target to check).
+
    d. Create follows `${CLAUDE_SKILL_DIR}/references/agent-checklist.md` and `${CLAUDE_SKILL_DIR}/assets/agent.template.md`; update and improve edit only the Brief's listed lines.
+
    e. A refresh from step 3 is never written; one that changes a field, enum, or removed-tool fact → `Open: check-agent lists need re-sync (report the changed fact; the skill's own snapshot is updated in its source repo)`.
+
    f. A new agents dir created → `Reload: restart`.
+
    g. A failed write → `Result: stopped`, `Stopped: 8: <error>`.
+
 9. **Check and score.**
+
    a. Run `check-agent` per `verify.md` `## Run the check`.
+
    b. A fix list (rubric id, line, message) → invoke implement-spec with the fix-round variant of the brief; at most 3 rounds.
+
    c. ``Invoke the `cdk:audit-subagent` skill (fallback: run the audit-subagent skill)`` as `cdk:audit-subagent --score-only <absolute target path>`; it scores with a fresh context and never edits, and returns the `Subagents:` line, `Open:` items (ID, lost points, file:line, Before → After), and `Waived:`, at most 200 lines.
+
    d. At least one VERIFIED fix remains → invoke implement-spec with a spec whose goals are only the VERIFIED fixes (fix ID, Before → After, with a matching remembered fix as an unverified hint) and whose expectation is "rescore ACCEPTED"; none remains → skip to 9h, and UNVERIFIED items go to `Open:` unapplied. Its `Open:` joins the open list; an input stop ends the run per Rules, and after a cap stop rescore still runs.
+
    e. Re-run `check-agent`.
+
    f. Rescore with 9c; a rescore that confirms a fix → write its fix memory.
+
    g. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap (3, plus 3 per Extend) → step 9d (next round); otherwise → 9h.
+
    h. At the current cap with a VERIFIED fix still open, ask per the round-cap rule (Extend → step 9d); no VERIFIED fix left → no ask, go to 9i, because another round can fix nothing.
+
    i. Every item not fixed goes to `Open:` as `ID (lost pts) file:line: fix`; negligible items go to `Waived:`. A REJECTED result after a Stop is reported, not looped again.
+
 10. **Validate.** `validate-agents` and `debug-log-search` once per `verify.md` `## Validate`; what cannot run → `Not tested:`.
 11. **Delegation test.** Per `verify.md` `## Delegation test`, else `Not tested:`.
 12. **Output.** Print the block below, nothing else.

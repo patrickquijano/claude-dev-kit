@@ -16,21 +16,21 @@ Steps 3–6 of `SKILL.md` (preflight, interview, Brief): ask only what the input
 
 ## Items
 
-| #   | Item                   | Ask                                                                                                                                                                                        |
-| --- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Job                    | One verb on one object; "and" or "also" → `## Several jobs`                                                                                                                                |
-| 2   | Fit                    | `## Fit`                                                                                                                                                                                   |
-| 3   | Scope                  | `## Scope`                                                                                                                                                                                 |
-| 4   | Name                   | `## Name`                                                                                                                                                                                  |
-| 5   | Triggers               | The situations that must make the parent delegate; whether Claude should delegate on its own (`Use proactively` or a plain trigger, per `agent-checklist.md` `## Frontmatter` Description) |
-| 6   | Inputs                 | Each input the parent passes in the delegation prompt                                                                                                                                      |
-| 7   | Tools, with the reason | An explicit minimal list; each tool tied to a Task step                                                                                                                                    |
-| 8   | Writes                 | Files it edits or creates, or read-only; a writer returns what it changed (`agent-checklist`)                                                                                              |
-| 9   | Model and effort       | `## Model and effort` (one batch)                                                                                                                                                          |
-| 10  | Return                 | The fixed fields the parent uses, and which caller reads each                                                                                                                              |
-| 11  | Boundaries             | Out of scope, and the stop condition or cap for any loop                                                                                                                                   |
-| 12  | Optional capabilities  | `## Optional capabilities`                                                                                                                                                                 |
-| 13  | Overlap                | The sibling descriptions in the scope it could overlap                                                                                                                                     |
+| # | Item | Ask |
+| --- | --- | --- |
+| 1 | Job | One verb on one object; "and" or "also" → `## Several jobs` |
+| 2 | Fit | `## Fit` |
+| 3 | Scope | `## Scope` |
+| 4 | Name | `## Name` |
+| 5 | Triggers | The situations that must make the parent delegate; whether Claude should delegate on its own (`Use proactively` or a plain trigger, per `agent-checklist.md` `## Frontmatter` Description) |
+| 6 | Inputs | Each input the parent passes in the delegation prompt |
+| 7 | Tools, with the reason | An explicit minimal list; each tool tied to a Task step |
+| 8 | Writes | Files it edits or creates, or read-only; a writer returns what it changed (`agent-checklist`) |
+| 9 | Model and effort | `## Model and effort` (one batch) |
+| 10 | Return | The fixed fields the parent uses, and which caller reads each |
+| 11 | Boundaries | Out of scope, and the stop condition or cap for any loop |
+| 12 | Optional capabilities | `## Optional capabilities` |
+| 13 | Overlap | The sibling descriptions in the scope it could overlap |
 
 - Item 13 overlap: compare the new description with each sibling's in the scope; a close match is reported "Unverified" (`docs-snapshot.md` `## Unverified`), never claimed resolved.
 
@@ -42,13 +42,13 @@ Multi-select questions of at most 3 capabilities each, batched per `## Protocol`
 
 Recommend one option per question with a one-line reason.
 
-| Signal                                                                                              | Recommend         | Why                                             |
-| --------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------- |
-| Self-contained work, verbose output the parent does not need, returns a summary                     | Subagent          | Own context; only the final message returns     |
-| Needs its own tool limits, or independent work that can run in parallel                             | Subagent          | `tools` and parallel spawns                     |
+| Signal | Recommend | Why |
+| --- | --- | --- |
+| Self-contained work, verbose output the parent does not need, returns a summary | Subagent | Own context; only the final message returns |
+| Needs its own tool limits, or independent work that can run in parallel | Subagent | `tools` and parallel spawns |
 | Back-and-forth with the user, much context shared across phases, a quick targeted edit, low latency | None: main thread | A subagent starts fresh and must gather context |
-| Reference knowledge or a workflow that runs inline                                                  | None: a skill     | A skill adds to the main context on demand      |
-| A rule that must hold every time with no judgment                                                   | None: a hook      | Hooks are guarantees; prompts are requests      |
+| Reference knowledge or a workflow that runs inline | None: a skill | A skill adds to the main context on demand |
+| A rule that must hold every time with no judgment | None: a hook | Hooks are guarantees; prompts are requests |
 
 Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "How we built our multi-agent research system", <https://www.anthropic.com/engineering/multi-agent-research-system>); spawn only when the gain is worth it. Not a subagent → note the better mechanism once, then proceed (no question).
 
@@ -56,20 +56,20 @@ Agents cost about 4× a chat's tokens and multi-agent about 15× (Anthropic, "Ho
 
 Multi-responsibility. A job is one verb on one object; "and" or "also" in the purpose, or two unrelated return shapes, signals several; one domain with a `kind` switch whose kinds each have a fixed Return is one job. A multi-job agent is never built. Ask with evidence (each job with its `file:line` or input quote) and the trade-off per option:
 
-| Option   | Does                                                                 | Trade-off                                           |
-| -------- | -------------------------------------------------------------------- | --------------------------------------------------- |
-| A Split  | One agent per job, each with a full interview of its own             | More files and descriptions; each stays minimal     |
-| B Narrow | One agent for the chosen job; the rest dropped and listed in `Open:` | The dropped jobs need another route later           |
-| C Skill  | Move the workflow into a skill; no agent is built now                | Skill adds to the main context; agent stays focused |
-| Stop     | Write nothing                                                        | The user narrows the request first                  |
+| Option | Does | Trade-off |
+| --- | --- | --- |
+| A Split | One agent per job, each with a full interview of its own | More files and descriptions; each stays minimal |
+| B Narrow | One agent for the chosen job; the rest dropped and listed in `Open:` | The dropped jobs need another route later |
+| C Skill | Move the workflow into a skill; no agent is built now | Skill adds to the main context; agent stays focused |
+| Stop | Write nothing | The user narrows the request first |
 
-| Signal                                                      | Recommend | Why                                                          |
-| ----------------------------------------------------------- | --------- | ------------------------------------------------------------ |
-| Jobs are independent and each has its own return shape      | A Split   | Separate agents run in parallel and keep tools minimal       |
-| The jobs need different tools, models, or read-only vs edit | A Split   | A mixed allowlist breaks least privilege                     |
-| One job is the goal and the rest are steps that serve it    | B Narrow  | Steps belong in `## Task`, not in a second agent             |
-| The jobs form an ordered workflow with user decisions       | C Skill   | Orchestration with user interaction is a skill's job         |
-| The input cannot say which job matters most                 | Stop      | Guessing builds the wrong agent; ask the user to narrow down |
+| Signal | Recommend | Why |
+| --- | --- | --- |
+| Jobs are independent and each has its own return shape | A Split | Separate agents run in parallel and keep tools minimal |
+| The jobs need different tools, models, or read-only vs edit | A Split | A mixed allowlist breaks least privilege |
+| One job is the goal and the rest are steps that serve it | B Narrow | Steps belong in `## Task`, not in a second agent |
+| The jobs form an ordered workflow with user decisions | C Skill | Orchestration with user interaction is a skill's job |
+| The input cannot say which job matters most | Stop | Guessing builds the wrong agent; ask the user to narrow down |
 
 - Split: each split agent gets its own interview; it inherits no tools, model, or trigger from the others. Show a before/after map (job → agent) and run the item 13 overlap check across the new descriptions (Unverified). Build the first now; `Next: build <names>` lists the rest.
 - Skill: move the work to a Skill: tell the user; build nothing, `Result: stopped`, `Stopped: <step>: moved to a skill` (the step that ran the question).
@@ -82,12 +82,12 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 
 ## Scope
 
-| Signal                                                                              | Recommend                                     | Path                                                         |
-| ----------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| Repo-specific; teammates should get it through git                                  | Project                                       | `<repo>/.claude/agents/<name>.md`                            |
-| Your own cross-project habit                                                        | Personal                                      | `~/.claude/agents/<name>.md`                                 |
-| `.claude-plugin/plugin.json` at the target root, or an agent meant for distribution | Plugin                                        | `<plugin root>/agents/<name>.md`, invoked `@<plugin>:<name>` |
-| No signal                                                                           | Project when cwd is a git repo, else Personal |                                                              |
+| Signal | Recommend | Path |
+| --- | --- | --- |
+| Repo-specific; teammates should get it through git | Project | `<repo>/.claude/agents/<name>.md` |
+| Your own cross-project habit | Personal | `~/.claude/agents/<name>.md` |
+| `.claude-plugin/plugin.json` at the target root, or an agent meant for distribution | Plugin | `<plugin root>/agents/<name>.md`, invoked `@<plugin>:<name>` |
+| No signal | Project when cwd is a git repo, else Personal | - |
 
 Precedence and plugin restrictions: `docs-snapshot.md` `## Scopes and precedence`, `## Plugin restrictions`. Which scope an agent needing an ignored field gets: `agent-checklist.md` `## Fields on signal`.
 
@@ -122,22 +122,22 @@ Asked in every create and update (improve: only when a violation touches them); 
 
 Criteria: reasoning depth, cost of a miss, context size, spawn frequency and latency, tool power, sibling consensus; a downstream gate that catches a miss favors the lower level.
 
-| Model    | Pick for                                                                                                                                                                   | Trade-off                                                                                                                   |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `haiku`  | Fixed-rule lookups, inventories, fact collection, data normalization                                                                                                       | Fastest and cheapest; enough when no judgment is needed                                                                     |
-| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review                                                                   | Balanced cost and quality                                                                                                   |
-| `opus`   | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification                       | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run                             |
-| `fable`  | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (prices: see the models overview); recommend only when the input says `opus` is not enough |
+| Model | Pick for | Trade-off |
+| --- | --- | --- |
+| `haiku` | Fixed-rule lookups, inventories, fact collection, data normalization | Fastest and cheapest; enough when no judgment is needed |
+| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review | Balanced cost and quality |
+| `opus` | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run |
+| `fable` | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (prices: see the models overview); recommend only when the input says `opus` is not enough |
 
 `model` and `inherit`: per `agent-checklist.md` `## Fields on signal`; otherwise recommend the alias the criteria support and say why.
 
-| Effort   | Pick for                                                                                                                                                                                           | Trade-off                                                 |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `low`    | Single-shot lookups where a skipped check costs nothing, or high-volume fan-out where latency beats thoroughness                                                                                   | Fastest and cheapest; shallow reasoning, may skip a check |
-| `medium` | Fixed-rule lookups, inventories, and fact collection; bounded judgment (scoring, drafting, analysis); repeated verification decided by command exit codes; analysis the user approves item by item | Balanced speed and depth                                  |
-| `high`   | Multi-step reasoning whose miss nothing downstream catches: final correctness or security review, interdependent planning that drives later edits                                                  | Slower and costlier; catches more                         |
-| `xhigh`  | Long-running agentic or coding work (over 30 minutes, million-token budgets), or work where `high` misses cross-step dependencies                                                                  | Slower still; use only for that scope                     |
-| `max`    | Only when the input says `xhigh` is not enough                                                                                                                                                     | Slowest and most expensive level                          |
+| Effort | Pick for | Trade-off |
+| --- | --- | --- |
+| `low` | Single-shot lookups where a skipped check costs nothing, or high-volume fan-out where latency beats thoroughness | Fastest and cheapest; shallow reasoning, may skip a check |
+| `medium` | Fixed-rule lookups, inventories, and fact collection; bounded judgment (scoring, drafting, analysis); repeated verification decided by command exit codes; analysis the user approves item by item | Balanced speed and depth |
+| `high` | Multi-step reasoning whose miss nothing downstream catches: final correctness or security review, interdependent planning that drives later edits | Slower and costlier; catches more |
+| `xhigh` | Long-running agentic or coding work (over 30 minutes, million-token budgets), or work where `high` misses cross-step dependencies | Slower still; use only for that scope |
+| `max` | Only when the input says `xhigh` is not enough | Slowest and most expensive level |
 
 Layout: model options the recommended alias first and one alternate it was weighed against, the other aliases and `inherit` under Other; effort: the recommended level first, then its two neighbours; "Other" covers a full model ID only for model.
 

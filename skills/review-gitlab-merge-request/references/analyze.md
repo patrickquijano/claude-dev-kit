@@ -55,11 +55,11 @@ The parent, after step 6: every changed file in the batch (not under `Skipped:`)
 
 Before the table, the parent re-reads each `critical` and `major` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an own discussion (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
 
-| Condition                                                                                                                                                | Event             |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Condition | Event |
+| --- | --- |
 | Any own gating discussion still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical`, `major`, or `minor` finding | `REQUEST_CHANGES` |
-| Draft MR; head pipeline not `success`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn           | `COMMENT`         |
-| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating                                                                       | `APPROVE`         |
+| Draft MR; head pipeline not `success`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn | `COMMENT` |
+| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating | `APPROVE` |
 
 Rows apply top to bottom, first match wins: a draft MR with a gating discussion gets `REQUEST_CHANGES`; a draft never gets `APPROVE`. GitLab has no request-changes review: `REQUEST_CHANGES` is expressed by the unresolved discussions and the summary note, and an own approval is removed. A carried finding still listed after the re-check counts as an unresolved gating discussion for the first row. `APPROVE` carries no gating findings; kept `nit` and `question` items post as non-gating discussions, and `Unverified` items go in the summary.
 

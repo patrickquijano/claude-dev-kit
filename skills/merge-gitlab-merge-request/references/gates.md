@@ -39,20 +39,20 @@ For a host refusal or a bypass request, read `detailed_merge_status` from `mr-ge
 
 Offer only methods `merge-methods` allows: `squash_option` `never` drops Squash and `always` leaves only Squash; `merge_method` `ff` replaces Merge with Rebase (fast-forward, no rebase flag), `merge` or `rebase_merge` keeps Merge. One method left → skip the question, state it with the reason. The Recommended column is the only source of the recommendation here, and that option goes first.
 
-| Option | Recommended when                              | Reason                                          | Trade-off when not recommended |
-| ------ | --------------------------------------------- | ----------------------------------------------- | ------------------------------ |
-| Squash | Allowed                                       | One commit per MR on the target                 | Folds the commits into one     |
-| Rebase | Squash not allowed and `merge_method` is `ff` | Keeps history linear and the individual commits | Needs the source up to date    |
-| Merge  | The only allowed method                       | Preserves the branch commits and their ancestry | Adds a merge commit            |
+| Option | Recommended when | Reason | Trade-off when not recommended |
+| --- | --- | --- | --- |
+| Squash | Allowed | One commit per MR on the target | Folds the commits into one |
+| Rebase | Squash not allowed and `merge_method` is `ff` | Keeps history linear and the individual commits | Needs the source up to date |
+| Merge | The only allowed method | Preserves the branch commits and their ancestry | Adds a merge commit |
 
 ## Branch cleanup
 
 Under `--yes` the recommended option is taken; the stop gates still apply. Source in a fork (`source_project_id` differs from `target_project_id`) → do not ask; `Branch: not offered (fork)`; merge with Keep behavior. `force_remove_source_branch` true → do not ask; Delete, stated with the reason.
 
-| Option        | Recommended when                                                                             | Reason                                                                        |
-| ------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Delete branch | The source ref is not `main`, `develop`, or `release/*`, and `dependents` returns no open MR | The work lands on the target; the branch can be restored from the MR page     |
-| Keep branch   | Any of those fails, or `dependents` is unavailable (say so)                                  | Deleting would close or retarget dependent MRs, or remove a long-lived branch |
+| Option | Recommended when | Reason |
+| --- | --- | --- |
+| Delete branch | The source ref is not `main`, `develop`, or `release/*`, and `dependents` returns no open MR | The work lands on the target; the branch can be restored from the MR page |
+| Keep branch | Any of those fails, or `dependents` is unavailable (say so) | Deleting would close or retarget dependent MRs, or remove a long-lived branch |
 
 The Delete option text says it removes the remote source branch only; a local branch stays.
 

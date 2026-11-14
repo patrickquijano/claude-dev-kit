@@ -8,6 +8,8 @@ Source: Keep a Changelog 1.1.0 (<https://keepachangelog.com/en/1.1.0/>). Follow 
 
 ## Template
 
+<!-- prettier-ignore-start -->
+
 ```markdown
 # Changelog
 
@@ -31,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [unreleased]: https://github.com/<owner>/<repo>/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/<owner>/<repo>/releases/tag/v1.0.0
 ```
+
+<!-- prettier-ignore-end -->
 
 - Header text is exact: the title, the "All notable changes…" line, and the "The format is based on…" line.
 - Write the SemVer line when the project uses SemVer: SemVer tags, SemVer versions in the file, or a statement from the user. Then the Keep a Changelog line ends with `,` as in the template. Otherwise end it with `.` and omit the SemVer line.

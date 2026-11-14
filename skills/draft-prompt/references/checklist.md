@@ -8,13 +8,13 @@ Section template, review groups, and two split patterns for a drafted prompt.
 
 ## Section template
 
-| Section     | Must hold                                                                                                             |
-| ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| Context     | Read the instruction files confirmed in step 1 by path (or none); stack, files, current state, what was already tried |
-| Task        | One verb plus one object, e.g. "Add retry to `fetchUser` in `[PATH?]`"                                                |
-| Constraints | Scope lock (touch only the named files), no new dependencies                                                          |
-| Done when   | Checkable items (a command that exits 0) and the report format                                                        |
-| Guardrails  | Plan first, stop and ask on named triggers, stop when done                                                            |
+| Section | Must hold |
+| --- | --- |
+| Context | Read the instruction files confirmed in step 1 by path (or none); stack, files, current state, what was already tried |
+| Task | One verb plus one object, e.g. "Add retry to `fetchUser` in `[PATH?]`" |
+| Constraints | Scope lock (touch only the named files), no new dependencies |
+| Done when | Checkable items (a command that exits 0) and the report format |
+| Guardrails | Plan first, stop and ask on named triggers, stop when done |
 
 ## Review groups
 

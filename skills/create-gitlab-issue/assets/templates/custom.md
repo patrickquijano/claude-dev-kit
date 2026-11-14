@@ -1,2 +1,1 @@
-**Description**
-A clear and concise description of the issue.
+**Description** A clear and concise description of the issue.

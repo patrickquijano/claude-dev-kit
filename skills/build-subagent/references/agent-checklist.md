@@ -17,20 +17,20 @@ Every rule for the agent being built (steps 5, 7, 8). Field facts: `docs-snapsho
 
 Set a field only on a signal; omit every field at its default.
 
-| Field                                                    | Set when                                                                                                                                       | Recommend                                                                                     |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `tools`                                                  | Always: an explicit minimal allowlist                                                                                                          | Read-only `Read, Grep, Glob`; tests `Bash, Read, Grep`; edits `Read, Edit, Write, Grep, Glob` |
-| `disallowedTools`                                        | Inheriting all tools but one must go (a specifier removes the whole tool)                                                                      | Omit                                                                                          |
-| `model`, `effort`                                        | Always set; asked per `interview.md` `## Model and effort` (improve: only when a violation touches them); `inherit` only as a confirmed choice | `interview.md` item 9                                                                         |
-| `maxTurns`                                               | Runs can loop or wander; it is the stop condition                                                                                              | Set for loops                                                                                 |
-| `isolation`                                              | Parallel writers can touch overlapping files: `worktree`                                                                                       | Omit otherwise                                                                                |
-| `background`                                             | It should always run in the background                                                                                                         | Omit                                                                                          |
-| `memory`                                                 | It should learn across sessions; the agent is write-capable (adds Read, Write, Edit); `project` is shared through git                          | Omit                                                                                          |
-| `skills`                                                 | A skill's full content is needed on every run (preloaded)                                                                                      | Omit                                                                                          |
-| `omitClaudeMd`                                           | The delegation prompt carries everything and CLAUDE.md is noise                                                                                | Omit                                                                                          |
-| `color`                                                  | Always, from `tools`, never asked: read-only `cyan`; write-capable `red`; display only                                                         | `cyan` or `red`                                                                               |
-| `experimental.cacheTtl`                                  | The input asks for a cache TTL                                                                                                                 | Omit                                                                                          |
-| `permissionMode`, `mcpServers`, `hooks`, `initialPrompt` | Personal or Project agent that needs it                                                                                                        | Omit                                                                                          |
+| Field | Set when | Recommend |
+| --- | --- | --- |
+| `tools` | Always: an explicit minimal allowlist | Read-only `Read, Grep, Glob`; tests `Bash, Read, Grep`; edits `Read, Edit, Write, Grep, Glob` |
+| `disallowedTools` | Inheriting all tools but one must go (a specifier removes the whole tool) | Omit |
+| `model`, `effort` | Always set; asked per `interview.md` `## Model and effort` (improve: only when a violation touches them); `inherit` only as a confirmed choice | `interview.md` item 9 |
+| `maxTurns` | Runs can loop or wander; it is the stop condition | Set for loops |
+| `isolation` | Parallel writers can touch overlapping files: `worktree` | Omit otherwise |
+| `background` | It should always run in the background | Omit |
+| `memory` | It should learn across sessions; the agent is write-capable (adds Read, Write, Edit); `project` is shared through git | Omit |
+| `skills` | A skill's full content is needed on every run (preloaded) | Omit |
+| `omitClaudeMd` | The delegation prompt carries everything and CLAUDE.md is noise | Omit |
+| `color` | Always, from `tools`, never asked: read-only `cyan`; write-capable `red`; display only | `cyan` or `red` |
+| `experimental.cacheTtl` | The input asks for a cache TTL | Omit |
+| `permissionMode`, `mcpServers`, `hooks`, `initialPrompt` | Personal or Project agent that needs it | Omit |
 
 `autoCompactWindow` and any other field in `docs-snapshot.md` not listed here: never recommend.
 

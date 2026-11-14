@@ -55,23 +55,38 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 1. **Pre-flight.** Check `auth-status`, `origin` is `github.com`, then `repo-view`; failure → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md`.
 2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`. Then pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review, or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
 3. **Threads** per `${CLAUDE_SKILL_DIR}/references/threads.md`:
+
    3a. Digest the own open threads (Self + marker; all others ignored).
+
    3b. Run the script.
+
    3c. Spawn the judges: up to 4 `cdk:code-reviewer` subagents (fallback: read-only subagents that judge threads) per `threads.md` `## Spawn briefs`, to judge each thread as fixed, obsolete, or still open. A gating thread Self cannot resolve → stop.
+
 4. **Gating threads.** Any own gating thread judged Open or left unjudged (`threads.md` `## Gating check`) → the check fails and the state stays changes requested; continue to step 5 either way.
 5. **Scratch.** Write the diff (re-review: only the changes since the last reviewed SHA), head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 6. **Analyze** per `analyze.md`:
+
    6a. Spawn four `cdk:code-reviewer` reviewer subagents (fallback: read-only subagents) in one turn per `analyze.md` `## Spawn briefs`.
+
    6b. Validate each return.
+
    6c. Run the coverage check.
+
    6d. Run the completeness sweep (once per batch); an unfinished sweep is noted under `Errors:` and makes the verdict `COMMENT`.
+
 7. **Verdict.** Re-verify critical and major findings, drop duplicates of own threads, apply the verdict table (`analyze.md`).
 8. **Post** per `${CLAUDE_SKILL_DIR}/references/post.md`:
+
    8a. Print the verdict, counts, and planned writes.
+
    8b. Re-fetch the head SHA.
+
    8c. Resolve addressed own threads.
+
    8d. Post or edit the summary.
+
    8e. Set the state.
+
 9. **Report.** Print the Output; list what is left under `Open:`.
 
 ## Files

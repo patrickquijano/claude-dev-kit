@@ -44,11 +44,11 @@ Label the question "Line limits are community heuristics, not measured data."
 
 Asked only when the projection exceeds the max. Weights follow `templates.md` `## Weights`.
 
-| Layout         | Shape                                                                | Signals that add points                                    | Points |
-| -------------- | -------------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
-| `landing+docs` | Landing README plus `docs/<topic>.md`                                | Default; sections are separate topics                      | 3      |
-| `diataxis`     | `docs/{tutorials,how-to,reference,explanation}/`                     | Content already mixes guides, reference, and concepts      | 3      |
-| `per-package`  | A README in each package, the root as an index (monorepo types only) | Packages table with several packages, each with own detail | 4      |
+| Layout | Shape | Signals that add points | Points |
+| --- | --- | --- | --- |
+| `landing+docs` | Landing README plus `docs/<topic>.md` | Default; sections are separate topics | 3 |
+| `diataxis` | `docs/{tutorials,how-to,reference,explanation}/` | Content already mixes guides, reference, and concepts | 3 |
+| `per-package` | A README in each package, the root as an index (monorepo types only) | Packages table with several packages, each with own detail | 4 |
 
 Never offer `per-package` for a non-monorepo type. A `docs/` directory that exists keeps its files; new split files go beside them.
 

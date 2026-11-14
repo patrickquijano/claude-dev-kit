@@ -55,9 +55,9 @@ describe('build skills delegate writes to implement-spec', () => {
       const text = read('SKILL.md');
       const loops = {
         'build-skill':
-          /^ +g\. Loop: at least one VERIFIED fix outside `scripts\/` remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8c \(next round\); otherwise → 8h\.\n +h\. At the current cap with a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8c\); no such fix left → no ask, go to 8i/m,
+          /^ +g\. Loop: at least one VERIFIED fix outside `scripts\/` remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 8c \(next round\); otherwise → 8h\.\n\n +h\. At the current cap with a VERIFIED fix outside `scripts\/` still open, ask per the round-cap rule \(Extend → step 8c\); no such fix left → no ask, go to 8i/m,
         'build-subagent':
-          /^ +g\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n +h\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); no VERIFIED fix left → no ask, go to 9i/m
+          /^ +g\. Loop: at least one VERIFIED fix remains and fewer rounds are done than the current cap \(3, plus 3 per Extend\) → step 9d \(next round\); otherwise → 9h\.\n\n +h\. At the current cap with a VERIFIED fix still open, ask per the round-cap rule \(Extend → step 9d\); no VERIFIED fix left → no ask, go to 9i/m
       };
       const stale = /fewer than 3 rounds are done|At the 3-round cap with open items left/;
       // Act

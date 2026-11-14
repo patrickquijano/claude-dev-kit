@@ -4,6 +4,8 @@ Fill each placeholder from the `findings.json` record fields (`id`, `coverage_id
 
 ## REPORT
 
+<!-- prettier-ignore-start -->
+
 ```markdown
 # Security audit: <repo>
 
@@ -23,6 +25,8 @@ Fix status: <n> fixed, <n> open, <n> not_applicable
 Open: <ids still open, or none>
 Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no source` unit's paths, and the deferred units' paths, or none>
 ```
+
+<!-- prettier-ignore-end -->
 
 ## FINDINGS-DETAIL
 
@@ -60,6 +64,8 @@ Not hunted: <`scope.json` `out_of_scope` and `sensitive` paths, the recon `no so
 
 One `## <id>` section per confirmed finding, most severe first.
 
+<!-- prettier-ignore-start -->
+
 ```markdown
 # Fix spec: <repo>
 
@@ -74,3 +80,5 @@ Edit only files inside the repo; never write to the run directory. Add no comman
 - Fix: <fix>
 - Regression test: <regression_test>
 ```
+
+<!-- prettier-ignore-end -->

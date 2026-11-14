@@ -18,27 +18,27 @@ Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch
 
 ## Fields
 
-| Field                   | Type and values                                                                                                 | Default    | Scope note                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
-| `name`                  | string                                                                                                          | required   |                                                                          |
-| `description`           | string: when to delegate; advised ≤200 chars                                                                    | required   |                                                                          |
-| `tools`                 | allowlist; omitted = inherit all; `Agent(type)` is not valid in a subagent's list                               | all        |                                                                          |
-| `disallowedTools`       | denylist, applied first; an entry with a specifier removes the whole tool                                       | none       |                                                                          |
-| `model`                 | `sonnet`, `opus`, `haiku`, `fable`, a full id, `inherit`                                                        | main model | order: call param, frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL`, main model |
-| `permissionMode`        | `default`, `manual` (alias of `default`), `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan`         | `default`  | ignored by plugin agents                                                 |
-| `maxTurns`              | positive integer                                                                                                | none       |                                                                          |
-| `skills`                | list, at most 32; full content injected at startup; a skill with `disable-model-invocation` cannot be preloaded | none       |                                                                          |
-| `mcpServers`            | MCP servers scoped to the agent                                                                                 | none       | ignored by plugin agents                                                 |
-| `hooks`                 | `PreToolUse`, `PostToolUse`, `Stop` scoped to the agent                                                         | none       | ignored by plugin agents                                                 |
-| `memory`                | `user`, `project`, `local`; adds Read, Write, Edit and up to 200 lines / 25KB of `MEMORY.md`                    | none       |                                                                          |
-| `background`            | `true` or `false`                                                                                               | `false`    |                                                                          |
-| `omitClaudeMd`          | `true` or `false`                                                                                               | `false`    |                                                                          |
-| `effort`                | `low`, `medium`, `high`, `xhigh`, `max`; `CLAUDE_CODE_EFFORT_LEVEL` overrides it                                | session    |                                                                          |
-| `isolation`             | `worktree`                                                                                                      | none       |                                                                          |
-| `color`                 | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`; display only                              | none       |                                                                          |
-| `initialPrompt`         | string, auto-submitted first turn; used only by main-session agents                                             | none       | ignored by plugin agents                                                 |
-| `experimental.cacheTtl` | `5m`, `1h`                                                                                                      | default    |                                                                          |
-| `autoCompactWindow`     | plain integer 100000–1000000 (`200k` reads as 200); never recommended                                           | none       | no effect when the session runs as the agent                             |
+| Field | Type and values | Default | Scope note |
+| --- | --- | --- | --- |
+| `name` | string | required | - |
+| `description` | string: when to delegate; advised ≤200 chars | required | - |
+| `tools` | allowlist; omitted = inherit all; `Agent(type)` is not valid in a subagent's list | all | - |
+| `disallowedTools` | denylist, applied first; an entry with a specifier removes the whole tool | none | - |
+| `model` | `sonnet`, `opus`, `haiku`, `fable`, a full id, `inherit` | main model | order: call param, frontmatter, `CLAUDE_CODE_SUBAGENT_MODEL`, main model |
+| `permissionMode` | `default`, `manual` (alias of `default`), `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan` | `default` | ignored by plugin agents |
+| `maxTurns` | positive integer | none | - |
+| `skills` | list, at most 32; full content injected at startup; a skill with `disable-model-invocation` cannot be preloaded | none | - |
+| `mcpServers` | MCP servers scoped to the agent | none | ignored by plugin agents |
+| `hooks` | `PreToolUse`, `PostToolUse`, `Stop` scoped to the agent | none | ignored by plugin agents |
+| `memory` | `user`, `project`, `local`; adds Read, Write, Edit and up to 200 lines / 25KB of `MEMORY.md` | none | - |
+| `background` | `true` or `false` | `false` | - |
+| `omitClaudeMd` | `true` or `false` | `false` | - |
+| `effort` | `low`, `medium`, `high`, `xhigh`, `max`; `CLAUDE_CODE_EFFORT_LEVEL` overrides it | session | - |
+| `isolation` | `worktree` | none | - |
+| `color` | `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`; display only | none | - |
+| `initialPrompt` | string, auto-submitted first turn; used only by main-session agents | none | ignored by plugin agents |
+| `experimental.cacheTtl` | `5m`, `1h` | default | - |
+| `autoCompactWindow` | plain integer 100000–1000000 (`200k` reads as 200); never recommended | none | no effect when the session runs as the agent |
 
 ## Version gates
 

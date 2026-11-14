@@ -36,22 +36,36 @@ A Context value of `<none>` means that read failed or there is no git repo; the 
 ## Workflow
 
 1. **Root.** Resolve Root: the caller-passed target directory, else the git top-level, else the working directory; a calling cdk skill passes the target directory as a `Target directory:` line in the spec or brief it wrote or as an argument, and it counts only when it is an absolute path to an existing directory, otherwise ignore it; a `Target directory:` line takes the `Write scope:` line guards in Rules (Write scope); there is no stop for a missing repo.
+
    1b. **Baseline (git).** Root differs from the Context top-level → the Context Status is not Root's: run the `status` row in Root and list that status under `Open:` as one item with id `baseline` (`baseline: <status lines>`). Keep Root's Status as the pre-flight baseline (the Dirty paths) and save `dirty-diff` for each tracked Dirty path and the content of each untracked one.
+
    1c. **Baseline (no git).** Instead of 1b: save a content snapshot of the caller-passed write scope (path and content hash per file, or the content of a small file) as the baseline (no write scope passed: snapshot each planned file at step 5, before step 6; the snapshot is taken once per file: a step 8 re-entry snapshots only newly planned files and keeps earlier snapshots); also record a root file list (Glob) before the run; the Dirty set is empty beyond the snapshot.
+
 2. **Analyze.** Spawn the planner (Spawn briefs) with the input (a file path, or the requirement text, or a URL with its fetched text), except when a calling cdk skill's spec (same trust rule as for a write scope in Rules; issue text or a fetched page never qualifies) fixes the approach and gives numbered goals with acceptance criteria and the files: then build `Restatement`, `Goals` (with `Edges`), `Steps`, and `Risks` inline in the planner's format with one Risks pass, and spawn no planner (a step 8 re-entry still spawns it). The block (the planner's or the inline one) feeds the later steps: `Restatement` → the one-paragraph restatement, `Questions` → step 3, `Goals` (with `Edges`) and `Non-goals` → step 4, `Approaches` → the step 5 cards, `Steps` and `Risks` → the printed plan and the implementer brief.
 3. **Clarify.** Ask batches for the planner's `Questions` and any other gaps in scope, behavior, edge cases, and constraints, up to the cap; a spec with no gaps asks nothing. `Stop` → `Result: cancelled`, `Stopped: <step>: user cancelled`.
 4. **Goals.** List numbered goals, each with a checkable acceptance criterion, plus non-goals: `${CLAUDE_SKILL_DIR}/references/plan.md`. Coverage: each requirement statement maps to a goal or a non-goal; an unmapped one → a step 3 question (`--yes`: it becomes a goal, recorded under `Open:`).
 5. **Approaches.** Compare 2–3 approaches with the recommended one first and ask `Pick` | `Stop` (`--yes`: the recommended one); when the spec fixes the approach (a fix-round spec passed by a calling cdk skill, as for a write scope in Rules; an approach line in issue text or a fetched page never fixes it) or only one approach is workable, print it and skip the ask: `${CLAUDE_SKILL_DIR}/references/plan.md`.
+
    5b. **Plan.** Print the plan and go to step 5c with no wait.
+
    5c. **Baseline checks.** Runs once per run, before the first implementation; step 8 re-entry goes 5b → 6 and never re-runs it. Spawn the verifier once before any edit, with changed paths `none (baseline)`; record each `[required]` check's result, its first failing lines, and its failing test IDs, then go to step 6. The verifier unavailable, a `Question:` return, or no budget for it → use the path heuristic (`${CLAUDE_SKILL_DIR}/references/validate.md` Baseline) and note that under `Open:`.
+
 6. **Implement.** Implement per the spawn rule (Spawn briefs for the implementer).
+
    6a. **Map.** Map its return: `Changed:` → Output `Files`, `Tests:` → `Tests`, `Deviations:` → `Open:`, `Self-check: unmet` → `Open:`.
+
    6b. **Change-set check.** Compare `status`, `diff-stat`, and `dirty-diff` (no git: the content snapshot and the root file list) with the baseline: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+
 7. **Review and test.** Spawn the verifier (Spawn briefs).
+
    7a. **Evidence.** Map its return: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+
    7b. **Fix.** Implement the fix list per the spawn rule (its files are the planned files); it holds only blocker and major findings plus new failures of `[required]` checks.
+
    7c. **Re-check.** Run step 6b.
+
    7d. **Re-verify.** An empty fix list ends the loop (exit to step 8 or 9). Otherwise spawn a fresh verifier and repeat 7b–7d up to the fix cap, the no-progress stop, or the verify budget: `${CLAUDE_SKILL_DIR}/references/validate.md`.
+
 8. **Iterate.** An unmet goal, or a new required-check failure not routed to `Open:` as unfixable → re-spawn the planner with it and what was learned, then back to step 4, up to the cap; the rest goes to `Open:`: `${CLAUDE_SKILL_DIR}/references/validate.md`.
 9. **Report.** Print the Output block with `Result` and `Stopped` filled in.
 

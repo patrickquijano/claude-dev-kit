@@ -21,17 +21,17 @@ Fetched: 2026-10-27
 
 Glob and Read each signal against the repo root. Points are added per type; a signal fires once. Weights are heuristic scores, not measured data.
 
-| Signal                                                                  | CLI | Library | Web app | Framework | Published monorepo | Private monorepo | Plugin | Docs |
-| ----------------------------------------------------------------------- | --- | ------- | ------- | --------- | ------------------ | ---------------- | ------ | ---- |
-| Manifest `bin` field, `[project.scripts]`, `cmd/` dir, or CLI entry     | 4   | 0       | 0       | 0         | 0                  | 0                | 0      | 0    |
-| Manifest `main`, `exports`, `lib`, or a registry publish config         | 0   | 4       | 0       | 2         | 0                  | 0                | 0      | 0    |
-| `Dockerfile`, compose file, deploy config, or `src/app`, `pages`, `app` | 0   | 0       | 4       | 0         | 0                  | 0                | 0      | 0    |
-| Manifest or docs name it a framework, or it exposes extension points    | 0   | 1       | 0       | 4         | 0                  | 0                | 0      | 0    |
-| Workspace file (`pnpm-workspace.yaml`, `lerna.json`, `nx.json`, ...)    | 0   | 0       | 0       | 0         | 3                  | 3                | 0      | 0    |
-| Workspace packages with a publish config or without `private: true`     | 0   | 0       | 0       | 0         | 3                  | 0                | 0      | 0    |
-| Workspace root `private: true` and no publish config                    | 0   | 0       | 0       | 0         | 0                  | 3                | 0      | 0    |
-| `.claude-plugin/plugin.json`, `skills/`, `agents/`, or `hooks/`         | 0   | 0       | 0       | 0         | 0                  | 0                | 4      | 0    |
-| Only `*.md`, `docs/`, or a site config (`mkdocs.yml`, `docusaurus.*`)   | 0   | 0       | 0       | 0         | 0                  | 0                | 0      | 4    |
+| Signal | CLI | Library | Web app | Framework | Published monorepo | Private monorepo | Plugin | Docs |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Manifest `bin` field, `[project.scripts]`, `cmd/` dir, or CLI entry | 4 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Manifest `main`, `exports`, `lib`, or a registry publish config | 0 | 4 | 0 | 2 | 0 | 0 | 0 | 0 |
+| `Dockerfile`, compose file, deploy config, or `src/app`, `pages`, `app` | 0 | 0 | 4 | 0 | 0 | 0 | 0 | 0 |
+| Manifest or docs name it a framework, or it exposes extension points | 0 | 1 | 0 | 4 | 0 | 0 | 0 | 0 |
+| Workspace file (`pnpm-workspace.yaml`, `lerna.json`, `nx.json`, ...) | 0 | 0 | 0 | 0 | 3 | 3 | 0 | 0 |
+| Workspace packages with a publish config or without `private: true` | 0 | 0 | 0 | 0 | 3 | 0 | 0 | 0 |
+| Workspace root `private: true` and no publish config | 0 | 0 | 0 | 0 | 0 | 3 | 0 | 0 |
+| `.claude-plugin/plugin.json`, `skills/`, `agents/`, or `hooks/` | 0 | 0 | 0 | 0 | 0 | 0 | 4 | 0 |
+| Only `*.md`, `docs/`, or a site config (`mkdocs.yml`, `docusaurus.*`) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 4 |
 
 ## Types
 
@@ -78,14 +78,14 @@ Web app: `Getting started` stands for Install. Documentation repo: `Development`
 
 One advantage, one drawback, and a source key per type, at most 2 sentences.
 
-| Type                | Advantage                                                  | Drawback                                 | Key  |
-| ------------------- | ---------------------------------------------------------- | ---------------------------------------- | ---- |
-| CLI                 | Install and usage come first, as `sr` expects.             | Needs a verified command list.           | `sr` |
-| Library             | Install and usage show the API fast.                       | API detail may need linked docs.         | `sr` |
-| Web app             | Configuration is required, so deploy needs are explicit.   | Needs verified env vars and ports.       | `mr` |
-| Framework           | Same sections as a library, so readers know where to look. | Extension points may outgrow one README. | `dx` |
-| Published monorepo  | A packages table routes readers to each package.           | Package details live in other READMEs.   | `gg` |
-| Private monorepo    | Skips install and badges that do not apply.                | Gives outsiders little to act on.        | `gg` |
-| Plugin/skill bundle | A components table lists each unit.                        | Needs updating when components change.   | `og` |
-| Documentation repo  | Contributing and license only, no code sections.           | Readers get no content overview.         | `dx` |
-| Minimal             | Purpose, owner, and build are enough for a small repo.     | Too little for any public project.       | `mr` |
+| Type | Advantage | Drawback | Key |
+| --- | --- | --- | --- |
+| CLI | Install and usage come first, as `sr` expects. | Needs a verified command list. | `sr` |
+| Library | Install and usage show the API fast. | API detail may need linked docs. | `sr` |
+| Web app | Configuration is required, so deploy needs are explicit. | Needs verified env vars and ports. | `mr` |
+| Framework | Same sections as a library, so readers know where to look. | Extension points may outgrow one README. | `dx` |
+| Published monorepo | A packages table routes readers to each package. | Package details live in other READMEs. | `gg` |
+| Private monorepo | Skips install and badges that do not apply. | Gives outsiders little to act on. | `gg` |
+| Plugin/skill bundle | A components table lists each unit. | Needs updating when components change. | `og` |
+| Documentation repo | Contributing and license only, no code sections. | Readers get no content overview. | `dx` |
+| Minimal | Purpose, owner, and build are enough for a small repo. | Too little for any public project. | `mr` |
