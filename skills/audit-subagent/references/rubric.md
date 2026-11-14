@@ -12,9 +12,10 @@ Applies to one Claude Code subagent definition (a Markdown file with YAML frontm
 - Use only the stated point values; no in-between scores.
 - N/A handling: if a sub-criterion does not apply, mark it N/A and exclude it from the denominator. Final score = earned / available x 100, rounded to the nearest whole number.
 - Score only what you have read. Never score from memory or assumption.
-- Line coverage: read the subagent file and every file its prompt references from line 1 to its last line (by line range when large). Run the line-level checks (C3.3 vague words, G4 secrets, G5 destructive commands, G6 paths) on every line. Report each file in section 10.
+- Line coverage: read the subagent file and every file its prompt references from line 1 to its last line (by line range when large). Run the line-level checks (C3.3 vague words that leave an action, input, or stop undecided, G4 secrets, G5 destructive commands, G6 paths) on every line. Report each file in section 10.
 - Fix for every deduction: every gate FAIL and every sub-criterion scored below its max gets at least one fix (VERIFIED in section 6 or unverified in section 7), each with an exact Before -> After. If no text change can recover it, write `no fix: <reason>`.
-- Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (wording, style, ordering, cosmetics) scores full, gets no fix ID, and is listed on its own `Waived: <ID> file:line — reason` line after the section 11 map, never as a map row. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
+- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the parent delegates to the subagent, what it does or returns, a safety stop, whether its result can be verified, or its token, step, or spawn cost. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action.
+- Negligible waiver: a would-be deduction whose fix would not change how a model or reader acts on the file (fails Materiality: wording, synonyms, voice, style, ordering, cosmetics) scores full, gets no fix ID, and is listed on its own `Waived: <ID> file:line — reason` line after the section 11 map, never as a map row. Never waive a gate FAIL or anything that affects correctness, a safety stop, or a validator result; a waiver never lifts a target past a gate.
 - Severity: tag every fix `blocking` or `non-blocking`. Blocking: a gate FAIL; a deduction that affects correctness, a safety stop, or a validator result; a fix in the Path to ACCEPTED (the target stays below 90 without it). Everything else is non-blocking. The caller re-checks the tags.
 - Audit only the subagent path given. Do not open or compare against other agents or skills.
 - Read-only. Never edit the audited file. Propose changes as text only.
@@ -58,9 +59,9 @@ Record: purpose | rules that apply (D1-D4, I1-I4) | verdict (justified / not jus
 ## C1. Delegation trigger and description (18)
 
 - C1.1 States WHAT it does (5): 5 = one concrete verb + object; 2 = vague ("helps with", "handles"); 0 = missing.
-- C1.2 States WHEN the parent should delegate (6): 6 = 3 or more concrete situations or trigger phrasings; 3 = 1-2; 0 = none.
+- C1.2 States WHEN the parent should delegate (6): 6 = 2 or more concrete situations or trigger phrasings; 3 = 1; 0 = none.
 - C1.3 States boundaries / when NOT to delegate (4): 4 = explicit exclusions or separation from neighboring agents; 2 = implied only; 0 = none.
-- C1.4 Economy and precision (3): 3 = every sentence adds routing information and would not match unrelated tasks; 1 = padded or somewhat broad; 0 = so broad it would be selected for unrelated tasks.
+- C1.4 Economy and precision (3): 3 = no sentence widens or blurs when to delegate, and every sentence adds trigger information; 1 = a sentence widens delegation toward a neighbor's tasks or blurs when to delegate, or a sentence adds no trigger information (costs tokens every session); 0 = so broad it would be selected for unrelated tasks.
 
 ## C2. Role and scope (12)
 
@@ -70,10 +71,10 @@ Record: purpose | rules that apply (D1-D4, I1-I4) | verdict (justified / not jus
 
 ## C3. Prompt instruction clarity (14)
 
-- C3.1 Steps are imperative, ordered, one action each (5): 5 = all steps; 3 = most; 0 = unstructured prose.
-- C3.2 Rationale given for non-obvious rules (3): 3 = every non-obvious rule has a why; 1 = some; 0 = none.
-- C3.3 Vague wording count (3): count "appropriate", "as needed", "etc.", "properly", "if necessary", "relevant", "good", "thorough". 3 = 0-2; 1 = 3-6; 0 = 7 or more. List each.
-- C3.4 No filler or generic content the model already knows (3): 3 = none; 1 = minor (generic persona lines, tutorials); 0 = substantial.
+- C3.1 Steps are imperative, ordered, one action each (5): 5 = all steps; 3 = a step bundles actions so one is likely skipped, or the order is unclear; 0 = unstructured prose.
+- C3.2 Rationale given for rules a model would plausibly break without their reason (3): 3 = every such rule has a why; 1 = some; 0 = none.
+- C3.3 Vague wording count (3): count "appropriate", "as needed", "etc.", "properly", "if necessary", "relevant", "good", "thorough", only where the word leaves an action, input, or stop undecided. 3 = 0-2; 1 = 3-6; 0 = 7 or more. List each counted occurrence.
+- C3.4 No filler or generic content the model already knows (3): 3 = none; 1 = filler or generic text that costs tokens on every run (e.g. generic persona lines); 0 = substantial.
 
 ## C4. Tools and permissions (12)
 
@@ -103,8 +104,8 @@ Record: purpose | rules that apply (D1-D4, I1-I4) | verdict (justified / not jus
 
 ## C8. Consistency (6)
 
-- C8.1 No contradictions between frontmatter, prompt body, and referenced files (3): 3 = none; 1 = one; 0 = two or more.
-- C8.2 Consistent terminology (1): 1 = one term per concept; 0 = drift.
+- C8.1 No contradictions between frontmatter, prompt body, and referenced files (3): 3 = none; 1 = one; 0 = two or more. Count only contradictions that lead a model to different actions.
+- C8.2 Consistent terminology (1): 1 = one term per concept; 0 = drift that makes a model treat one concept as two.
 - C8.3 Description matches actual behavior (2): 2 = matches; 1 = partial; 0 = materially different.
 
 ## C9. Verifiability (5)

@@ -7,12 +7,10 @@ Copy one skeleton, replace every `<…>`, drop the comments. Field rules: the fr
 name: <kebab-name>
 description: <What it does, third person>. Use when <trigger words>. # ≤200 chars, no skill names; side effects → end: Use only when the user explicitly asks to <action>.
 argument-hint: '[--yes] <[arg]>' # task only; keep the flag
-disable-model-invocation: true # per the invocation question; omit when the user picks Allow
 compatibility: Claude Code only. Uses <the Claude Code-only keys>; claude.ai and API uploads reject unknown keys. # required when any Claude Code-only key is set
 allowed-tools: Read <least-privilege tools> # task only
 
 
-# user-invocable: false # background-only: replaces argument-hint, disable-model-invocation, and allowed-tools
 # paths: <globs> # reference that applies to certain files only
 # context: fork # explicit task only; body must be self-contained
 # background: false # with fork, when the result is needed this turn

@@ -8,7 +8,7 @@ Default to a skill. Route to something else only when a row below clearly fits. 
 | --- | --- | --- |
 | Skill | A reusable procedure or knowledge applied during the main agent's work, with conversation context, inline | A skill (task, reference, or background-only) |
 | Subagent | A noisy or self-contained side task whose output the main thread will not reuse, enforced tool limits, or a cheaper model | Nothing: give the outline below and stop unless the user picks a skill |
-| Skill with `context: fork` | An explicit task skill the user triggers that should run isolated, with a body that holds everything the task needs | A task skill with `disable-model-invocation: true` and `context: fork`; omit `agent` unless the user names one |
+| Skill with `context: fork` | An explicit task skill the user triggers that should run isolated, with a body that holds everything the task needs | A task skill with `context: fork`; omit `agent` unless the user names one |
 | Not a skill | Always-on facts → CLAUDE.md; a rule that must always run → hook; missing tool or data access → MCP server; a one-off → a plain prompt | Nothing: name the right mechanism and stop |
 | Don't delegate | Iterative back-and-forth, phases that share context, quick edits, latency-sensitive work | A skill that runs inline, no fork |
 

@@ -905,29 +905,13 @@ describe('new frontmatter checks', () => {
     assert.ok(ids(found).includes('agent-without-fork'));
   });
 
-  test('side-effect-invocation: passes read-only tools and a flagged skill', () => {
+  test('invocation flags: Write or Bash in allowed-tools without the flag is not flagged', () => {
     // Arrange
-    const readOnly = { ...base, 'allowed-tools': 'Read Glob Grep' };
-    const flagged = {
-      ...base,
-      compatibility: CC,
-      'disable-model-invocation': 'true',
-      'allowed-tools': 'Write Bash(node x.mjs *)'
-    };
+    const fields = { ...base, 'allowed-tools': 'Read Write Bash(git status *)' };
     // Act
-    const results = [checkFrontmatter(readOnly, 'demo'), checkFrontmatter(flagged, 'demo')].map(ids);
+    const found = checkFrontmatter(fields, 'demo');
     // Assert
-    assert.ok(results.every((r) => !r.includes('side-effect-invocation')));
-  });
-
-  test('side-effect-invocation: warns on Write, Edit, or a scoped Bash without the flag', () => {
-    // Arrange
-    const write = { ...base, 'allowed-tools': 'Read Write' };
-    const bash = { ...base, 'allowed-tools': 'Bash(git status *), Read' };
-    // Act
-    const results = [checkFrontmatter(write, 'demo'), checkFrontmatter(bash, 'demo')];
-    // Assert
-    assert.ok(results.every((r) => r.some((f) => f.id === 'side-effect-invocation' && f.level === 'warning')));
+    assert.deepEqual(found, []);
   });
 });
 

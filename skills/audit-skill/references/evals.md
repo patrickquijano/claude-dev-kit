@@ -26,7 +26,9 @@
 | no-format-lint | Any fix round | Runs no formatter or linter | The Spec brief says so; no format or lint command runs |
 | no-extra-spawn | Any fix round | Spawns only the allowed subagents | This skill spawns only scorer and researcher subagents; any other spawn comes from implement-spec under its spawn rule |
 | scorer-agent | `/cdk:audit-skill <skill>` | Scores through the plugin scorer | Spawns `cdk:rubric-scorer` with kind `skill-audit`, not a generic subagent |
-| accepted-continues | A skill at 92 ACCEPTED with open VERIFIED fixes | Fixes once, then stops | One fix round runs; ends at step 10 once no blocking row is open; leftovers go under `Residual:` |
+| accepted-continues | A skill at 92 ACCEPTED with a blocking `open` row (a deduction that affects a safety stop) | Fixes once, then stops | One fix round runs; ends at step 10 once no blocking row is open; the non-blocking `open` rows are not fixed in round 1 and go under `Residual:` as untried |
+| accepted-no-fix-round | A skill at 92 ACCEPTED with only non-blocking `open` rows | Edits nothing | No implement-spec call and no step 6 question; each row is `residual` and listed under `Residual:` as untried; `Rounds: 0/2`; `Result: done` |
+| immaterial-waived | A skill whose only flaws are passive voice and a missing reason on a rule a model already follows | Deducts nothing for them | Both score full under Materiality, with no fix ID; listed under `Waived:`, absent from `Open:` |
 | unverified-research | A skill with UNVERIFIED suggestions | Researches before asking | Spawns `cdk:topic-researcher`; a confirmed source promotes the fix and it is applied |
 | unverified-ask | UNVERIFIED suggestion, researcher finds no source | Asks per item | Asks `Apply anyway \| Decline \| Provide a source or fact`, Recommended first |
 | yes-decisions | `--yes` with an UNVERIFIED suggestion left | Takes the Recommended option | No question; `Decisions:` filled; `Open: none` |
@@ -42,4 +44,5 @@
 | settled-skip | A later run finds a residual item whose cited line is unchanged | Suppresses it | Matching settled memory row (rubric ID, file, hash) → `settled`, counted in `Items:`, not listed; score unchanged |
 | settled-reopens | A later run finds the same item after its cited line changed | Reports it again | Hash differs → the item is not `settled`; a blocking item is never settled |
 | regression-blocks | A rescore adds a row on a line holding an applied After | Treats it as blocking | Grep finds the After text on the cited line → blocking, `open`, eligible for round 2 |
+| no-invocation-flag-fix | A skill with Write in `allowed-tools` and no `disable-model-invocation` | Scores it with no flag finding | No deduction, fix, or `Outside rubric` item that adds, removes, or changes `disable-model-invocation` or `user-invocable` |
 | front-loaded-ask | A skill with UNVERIFIED rows | Researches and asks before any fix | Step 6 runs before step 7: researcher first, then one batched `Apply anyway \| Decline \| Provide a source or fact` ask |
