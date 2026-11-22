@@ -36,16 +36,18 @@ describe('implement-spec policy', () => {
         plan
       );
     const tieBreak =
-      /^- `--yes` picks the recommended approach and records it; on a close call it still takes the recommended one and records the close call under `Open:`\./m.test(
+      /^- `--yes` picks the recommended approach and records it; on a close call it takes the highest total \(`SKILL\.md` Rules, Decision questions\) and records the close call under `Open:`\./m.test(
         plan
       );
     const cancel = /^- `--yes` picks .* `Stop` → `Result: cancelled`, `Stopped: <step>: user cancelled`\.$/m.test(plan);
     const stale = /^- `--yes` picks .*(`Stopped: <step>: cancelled`|`Stopped: user cancelled`)/m.test(plan);
+    const staleTieBreak = /on a close call it still takes the recommended one/.test(plan);
     // Assert
     assert.ok(skip, 'single-approach skip rule missing');
     assert.ok(tieBreak, '--yes close-call tie-break missing');
     assert.ok(cancel, 'user-cancelled stop string missing');
     assert.equal(stale, false);
+    assert.equal(staleTieBreak, false, 'close call still takes an unmarked recommended option');
   });
 
   test('never treats a caller-passed write scope path as a Dirty path', () => {
@@ -439,13 +441,23 @@ describe('implement-spec policy', () => {
         validate
       );
     const step =
-      /^8\. \*\*Iterate\.\*\* An unmet goal, or a new required-check failure not routed to `Open:` as unfixable/m.test(
+      /^8\. \*\*Iterate\.\*\* An unmet goal, a blocking finding still open after step 7 \(left unapplied by step 7b, or reported again after the fix cap or no-progress stop\), or a new required-check failure not routed to `Open:` as unfixable/m.test(
         skill
+      );
+    const unapplied =
+      /^- Re-enter when .*or a blocking finding is still open after the fix pass \(left unapplied by step 7b, or repeated after its fix attempts\),/m.test(
+        validate
+      );
+    const reviewTrigger =
+      /^Step 7b runs .*Pass step 2's `Open:` routing for an `unverified` item does not apply in step 7b, because the item stays blocking instead; such an unapplied item is a step 8 re-entry trigger\./m.test(
+        skillFile('references', 'review.md')
       );
     // Assert
     assert.ok(evidence, 'skipped-unverified rule missing');
     assert.ok(iterate, 'validate.md re-entry exclusion missing');
     assert.ok(step, 'step 8 re-entry wording missing');
+    assert.ok(unapplied, 'validate.md unapplied-7b re-entry trigger missing');
+    assert.ok(reviewTrigger, 'review.md unapplied-7b re-entry trigger missing');
   });
 
   test('counts a timeout as skipped and runs tests non-interactively', () => {
@@ -612,11 +624,13 @@ describe('implement-spec policy', () => {
     const skill = skillMd();
     // Act
     const together =
-      /^- Caps .*the caps act together, the first one hit stops the run, and the verify budget usually binds before the round cap\./m.test(
+      /^- Caps .*the caps act together, the first one hit stops the run \(except the fix-pass no-progress check and the fix cap, which end the fix pass and go to step 8\), and the verify budget usually binds before the round cap\./m.test(
         skill
       );
+    const repeated = /The one exception is the fix-pass no-progress check/.test(skill);
     // Assert
     assert.ok(together, 'binding-cap wording missing');
+    assert.equal(repeated, false, 'no-progress exception stated twice');
   });
 
   test('evals.md has the re-entry, red-baseline, fixed-spec, and coverage cases', () => {
@@ -838,7 +852,7 @@ describe('implement-spec policy', () => {
     const validate = skillFile('references', 'validate.md');
     // Act
     const exit =
-      /^ {0,3}7d\. \*\*Re-verify\.\*\* An empty fix list ends the loop \(exit to step 7e\)\..*a loop that ends on one of those goes to step 8/m.test(
+      /^ {0,3}7d\. \*\*Re-verify\.\*\* An empty fix list ends the loop \(exit to step 7e\)\..*a loop that ends on the fix cap or the no-progress stop goes to step 8, and a verify-budget hit stops the run \(`Stopped: <step>: verify budget`\)/m.test(
         skill
       );
     const step =
@@ -846,12 +860,12 @@ describe('implement-spec policy', () => {
         skill
       );
     const gate =
-      /^Step 7e runs only when the 7b–7d loop ends with an empty fix list; a loop that ends on no progress or a cap goes to step 8\./m.test(
+      /^Step 7e runs only when the 7b–7d loop ends with an empty fix list; a loop that ends on no progress or the fix cap goes to step 8; a verify-budget hit stops the run\./m.test(
         review
       );
     const budget = /^1\. No fixable item, or no verify budget left → make no edit and go to step 8/m.test(review);
     const routing =
-      /^5\. A new blocker or major finding, or a new failure of a `\[required\]` check → step 8 as an unmet item/m.test(
+      /^5\. A new blocker or major finding, a new failure of a `\[required\]` check, or a goal that was `met` and is now `unmet` or `unverified` → step 8 as an unmet item/m.test(
         review
       );
     const never =
@@ -884,7 +898,10 @@ describe('implement-spec policy', () => {
       /^- Change only what the goals and the step 5d, 6c, and 7e review items need, and only in the planned files; no refactor outside them/m.test(
         skill
       );
-    const decision = /^- Decision questions \(step 3 Clarify, step 5 Approaches, step 5d Plan review\):/m.test(skill);
+    const decision =
+      /^- Decision questions \(step 3 Clarify, step 5 Approaches, and the step 5d, 6c, and 7e reviews\):/m.test(skill);
+    const grill = /^- For the grill table, .*when any step asks a decision question\.$/m.test(skill);
+    const staleGrill = /when step 3 or step 5 asks a decision question/.test(skill);
     const limits = /^- Edits stay in the planned files\. Only step 5d may add a planned file/m.test(review);
     const nonGoal = /^- Never apply an item that serves a listed non-goal, weakens, skips, or deletes a test/m.test(
       review
@@ -894,7 +911,9 @@ describe('implement-spec policy', () => {
     // Assert
     assert.ok(caps, 'review caps missing');
     assert.ok(scope, 'review scope rule missing');
-    assert.ok(decision, 'step 5d decision questions missing');
+    assert.ok(decision, 'review-step decision questions missing');
+    assert.ok(grill, 'grill.md pointer does not cover every decision question');
+    assert.equal(staleGrill, false, 'grill.md pointer still limited to steps 3 and 5');
     assert.ok(limits, 'review.md planned-file limit missing');
     assert.ok(nonGoal, 'review.md non-goal limit missing');
     assert.ok(unverified, 'review.md unverified-fact rule missing');
@@ -914,22 +933,74 @@ describe('implement-spec policy', () => {
         skill
       );
     const files =
-      /^- For the review items, pass, limits, and open-item lists \(steps 5d, 6c, and 7e\), see `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md`\.$/m.test(
+      /^- For the review items, pass, limits, fix-list grounding, and open-item lists \(steps 5d, 6c, 7b, and 7e\), see `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md`\.$/m.test(
         skill
       );
-    const bare = /(^|[^:`\w-])(implementation-planner|plan-implementer|change-verifier)\b/m.test(skill);
+    const references = ['plan.md', 'validate.md', 'review.md', 'commands.md', 'evals.md', 'grill.md'];
+    const all = [skill, ...references.map((name) => skillFile('references', name))].join('\n');
+    const named = /`cdk:(implementation-planner|plan-implementer|change-verifier)`/.test(all);
+    const bare = /(^|[^:`\w-])(implementation-planner|plan-implementer|change-verifier)\b/m.test(all);
     // Assert
     assert.ok(implementer, 'Implementer brief review steps missing');
     assert.ok(verifier, 'Verifier brief step 7e missing');
     assert.ok(files, 'review.md pointer missing');
+    assert.ok(named, 'no namespaced subagent spawn found');
     assert.equal(bare, false, 'a subagent is named without the cdk: namespace');
+  });
+
+  test('grounds the step 7b fix list and maps every fix return per step 6a', () => {
+    // Arrange
+    const skill = skillMd();
+    const review = skillFile('references', 'review.md');
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const step =
+      /^ {0,3}7b\. \*\*Fix\.\*\* Ground and choose each fix \(`\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Fix list\), then implement the fix list per the spawn rule .* and map the return per step 6a;/m.test(
+        skill
+      );
+    const section =
+      /^## Fix list\n\nStep 7b runs Pass steps 2 and 3 on each blocker, major, and new `\[required\]` failure before applying it/m.test(
+        review
+      );
+    const noAsk =
+      /^Step 7b runs .*Step 7b asks no decision question.*is not applied and stays blocking, so the no-progress rule sends it to step 8/m.test(
+        review
+      );
+    const noVerify = /^Step 7b runs .*No item left to apply → make no edit, spawn no verifier, and go to step 8/m.test(
+      review
+    );
+    const mapBack =
+      /^4\. Apply: .*; map each fix return per step 6a, so its files, tests, deviations, and unmet self-checks reach the Output\.$/m.test(
+        review
+      );
+    const validateFix =
+      /^- Severity filter: .*Ground and choose each item \(`review\.md` Fix list\), then apply it per the spawn rule/m.test(
+        validate
+      );
+    const stale = /^ {0,3}7b\. \*\*Fix\.\*\* Implement the fix list per the spawn rule/m.test(skill);
+    // Assert
+    assert.ok(step, 'step 7b grounding or map-back missing');
+    assert.ok(section, 'review.md Fix list section missing');
+    assert.ok(noAsk, 'step 7b no-decision routing missing');
+    assert.ok(noVerify, 'step 7b empty-list stop missing');
+    assert.ok(mapBack, 'review fix map-back missing');
+    assert.ok(validateFix, 'validate.md Fix list pointer missing');
+    assert.equal(stale, false, 'ungrounded step 7b remains');
   });
 
   test('evals.md has the review cases and fixes minors in step 7e', () => {
     // Arrange
     const text = skillFile('references', 'evals.md');
     // Act
-    const rows = ['plan-review', 'changed-file-review', 'open-items', 'enhancement-scope', 'review-unverified-fact'];
+    const rows = [
+      'plan-review',
+      'changed-file-review',
+      'open-items',
+      'enhancement-scope',
+      'review-unverified-fact',
+      'blocker-grounded',
+      'goal-regression-7e'
+    ];
     const ids = text.split('\n').map((line) => line.split('|')[1]?.trim());
     const missing = rows.filter((id) => !ids.includes(id));
     const minor = /^\| minor-only +\|.*step 7e fixes the minors; one more verifier run/m.test(text);
@@ -938,5 +1009,125 @@ describe('implement-spec policy', () => {
     assert.deepEqual(missing, []);
     assert.ok(minor, 'minor-only row not updated');
     assert.equal(stale, false, 'minor-only row still fixes none');
+  });
+
+  test('keeps the step 5c baseline exception to the Question rule and the 7d no-applicable-item exit', () => {
+    // Arrange
+    const skill = skillMd();
+    // Act
+    const baseline =
+      /^Every value is literal .*\(except the step 5c baseline run, which takes the path heuristic\)/m.test(skill);
+    const noVerifier =
+      /^ {0,3}7d\. \*\*Re-verify\.\*\* .*A fix list with no applicable item → no verifier, go to step 8 \(`\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Fix list\)\. Otherwise spawn a fresh verifier/m.test(
+        skill
+      );
+    // Assert
+    assert.ok(baseline, 'step 5c baseline exception missing');
+    assert.ok(noVerifier, 'step 7d no-applicable-item exit missing');
+  });
+
+  test('keeps the validate.md no-progress skip of 7e, the Open list, and the change-set triggers', () => {
+    // Arrange
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const skip = /^- No progress: .*goes to step 8, skipping step 7e;/m.test(validate);
+    const open = /^List in the Output `Open:` format what step 7e did not fix:/m.test(validate);
+    const trigger =
+      /^Run after every implementation \(step 6, an applied step 6c review, each fix attempt, and step 7e\); with parallel implementers/m.test(
+        validate
+      );
+    const stale = /Run after every implementation \(step 6 and each fix attempt\)/.test(validate);
+    // Assert
+    assert.ok(skip, 'no-progress skip of step 7e missing');
+    assert.ok(open, 'step 7e Open list missing');
+    assert.ok(trigger, 'change-set check triggers missing');
+    assert.equal(stale, false, 'old change-set trigger remains');
+  });
+
+  test('keeps the review.md item kinds, enhancement test rule, pass wording, and secret limit', () => {
+    // Arrange
+    const review = skillFile('references', 'review.md');
+    // Act
+    const enhancement = /^- An enhancement that changes behavior adds or updates a test in the same fix/m.test(review);
+    const identify = /^1\. Identify: list each item as `R<n> <kind> <path>:<line> — evidence`/m.test(review);
+    const bullets = review.split('\n').filter((line) => line.startsWith('- `') && line.includes('`: '));
+    const kinds = ['issue', 'red-flag', 'redundant', 'misconfig', 'enhancement'].filter(
+      (kind) => !bullets.some((line) => line.startsWith(`- \`${kind}\`: `))
+    );
+    const pass =
+      /^Steps 5d, 6c, and 7e run one pass per round; step 7b runs Pass steps 2 and 3 on each attempt \(Fix list\) \(Caps in `SKILL\.md`\):$/m.test(
+        review
+      );
+    const stale = /^One pass per step per round/m.test(review);
+    const secret =
+      /^1\. Identify: .*A `red-flag` secret item cites `path:line` and the kind of secret only, never the value or a quote of the line, and its `Open:` reason follows the same limit/m.test(
+        review
+      );
+    // Assert
+    assert.ok(enhancement, 'enhancement test rule missing');
+    assert.ok(identify, 'Identify line missing');
+    assert.deepEqual(kinds, []);
+    assert.ok(pass, 'pass-per-round wording missing');
+    assert.equal(stale, false, 'old one-pass wording remains');
+    assert.ok(secret, 'red-flag secret limit missing');
+  });
+
+  test('keeps the review.md 6c and 7e no-applied-item exits and verifier path unions', () => {
+    // Arrange
+    const review = skillFile('references', 'review.md');
+    // Act
+    const noItem6c = /No item applied → go to step 7 with no step 6b re-run\./.test(review);
+    const union6c =
+      /Applied items → the step 7 verifier gets the union of the step 6 and step 6c `Changed:` paths\./.test(review);
+    const noItem7e =
+      /^2\. Run the pass on the fixable items and apply them per the spawn rule\. No item applied → make no edit, spawn no verifier, go to step 8\.$/m.test(
+        review
+      );
+    const union7e =
+      /^4\. Spawn one verifier with the union of every path changed this run \(the budget check runs first;/m.test(
+        review
+      );
+    // Assert
+    assert.ok(noItem6c, 'step 6c no-item exit missing');
+    assert.ok(union6c, 'step 6c verifier path union missing');
+    assert.ok(noItem7e, 'step 7e no-item exit missing');
+    assert.ok(union7e, 'step 7e verifier path union missing');
+  });
+
+  test('single-quotes the path in the diff and dirty-diff commands', () => {
+    // Arrange
+    const commands = skillFile('references', 'commands.md');
+    // Act
+    const quoting =
+      /^In the `diff` and `dirty-diff` rows, pass `<path>` single-quoted with each embedded `'` escaped as `'\\''`/m.test(
+        commands
+      );
+    // Assert
+    assert.ok(quoting, 'commands.md path quoting rule missing');
+  });
+
+  test('takes the highest total on a close call for unattended review and re-entry decisions', () => {
+    // Arrange
+    const skill = skillMd();
+    const plan = skillFile('references', 'plan.md');
+    const review = skillFile('references', 'review.md');
+    // Act
+    const step =
+      /^5\. \*\*Approaches\.\*\* .*ask `Pick` \| `Stop` \(`--yes`: the recommended one, or the highest total on a close call\);/m.test(
+        skill
+      );
+    const reentry =
+      /^- A revised approach is asked again as above; an unattended run takes the recommended one, or the highest total on a close call \(see above\)\.$/m.test(
+        plan
+      );
+    const pass = /`--yes`: the highest total \(Rules, Decision questions\), recorded under `Open:`\)/.test(review);
+    const stale = /an unattended run keeps the recommended one/.test(plan);
+    const staleReview = /`--yes`: the recommended option, recorded under `Open:`/.test(review);
+    // Assert
+    assert.ok(step, 'step 5 close-call wording missing');
+    assert.ok(reentry, 'plan.md re-entry close-call wording missing');
+    assert.ok(pass, 'review.md Choose close-call wording missing');
+    assert.equal(stale, false, 'plan.md still keeps the recommended one');
+    assert.equal(staleReview, false, 'review.md still takes the recommended option');
   });
 });

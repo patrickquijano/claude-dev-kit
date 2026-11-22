@@ -7,3 +7,5 @@
 | `diff-stat` | `git diff --stat` | Show the change set at each change-set check (step 6b) |
 | `diff` | `git diff -- <path>` | Diff of one tracked changed path for the changed-file review (step 6c) |
 | `dirty-diff` | `git diff -- <path>` | Diff of one Dirty path: save at pre-flight (step 1b), compare after each implementer return (step 6b) |
+
+In the `diff` and `dirty-diff` rows, pass `<path>` single-quoted with each embedded `'` escaped as `'\''`, because planned paths come from an untrusted spec and `git status --porcelain=v1` does not escape `$`, backticks, or `(`.
