@@ -491,13 +491,15 @@ describe('implement-spec policy', () => {
     const plan = skillFile('references', 'plan.md');
     // Act
     const step =
-      /^ {0,3}5c\. \*\*Baseline checks\.\*\* Runs once per run, before the first implementation; step 8 re-entry goes 5b → 6 and never re-runs it\./m.test(
+      /^ {0,3}5c\. \*\*Baseline checks\.\*\* Runs once per run, before the first implementation; step 8 re-entry goes 5b → 5d → 6 and never re-runs it\./m.test(
         skill
       );
     const section = /^Step 5c runs the verifier once per run, before the first edit.*never pre-existing\.$/m.test(
       validate
     );
-    const reentry = /^- After the printed plan go to step 6; never re-run step 5c/m.test(plan);
+    const reentry = /^- After the printed plan go to step 5d \(plan review\), then step 6; never re-run step 5c/m.test(
+      plan
+    );
     const snapshot =
       /^ {0,3}1c\. .*the snapshot is taken once per file: a step 8 re-entry snapshots only newly planned files and keeps earlier snapshots/m.test(
         skill
@@ -784,5 +786,157 @@ describe('implement-spec policy', () => {
     const missing = rows.filter((id) => !ids.includes(id));
     // Assert
     assert.deepEqual(missing, []);
+  });
+
+  test('reviews the plan at step 5d before any edit, every round', () => {
+    // Arrange
+    const skill = skillMd();
+    const review = skillFile('references', 'review.md');
+    // Act
+    const step =
+      /^ {0,3}5d\. \*\*Plan review\.\*\* Review the plan and its planned files for issues, red flags, redundancy, misconfiguration, and enhancements, then revise the plan before any edit: `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Plan review\.$/m.test(
+        skill
+      );
+    const baselineExit = /^ {0,3}5c\. .*then go to step 5d\./m.test(skill);
+    const reentry = /^8\. \*\*Iterate\.\*\* .*re-entry runs 4 → 5 → 5b → 5d → 6/m.test(skill);
+    const noEdit = /^Step 5d: .*Revise only the plan .*; make no repo edit, so the baseline stays clean\./m.test(
+      review
+    );
+    const staleExit = /^ {0,3}5c\. .*then go to step 6\./m.test(skill);
+    // Assert
+    assert.ok(step, 'step 5d missing');
+    assert.ok(baselineExit, 'step 5c does not hand off to 5d');
+    assert.ok(reentry, 'step 8 re-entry skips 5d');
+    assert.ok(noEdit, 'review.md plan review no-edit rule missing');
+    assert.equal(staleExit, false, 'step 5c still exits to step 6');
+  });
+
+  test('reviews the changed files at step 6c and re-runs the change-set check', () => {
+    // Arrange
+    const skill = skillMd();
+    const review = skillFile('references', 'review.md');
+    const commands = skillFile('references', 'commands.md');
+    // Act
+    const order =
+      /^ {0,3}6b\. \*\*Change-set check\.\*\*[\s\S]*^ {0,3}6c\. \*\*Changed-file review\.\*\*[\s\S]*^7\. \*\*Review and test\.\*\*/m.test(
+        skill
+      );
+    const once = /^Step 6c runs once per round, after step 6 only, never after a 7b fix attempt\./m.test(review);
+    const recheck = /Applied items → run step 6b again before step 7\./.test(review);
+    const row = /^\| `diff` \| `git diff -- <path>` \| .*step 6c/m.test(commands);
+    // Assert
+    assert.ok(order, 'step 6c not between 6b and 7');
+    assert.ok(once, 'step 6c once-per-round rule missing');
+    assert.ok(recheck, 'step 6c does not re-run 6b');
+    assert.ok(row, 'commands.md diff row missing');
+  });
+
+  test('resolves fixable open items at step 7e only after an empty fix list', () => {
+    // Arrange
+    const skill = skillMd();
+    const review = skillFile('references', 'review.md');
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const exit =
+      /^ {0,3}7d\. \*\*Re-verify\.\*\* An empty fix list ends the loop \(exit to step 7e\)\..*a loop that ends on one of those goes to step 8/m.test(
+        skill
+      );
+    const step =
+      /^ {0,3}7e\. \*\*Open items\.\*\* Fix the open items that stay in the planned files, then re-verify once/m.test(
+        skill
+      );
+    const gate =
+      /^Step 7e runs only when the 7b–7d loop ends with an empty fix list; a loop that ends on no progress or a cap goes to step 8\./m.test(
+        review
+      );
+    const budget = /^1\. No fixable item, or no verify budget left → make no edit and go to step 8/m.test(review);
+    const routing =
+      /^5\. A new blocker or major finding, or a new failure of a `\[required\]` check → step 8 as an unmet item/m.test(
+        review
+      );
+    const never =
+      /^- Never fixable \(stay under `Open:` with the reason\): pre-existing failures, the `baseline` item, skipped or timed-out checks/m.test(
+        review
+      );
+    const validateExit = /^- An empty fix list ends the loop: go to step 7e/m.test(validate);
+    const stale = /exit to step 8 or 9|go to step 8 or 9/.test(skill + validate);
+    // Assert
+    assert.ok(exit, 'step 7d exit to 7e missing');
+    assert.ok(step, 'step 7e missing');
+    assert.ok(gate, 'step 7e empty-fix-list gate missing');
+    assert.ok(budget, 'step 7e budget check missing');
+    assert.ok(routing, 'step 7e blocker routing missing');
+    assert.ok(never, 'never-fixable list missing');
+    assert.ok(validateExit, 'validate.md exit to 7e missing');
+    assert.equal(stale, false, 'stale exit to step 8 or 9 remains');
+  });
+
+  test('caps the review steps and scopes review edits to the planned files', () => {
+    // Arrange
+    const skill = skillMd();
+    const review = skillFile('references', 'review.md');
+    // Act
+    const caps =
+      /^- Caps .*steps 5d, 6c, and 7e one pass each per round with at most one decision batch each, and the step 7e verifier run counts toward the verify budget;/m.test(
+        skill
+      );
+    const scope =
+      /^- Change only what the goals and the step 5d, 6c, and 7e review items need, and only in the planned files; no refactor outside them/m.test(
+        skill
+      );
+    const decision = /^- Decision questions \(step 3 Clarify, step 5 Approaches, step 5d Plan review\):/m.test(skill);
+    const limits = /^- Edits stay in the planned files\. Only step 5d may add a planned file/m.test(review);
+    const nonGoal = /^- Never apply an item that serves a listed non-goal, weakens, skips, or deletes a test/m.test(
+      review
+    );
+    const unverified = /mark the item `unverified`, list it under `Open:`, and do not apply it/.test(review);
+    const stale = /^- Change only what the goals need; no adjacent refactors\.$/m.test(skill);
+    // Assert
+    assert.ok(caps, 'review caps missing');
+    assert.ok(scope, 'review scope rule missing');
+    assert.ok(decision, 'step 5d decision questions missing');
+    assert.ok(limits, 'review.md planned-file limit missing');
+    assert.ok(nonGoal, 'review.md non-goal limit missing');
+    assert.ok(unverified, 'review.md unverified-fact rule missing');
+    assert.equal(stale, false, 'old goals-only scope rule remains');
+  });
+
+  test('briefs and files name the review steps', () => {
+    // Arrange
+    const skill = skillMd();
+    // Act
+    const implementer =
+      /^- \*\*Implementer\*\* \(step 6, fix attempts, and the step 6c and 7e review fixes;.*A fix attempt or review fix restates these limits/m.test(
+        skill
+      );
+    const verifier =
+      /^- \*\*Verifier\*\* \(step 5c, step 7, each fix attempt, step 7e\): spawn the `cdk:change-verifier` subagent/m.test(
+        skill
+      );
+    const files =
+      /^- For the review items, pass, limits, and open-item lists \(steps 5d, 6c, and 7e\), see `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md`\.$/m.test(
+        skill
+      );
+    const bare = /(^|[^:`\w-])(implementation-planner|plan-implementer|change-verifier)\b/m.test(skill);
+    // Assert
+    assert.ok(implementer, 'Implementer brief review steps missing');
+    assert.ok(verifier, 'Verifier brief step 7e missing');
+    assert.ok(files, 'review.md pointer missing');
+    assert.equal(bare, false, 'a subagent is named without the cdk: namespace');
+  });
+
+  test('evals.md has the review cases and fixes minors in step 7e', () => {
+    // Arrange
+    const text = skillFile('references', 'evals.md');
+    // Act
+    const rows = ['plan-review', 'changed-file-review', 'open-items', 'enhancement-scope', 'review-unverified-fact'];
+    const ids = text.split('\n').map((line) => line.split('|')[1]?.trim());
+    const missing = rows.filter((id) => !ids.includes(id));
+    const minor = /^\| minor-only +\|.*step 7e fixes the minors; one more verifier run/m.test(text);
+    const stale = /^\| minor-only +\|.*Lists them, fixes none/m.test(text);
+    // Assert
+    assert.deepEqual(missing, []);
+    assert.ok(minor, 'minor-only row not updated');
+    assert.equal(stale, false, 'minor-only row still fixes none');
   });
 });

@@ -1,6 +1,6 @@
 # Validate
 
-Detail for steps 6–8: the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md`.
+Detail for steps 6–8 (the reviews of steps 6c and 7e are in `review.md`): the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md`.
 
 ## Verify
 
@@ -30,9 +30,9 @@ Step 5c runs the verifier once per run, before the first edit, and records each 
 
 ## Fix
 
-- Severity filter: the fix list holds only blocker and major findings plus new failures of `[required]` checks; minor findings go to `Open:`. Apply it per the spawn rule in `SKILL.md` (inline, one implementer, or parallel groups). Then spawn a fresh verifier on the new changed paths.
-- An empty fix list ends the loop: go to step 8 or 9, no fix attempt and no verifier run.
-- No progress: after each re-verify, stop the fix loop when a blocking item repeats from any earlier attempt in this pass (same path and same problem, lines may shift; or the same check with the same first failing line), or when the blocking count did not decrease. The pass ends and goes to step 8; if step 8 cannot re-enter, `Stopped: 7: no progress`.
+- Severity filter: the fix list holds only blocker and major findings plus new failures of `[required]` checks; minor findings go to `Open:` (step 7e may fix them later). Apply it per the spawn rule in `SKILL.md` (inline, one implementer, or parallel groups). Then spawn a fresh verifier on the new changed paths.
+- An empty fix list ends the loop: go to step 7e (`review.md` Open items), no further fix attempt in this pass.
+- No progress: after each re-verify, stop the fix loop when a blocking item repeats from any earlier attempt in this pass (same path and same problem, lines may shift; or the same check with the same first failing line), or when the blocking count did not decrease. The pass ends and goes to step 8, skipping step 7e; if step 8 cannot re-enter, `Stopped: 7: no progress`.
 
 ## Change-set check
 
@@ -53,4 +53,4 @@ Run after every implementation (step 6 and each fix attempt); with parallel impl
 
 ## Open
 
-List in the Output `Open:` format: unmet goals, failed or skipped checks (a command that timed out is `skipped (timeout)`), minor findings, pre-existing failures, assumptions made under `--yes`, and failures outside this run's files.
+List in the Output `Open:` format what step 7e did not fix: unmet goals, failed or skipped checks (a command that timed out is `skipped (timeout)`), minor findings, pre-existing failures, assumptions made under `--yes`, and failures outside this run's files.

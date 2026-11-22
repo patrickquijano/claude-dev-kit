@@ -47,4 +47,4 @@ After the pick, print the plan (restatement, goals with criteria, non-goals, cho
 - Revise only what the unmet criterion or failed check points at: the goals, the approach, or both.
 - Keep met goals as they are; carry over what was learned into the revised card.
 - A revised approach is asked again as above; an unattended run keeps the recommended one.
-- After the printed plan go to step 6; never re-run step 5c (the baseline runs once per run).
+- After the printed plan go to step 5d (plan review), then step 6; never re-run step 5c (the baseline runs once per run).
