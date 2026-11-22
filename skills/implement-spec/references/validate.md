@@ -1,6 +1,6 @@
 # Validate
 
-Detail for steps 6–8: the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md`.
+Detail for steps 6–8 (the reviews of steps 6c and 7e are in `review.md`): the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md`.
 
 ## Verify
 
@@ -30,13 +30,13 @@ Step 5c runs the verifier once per run, before the first edit, and records each 
 
 ## Fix
 
-- Severity filter: the fix list holds only blocker and major findings plus new failures of `[required]` checks; minor findings go to `Open:`. Apply it per the spawn rule in `SKILL.md` (inline, one implementer, or parallel groups). Then spawn a fresh verifier on the new changed paths.
-- An empty fix list ends the loop: go to step 8 or 9, no fix attempt and no verifier run.
-- No progress: after each re-verify, stop the fix loop when a blocking item repeats from any earlier attempt in this pass (same path and same problem, lines may shift; or the same check with the same first failing line), or when the blocking count did not decrease. The pass ends and goes to step 8; if step 8 cannot re-enter, `Stopped: 7: no progress`.
+- Severity filter: the fix list holds only blocker and major findings plus new failures of `[required]` checks; minor findings go to `Open:` (step 7e may fix them later). Ground and choose each item (`review.md` Fix list), then apply it per the spawn rule in `SKILL.md` (inline, one implementer, or parallel groups). Then spawn a fresh verifier on the new changed paths.
+- An empty fix list ends the loop: go to step 7e (`review.md` Open items), no further fix attempt in this pass.
+- No progress: after each re-verify, stop the fix loop when a blocking item repeats from any earlier attempt in this pass (same path and same problem, lines may shift; or the same check with the same first failing line), or when the blocking count did not decrease. The pass ends and goes to step 8, skipping step 7e; if step 8 cannot re-enter, `Stopped: 7: no progress`.
 
 ## Change-set check
 
-Run after every implementation (step 6 and each fix attempt); with parallel implementers, once after all returns. Without git, compare a fresh content snapshot of the write scope, or of the planned files when no scope was passed (the Dirty set is empty beyond it), with the pre-flight snapshot instead of `status`, `diff-stat`, and `dirty-diff`, and apply the same rules below. With git, run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content). `status` also cannot see an ignored file or a path outside the repo.
+Run after every implementation (step 6, an applied step 6c review, each fix attempt, and step 7e); with parallel implementers, once after all returns. Without git, compare a fresh content snapshot of the write scope, or of the planned files when no scope was passed (the Dirty set is empty beyond it), with the pre-flight snapshot instead of `status`, `diff-stat`, and `dirty-diff`, and apply the same rules below. With git, run `status` and compare it with the pre-flight baseline, and run `diff-stat` to confirm the change set matches the approach. `status` cannot show further edits to an already-dirty file, so also run `dirty-diff` for each Dirty path and compare it with the output saved at pre-flight (an untracked Dirty path: re-read it with Read and compare with its pre-flight content). `status` also cannot see an ignored file or a path outside the repo.
 
 - Planned means the union of the planned files across all rounds of this run; a path an earlier round planned and wrote is never unplanned.
 - A newly changed path that is not planned, or a Dirty path whose diff changed and the picked approach does not name: never revert or remove it (that could drop the user's own edits); keep it and list the path under `Open:`.
@@ -45,7 +45,7 @@ Run after every implementation (step 6 and each fix attempt); with parallel impl
 
 ## Iterate
 
-- Re-enter when a goal is unmet or a check still fails after its fix attempts, excluding items already routed to `Open:` (pre-existing, skipped, out-of-run, minor): re-spawn the planner with the evidence (`SKILL.md` `## Spawn briefs`), then step 4.
+- Re-enter when a goal is unmet, a check still fails after its fix attempts, or a blocking finding is still open after the fix pass (left unapplied by step 7b, or repeated after its fix attempts), excluding items already routed to `Open:` (pre-existing, skipped, out-of-run, minor): re-spawn the planner with the evidence (`SKILL.md` `## Spawn briefs`), then step 4.
 - Round-level stop: when a round ends with no fewer unmet goals plus blocking items than the previous round, stop with `Stopped: 8: no progress`.
 - The verify budget check runs before every verifier spawn (`Stopped: <step>: verify budget`).
 - Count each re-entry as a round; the cap is in `## Rules`.
@@ -53,4 +53,4 @@ Run after every implementation (step 6 and each fix attempt); with parallel impl
 
 ## Open
 
-List in the Output `Open:` format: unmet goals, failed or skipped checks (a command that timed out is `skipped (timeout)`), minor findings, pre-existing failures, assumptions made under `--yes`, and failures outside this run's files.
+List in the Output `Open:` format what step 7e did not fix: unmet goals, failed or skipped checks (a command that timed out is `skipped (timeout)`), minor findings, pre-existing failures, assumptions made under `--yes`, and failures outside this run's files.

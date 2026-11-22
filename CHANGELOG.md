@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.7] - 2026-11-22
+
+### Added
+
+- `/cdk:implement-spec` reviews the plan before any edit and revises it for issues, red flags, redundancy, misconfiguration, and enhancements.
+- `/cdk:implement-spec` reviews each changed file after the first implementation and fixes what it finds inside the planned files.
+- `/cdk:implement-spec` fixes the minor findings, deviations, and unmet self-checks that stay in the planned files, then re-verifies once.
+
+### Changed
+
+- `/cdk:implement-spec` grounds each fix in repo evidence or official docs before applying it, and does not apply a fix it cannot verify.
+- `/cdk:implement-spec` sends a fix pass that ends on the fix cap or no progress back to the planner instead of stopping the run.
+- `/cdk:implement-spec` reports a secret found in review by file, line, and kind of secret, never by its value.
+
 ## [0.9.6] - 2026-11-14
 
 ### Changed
@@ -627,7 +641,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.6...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.7...HEAD
+[0.9.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.6...v0.9.7
 [0.9.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...v0.9.5
 [0.9.4]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.3...v0.9.4
