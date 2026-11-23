@@ -431,6 +431,29 @@ describe('main', () => {
     assert.equal(s.urls.length, 2);
   });
 
+  test('marks the pick partial when the registry page cap stops with a Link left', async () => {
+    // Arrange
+    const s = setup({
+      fetch: async () => json({ tags: ['1.0.0'] }, { link: '</v2/org/app/tags/list?n=1000&last=1.0.0>; rel="next"' })
+    });
+    // Act
+    const code = await main(['quay.io/org/app'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(s.urls.length, 10);
+    assert.equal(JSON.parse(s.logs[0]).partial, true);
+  });
+
+  test('does not mark a registry pick partial when the last page has no Link', async () => {
+    // Arrange
+    const s = setup({ fetch: async () => json({ tags: ['1.0.0'] }) });
+    // Act
+    const code = await main(['quay.io/org/app'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal('partial' in JSON.parse(s.logs[0]), false);
+  });
+
   test('does not follow a Link to another host', async () => {
     // Arrange
     const s = setup({
@@ -516,6 +539,32 @@ describe('main', () => {
     // Assert
     assert.equal(code, 0);
     assert.equal(s.urls.length, 1);
+  });
+
+  test('marks the pick partial when the Docker Hub page cap stops with a next URL left', async () => {
+    // Arrange
+    const next = 'https://hub.docker.com/v2/repositories/library/nginx/tags?page=2';
+    const s = setup({
+      fetch: async () => ({ ok: true, text: async () => JSON.stringify({ results: [{ name: '1.0.0' }], next }) })
+    });
+    // Act
+    const code = await main(['nginx'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(s.urls.length, 10);
+    assert.equal(JSON.parse(s.logs[0]).partial, true);
+  });
+
+  test('does not mark the pick partial when Docker Hub has no next page', async () => {
+    // Arrange
+    const s = setup({
+      fetch: async () => ({ ok: true, text: async () => '{"results":[{"name":"1.0.0"}],"next":null}' })
+    });
+    // Act
+    const code = await main(['nginx'], s.deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal('partial' in JSON.parse(s.logs[0]), false);
   });
 
   test('exits 2 when a later Docker Hub page fails, rather than answering from a partial list', async () => {
