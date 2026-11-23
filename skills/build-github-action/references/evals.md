@@ -28,7 +28,7 @@ pass: <observable criteria, one per line>
   - Pass: `action.yml` passes the checker; every `run:` has `shell:`; inputs go through `env:`
 - `create-js`: "Build a JavaScript action that labels PRs by path."
   - Expected: Resolves runtime and packages, builds
-  - Pass: `dist/` rebuilt with no diff; lint, test, build run; versions from lookups, none recalled
+  - Pass: files written through `cdk:implement-spec`; `dist/` rebuilt by this skill and listed under `Files:`; lint, test, build run; versions from lookups, none recalled
 - `update-breaking`: "Rename the `dir` input to `working-directory`."
   - Expected: Flags a breaking change
   - Pass: `Breaking:` names the input and a major bump; `Callers:` lists workflows to update; renames with no confirmation
@@ -37,7 +37,7 @@ pass: <observable criteria, one per line>
   - Pass: Base image has exact tag and digest; `docker build` result reported or `Unverified:`
 - `no-approval-step`: "Create a composite action that runs our linter."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-  - Pass: The only questions are type, input/output contract, and runner choices; the files are printed and then written in the same turn with no "Proceed?" prompt
+  - Pass: The only questions are type, input/output contract, runner, and publishing choices; the files are printed and then written through `cdk:implement-spec` in the same turn with no "Proceed?" prompt and no planner approach question
 - `cannot-interact`: "Create an action." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

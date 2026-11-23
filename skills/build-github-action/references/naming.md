@@ -1,6 +1,6 @@
 # Naming
 
-- Existing action names, input IDs, and output IDs never change; renaming or removing one is breaking.
+- Rename or remove an existing action name, input ID, or output ID only when the user's own input asks; it is breaking (`SKILL.md` Rules).
 - Action directory: lowercase kebab-case, noun or verb-noun (`setup-node-cache`, `deploy-preview`); the file is always `action.yml`.
 - `name:` Title Case, unique, no "GitHub" prefix; `description:` one sentence; `author:` the repo owner.
 - Inputs and outputs: lowercase kebab-case, one meaning each (`working-directory`, `cache-hit`).

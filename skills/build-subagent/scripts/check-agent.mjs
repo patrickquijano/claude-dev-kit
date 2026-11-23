@@ -84,6 +84,10 @@ export function parseFrontmatter(text) {
       lineOf[key] = i + 1;
       const raw = top[2].trim();
       const value = /^["']/.test(raw) ? raw : raw.replace(/\s+#.*$/, '');
+      // YAML 1.2.2 §7.3.3: a plain scalar cannot hold ": ".
+      if (!/^["']/.test(raw) && value.includes(': ')) {
+        throw new FrontmatterError(`line ${i + 1}: plain value holds ": "; quote it`);
+      }
       fields[key] = /^[>|][+-]?$/.test(value) ? '' : unquote(value);
     } else if (key && /^\s+-\s/.test(line)) {
       if (!Array.isArray(fields[key])) fields[key] = [];

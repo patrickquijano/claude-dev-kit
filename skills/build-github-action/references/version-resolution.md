@@ -8,11 +8,11 @@ Resolve fresh on every run; never use a remembered value. A lookup that fails �
 
 ## Actions
 
-Latest release: `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`; if it fails or there are no releases, `git ls-remote --tags --refs https://github.com/<owner>/<repo>` and take the highest stable `vX.Y.Z`. Then the SHA: `git ls-remote https://github.com/<owner>/<repo> refs/tags/<tag> 'refs/tags/<tag>^{}'`, using the `^{}` line for an annotated tag. Write `uses: <owner>/<repo>@<sha> # <tag>`. Keep an existing valid pin.
+Latest release: `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`; if it fails or there are no releases, `git ls-remote --tags --refs https://github.com/<owner>/<repo>` and take the highest stable `vX.Y.Z`. Then the SHA: `git ls-remote --tags https://github.com/<owner>/<repo> refs/tags/<tag> 'refs/tags/<tag>^{}'`, using the `^{}` line for an annotated tag. Write `uses: <owner>/<repo>@<sha> # <tag>`. Keep an existing valid pin.
 
 ## `runs.using`
 
-Take the supported values from the official metadata syntax page (<https://docs.github.com/actions/reference/workflows-and-actions/metadata-syntax>), or from the `action.yml` of a recent first-party action such as `actions/setup-node`, read through `gh api repos/actions/setup-node/contents/action.yml --jq .content` (base64). Use the newest `node<major>` listed there.
+Take the supported values from the official metadata syntax page (<https://docs.github.com/actions/reference/workflows-and-actions/metadata-syntax>), or from the `action.yml` of a recent first-party action such as `actions/setup-node`, read through `gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/setup-node/contents/action.yml`. Use the newest `node<major>` listed there.
 
 ## npm packages
 
@@ -20,11 +20,11 @@ Take the supported values from the official metadata syntax page (<https://docs.
 
 ## Docker base image
 
-Exact tag from the image's registry, then its digest; write `FROM <image>:<tag>@sha256:<digest>`. Docker unavailable → `Unverified:`.
+Resolve the exact tag for a Docker Hub image with WebFetch on `https://hub.docker.com/v2/namespaces/<namespace; library for an official image>/repositories/<repo>/tags?page_size=100&name=<major.minor>` (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>). Page through `next`, at most 10 pages; keep tags matching `^\d+\.\d+\.\d+(-<variant>)?$` and take the highest by numeric major, minor, patch comparison. Another registry, a failed lookup, or the page cap reached → ask for the tag (`--yes`: list it under `Unverified:`); never guess or use a remembered tag. Then take its digest from the `Digest:` line of `docker buildx imagetools inspect <image>:<tag>`; write `FROM <image>:<tag>@sha256:<digest>`. Docker unavailable → `Unverified:`.
 
 ## Runner labels
 
-From the "Available Images" table of the `actions/runner-images` README (`gh api repos/actions/runner-images/contents/README.md --jq .content`, base64). Generally available labels only, keep the job's architecture (default x64), never `*-latest`.
+From the "Available Images" table of the `actions/runner-images` README (`gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/runner-images/contents/README.md`). Generally available labels only, keep the job's architecture (default x64), never `*-latest`.
 
 ## Next tag
 

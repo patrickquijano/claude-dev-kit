@@ -120,7 +120,7 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 9. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
 10. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
 11. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
-12. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line.
+12. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line. [Q1] Warning: the Output also has an `Example:` line followed by a fenced filled example (`output-example`).
 13. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn names the plugin subagent first with a plain-words fallback (role in plain words only when no plugin agent fits) and has an inline fallback (judgment-only: the script does not check it).
 14. [Q2] A task skill's `argument-hint` has `[--yes]`; `Input:` strips it; a Rules bullet states what `--yes` does and that it never skips a safety stop (judgment-only).
 15. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).

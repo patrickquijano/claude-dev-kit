@@ -1,6 +1,6 @@
 ---
 name: setup-dotnet-api
-description: Sets up a .NET Clean Architecture Web API with the latest stable SDK: EF Core, Scalar, ULID, Serilog, FluentValidation, tests, JSON:API. Use only when the user explicitly asks to set up a .NET API.
+description: 'Sets up a .NET Clean Architecture Web API with the latest stable SDK: EF Core, Scalar, ULID, Serilog, FluentValidation, tests, JSON:API. Use only when the user explicitly asks to set up a .NET API.'
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Bash(git rev-parse *) Bash(dotnet --list-sdks) Bash(dotnet package search *) Bash(curl -fsS https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json) Bash(mktemp -d)

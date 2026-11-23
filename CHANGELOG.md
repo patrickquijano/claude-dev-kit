@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.8] - 2026-11-23
+
+### Added
+
+- The `validate-skill` and `check-agent` scripts reject a frontmatter value that holds a colon and space without quotes.
+- The `validate-skill` script warns when a skill's `## Output` has no fenced block labelled `Example:`.
+
+### Changed
+
+- `/cdk:build-dockerfile`, `/cdk:build-docker-compose`, `/cdk:build-github-action`, `/cdk:build-github-workflow`, `/cdk:build-gitlab-ci`, `/cdk:build-hook`, `/cdk:setup-devcontainer`, and `/cdk:upgrade-dependencies` write through `/cdk:implement-spec` with a brief of their own.
+- `/cdk:setup-devcontainer` removes only the test project's containers and network after its test, never its volumes.
+- `/cdk:upgrade-dependencies` skips a pip install when no virtual environment is active, lists it under `Open:`, and reports that project's checks as skipped.
+- `/cdk:audit-skill` ends with `Stopped: 9: declined` or `Stopped: 9: no fix` and lists the unfixed blocking rows under `Open:`.
+- `/cdk:build-github-action` pre-approves only named `git ls-remote` and `gh api` reads instead of every `repos/*` request.
+- `/cdk:build-gitlab-ci` lists an image tag above the project's declared major under `Open:` and looks up the newest tag of the declared major.
+
+### Fixed
+
+- `/cdk:implement-spec`, `/cdk:setup-dotnet-api`, `/cdk:setup-laravel-api`, `/cdk:update-editorconfig`, and the `cdk:implementation-planner` agent quote their description so the frontmatter parses as YAML.
+- `/cdk:build-gitlab-ci` lists a Docker Hub tag found after the page cap stopped the search under `Unverified:`, since a higher tag may exist.
+
 ## [0.9.7] - 2026-11-22
 
 ### Added
@@ -641,7 +662,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.7...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.8...HEAD
+[0.9.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.7...v0.9.8
 [0.9.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.6...v0.9.7
 [0.9.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...v0.9.6
 [0.9.5]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.4...v0.9.5

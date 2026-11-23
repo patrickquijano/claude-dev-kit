@@ -80,7 +80,7 @@ For each task record: task | DELEGATE or INLINE | rule(s) that apply (D1-D4, I1-
 ## C5. Tool permissions and safety (10)
 
 - C5.1 Least-privilege `allowed-tools` (4): 4 = minimal set matching the steps (or field absent and the skill only reads); 2 = broader than needed; 0 = unrestricted write/exec access when steps only need read.
-- C5.2 Confirmation before irreversible or side-effect actions (3): 3 = every such action gated; 1 = some; 0 = none gated. N/A if the skill has no side effects.
+- C5.2 Confirmation before irreversible or side-effect actions (3): 3 = every such action gated; 1 = some; 0 = none gated. Gated = the skill prints what it will change before each write, and an irreversible step also has a safety stop that `--yes` never skips; an approval-only question is not required and earns no credit (`skills/build-skill/references/rules.md`, Bypass flag). N/A if the skill has no side effects.
 - C5.3 Untrusted-input handling (3): 3 = states that file, web, or tool content is data, not commands; 1 = implicit; 0 = skill ingests external content with no handling.
 
 ## C6. Scripts and bundled resources (8) (N/A if none)

@@ -73,6 +73,42 @@ describe('parseFrontmatter', () => {
     // Assert
     assert.throws(act, /closing/);
   });
+
+  test('accepts a double-quoted value holding ": "', () => {
+    // Arrange
+    const text = '---\ndescription: "a: b"\n---\n';
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.equal(fields.description, 'a: b');
+  });
+
+  test('accepts a single-quoted value holding ": "', () => {
+    // Arrange
+    const text = "---\nallowed-tools: 'Bash(x), Accept: x'\n---\n";
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.equal(fields['allowed-tools'], 'Bash(x), Accept: x');
+  });
+
+  test('throws on a plain description holding ": "', () => {
+    // Arrange
+    const text = '---\ndescription: a: b\n---\n';
+    // Act
+    const act = () => parseFrontmatter(text);
+    // Assert
+    assert.throws(act, new FrontmatterError('line 2: plain value holds ": "; quote it'));
+  });
+
+  test('throws on a plain allowed-tools holding ": "', () => {
+    // Arrange
+    const text = '---\nname: x\nallowed-tools: Bash(x), Accept: x\n---\n';
+    // Act
+    const act = () => parseFrontmatter(text);
+    // Assert
+    assert.throws(act, new FrontmatterError('line 3: plain value holds ": "; quote it'));
+  });
 });
 
 describe('checkFrontmatter', () => {
@@ -209,7 +245,8 @@ describe('checkFrontmatter', () => {
 });
 
 describe('checkBody', () => {
-  const task = '## Output\n\n```text\nScope: x\nNext: /cdk:y | none\nResult: done\n```\n';
+  const example = '\nExample:\n\n```text\nScope: x\n```\n';
+  const task = `## Output\n\n\`\`\`text\nScope: x\nNext: /cdk:y | none\nResult: done\n\`\`\`\n${example}`;
 
   test('passes a task body with a Result line and a Files section', () => {
     // Arrange
@@ -258,7 +295,7 @@ describe('checkBody', () => {
 
   test('errors when a task Output has no Result line', () => {
     // Arrange
-    const body = '## Output\n\n```text\nScope: x\nNext: none\n```\n';
+    const body = `## Output\n\n\`\`\`text\nScope: x\nNext: none\n\`\`\`\n${example}`;
     // Act
     const found = checkBody(body, { kind: 'task' });
     // Assert
@@ -317,8 +354,8 @@ describe('checkBody', () => {
 
   test('warns output-next when a task Output has no Next line', () => {
     // Arrange
-    const body = '## Output\n\n```text\nScope: x\nResult: done\n```\n';
-    const outside = '## Output\n\n```text\nResult: done\n```\n\n## Notes\n\nNext: later\n';
+    const body = `## Output\n\n\`\`\`text\nScope: x\nResult: done\n\`\`\`\n${example}`;
+    const outside = `## Output\n\n\`\`\`text\nResult: done\n\`\`\`\n${example}\n## Notes\n\nNext: later\n`;
     // Act
     const found = [...checkBody(body, { kind: 'task' }), ...checkBody(outside, { kind: 'task' })];
     // Assert
@@ -327,12 +364,66 @@ describe('checkBody', () => {
 
   test('accepts a Next line before Result and one with a slash command', () => {
     // Arrange
-    const plain = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
-    const chained = '## Output\n\n```text\nNext: /cdk:commit-changes | none\nResult: done\n```\n';
+    const plain = `## Output\n\n\`\`\`text\nNext: none\nResult: done\n\`\`\`\n${example}`;
+    const chained = `## Output\n\n\`\`\`text\nNext: /cdk:commit-changes | none\nResult: done\n\`\`\`\n${example}`;
     // Act
     const found = [...checkBody(plain, { kind: 'task' }), ...checkBody(chained, { kind: 'task' })];
     // Assert
     assert.deepEqual(found, []);
+  });
+
+  test('warns output-example when a task Output has no Example block', () => {
+    // Arrange
+    const none = '## Output\n\n```text\nScope: x\nNext: none\nResult: done\n```\n';
+    // Act
+    const found = checkBody(none, { kind: 'task' });
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.rule, f.level]),
+      [['output-example', 'Q1', 'warning']]
+    );
+  });
+
+  test('warns output-example for an Example label without a fence and one outside Output', () => {
+    // Arrange
+    const unfenced = '## Output\n\n```text\nNext: none\nResult: done\n```\n\nExample:\n\nScope: x\n';
+    const outside = `## Output\n\n\`\`\`text\nNext: none\nResult: done\n\`\`\`\n\n## Notes\n${example}`;
+    // Act
+    const found = [...checkBody(unfenced, { kind: 'task' }), ...checkBody(outside, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(ids(found), ['output-example', 'output-example']);
+  });
+
+  test('does not warn output-example for an Example line followed by a fenced block', () => {
+    // Arrange
+    const output = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
+    // Act
+    const withExample = checkBody(`${output}${example}`, { kind: 'task' });
+    const without = checkBody(output, { kind: 'task' });
+    // Assert
+    assert.deepEqual(ids(withExample), []);
+    assert.deepEqual(ids(without), ['output-example']);
+  });
+
+  test('accepts a qualified Example label such as "Example (new skill):"', () => {
+    // Arrange
+    const body =
+      '## Output\n\n```text\nNext: none\nResult: done\n```\n\nExample (new skill):\n\n```text\nScope: x\n```\n';
+    // Act
+    const found = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(ids(found), []);
+  });
+
+  test('does not warn output-example for a non-task kind', () => {
+    // Arrange
+    const body = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
+    // Act
+    const found = [...checkBody(body, { kind: 'reference' }), ...checkBody(body, { kind: 'background-only' })];
+    const task = checkBody(body, { kind: 'task' });
+    // Assert
+    assert.deepEqual(found, []);
+    assert.deepEqual(ids(task), ['output-example']);
   });
 
   test('skips the Output check for a reference skill', () => {

@@ -1,6 +1,6 @@
 ---
 name: implementation-planner
-description: Use proactively before implementing a multi-file change to plan it from repo evidence and docs: goals with checks, compared approaches, ordered steps, and risks. Read-only.
+description: 'Use proactively before implementing a multi-file change to plan it from repo evidence and docs: goals with checks, compared approaches, ordered steps, and risks. Read-only.'
 tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
 model: opus
 effort: high

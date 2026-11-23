@@ -24,7 +24,7 @@ kind: behavior
 prompt: "Review the compose.yaml in this repo."
 expected: Review mode; reports findings and writes nothing
 pass: Runs `npx --yes dclint@<version>` with `<version>` from `npm view dclint version`, never bare `npx dclint`, with no ask before it
-pass: Writes no file and runs no `compose-rename` or `dclint-fix`
+pass: Writes no file and runs no `compose-rename`
 pass: Ends with `Result: done` and a plain-words `Next:` line
 
 id: create-pins-tags
@@ -32,8 +32,8 @@ kind: behavior
 prompt: "Write a Compose file for a Node app with Postgres 16 and Redis 7."
 expected: Create mode; exact image tags, long syntax, file printed then written with no wait
 pass: Spawns a read-only subagent for the image tags, or resolves them inline when it is unavailable
-pass: Every `image:` is an exact `X.Y.Z` tag; no `latest`, no `version:` key
-pass: Prints the file, then writes it with no approval wait; starts no containers
+pass: Every `image:` is the most specific tag per `practices.md` `## Image tags` (`X.Y.Z`, or the highest `X.Y` for an image such as `postgres` that publishes no `X.Y.Z` tag); no `latest`, no `version:` key
+pass: Prints the file, then writes it through `cdk:implement-spec` with no approval wait; starts no containers
 
 id: legacy-name-rename-ask
 kind: behavior
@@ -47,13 +47,21 @@ id: no-approval-step
 kind: behavior
 prompt: "Write a Compose file for a Node app."
 expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-pass: The only questions are missing-fact choices (images, ports, volumes); the file is printed and then written in the same turn with no "Proceed?" prompt
+pass: The only questions are decision questions for unstated choices (target, app type, Dockerfile, ports, volumes); the file is printed and then written through `cdk:implement-spec` in the same turn with no "Proceed?" prompt and no approach question
+
+id: independent-review
+kind: behavior
+prompt: "Write a Compose file for a Node app."
+expected: Step 7 reviews the written file with a fresh read-only subagent; review mode reviews the existing file
+pass: Spawns a read-only subagent (Read, Grep only) that gets only the file path (the written file; in review mode the existing file), the target, and `practices.md`, never the draft or the conversation
+pass: The skill confirms each returned `path:line item` with Read and lists leftovers under `Open:`
+pass: When no subagent is available, checks the file inline; no approval question is asked
 
 id: asks-target-and-app
 kind: behavior
 prompt: "Write a Compose file for my project." (no compose file, no signals, input silent on target and app)
 expected: Asks the target, then the app type, each with the grill table
-pass: Asks Compose / DevContainer | Compose Deploy, then Backend API | Frontend UI, each after a score table and recommendation
+pass: Asks Compose / DevContainer | Compose Deploy, then Backend API | Frontend UI, each after a grill table and the Recommended option
 pass: Signals only set the Recommended option; no question is asked twice
 pass: Output has `Target:` and `App:` lines
 
@@ -77,7 +85,7 @@ id: frontend-dockerfile-only
 kind: behavior
 prompt: "Write a Compose file for my React frontend." (a `web/Dockerfile` exists)
 expected: Asks the Dockerfile question and no backing-service question
-pass: Options list `web/Dockerfile` (found by Glob, contents never read), write one with the build-dockerfile skill, and a prebuilt image only
+pass: Options list `web/Dockerfile` (found by Glob, contents never read), and write one with the build-dockerfile skill; a prebuilt image only is reachable through Other
 pass: No SQL, cache, or other backing-service question is asked; `Next:` names the build-dockerfile skill when chosen
 
 id: stated-in-input-not-asked
@@ -129,4 +137,10 @@ kind: behavior
 prompt: "A natural request for the action, no `/cdk:` command"
 expected: Claude loads the skill on its own
 pass: The skill runs; the file is printed and written with no approval question
+
+id: dockerfile-request-no-trigger
+kind: behavior
+prompt: "Write a Dockerfile for my Node app."
+expected: build-docker-compose does not load
+pass: No compose file is written and no Compose question is asked
 ```

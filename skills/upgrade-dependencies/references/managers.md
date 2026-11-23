@@ -12,7 +12,7 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 - Yarn 2+ — `yarn.lock` + `.yarnrc.yml` — no outdated command; use the registry lookup below — `yarn up <pkg>@<version>` — <https://yarnpkg.com/cli/up>
 - Bun — `bun.lock` (older `bun.lockb`) — `bun outdated` (no JSON) — `bun add <pkg>@<version>` — <https://bun.com/docs/cli/outdated>
 - Composer — `composer.json` + `composer.lock` — `composer outdated --direct --format=json` — `composer require <vendor/pkg>:^<version> -W` — a major bump needs a new constraint. <https://getcomposer.org/doc/03-cli.md>
-- pip — `requirements*.txt`, no lockfile — `pip list --outdated --format=json`, then keep only packages declared in the requirements files (it also lists transitive and unrelated environment packages) — set `<pkg>==<version>` in the requirements file, then `pip install -r <file>` — no lockfile, so the requirements file is edited directly. <https://pip.pypa.io/en/stable/cli/pip_list/>
+- pip — `requirements*.txt`, no lockfile — `pip list --outdated --format=json`, then keep only packages declared in the requirements files (it also lists transitive and unrelated environment packages) — set `<pkg>==<version>` in the requirements file, then `pip install -r <file>` in the project's active virtual environment (active when `VIRTUAL_ENV` is set, or `<project>/.venv/bin/python` exists, then use it; otherwise skip the install, list it under `Open:`, and report that project's checks as `skipped (no venv)`, never as pass) — no lockfile, so the requirements file is edited directly. <https://pip.pypa.io/en/stable/cli/pip_list/>
 - uv — `pyproject.toml` + `uv.lock` — `uv tree --outdated --frozen` (`--frozen` keeps `uv.lock` untouched) — `uv add "<pkg>>=<version>"` — `uv lock --upgrade-package <pkg>` stays within the existing constraint. <https://docs.astral.sh/uv/reference/cli/>
 - Poetry — `pyproject.toml` + `poetry.lock` — `poetry show --outdated --top-level --format json` — `poetry add <pkg>@^<version>` — `poetry update` never edits `pyproject.toml`. <https://python-poetry.org/docs/cli/>
 - Bundler — `Gemfile` + `Gemfile.lock` — `bundle outdated --parseable` — set the `Gemfile` constraint, then `bundle update --conservative <gem>` — <https://bundler.io/man/bundle-outdated.1.html>
@@ -39,7 +39,7 @@ Step 9 installs from the lockfile with the command for the project's manager (`f
 - Yarn 2+ — `yarn install --immutable`
 - Bun — `bun install --frozen-lockfile`
 - Composer — `composer install`
-- pip — `pip install -r <file>`
+- pip — `pip install -r <file>` in the project's active virtual environment (active when `VIRTUAL_ENV` is set, or `<project>/.venv/bin/python` exists, then use it; otherwise skip the install, list it under `Open:`, and report that project's checks as `skipped (no venv)`, never as pass)
 - uv — `uv sync --frozen`
 - Poetry — `poetry install`
 - Bundler — `bundle install` (lockfile respected; `bundle config set frozen true` only when asked)

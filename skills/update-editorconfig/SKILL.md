@@ -1,6 +1,6 @@
 ---
 name: update-editorconfig
-description: Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use when asked to update EditorConfig.
+description: 'Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use when asked to update EditorConfig.'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec) Bash(node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs *)

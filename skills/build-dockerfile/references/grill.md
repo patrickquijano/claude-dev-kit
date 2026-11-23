@@ -19,7 +19,7 @@ Print before each question; options in alphabetical order.
 
 - 3–6 criteria taken from the user's stated goals, never from a preferred option.
 - Integer weights summing to 100, fixed and printed before any option is scored.
-- No stated goals → ask for them first.
+- No stated goals → take criteria from the request and practices.md; never spend a question on goals (only missing facts are asked, `flow.md` `## Clarify`).
 
 ## Anchors
 

@@ -119,6 +119,10 @@ export function parseFrontmatter(text) {
       lineOf[key] = i + 1;
       const raw = top[2].trim();
       const value = /^["']/.test(raw) ? raw : raw.replace(/\s+#.*$/, '');
+      // YAML 1.2.2 §7.3.3: a plain scalar cannot hold ": ".
+      if (!/^["']/.test(raw) && value.includes(': ')) {
+        throw new FrontmatterError(`line ${i + 1}: plain value holds ": "; quote it`);
+      }
       fields[key] = /^[>|][+-]?$/.test(value) ? '' : unquote(value);
     } else if (key && /^\s+-\s/.test(line)) {
       if (!Array.isArray(fields[key])) fields[key] = [];
@@ -312,6 +316,20 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
       }
       if (!output.some((l) => /^Next:/.test(l))) {
         found.push(warning('output-next', 'Q4', 'SKILL.md', start + 1, 'Output has no "Next:" follow-up line'));
+      }
+      // An `Example:` line must be followed, past blank lines, by the opening fence of a filled example.
+      const labelled = output.findIndex(
+        (l, i) =>
+          /^Example\b[^:\n]*:/.test(l) &&
+          output
+            .slice(i + 1)
+            .find((n) => n.trim() !== '')
+            ?.match(FENCE)
+      );
+      if (labelled === -1) {
+        found.push(
+          warning('output-example', 'Q1', 'SKILL.md', start + 1, 'Output has no fenced block labelled "Example:"')
+        );
       }
     }
   }

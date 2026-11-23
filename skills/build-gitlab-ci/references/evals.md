@@ -46,10 +46,10 @@ pass: <observable criteria, one per line>
   - Pass: The script ran for that image; the `image:` carries the resolved full tag, no `latest`; no tag is recalled
 - `no-approval-step`: "Write a GitLab pipeline for this Node repo."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-  - Pass: The only questions are missing-fact choices (stages, runners, deploy target); the files are printed and then written in the same turn with no "Proceed?" prompt
+  - Pass: The only questions are missing-fact choices (stages, runners, deploy target); the files are printed and then written through `cdk:implement-spec` in the same turn with no "Proceed?" prompt and no approach question
 - `fix-cap`: "Write CI." (a lint finding persists)
   - Expected: Stops after 3 rounds
-  - Pass: Each round fixes with no approval prompt; a finding left after the cap is under `Open:`
+  - Pass: Each round is one `cdk:implement-spec` call with no approval prompt; a finding left after the cap is under `Open:`
 - `cannot-interact`: "Write CI." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

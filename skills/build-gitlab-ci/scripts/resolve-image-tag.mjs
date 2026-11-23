@@ -1,5 +1,5 @@
 // Resolves the highest stable tag of a container image: `resolve-image-tag.mjs <image> [variant]`.
-// Prints {"image","tag","method","tried"}; exit 0 resolved, 2 unresolved, 1 bad usage.
+// Prints {"image","tag","method","tried"} plus "partial":true when the Docker Hub page cap stopped with pages left; exit 0 resolved, 2 unresolved, 1 bad usage.
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -148,14 +148,14 @@ async function registryTags(registry, repo, d) {
       tags.push(...tagLines('registry-api', await res.text()));
       url = nextPage(res.headers?.get('link'), url);
     }
-    return tags;
+    return { tags, partial: url !== null };
   } catch (err) {
     if (err instanceof TypeError || err instanceof SyntaxError || err?.name === 'TimeoutError') return null;
     throw err;
   }
 }
 
-// Docker Hub `tags` pages, following the same-host `next` URL; null on any failure so a partial list never picks a stale tag.
+// Docker Hub `tags` pages, following the same-host `next` URL; `partial` is true when the page cap stopped with a `next` URL left, null on any failure.
 async function hubTags(repo, variant, d) {
   let url = `https://hub.docker.com/v2/repositories/${repo}/tags?page_size=100&name=${variant || '.'}`;
   const tags = [];
@@ -168,7 +168,7 @@ async function hubTags(repo, variant, d) {
       const next = JSON.parse(text)?.next;
       url = typeof next === 'string' && next.startsWith('https://hub.docker.com/') ? next : null;
     }
-    return tags;
+    return { tags, partial: url !== null };
   } catch (err) {
     if (err instanceof TypeError || err instanceof SyntaxError || err?.name === 'TimeoutError') return null;
     throw err;
@@ -201,8 +201,8 @@ export async function main(argv, deps = {}) {
   }
 
   const tried = [];
-  const emit = (tag, method) => {
-    d.log(JSON.stringify({ image, tag, method, tried }));
+  const emit = (tag, method, partial = false) => {
+    d.log(JSON.stringify({ image, tag, method, tried, ...(partial && { partial: true }) }));
     return tag ? 0 : 2;
   };
 
@@ -225,13 +225,15 @@ export async function main(argv, deps = {}) {
   if (registry === 'docker.io') {
     if (repo.split('/').length === 2) {
       tried.push('docker-hub-api');
-      const tag = pickTag((await hubTags(repo, variant, d)) ?? [], variant);
-      if (tag) return emit(tag, 'docker-hub-api');
+      const hub = await hubTags(repo, variant, d);
+      const tag = pickTag(hub?.tags ?? [], variant);
+      if (tag) return emit(tag, 'docker-hub-api', hub.partial);
     }
   } else if (isAllowedRegistry(registry)) {
     tried.push('registry-api');
-    const tag = pickTag((await registryTags(registry, repo, d)) ?? [], variant);
-    if (tag) return emit(tag, 'registry-api');
+    const reg = await registryTags(registry, repo, d);
+    const tag = pickTag(reg?.tags ?? [], variant);
+    if (tag) return emit(tag, 'registry-api', reg.partial);
   }
   return emit(null, null);
 }

@@ -78,6 +78,42 @@ describe('parseFrontmatter', () => {
     // Assert
     assert.throws(act, /not valid/);
   });
+
+  test('accepts a single-quoted value holding ": "', () => {
+    // Arrange
+    const text = "---\ndescription: 'a: b'\n---\n";
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.equal(fields.description, 'a: b');
+  });
+
+  test('accepts a double-quoted tools value holding ": "', () => {
+    // Arrange
+    const text = '---\ntools: "Bash(x), Accept: x"\n---\n';
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.equal(fields.tools, 'Bash(x), Accept: x');
+  });
+
+  test('throws on a plain description holding ": "', () => {
+    // Arrange
+    const text = '---\ndescription: a: b\n---\n';
+    // Act
+    const act = () => parseFrontmatter(text);
+    // Assert
+    assert.throws(act, new FrontmatterError('line 2: plain value holds ": "; quote it'));
+  });
+
+  test('throws on a plain allowed-tools holding ": "', () => {
+    // Arrange
+    const text = '---\nname: x\nallowed-tools: Bash(x), Accept: x\n---\n';
+    // Act
+    const act = () => parseFrontmatter(text);
+    // Assert
+    assert.throws(act, new FrontmatterError('line 3: plain value holds ": "; quote it'));
+  });
 });
 
 describe('checkFrontmatter', () => {
