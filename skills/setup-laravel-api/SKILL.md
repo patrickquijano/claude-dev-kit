@@ -1,6 +1,6 @@
 ---
 name: setup-laravel-api
-description: Sets up a Laravel API at the latest stable versions: data stores, Scalar docs, Pint, Pest, Boost, IDE Helper, ULID migrations, JSON:API. Use only when the user explicitly asks to set up a Laravel API.
+description: 'Sets up a Laravel API at the latest stable versions: data stores, Scalar docs, Pint, Pest, Boost, IDE Helper, ULID migrations, JSON:API. Use only when the user explicitly asks to set up a Laravel API.'
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Bash(git rev-parse *) Bash(php --version) Bash(command -v composer) Bash(composer show *) Bash(composer --version) Bash(mktemp -d)

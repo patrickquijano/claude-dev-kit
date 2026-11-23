@@ -1,6 +1,6 @@
 ---
 name: implement-spec
-description: Implements a spec end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use to implement a spec, requirement, or issue. Not for review-only work.
+description: 'Implements a spec end to end: clarifies goals, compares approaches, edits code and tests, validates, iterates up to 3 rounds. Use to implement a spec, requirement, or issue. Not for review-only work.'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] <requirement | spec file | issue text>'
 allowed-tools: Read Grep Glob Bash(git rev-parse --show-toplevel) Bash(git status *) Bash(git diff --stat) Bash(git diff -- *)
