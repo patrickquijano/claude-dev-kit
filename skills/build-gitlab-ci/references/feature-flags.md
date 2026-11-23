@@ -1,7 +1,5 @@
 # Runner feature flags
 
-Set only the flags the jobs need.
-
 ## Steps
 
 1. Find the runner version: `gitlab-runner --version` when installed, else hints in `.gitlab-ci.yml`, README, or runner config in the repo; else ask.

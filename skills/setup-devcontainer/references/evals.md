@@ -36,21 +36,22 @@ kind: behavior
 prompt: "Add Redis to our existing devcontainer."
 expected: Update mode; prints the plan, then writes
 pass: Reads the existing config as JSONC and keeps its comments
-pass: Prints a diff, then writes with no approval wait
+pass: Prints a diff, then writes through `cdk:implement-spec` with no approval wait
 pass: The test container is removed through the `cdk-test` label after the run
 
 id: existing-target-file-kept
 kind: behavior
-prompt: "/setup-devcontainer --yes" (no devcontainer config; an existing `compose.yaml` and `.devcontainer/.env`)
+prompt: "/setup-devcontainer --yes" (no devcontainer config; an existing `.devcontainer/compose.yaml` and `.devcontainer/.env`)
 expected: Existing target files are not overwritten
-pass: Neither file is changed; both are listed under `Open:` with the diff each would take
+pass: Neither file is changed; both are listed under `Open:`, `compose.yaml` with its diff and `.env` with no contents shown
 pass: No question asked; other files are still written
 
 id: no-approval-step
 kind: behavior
 prompt: "Set up a devcontainer for this repo."
-expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-pass: No approval wait; each side-effect step runs directly after the decision questions
+expected: Runs end to end with no approval step; the step 6 test ask is the only side-effect question
+pass: No approval wait before writes; the step 6 test ask is the only side-effect question; other side-effect steps run directly after the decision questions
+pass: Writes go through `cdk:implement-spec`; only the missing `.env` is written inline
 
 id: grill-close-call
 kind: behavior
@@ -58,4 +59,10 @@ prompt: A decision question whose top two totals are ≤5 apart
 expected: Table before the question; no Recommended
 pass: The table comes before the question; weights are integers summing to 100
 pass: No option is Recommended; "close call" is stated; unverified scores are marked
+
+id: route-not-lone-dockerfile
+kind: behavior
+prompt: "Write a Dockerfile for this app."
+expected: Should not trigger this skill (a lone Dockerfile is not a devcontainer)
+pass: Does not load this skill; no `.devcontainer/` file is written
 ```

@@ -1,6 +1,6 @@
 # Practices
 
-Sources are Docker docs unless noted. **Required** = always applied for the target; **Recommended** = applied when it fits, else skipped with a reason. `dclint` rule names are from <https://github.com/zavoloklom/docker-compose-linter/blob/main/docs/rules.md>.
+Sources are Docker docs unless noted. **Required** = always applied for the target; **Recommended** = applied only when the input or a user answer asks for it, else skipped with a reason. `dclint` rule names are from <https://github.com/zavoloklom/docker-compose-linter/blob/main/docs/rules.md>.
 
 ## Contents
 
@@ -37,7 +37,7 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
 
 ## Image tags
 
-- **Required** every `image:` pinned to the most specific tag: `<X.Y.Z>` or `<X.Y.Z>-<variant>`; never `latest`, `stable`, a major or `major.minor` tag, a bare variant such as `-alpine`, or no tag. `dclint` rule `service-image-require-explicit-tag` rejects `latest`, `stable`, and no tag. Format `[registry/][project/]image[:tag|@digest]` (<https://docs.docker.com/reference/compose-file/services/>).
+- **Required** every `image:` pinned to the most specific tag: `<X.Y.Z>` or `<X.Y.Z>-<variant>`; never `latest`, `stable`, a major tag, a `major.minor` tag unless the image publishes no `X.Y.Z` tag, a bare variant such as `-alpine`, or no tag. `dclint` rule `service-image-require-explicit-tag` rejects `latest`, `stable`, and no tag. Format `[registry/][project/]image[:tag|@digest]` (<https://docs.docker.com/reference/compose-file/services/>).
 - **Required** resolve the tag at run time, Docker Hub images only, never from memory (<https://docs.docker.com/reference/api/hub/latest/operations/ListRepositoryTags/>):
   - List `https://hub.docker.com/v2/namespaces/<namespace; library for official>/repositories/<repo>/tags?page_size=100&name=<major.minor>` with WebFetch (the endpoint answered in a local test).
   - Page through `next` until null, at most 10 pages; cap reached with no match → ask the user.
@@ -45,7 +45,7 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
   - Take the highest by numeric major, minor, patch comparison, not by `last_updated`; the API documents no sort order.
   - A tag already in an existing file that matches the pattern stays; resolve only new or non-exact ones.
 - **Required** another registry, a failed lookup, or an unverifiable version → ask the user (recommended: the tag they name); never fall back to a remembered tag.
-- **Recommended** `docker compose config --resolve-image-digests` exists to lock digests; this skill pins tags, not digests.
+- **Recommended** `docker compose config --resolve-image-digests` exists to lock digests; this skill pins tags, not digests, because these are the repo's own images and Dependabot bumps the readable tags (a container action's image is the exception, handled by `build-github-action`).
 
 ## Plain Compose
 
@@ -94,7 +94,7 @@ Deploy command: `docker stack deploy -c <file> <stack>` from a manager; repeat `
 - **Recommended** `update_config: {order: start-first, failure_action: rollback}` plus a `rollback_config`; the defaults are `stop-first` and `pause`. This is our recommendation, the docs give options and defaults only.
 - **Recommended** `overlay` networks; `attachable: true` only when standalone containers must join (<https://docs.docker.com/reference/compose-file/networks/>).
 - **Recommended** `external` secrets and configs created beforehand with the Docker CLI (<https://docs.docker.com/reference/compose-file/secrets/>).
-- **Recommended** a `healthcheck` per service so rolling updates wait for readiness; `deploy.resources.limits` and `reservations` for every service; the healthcheck and resource keys are documented at <https://docs.docker.com/reference/compose-file/services/> and <https://docs.docker.com/reference/compose-file/deploy/>.
+- **Required** each backing service carries a `healthcheck` per the Plain Compose backing-service item. **Recommended** a `healthcheck` on every other service so rolling updates wait for readiness; `deploy.resources.limits` and `reservations` for every service; the healthcheck and resource keys are documented at <https://docs.docker.com/reference/compose-file/services/> and <https://docs.docker.com/reference/compose-file/deploy/>.
 - **Recommended** keep the file conservative: the stack-deploy tutorial says it uses the older Compose file format and the latest specification is not fully compatible (<https://docs.docker.com/engine/swarm/stack-deploy/>).
 - **Recommended** pin a stateful service to a node with `placement.constraints` when it uses a local named volume (our recommendation: a local volume lives on one node); a bind mount with a relative host path is rejected on non-local platforms (<https://docs.docker.com/reference/compose-file/services/>, <https://docs.docker.com/reference/compose-file/deploy/>).
 

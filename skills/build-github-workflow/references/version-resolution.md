@@ -20,8 +20,8 @@ Use the version the repo declares (`.nvmrc`, `.node-version`, `engines`, `.pytho
 
 ## Runner labels
 
-Read the "Available Images" table in the `actions/runner-images` README (`gh api repos/actions/runner-images/contents/README.md --jq .content`, base64-decoded). Use a generally available label only (never beta or preview), keep the job's current architecture, default x64. Never `*-latest`. An existing resolved label stays.
+Read the "Available Images" table in the `actions/runner-images` README (`gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/runner-images/contents/README.md`). Use a generally available label only (never beta or preview), keep the job's current architecture, default x64. Never `*-latest`. An existing resolved label stays.
 
 ## Unresolved
 
-Leave the value as a visible placeholder the validator flags, and list it under `Unverified:` with the command that failed.
+Leave the value as a visible placeholder and list it under `Unverified:` with the command that failed. The checker flags an unresolved `uses:` pin, and actionlint (when installed) an unresolved runner label.

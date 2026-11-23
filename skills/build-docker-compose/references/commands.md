@@ -6,12 +6,11 @@
 | `docker-check` | `command -v docker` | Whether docker is installed |
 | `node-check` | `node --version` | Node version; run before `dclint`, compare with the `dclint-engines` minimum |
 | `swarm-state` | `docker info --format '{{.Swarm.LocalNodeState}}'` | Swarm signal: `active` or `inactive` |
-| `compose-validate` | `docker compose -f <file> [-f <override>]... config --quiet` | Plain mode: validate the file (with `<file>` as `compose.yaml` first when scoped); exit 0 ok; never print or log its output (asks for approval: `config` can expose secrets) |
+| `compose-validate` | `docker compose -f <file> [-f <override>]... config --quiet` | Plain mode: validate the file (with `<file>` as `compose.yaml` first when scoped and `compose.yaml` exists, else alone); exit 0 ok; never print or log its output (asks for approval: `config` can expose secrets) |
 | `compose-validate-raw` | `docker compose -f <file> [-f <override>]... config --quiet --no-interpolate` | Plain mode: validate the structure when `${VAR:?err}` blocks interpolation (asks for approval) |
-| `stack-validate` | `docker stack config -c <file> [-c <override>]... > /dev/null` | Swarm mode: validate the merged file, output discarded; exit 0 ok (asks for approval: the output can expose secrets) |
+| `stack-validate` | `docker stack config -c <file> [-c <override>]... > /dev/null` | Swarm mode: validate the merged file (a scoped file together with `compose.yaml` when it exists, else alone), output discarded; exit 0 ok (asks for approval: the output can expose secrets) |
 | `stack-validate-raw` | `docker stack config --skip-interpolation -c <file> [-c <override>]... > /dev/null` | Swarm mode: validate the structure when `${VAR:?err}` blocks interpolation, output discarded (asks for approval) |
 | `dclint-version` | `npm view dclint version` | Latest stable `dclint`, pinned in the rows below |
 | `dclint-engines` | `npm view dclint@<version> engines --json` | Node minimum the pinned `dclint` release states |
-| `compose-rename` | `git mv <old file> compose.yaml` | Rename an existing `docker-compose.y*ml` when the user chose it; the only file move |
+| `compose-rename` | `git mv docker-compose.yml compose.yaml` (or `docker-compose.yaml`) from the compose root; in a named directory `git mv <dir>/<old file> <dir>/compose.yaml` (the permission prompt approves it) | Rename an existing `docker-compose.y*ml` to `compose.yaml` in its own directory when the user chose it; the only file move |
 | `dclint` | `npx --yes dclint@<version> [--disable-rule <rule>]... <file>` | Lint the file; errors exit nonzero, warnings fail only past `--max-warnings`; Swarm mode adds the triage rules (asks for approval) |
-| `dclint-fix` | `npx --yes dclint@<version> [--disable-rule <rule>]... --fix <file>` | Apply the auto-fixable findings, then re-run `dclint` (asks for approval) |

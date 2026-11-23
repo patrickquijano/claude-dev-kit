@@ -17,7 +17,15 @@ const callers = {
   'update-readme':
     /^- Every write in steps 11.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'update-rules':
-    /^- Every write in step 5 and step 8.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m
+    /^- Every write in step 5 and step 8.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-hook': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-github-action': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-github-workflow': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-gitlab-ci': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-dockerfile': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'build-docker-compose': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'setup-devcontainer': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+  'upgrade-dependencies': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m
 };
 
 describe('implement-spec callers keep the cancel reason', () => {

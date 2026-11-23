@@ -1,6 +1,6 @@
 # Patterns
 
-Skeletons only. Replace each `<resolved>` per the version-resolution rules, and each `<cmd>` with the repo's detected command. Every skeleton already carries least-privilege permissions, a timeout, and concurrency.
+Skeletons only. Replace each `<resolved>` per the version-resolution rules, and each `<cmd>` with the repo's detected command. Only the CI skeleton carries permissions, a timeout, and concurrency; add what `security-and-reliability.md` requires to every other skeleton.
 
 ## Contents
 

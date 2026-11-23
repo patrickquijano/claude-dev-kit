@@ -1,6 +1,6 @@
 # Scopes
 
-Where a hook lives per scope. Re-check every path against this table immediately before each write.
+Where a hook lives per scope.
 
 | Scope   | Config file                    | Script dir                |
 | ------- | ------------------------------ | ------------------------- |
@@ -9,7 +9,7 @@ Where a hook lives per scope. Re-check every path against this table immediately
 | User    | `~/.claude/settings.json`      | `~/.claude/hooks/`        |
 
 - Exec-form `args` path per scope is in the first block; `<e>` is the event name in kebab-case; one script per event per scope. Every config has a root `hooks` key.
-- Unknown plugin dir → ask. Print the resolved paths before the write; field names and matchers come from the fetched reference.
+- Unknown plugin dir → ask; `--yes` → `Result: stopped`, `Stopped: 2: no input`. Print the resolved paths before the write; field names and matchers come from the fetched reference.
 - User scope: `~` in `args` only when the fetched reference documents that exec form expands it.
 
 ```text
@@ -39,6 +39,8 @@ User:    <absolute home path>/.claude/hooks/<e>.mjs
 ```
 
 ## Re-check before writing
+
+Run this re-check before the step 9 implement-spec call.
 
 1. The path equals the table row for the recorded scope and stays inside the plugin dir, repo root, or `~/.claude/`.
 2. The config parses as JSON (invalid → stop and ask); a missing file is created with only the `hooks` key.

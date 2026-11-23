@@ -40,10 +40,10 @@ pass: <observable criteria, one per line>
   - Pass: The value is left visible; `Unverified:` lists it; `verified` handling reported
 - `no-approval-step`: "Write a release workflow."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
-  - Pass: The only questions are trigger, environment, and deploy-target choices; the files are printed and then written in the same turn with no "Proceed?" prompt
+  - Pass: The only questions are the step 2 blocking choices and an undeclared language version; the files are printed and then written through `cdk:implement-spec` in the same turn with no "Proceed?" prompt and no planner approach question
 - `fix-cap`: "Write CI." (a finding persists)
   - Expected: Stops after 3 rounds
-  - Pass: Each round fixes with no approval prompt; a finding left after 3 rounds is under `Open:`
+  - Pass: Each round is one `cdk:implement-spec` call with no approval prompt; a finding left after 3 rounds is under `Open:`
 - `cannot-interact`: "Write CI." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`

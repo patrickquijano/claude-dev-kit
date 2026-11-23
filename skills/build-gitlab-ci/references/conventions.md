@@ -51,7 +51,7 @@ Runners may use `sh` (Alpine, BusyBox). Write commands that run there.
 
 - Never: `[[ ]]`, arrays, `source`, `function name`, `local`, `$'...'`, `set -o pipefail`, process substitution, `==` in `[ ]`.
 - Use: `set -eu`, `[ ]` with `=`, `.` for sourcing, `command -v`, `printf` over `echo -e`.
-- Inline every command; a job never calls a repo script. A script that already exists → ask whether to inline it (update mode).
+- A script that already exists → ask whether to inline it (update mode).
 
 ## Setup and teardown
 
@@ -60,7 +60,7 @@ Runners may use `sh` (Alpine, BusyBox). Write commands that run there.
 
 ## Defaults to omit
 
-Set a key only when it differs from the default. Snapshot (fetch to confirm; offline → unverified):
+Snapshot (fetch to confirm; offline → unverified):
 
 - `cache:policy` = `pull-push`; use `pull` for jobs that only read, and set it only there.
 - `cache:when` = `on_success`; set `always` only when a failed job's cache is wanted.

@@ -26,7 +26,7 @@ runs:
   steps:
     - name: <Step>
       id: <step-id>
-      shell: sh
+      shell: bash
       env:
         INPUT_<NAME>: ${{ inputs.<input-id> }}
       run: |
@@ -54,7 +54,7 @@ runs:
     - ${{ inputs.<input-id> }}
 ```
 
-`Dockerfile`: `FROM <image>:<tag>@sha256:<digest>`, a non-root `USER`, `ENTRYPOINT ["/entrypoint.sh"]`.
+`Dockerfile`: `FROM <image>:<tag>@sha256:<digest>`, no `USER` instruction (Docker actions run as root to reach `GITHUB_WORKSPACE`), `ENTRYPOINT ["/entrypoint.sh"]`.
 
 ## Test workflow
 
@@ -93,4 +93,4 @@ jobs:
 
 ## README template
 
-Sections: title and one-line purpose; Usage (a `uses:` snippet pinned to the release tag); Inputs table (name, description, required, default); Outputs table; Permissions needed; Examples; Development (test and build commands); License. Add a CHANGELOG when the action is published.
+Sections: title and one-line purpose; Usage (a `uses:` snippet: `./<action-dir>` for a local action, the release tag pin for a standalone one); Inputs table (name, description, required, default); Outputs table; Permissions needed; Examples; Development (test and build commands); License. Add a CHANGELOG when the action is published.

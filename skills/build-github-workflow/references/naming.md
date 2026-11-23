@@ -1,6 +1,6 @@
 # Naming
 
-- Existing names are never changed (workflow `name:`, job IDs, job `name:`, file names); a rename is a breaking change, listed under `Breaking:`.
+- Existing names: see the SKILL.md Rules rename rule.
 - New workflow file: `<purpose>.yml` in kebab-case (`ci.yml`, `release.yml`, `deploy-production.yml`); reusable workflows `reusable-<name>.yml`.
 - New workflow `name:`: Title Case of the purpose (`CI`, `Release`).
 - New job IDs: lowercase kebab-case verbs or nouns (`lint`, `test`, `build`); a job `name:` only when the ID alone reads badly.

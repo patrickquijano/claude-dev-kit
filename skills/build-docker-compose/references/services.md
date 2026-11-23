@@ -1,6 +1,6 @@
 # Backing services
 
-Candidate pools for the Backend API questions in `flow.md` `## Clarify`. Each question offers the 3 top-scored candidates plus **None (not set up)**; the rest stay reachable through Other. Popularity, maintenance status, and licence are researched at run time with one web search per topic and never stored here. Image tags are resolved per `practices.md` `## Image tags`; an image outside Docker Hub is asked per the Images rule.
+Candidate pools for the Backend API questions in `flow.md` `## Clarify`. Each question offers the 3 top-scored candidates plus **None (not set up)**; the rest stay reachable through Other. Popularity, maintenance status, and licence are researched at run time with one web search per topic and never stored here. Image tags and images outside Docker Hub follow the `SKILL.md` `## Rules` Images rule.
 
 ## Pools
 
