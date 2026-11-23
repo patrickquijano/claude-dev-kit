@@ -19,9 +19,11 @@
 | no-args-select | `/cdk:audit-skill` | Lists skills, asks paged multi-select | At most 4 options per question and 4 questions per call; nothing selected → `nothing-to-do` |
 | dirty-target | `/cdk:audit-skill <skill>` (tracked file modified) | Scores and edits the target | Applies the VERIFIED fixes; `Stopped: none` |
 | cap-reached | A skill still REJECTED with a blocking row after 2 rounds | Stops at the cap, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: round cap`; blocking rows under `Open:` |
+| declined-blocking | A skill with a blocking row whose fix the user declines | Stops, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: declined`; blocking row under `Open:` |
+| no-fix | Round 1 ran, the blocking count fell, yet no blocking row has a fix | Stops, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: no fix`; blocking row under `Open:` |
 | yes-no-args | `/cdk:audit-skill --yes` | Selects nothing | No question asked; `Result: nothing-to-do`; assumption under `Decisions:`; `Open: none` |
 | parallel-score | `/cdk:audit-skill a b` | One scorer per skill in one message | Both spawns in a single message; totals re-summed with `node -e` |
-| fresh-rescore | A skill fixed in round 1 | Rescores from current files | Reported score comes from the round-2 scorer, none carried over |
+| fresh-rescore | A skill fixed in round 1 | Rescores from current files | Reported score comes from the step 8 rescore, none carried over |
 | implement-handoff | A skill REJECTED with 1+ VERIFIED fixes | Writes through implement-spec | One implement-spec invocation per skill; goals are the fix IDs; no planner or implementer named |
 | no-format-lint | Any fix round | Runs no formatter or linter | The Spec brief says so; no format or lint command runs |
 | no-extra-spawn | Any fix round | Spawns only the allowed subagents | This skill spawns only scorer and researcher subagents; any other spawn comes from implement-spec under its spawn rule |
@@ -38,7 +40,7 @@
 | memory-reuse | An open item matches a `feedback` memory `cdk-fix-skill-…` | Reuses the stored fix | `MEMORY.md` read before step 7; memory fix: unverified hint beside the After; a confirmed fix updates one memory, no duplicate |
 | waived-item | A would-be deduction whose fix changes no behavior | Waives it | Scores full, no fix ID, listed under `Waived:`, absent from `Open:` |
 | ledger-no-drop | A rescore omits an earlier open item | Keeps it in the ledger | Row matches by rubric ID, file, and anchor, not Before text; an item still deducted is not re-asked; `Items:` counts it |
-| score-only | `/cdk:audit-skill --score-only <skill>` | Scores and reports, never edits | No implement-spec call and no memory write; no step 6 question; `Open:` lists every item and `Waived:` lists the waived ones |
+| score-only | `/cdk:audit-skill --score-only <skill>` | Scores and reports, never edits | No implement-spec call and no memory write; no step 6 question; `Open:` lists every item but a settled one and `Waived:` lists the waived ones |
 | scripts-untouched | A VERIFIED fix targets a `scripts/` executable | Leaves the script unedited | The Spec brief lists `scripts/` edits as a non-goal; no `scripts/` file changes; the fix stays under `Open:` |
 | residual-once | A non-blocking item still deducted after its one try | Reports it once | Status `residual`; listed under `Residual:` as tried; no later round retries it |
 | settled-skip | A later run finds a residual item whose cited line is unchanged | Suppresses it | Matching settled memory row (rubric ID, file, hash) → `settled`, counted in `Items:`, not listed; score unchanged |
