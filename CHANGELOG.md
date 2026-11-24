@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `/cdk:audit-skill` and `/cdk:audit-subagent` audit against a Pass / Fail / Not checked checklist and score each category 1–5 for information only (breaking); the 100-point rubric and its gates are gone.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` take `--report-only` in place of `--score-only` (breaking); it prints the checklist report with no score, question, edit, or backup, and the old flag no longer works.
+- `/cdk:audit-skill` and `/cdk:audit-subagent` take one skill or subagent file, or a plugin directory, and fix only the Fails you approve, then re-audit once (breaking); the multi-round fix loop is gone.
+- `cdk:rubric-scorer` takes the `skill-checklist` and `subagent-checklist` kinds in place of `skill-audit` and `subagent-audit` (breaking); callers must pass the audit report with the rubric path and the target.
+- `/cdk:build-subagent` checks the written subagent with `/cdk:audit-subagent --report-only` and fixes each Fail through `/cdk:implement-spec`, ending with `Stopped: 9: audit fail` when one is left.
+- `/cdk:audit-subagent` flags a `disallowedTools` entry with a specifier as removing the whole tool, an unresolvable `tools` list, and `memory` on a read-only agent, and it treats `Agent(type)` in `tools` as unrestricted spawning.
+- `/cdk:audit-subagent` checks `autoCompactWindow`, `permissionMode`, a self-check step before the return, whether the job fits a subagent, and a status with `file:line` evidence in the return, and it reports one row per check.
+- `/cdk:audit-subagent` labels the name charset, filename, description length, and `model` and `effort` rules as house rules, and notes that a project or personal agent overrides a plugin agent of the same name.
+- `/cdk:build-subagent` reference lists `propose_skills` and the plan-mode tools as removed from subagents, and says frontmatter hooks accept every hook event (`Stop` runs as `SubagentStop`).
+
 ## [0.9.8] - 2026-11-23
 
 ### Added
