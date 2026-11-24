@@ -1,6 +1,6 @@
 # Verify
 
-Steps 2, 4, 9–11 of `SKILL.md`: locate, baseline an improve, the check, validation, the delegation test, and `Open:`. Scoring belongs to the `cdk:audit-subagent` skill, invoked in step 9 with `--score-only`; it never edits, and score-driven fixes go through implement-spec (`SKILL.md` step 9d).
+Steps 2, 4, 9–11 of `SKILL.md`: locate, baseline an improve, the check, validation, the delegation test, and `Open:`. The audit belongs to the `cdk:audit-subagent` skill, invoked in step 9 with `--report-only`; it never edits, and fixes for its Fail rows go through `cdk:implement-spec` (`SKILL.md` step 9d).
 
 ## Locate
 
@@ -13,7 +13,7 @@ Improve only: run `check-agent` and report each violation (rubric ID, `file:line
 ## Run the check
 
 - Run `check-agent` from `commands.md` with the agent file and `--scope`. It prints `{ok, errors, warnings}`; exit 0 ok, 1 errors, 2 bad usage (fix the call and re-run once, then `Open:`).
-- Each finding has `id`, `rubric`, `file`, `line`, `message`. A warning is not an error, but the audit judges it.
+- Each finding has `id`, `rubric`, `file`, `line`, `message`. A warning is not an error, but the audit checks it.
 - No `node`, or the script cannot run → `Checks: check-agent not run`, `Not tested: check-agent (no node)`; the audit judges the mechanical criteria by hand.
 
 ## Validate
@@ -26,4 +26,4 @@ After validation, when `claude` can run: take the sample task from interview ite
 
 ## Open
 
-`Open:` lists what is left after the cap: remaining `errors` (id, file:line), the audit's `Open:` items, unresolved warnings, and dropped jobs. Facts omitted for lack of a source go to `Unverified:`, not `Open:`. `none` when empty.
+`Open:` lists what is left after the cap: remaining `errors` (id, file:line), the audit's Fail rows (`<check ID> file:line: fix`), unresolved warnings, and dropped jobs. Facts omitted for lack of a source go to `Unverified:`, not `Open:`. `none` when empty.

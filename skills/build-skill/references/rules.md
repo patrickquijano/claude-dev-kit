@@ -10,29 +10,33 @@ Bundled snapshot of the skill rules. Read it, never guess a rule; the web is opt
 
 MUST
 
-- `description`: ≤200 chars (count it), third person, what + when, key use case and trigger terms first.
-- `name`: lowercase/digits/hyphens, ≤64 chars, matches the folder, no "anthropic" or "claude".
+- `description`: ≤400 chars (count it; house limit, the standard allows 1,024), third person, what + when, key use case and trigger terms first, filler words cut, no XML tags.
+- `when_to_use`: best omitted; description plus `when_to_use` stays ≤400 chars.
+- `name`: lowercase/digits/hyphens, ≤64 chars, matches the folder, no leading, trailing, or consecutive hyphens, no XML tags, no "anthropic" or "claude"; gerund (`processing-pdfs`) or verb-first (`process-pdfs`), the sibling convention breaking the tie; never vague (`helper`, `utils`); never includes the plugin namespace, because a colon is invalid and the plugin adds `plugin:` itself; never the reserved `synced` folder name (see MUST NOT).
+- Progressive disclosure: metadata about 100 tokens, then the body (under 5,000 tokens recommended), then resources on demand. The body covers the steps, concrete input→output examples, and edge cases.
+- Scripts handle errors, justify every constant, and list their package dependencies.
+- A target outside Claude Code (claude.ai upload or the Skills API) allows only the portable fields; warn.
 - Portable frontmatter only (name, description, license, compatibility, metadata, allowed-tools). Claude Code-only fields (context, agent, disable-model-invocation, etc.) are allowed but the skill must be marked Claude Code-only, with a warning that claude.ai/API uploads reject unknown keys.
 - Body under 500 lines. Detail goes in references/ or scripts/, one level deep. References over 100 lines get a table of contents.
 - Critical rules at the top (compaction keeps only the start).
-- Never add, remove, or suggest `disable-model-invocation` or `user-invocable`; keep an existing value as-is; keep least-privilege `allowed-tools`.
+- Do not set `disable-model-invocation` or `user-invocable` unless the user asks; keep an existing value as-is; keep least-privilege `allowed-tools`.
 - `context: fork` only for explicit task skills. The body must hold everything the task needs; set `background: false` if the result is needed this turn.
 - Paths: ${CLAUDE_SKILL_DIR}, forward slashes.
 - **Own files**: the skill reads only its own bundled files through `${CLAUDE_SKILL_DIR}` and never through a `${CLAUDE_PLUGIN_ROOT}` path.
 - **Skill calls**: the skill may invoke another skill as ``Invoke the `cdk:commit-changes` skill (fallback: run the commit-changes skill)``. Never a skill command on a `Next:` line (plain words there).
 - **Subagent calls**: a spawn names the plugin subagent first: ``Spawn the `cdk:rubric-scorer` subagent (fallback: a read-only subagent that scores the skill against the rubric)``. No plugin agent fits → describe the role in plain words only. Each spawn has an inline fallback for when no subagent is available. Never spawn the generic built-ins `Explore` or `general-purpose`.
-- **Bypass flag**: a task skill accepts `--yes` (unattended: no questions, recommended options taken, assumptions under `Open:`). Only a flag the user passed counts; a skill never adds one itself. A skill asks no approval question before a side-effect step: it runs directly. A gate (a question that only approves the next step) is not allowed; a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) is required before an irreversible step and is never skipped by `--yes`. A decision question may offer `Stop`, and `Stop` ends with `Result: stopped`; a skill that callers delegate to may end a user `Stop` with `Result: cancelled` and `Stopped: <step>: user cancelled` so callers can tell a cancel from a cap stop (`implement-spec` is the existing case).
-- **Git ownership**: A skill other than `switch-branch` never switches, creates, or checks out a branch. A skill other than `commit-changes` never commits. Others invoke the owning skill in the skill-call form above (fallback: plain language). Exceptions: `rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `setup-git` are not branch switches or commits.
+- **Bypass flag**: a task skill accepts `--yes` (unattended: no questions, recommended options taken, assumptions under `Open:`). Only a flag the user passed counts; a skill never adds one itself. A skill asks no approval question before a side-effect step: it runs directly. A gate (a question that only approves the next step) is not allowed; a safety stop (a fact check that refuses: protected target, moved head, foreign-owned file, unmerged work) is required before an irreversible step and is never skipped by `--yes`. A decision question may offer `Stop`, and `Stop` ends with `Result: stopped`; a skill that callers delegate to may end a user `Stop` with `Result: cancelled` and `Stopped: <step>: user cancelled` so callers can tell a cancel from a cap stop (`cdk:implement-spec` is the existing case).
+- **Git ownership**: A skill other than `cdk:switch-branch` never switches, creates, or checks out a branch. A skill other than `cdk:commit-changes` never commits. Others invoke the owning skill in the skill-call form above (fallback: plain language). Exceptions: `cdk:rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `cdk:run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `cdk:setup-git` are not branch switches or commits.
 - **Memory**: a skill that keeps memory writes a memory file plus its `MEMORY.md` pointer to Claude's auto-memory dir. It takes the path from the session's auto-memory context and never guesses it; if none is found, it lists the item under `Open:`. It never writes memory under `${CLAUDE_SKILL_DIR}` or anywhere in its skill directory.
-- **No format or lint**: a skill runs no formatter or linter and has no step that does, because repo hooks and CI own that; a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (such as `build-dockerfile` or `build-docker-compose`), is exempt for that purpose.
-- Fully qualified MCP names (Server:tool).
+- **No format or lint**: a skill runs no formatter or linter and has no step that does, because repo hooks and CI own that; a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (such as `cdk:build-dockerfile` or `cdk:build-docker-compose`), is exempt for that purpose.
+- Reference MCP tools as `ServerName:tool_name`.
 - At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases (should-be-skill, should-be-subagent, should-be-neither, hybrid) when the skill makes a fit decision.
 
 MUST NOT
 
-- Descriptions over 200 chars, vague, or first/second person.
+- Descriptions over 400 chars, vague, or first/second person.
 - Nested references, time-sensitive text, unknown or misspelled frontmatter keys.
-- Reserved folder names `synced` and `anthropic-skills`.
+- Reserved folder names `synced` and `anthropic-skills`, in any capitalization.
 
 DO
 
@@ -40,6 +44,7 @@ DO
 - Use consistent terminology and concrete examples. Use validate → fix → repeat loops.
 - Use scripts for deterministic steps and say whether each is run or read. List dependencies.
 - Use hooks for rules that must always hold.
+- Use numbered steps with a checklist for a complex task, and substitutions where useful (`$ARGUMENTS`, `$0`, `$name`, `${CLAUDE_SKILL_DIR}`).
 
 DON'T
 
@@ -51,18 +56,18 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 
 | Field | P | Type, default | Set when |
 | --- | --- | --- | --- |
-| `name` | P | kebab string; default the directory name; an action (verb-first) | Always |
+| `name` | P | kebab string; default the directory name; an action (gerund or verb-first) | Always |
 | `description` | P | string; default the first body line | Always |
 | `license` | P | string | Distribution needs it |
 | `compatibility` | P | string, ≤500 chars | Always for a Claude Code-only skill |
-| `metadata` | P | map; never reuse field names as keys | Your own tooling needs it |
-| `allowed-tools` | P | space or comma string, or list; pre-approves tools, does not restrict | Known-safe tools the skill uses, least privilege |
-| `when_to_use` | - | string, appended to `description` in the listing (together ≤1,536) | Trigger phrases crowd the description |
+| `metadata` | P | string-to-string map; never reuse field names as keys | Your own tooling needs it |
+| `allowed-tools` | P | experimental; space-separated by default (comma string or list also read); pre-approves tools, does not restrict | Known-safe tools the skill uses, least privilege |
+| `when_to_use` | - | string, appended to `description` in the listing (together ≤400; prefer to omit) | Trigger phrases crowd the description |
 | `argument-hint` | - | string, e.g. `[issue-number]` | The skill takes arguments |
 | `arguments` | - | space string or list; names for `$name` | The body reads named positional args |
 | `disallowed-tools` | - | same shapes as `allowed-tools` | Remove tools while active |
-| `disable-model-invocation` | - | bool, false | Never suggested; keep an existing value |
-| `user-invocable` | - | bool, true | Never suggested; keep an existing value |
+| `disable-model-invocation` | - | bool, false | Only when the user asks; keep an existing value |
+| `user-invocable` | - | bool, true | Only when the user asks; keep an existing value |
 | `context` | - | `fork` | Explicit task needing isolation |
 | `agent` | - | subagent name; only with `context: fork`; omit unless the user names it | The user names one |
 | `background` | - | bool, true; only with `context: fork` | `false` when the result is needed this turn |
@@ -88,13 +93,15 @@ Escape a literal dollar as `\$1.00`. Injection (an exclamation mark before a bac
 
 ## Scope paths
 
-| Scope   | Path                       | Invoked as    |
-| ------- | -------------------------- | ------------- |
-| User    | `~/.claude/skills/<name>/` | `/name`       |
-| Project | `.claude/skills/<name>/`   | `/name`       |
-| Plugin  | `<plugin>/skills/<name>/`  | `plugin:name` |
+| Scope       | Path                              | Invoked as    |
+| ----------- | --------------------------------- | ------------- |
+| User        | `~/.claude/skills/<name>/`        | `/name`       |
+| Project     | `.claude/skills/<name>/`          | `/name`       |
+| Plugin      | `<plugin>/skills/<name>/`         | `plugin:name` |
+| Nested      | `<subdir>/.claude/skills/<name>/` | `/name`       |
+| `--add-dir` | `<dir>/.claude/skills/<name>/`    | `/name`       |
 
-Same name at several levels: user over project; plugin skills are namespaced, so they never collide. Layout: `SKILL.md` plus only `references/` (docs Claude reads), `assets/` (templates copied into output), `scripts/` (run, not read); no dotfiles. Link every bundled file from `SKILL.md` with when to read it.
+Same name at several levels: enterprise over personal (user) over project; plugin skills are namespaced, so they never collide. Layout: `SKILL.md` plus only `references/` (docs Claude reads), `assets/` (templates copied into output), `scripts/` (run, not read); no dotfiles. Link every bundled file from `SKILL.md` with when to read it.
 
 ## Fallbacks
 
@@ -109,8 +116,8 @@ Same name at several levels: user over project; plugin skills are namespaced, so
 
 Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it reports. Walk every line against the target, quote the evidence, and re-check after each fix (3 rounds at most).
 
-1. [F1] `name`: kebab-case a-z0-9, ≤64 chars, equals the folder, no "anthropic" or "claude". [F8] Not actor-named: the last part ends in -er, -or, -ist, or -ant and the first part is not a leading verb (warning, not an error).
-2. [F3] `description`: present, ≤200 chars (count), no XML tags, names no skill or subagent; with `when_to_use` ≤1,536.
+1. [F1] `name`: kebab-case a-z0-9, ≤64 chars, equals the folder, no "anthropic" or "claude". [F1] No leading, trailing, or consecutive hyphens, no XML tags; gerund or verb-first form; a vague name (a whole name or a part: `helper`, `helpers`, `util`, `utils`, `misc`) is a warning (`name-vague`). [F8] Not actor-named: the last part ends in -er, -or, -ist, or -ant and the first part is not a leading verb (warning, not an error). A gerund first part (-ing) counts as a leading verb.
+2. [F3] `description`: present, ≤400 chars (count), no XML tags, names no skill or subagent; with `when_to_use` ≤400.
 3. [F9] `description` has no "I", "you", "your", "we", "our", or "my".
 4. [F6] Every frontmatter key is in the fields table; the YAML opens on line 1 and closes.
 5. [F10] A Claude Code-only key is present → `compatibility` says "Claude Code" and warns that claude.ai/API uploads reject unknown keys.
@@ -118,14 +125,17 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 7. [B1] SKILL.md under 500 lines. [B9] A `## Files` section links every bundled file. [B8] SKILL.md never spawns or delegates to Explore or general-purpose; name a plugin agent first with a plain-words fallback.
 8. [B4] A reference over 100 lines has `## Contents` near the top. [B10] No reference links to another bundled `.md`.
 9. [B6] No injection without an `||` fallback in SKILL.md, none in `references/`. [B11] No time-sensitive phrasing (dated facts, relative-time words, ISO dates outside a `Fetched:` stamp or code fence).
-10. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills`.
+10. [L2] Only SKILL.md, references/, assets/, scripts/; no dotfile. [L4] No folder named `synced` or `anthropic-skills` in any capitalization.
 11. [L3] Each `${CLAUDE_SKILL_DIR}/` link exists and stays inside the folder. [L5] No parent-directory path, absolute path, or backslash path.
 12. [Q1] A task skill has `## Output` with `Result:`; [Q4] and a `Next:` line. [Q1] Warning: the Output also has an `Example:` line followed by a fenced filled example (`output-example`).
 13. [S1] Never a `${CLAUDE_PLUGIN_ROOT}` path, a plugin-qualified skill command on a `Next:` line, or a skill command inside a `Next:` line. [S2] Each spawn names the plugin subagent first with a plain-words fallback (role in plain words only when no plugin agent fits) and has an inline fallback (judgment-only: the script does not check it).
 14. [Q2] A task skill's `argument-hint` has `[--yes]`; `Input:` strips it; a Rules bullet states what `--yes` does and that it never skips a safety stop (judgment-only).
-15. [G1] Git ownership: no step outside `switch-branch` and `commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
+15. [G1] Git ownership: no step outside `cdk:switch-branch` and `cdk:commit-changes` switches a branch or commits, except the named exceptions (judgment-only).
 16. [M1] Memory: a skill that keeps memory writes to Claude's auto-memory dir (path from the session context, else `Open:`), never under its skill directory (judgment-only).
 17. [M2] No format or lint: no step runs a formatter or linter, except in a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (judgment-only).
+18. [J1] Terms are consistent, examples are concrete, and steps are clear (judgment-only).
+19. [J2] Scripts handle errors, justify every constant, and list their package dependencies (judgment-only).
+20. [J3] Evals: at least 3, a no-skill baseline first, tested on Haiku, Sonnet, and Opus; at least one should-trigger and one should-not-trigger prompt (judgment-only).
 
 ## Sources
 

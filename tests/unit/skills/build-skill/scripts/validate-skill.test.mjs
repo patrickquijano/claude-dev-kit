@@ -169,6 +169,48 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found), ['name-actor']);
   });
 
+  test('warns on a vague whole name and a vague name part', () => {
+    // Arrange
+    const whole = { name: 'helper', description: 'x' };
+    const part = { name: 'log-utils', description: 'x' };
+    // Act
+    const results = [checkFrontmatter(whole, 'helper'), checkFrontmatter(part, 'log-utils')];
+    // Assert
+    assert.ok(results.every((found) => ids(found).includes('name-vague')));
+    assert.ok(results.every((found) => found.every((f) => f.level === 'warning')));
+  });
+
+  test('does not warn vague for a name that only starts like a vague word', () => {
+    // Arrange
+    const fields = { name: 'help-desk', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'help-desk');
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('skips the actor warning for a gerund-first name', () => {
+    // Arrange
+    const gerund = { name: 'processing-pdfs', description: 'x' };
+    const gerundActorObject = { name: 'processing-pdf-reader', description: 'x' };
+    // Act
+    const results = [
+      checkFrontmatter(gerund, 'processing-pdfs'),
+      checkFrontmatter(gerundActorObject, 'processing-pdf-reader')
+    ];
+    // Assert
+    assert.deepEqual(results, [[], []]);
+  });
+
+  test('still warns on an actor name with no gerund or verb first', () => {
+    // Arrange
+    const fields = { name: 'pdf-processor', description: 'x' };
+    // Act
+    const found = checkFrontmatter(fields, 'pdf-processor');
+    // Assert
+    assert.deepEqual(ids(found), ['name-actor']);
+  });
+
   test('errors on an unknown field', () => {
     // Arrange
     const fields = { name: 'demo', description: 'x', colour: 'red' };
@@ -187,12 +229,12 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found).sort(), ['name-dir', 'name-format', 'name-reserved']);
   });
 
-  test('errors on description over 200 chars and combined over 1,536', () => {
+  test('errors on description over 400 chars and combined over 400', () => {
     // Arrange
     const fields = {
       name: 'demo',
-      description: 'a'.repeat(201),
-      when_to_use: 'b'.repeat(1400),
+      description: 'a'.repeat(401),
+      when_to_use: 'b'.repeat(10),
       compatibility: 'Claude Code only'
     };
     // Act
@@ -201,9 +243,37 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found), ['description-length', 'listing-length']);
   });
 
-  test('allows a description of exactly 200 chars', () => {
+  test('allows a description of exactly 400 chars', () => {
     // Arrange
-    const fields = { name: 'demo', description: 'a'.repeat(200) };
+    const fields = { name: 'demo', description: 'a'.repeat(400) };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), []);
+  });
+
+  test('errors on a combined length of 401 with a short description', () => {
+    // Arrange
+    const fields = {
+      name: 'demo',
+      description: 'a'.repeat(200),
+      when_to_use: 'b'.repeat(201),
+      compatibility: 'Claude Code only'
+    };
+    // Act
+    const found = checkFrontmatter(fields, 'demo');
+    // Assert
+    assert.deepEqual(ids(found), ['listing-length']);
+  });
+
+  test('allows a combined length of exactly 400', () => {
+    // Arrange
+    const fields = {
+      name: 'demo',
+      description: 'a'.repeat(200),
+      when_to_use: 'b'.repeat(200),
+      compatibility: 'Claude Code only'
+    };
     // Act
     const found = checkFrontmatter(fields, 'demo');
     // Assert
@@ -399,9 +469,16 @@ describe('checkBody', () => {
     const output = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
     // Act
     const withExample = checkBody(`${output}${example}`, { kind: 'task' });
-    const without = checkBody(output, { kind: 'task' });
     // Assert
     assert.deepEqual(ids(withExample), []);
+  });
+
+  test('warns output-example for an Output block with no Example', () => {
+    // Arrange
+    const output = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
+    // Act
+    const without = checkBody(output, { kind: 'task' });
+    // Assert
     assert.deepEqual(ids(without), ['output-example']);
   });
 
@@ -420,9 +497,16 @@ describe('checkBody', () => {
     const body = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
     // Act
     const found = [...checkBody(body, { kind: 'reference' }), ...checkBody(body, { kind: 'background-only' })];
-    const task = checkBody(body, { kind: 'task' });
     // Assert
     assert.deepEqual(found, []);
+  });
+
+  test('warns output-example for a task kind with no Example', () => {
+    // Arrange
+    const body = '## Output\n\n```text\nNext: none\nResult: done\n```\n';
+    // Act
+    const task = checkBody(body, { kind: 'task' });
+    // Assert
     assert.deepEqual(ids(task), ['output-example']);
   });
 
@@ -1021,6 +1105,20 @@ describe('checkSelfContained', () => {
       results[1].map((f) => f.id),
       ['reserved-folder', 'reserved-folder']
     );
+  });
+
+  test('reserved-folder: matches in any capitalization, not near-misses', () => {
+    // Arrange
+    const upper = { 'SKILL.md': 'x', 'references/Synced/a.md': 'x', 'assets/SYNCED/b.md': 'x' };
+    const near = { 'SKILL.md': 'x', 'references/syncing/a.md': 'x' };
+    // Act
+    const results = [run(upper), run(near)];
+    // Assert
+    assert.deepEqual(
+      results[0].map((f) => f.id),
+      ['reserved-folder', 'reserved-folder']
+    );
+    assert.deepEqual(results[1], []);
   });
 
   test('path-parent: passes a skill-dir link, errors on a bare ../ path', () => {

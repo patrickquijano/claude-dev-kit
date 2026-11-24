@@ -106,9 +106,9 @@ describe('parseFrontmatter', () => {
     assert.throws(act, new FrontmatterError('line 2: plain value holds ": "; quote it'));
   });
 
-  test('throws on a plain allowed-tools holding ": "', () => {
+  test('throws on a plain tools holding ": "', () => {
     // Arrange
-    const text = '---\nname: x\nallowed-tools: Bash(x), Accept: x\n---\n';
+    const text = '---\nname: x\ntools: Bash(x), Accept: x\n---\n';
     // Act
     const act = () => parseFrontmatter(text);
     // Assert
@@ -197,14 +197,14 @@ describe('checkFrontmatter', () => {
     assert.deepEqual(ids(found), ['name-missing', 'description-missing']);
   });
 
-  test('flags a description over 200 chars', () => {
+  test('flags a description over 400 chars', () => {
     // Arrange
-    const fields = { name: 'demo', description: `Use proactively ${'a'.repeat(190)}` };
+    const fields = { name: 'demo', description: `Use proactively ${'a'.repeat(385)}` };
     // Act
     const found = withModel(fields, 'demo');
     // Assert
     assert.deepEqual(ids(found), ['description-length']);
-    assert.equal(withModel({ name: 'demo', description: `Use proactively ${'a'.repeat(184)}` }, 'demo').length, 0);
+    assert.equal(withModel({ name: 'demo', description: `Use proactively ${'a'.repeat(384)}` }, 'demo').length, 0);
   });
 
   test('accepts a description with or without "Use proactively"', () => {

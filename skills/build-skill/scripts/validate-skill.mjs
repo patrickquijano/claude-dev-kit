@@ -54,6 +54,9 @@ const PORTABLE_FIELDS = new Set(['name', 'description', 'license', 'compatibilit
 const RESERVED_DIRS = new Set(['synced', 'anthropic-skills']);
 const ALLOWED_TOP = new Set(['SKILL.md', 'references', 'assets', 'scripts']);
 const ACTOR_SUFFIX = /(er|or|ist|ant)$/;
+// Names that say nothing about the job: a whole name or one part of it.
+const VAGUE_PARTS = new Set(['helper', 'helpers', 'util', 'utils', 'misc']);
+const MAX_LISTING = 400; // house limit for description, and for description + when_to_use
 // A verb-first name (`setup-devcontainer`) names an action, so its object may end like an actor.
 const LEADING_VERB = new Set([
   'add',
@@ -172,7 +175,13 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
       found.push(error('name-reserved', 'F1', 'SKILL.md', line, 'name contains a reserved word'));
     const parts = name.split('-');
     const last = parts[parts.length - 1];
-    if (!LEADING_VERB.has(parts[0]) && ACTOR_SUFFIX.test(last)) {
+    const vague = parts.find((part) => VAGUE_PARTS.has(part));
+    if (vague) {
+      found.push(warning('name-vague', 'F1', 'SKILL.md', line, `name part "${vague}" is vague: name the job`));
+    }
+    // A gerund first part (-ing) is a leading verb: `processing-pdfs` names the action.
+    const leadingVerb = LEADING_VERB.has(parts[0]) || /^[a-z0-9]{2,}ing$/.test(parts[0]);
+    if (!leadingVerb && ACTOR_SUFFIX.test(last)) {
       found.push(
         warning(
           'name-actor',
@@ -189,9 +198,15 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
   if (!description) {
     found.push(error('description-missing', 'F3', 'SKILL.md', 1, 'description is missing'));
   } else {
-    if (description.length > 200)
+    if (description.length > MAX_LISTING)
       found.push(
-        error('description-length', 'F3', 'SKILL.md', line, `description is ${description.length} chars, max 200`)
+        error(
+          'description-length',
+          'F3',
+          'SKILL.md',
+          line,
+          `description is ${description.length} chars, max ${MAX_LISTING}`
+        )
       );
     if (REFERENCE.test(description))
       found.push(
@@ -205,9 +220,15 @@ export function checkFrontmatter(fields, dirName, lineOf = {}) {
       error('description-person', 'F9', 'SKILL.md', line, 'description uses first or second person: write third person')
     );
   const combined = description.length + text(fields.when_to_use).length;
-  if (combined > 1536)
+  if (combined > MAX_LISTING)
     found.push(
-      error('listing-length', 'F3', 'SKILL.md', line, `description + when_to_use is ${combined} chars, max 1,536`)
+      error(
+        'listing-length',
+        'F3',
+        'SKILL.md',
+        line,
+        `description + when_to_use is ${combined} chars, max ${MAX_LISTING}`
+      )
     );
   const ccKeys = Object.keys(fields).filter((k) => KNOWN_FIELDS.has(k) && !PORTABLE_FIELDS.has(k));
   if (ccKeys.length > 0 && !/claude code/i.test(text(fields.compatibility))) {
@@ -452,7 +473,7 @@ const BUNDLED_MD =
 export function checkSelfContained(files, dir, deps = defaults) {
   const found = [];
   for (const file of files) {
-    if (file.split('/').some((part) => RESERVED_DIRS.has(part)))
+    if (file.split('/').some((part) => RESERVED_DIRS.has(part.toLowerCase())))
       found.push(
         error('reserved-folder', 'L4', file, 1, `"${file}" sits in a reserved folder name (synced, anthropic-skills)`)
       );

@@ -151,8 +151,8 @@ export function checkFrontmatter(fields, stem, lineOf = {}, scope) {
     found.push(error('description-missing', 'A3', 1, 'description is missing or empty'));
   } else {
     const line = at('description');
-    if (description.length > 200)
-      found.push(error('description-length', 'A3', line, `description is ${description.length} chars, max 200`));
+    if (description.length > 400)
+      found.push(error('description-length', 'A3', line, `description is ${description.length} chars, max 400`));
     if (REFERENCE.test(description))
       found.push(error('description-reference', 'A3', line, 'description names a skill, subagent, or spawner'));
   }
