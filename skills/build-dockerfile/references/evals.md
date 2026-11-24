@@ -68,4 +68,22 @@ kind: behavior
 prompt: "Write a compose.yaml that runs this app with Postgres."
 expected: build-dockerfile does not load
 pass: No Dockerfile or .dockerignore is written and no build-dockerfile Output block prints
+
+id: implement-needs-input-stops
+kind: behavior
+prompt: "Write a production Dockerfile for this Node app." (`cdk:implement-spec` ends `Stopped: <step>: needs input`)
+expected: Stops, never writes inline
+pass: `Result: stopped`, `Stopped: <step>: needs input`; no inline write fallback
+
+id: implement-outside-scope-stops
+kind: behavior
+prompt: "Write a production Dockerfile for this Node app." (`cdk:implement-spec` ends `Stopped: <step>: write outside scope`)
+expected: Stops, never writes inline
+pass: `Result: stopped`, `Stopped: <step>: write outside scope`; no inline write fallback
+
+id: implement-cancelled-stops
+kind: behavior
+prompt: "Write a production Dockerfile for this Node app." (`cdk:implement-spec` ends `Result: cancelled`)
+expected: Stops, keeping implement-spec's reason
+pass: `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback
 ```

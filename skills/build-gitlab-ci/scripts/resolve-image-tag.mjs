@@ -1,4 +1,4 @@
-// Resolves the highest stable tag of a container image: `resolve-image-tag.mjs <image> [variant]`.
+// Resolves the highest stable tag of a container image from Docker Hub or a registry API: `resolve-image-tag.mjs <image> [variant]`.
 // Prints {"image","tag","method","tried"} plus "partial":true when the Docker Hub page cap stopped with pages left; exit 0 resolved, 2 unresolved, 1 bad usage.
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';

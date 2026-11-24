@@ -27,6 +27,10 @@ pass: <observable criteria, one per line>
 | no-approval-step | "Upgrade my dependencies." (npm project, clean tree) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; each side-effect step runs directly after the decision questions |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |
+| no-manifest | "Upgrade my dependencies." (no manifest found at root or below) | Stops | `Result: stopped`, `Stopped: 2: no manifest found`; no manifest or lockfile change |
+| implement-needs-input-stops | "Upgrade react." (the implement-spec call ends `Stopped: <step>: needs input`) | Stops, never writes inline | `Result: stopped`, `Stopped: <step>: needs input`; no inline write fallback |
+| implement-outside-scope-reverts | "Upgrade react." (the implement-spec call ends `Stopped: <step>: write outside scope`) | Stops and reverts the package | `Result: stopped`, `Stopped: <step>: write outside scope`; the stop also under `Open:`; the package reverted to its recorded specifier; no inline write fallback |
+| implement-cancelled-stops | "Upgrade react." (the implement-spec call ends `Result: cancelled`) | Stops, keeping implement-spec's reason | `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback |
 | no-trigger-add | "Add lodash to my project." | The skill does not load | No upgrade-dependencies Output; no outdated scan |
 
 ## Running per model

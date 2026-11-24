@@ -3,7 +3,7 @@ name: upgrade-dependencies
 description: Upgrades outdated dependencies to their latest stable versions, fixes breaking changes, then builds, lints, and tests until green. Use when asked to upgrade or bump dependencies. Not for audits.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [optional package names | project path | patch-minor-only]'
-allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git stash create) Bash(command -v *)
+allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git diff *) Bash(git ls-files --others --exclude-standard) Bash(git stash create) Bash(command -v *)
 ---
 
 # Upgrade Dependencies

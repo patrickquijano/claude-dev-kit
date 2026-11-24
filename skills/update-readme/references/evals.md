@@ -40,6 +40,11 @@ pass: <observable criteria>
 | verify-report | Normal write | Verifies after writing | `wc -l` result and link counts printed |
 | no-approval-step | "Write a README." (CLI repo, no README) | Runs end to end; every write follows the last decision answer directly | Only the decision questions in the flow are asked; the README is written right after them with no confirm question; `Result: done` |
 | improve-implement-spec | "Improve my README." (score under 95) | Writes only through implement-spec | One implement-spec invocation per round with a Spec brief (`Tests: none (documentation)`); no formatter or linter run |
+| implement-needs-input-stops | "Improve my README." (the implement-spec call ends `Stopped: <step>: needs input`) | Stops, never writes inline | `Result: stopped`, `Stopped: <step>: needs input`; no inline write fallback |
+| implement-outside-scope-stops | "Improve my README." (the implement-spec call ends `Stopped: <step>: write outside scope`) | Stops, never writes inline | `Result: stopped`, `Stopped: <step>: write outside scope`; no inline write fallback |
+| implement-cancelled-stops | "Improve my README." (the implement-spec call ends `Result: cancelled`) | Stops, keeping implement-spec's reason | `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback |
+| write-unavailable | "Write a README." (no write tool) | Stops | `Result: stopped`, `Stopped: 11: write unavailable`; no file written |
+| question-dismissed | "Write a README." (the user dismisses a question) | Cancels | `Result: cancelled`; no file written after the dismissal |
 | waiver | "Score my README." (a wording-only nit) | Waives the negligible item | Item under `Waived:` with file:line and reason; full points; never in `Open:` |
 | extend-at-cap | "Improve my README." (score under 95 after 3 rounds) | Asks to extend | Asks the `Extend 3 more rounds` or `Stop` ask; `--yes` → Stop with the rest under `Open:` |
 | memory-reuse | "Improve my README." (a `cdk-fix-readme-*` memory matches an open item) | Reuses the stored fix, then records new ones | Memory fix: unverified hint beside the After; a confirmed fix updates one `cdk-fix-readme-<rubric-id>-<slug>` memory plus one `MEMORY.md` pointer |
