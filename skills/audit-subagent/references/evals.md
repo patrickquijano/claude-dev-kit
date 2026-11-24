@@ -8,41 +8,33 @@
 
 | id | prompt | expected route | pass |
 | --- | --- | --- | --- |
-| trigger-audit | "audit my codebase-explorer subagent" | audit-subagent | Resolves `agents/codebase-explorer.md`; scores it |
-| no-trigger-skill | "audit my commit-changes skill" | audit-skill | Skill is not loaded; audit-skill handles it |
-| no-trigger-build | "build a new subagent that scans logs" | build-subagent | Skill is not loaded; build-subagent handles it |
+| trigger-audit | "audit my codebase-explorer subagent" | cdk:audit-subagent | Resolves `agents/codebase-explorer.md`; prints the checklist report |
+| no-trigger-skill | "audit my commit-changes skill" | cdk:audit-skill | Skill is not loaded; `cdk:audit-skill` handles it |
+| no-trigger-build | "build a new subagent that scans logs" | cdk:build-subagent | Skill is not loaded; `cdk:build-subagent` handles it |
 
 ## Behavior cases
 
 | id | prompt | expected behavior | pass |
 | --- | --- | --- | --- |
-| no-args-select | `/cdk:audit-subagent` | Lists subagents, asks paged multi-select | At most 4 options per question and 4 questions per call; nothing selected → `nothing-to-do` |
-| dirty-target | `/cdk:audit-subagent <agent>` (tracked file modified) | Scores and edits the target | Applies the VERIFIED fixes; `Stopped: none` |
-| cap-reached | A subagent still REJECTED with a blocking row after 2 rounds | Stops at the cap, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: round cap`; blocking rows under `Open:` |
-| yes-no-args | `/cdk:audit-subagent --yes` | Selects nothing | No question asked; `Result: nothing-to-do`; assumption under `Decisions:`; `Open: none` |
-| parallel-score | `/cdk:audit-subagent a b` | One scorer per subagent in one message | Both spawns in a single message; totals re-summed with `node -e` |
-| fresh-rescore | A subagent fixed in round 1 | Rescores from current files | Reported score comes from the round-2 scorer, none carried over |
-| implement-handoff | A subagent REJECTED with 1+ VERIFIED fixes | Writes through implement-spec | One implement-spec invocation per subagent; goals are the fix IDs; no planner or implementer named |
-| no-format-lint | Any fix round | Runs no formatter or linter | The Spec brief says so; no format or lint command runs |
-| no-extra-spawn | Any fix round | Spawns only the allowed subagents | This skill spawns only scorer and researcher subagents; any other spawn comes from implement-spec under its spawn rule |
-| scorer-agent | `/cdk:audit-subagent <agent>` | Scores through the plugin scorer | Spawns `cdk:rubric-scorer` with kind `subagent-audit`, not a generic subagent |
-| accepted-continues | A subagent at 92 ACCEPTED with a blocking `open` row (a deduction that affects a safety stop) | Fixes once, then stops | One fix round runs; ends at step 10 once no blocking row is open; the non-blocking `open` rows are not fixed in round 1 and go under `Residual:` as untried |
-| accepted-no-fix-round | A subagent at 92 ACCEPTED with only non-blocking `open` rows | Edits nothing | No implement-spec call and no step 6 question; each row is `residual` and listed under `Residual:` as untried; `Rounds: 0/2`; `Result: done` |
-| immaterial-waived | A subagent whose only flaws are passive voice and a missing reason on a rule a model already follows | Deducts nothing for them | Both score full under Materiality, with no fix ID; listed under `Waived:`, absent from `Open:` |
-| unverified-research | A subagent with UNVERIFIED suggestions | Researches before asking | Spawns `cdk:topic-researcher`; a confirmed source promotes the fix and it is applied |
-| unverified-ask | UNVERIFIED suggestion, researcher finds no source | Asks per item | Asks `Apply anyway \| Decline \| Provide a source or fact`, Recommended first |
-| yes-decisions | `--yes` with an UNVERIFIED suggestion left | Takes the Recommended option | No question; `Decisions:` filled; `Open: none` |
-| one-try | A fix round leaves a row still deducted | Does not retry or ask again | The row had one try; blocking → stays `open` for round 2 only if the count fell, non-blocking → `residual`; no `Apply anyway` re-ask |
-| g7-unconfirmed | Docs no longer say subagents cannot spawn subagents | Reports G7 UNCONFIRMED without failing it | Gates show G7 UNCONFIRMED; the verdict is not forced to FAIL (gate) by G7 |
-| edit-scope | A fix round on one agent | Changes only the target file | `git -C <root> status --porcelain=v1` before and after differs only in that file; no other subagent or skill edited |
-| line-coverage | A scorer return lacks a section-10 row for a target file | Respawns, then scores inline | Missing or short file → scorer respawned once, then that file scored inline |
-| fix-per-deduction | A deduction has no fix or `no fix:` reason | Respawns the scorer | Scorer respawned once; still missing → fix written inline |
-| memory-reuse | An open item matches a `feedback` memory `cdk-fix-subagent-…` | Reuses the stored fix | `MEMORY.md` read before step 7; memory fix: unverified hint beside the After; a confirmed fix updates one memory, no duplicate |
-| waived-item | A would-be deduction whose fix changes no behavior | Waives it | Scores full, no fix ID, listed under `Waived:`, absent from `Open:` |
-| ledger-no-drop | A rescore omits an earlier open item | Keeps it in the ledger | Row matches by rubric ID, file, and anchor, not Before text; an item still deducted is not re-asked; `Items:` counts it |
-| score-only | `/cdk:audit-subagent --score-only <subagent>` | Scores and reports, never edits | No implement-spec call and no memory write; no step 6 question; `Open:` lists every item and `Waived:` lists the waived ones |
-| residual-once | A non-blocking item still deducted after its one try | Reports it once | Status `residual`; listed under `Residual:` as tried; no later round retries it |
-| settled-skip | A later run finds a residual item whose cited line is unchanged | Suppresses it | Matching settled memory row (rubric ID, file, hash) → `settled`, counted in `Items:`, not listed; score unchanged |
-| settled-reopens | A later run finds the same item after its cited line changed | Reports it again | Hash differs → the item is not `settled`; a blocking item is never settled |
-| regression-blocks | A rescore adds a row on a line holding an applied After | Treats it as blocking | Grep finds the After text on the cited line → blocking, `open`, eligible for round 2 |
-| front-loaded-ask | A subagent with UNVERIFIED rows | Researches and asks before any fix | Step 6 runs before step 7: researcher first, then one batched `Apply anyway \| Decline \| Provide a source or fact` ask |
+| missing-input-asks | `/cdk:audit-subagent` | Asks for the path | One AskUserQuestion; never guesses a subagent |
+| yes-no-input | `/cdk:audit-subagent --yes` | Stops without a question | No question; `Result: stopped`, `Stopped: 1: no input` |
+| report-only | `/cdk:audit-subagent --report-only <subagent file>` | Reports only | Totals line and table; no score, no question, no edit, no backup; `Subagents:` item ends `(report-only)`; `git status` unchanged |
+| default-flow | `/cdk:audit-subagent <subagent with one Fail>` | Report, score, approve, fix, re-audit | Spawns `cdk:rubric-scorer` kind `subagent-checklist`; asks approval; one `cdk:implement-spec` call; one report-only re-audit |
+| not-checked-informational | A subagent with no `model`, `effort`, or `color` | Marks conditional checks Not checked | F9 is Not checked with a reason, and F8 is a Fail (house rule: always set); E1–E2 Not checked; a Not checked is neither a Pass nor a Fail |
+| plugin-scope-fields | A plugin agent that sets `hooks` or `permissionMode` | Fails T4 | T4 Fail with the exact `file:line` and a fix that removes the field |
+| version-gated-unverified | A subagent that sets `omitClaudeMd`, Claude Code version unknown | Never passes the gated field | F10 is Not checked with `Unverified: Claude Code version unknown` |
+| scorer-missing | The `agents/rubric-scorer.md` file is absent | Skips the score | `Not scored: definition not found`; the audit and the fixes go on |
+| scorer-mismatch | A scorer return whose Fail count differs from the report | Respawns once | One respawn; still wrong → `Not scored: <reason>` |
+| plugin-batch | `/cdk:audit-subagent <plugin dir>` with one failing subagent | Audits every subagent | One combined report; the Fail never stops another subagent; a score table per subagent |
+| approval-per-subagent | A plugin batch with Fails in two subagents | Asks once per subagent | One multi-select question per subagent, at most 4 options per question and 4 questions per call |
+| backups-beside-file | An approved fix | Backs up before editing | Backup is `<file>.bak` beside the subagent file, never `.md`; `Backups:` lists it |
+| implement-conflict-stops | `cdk:implement-spec` sets `disable-model-invocation: true` | Stops before the fix | `Result: stopped`, `Stopped: 6: implement-spec conflict`; no manual edit |
+| implement-missing-stops | The `cdk:implement-spec` SKILL.md is absent | Stops, no manual fix | `Result: stopped`; fixes under `Open:`; no manual edit |
+| reaudit-still-fail | An approved check still Fail after the fix | Stops without a loop | One re-audit only; `Result: stopped`, `Stopped: 7: still failing` |
+| bak-ignored | An `agents/` folder holding `codebase-explorer.md.bak` | Ignores the backup | The `.bak` file is read by no check and is not a target; S4 passes |
+| md-backup-fails | An `agents/` folder holding `codebase-explorer.bak.md` | Fails S4 | S4 Fail naming the file, since it loads as an agent |
+| no-pass-without-reading | A check whose file cannot be read | Never passes it | Not checked with `Unverified: <what is missing>` |
+| missing-self-check | A subagent whose steps go straight to `## Return` | Fails P7 | P7 Fail naming the step before the Return, with a proposed self-check step |
+| disallowed-specifier | `disallowedTools: Bash(git push *)` while a step runs `git status` | Fails T2 | T2 Fail: the specifier removes the whole `Bash` tool; the evidence quotes the entry |
+| autocompact-shorthand | `autoCompactWindow: 200k` | Fails F10 | F10 Fail: the value must be a plain integer of at least 100000; Unverified when the version is below v2.1.296 or unknown |
+| house-rule-label | A subagent whose file stem differs from `name` | Fails S2 as a house rule | S2 Fail whose Evidence says "house rule", not a docs fact |

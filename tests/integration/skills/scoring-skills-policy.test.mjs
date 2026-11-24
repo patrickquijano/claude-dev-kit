@@ -6,9 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const skills = ['audit-skill', 'audit-subagent', 'build-skill', 'build-subagent', 'update-rules', 'update-readme'];
-const rubrics = ['audit-skill', 'audit-subagent', 'update-rules', 'update-readme', 'build-subagent'].map(
-  (s) => `skills/${s}/references/rubric.md`
-);
+const rubrics = ['update-rules', 'update-readme', 'build-subagent'].map((s) => `skills/${s}/references/rubric.md`);
 
 const walk = (dir) =>
   readdirSync(dir).flatMap((f) => {
@@ -38,11 +36,13 @@ describe('scoring skills share one policy', () => {
         // Arrange
         const text = skillMd(skill);
         // Act
-        const ask = (
-          skill.startsWith('audit-')
-            ? /^ {3}- Otherwise → `Open:` lists the blocking rows, `Result: stopped`, `Stopped: 9: round cap` after round 2/m
-            : /^- .*ask `Extend 3 more rounds \| Stop` \(Recommended first/m
-        ).test(text);
+        const asks = {
+          'audit-skill':
+            /^7\. \*\*Re-audit once\.\*\* Run steps 2–3 in report-only mode on each fixed skill, with no loop\./m,
+          'audit-subagent':
+            /^7\. \*\*Re-audit once\.\*\* Run steps 2–3 in report-only mode on each fixed subagent, with no loop\./m
+        };
+        const ask = (asks[skill] ?? /^- .*ask `Extend 3 more rounds \| Stop` \(Recommended first/m).test(text);
         const noExtend = !skill.startsWith('audit-') || !/Extend 3 more rounds/.test(text);
         // Assert
         assert.ok(ask);
@@ -56,8 +56,17 @@ describe('scoring skills share one policy', () => {
         const next = text.indexOf('\n## ', start + 1);
         const output = text.slice(start, next === -1 ? undefined : next);
         // Act
-        const waived = /^Waived: <ID file:line — reason, … \| none>$/m.test(output);
-        const open = /^Open: <ID \(lost pts\) file:line: fix, … \| none>$/m.test(output);
+        const checklist = ['audit-skill', 'audit-subagent', 'build-skill', 'build-subagent'].includes(skill);
+        const waived = checklist
+          ? !/^Waived:/m.test(output)
+          : /^Waived: <ID file:line — reason, … \| none>$/m.test(output);
+        const openLines = {
+          'audit-skill': /^Open: <skill check file:line: proposed fix>, … \| none$/m,
+          'audit-subagent': /^Open: <subagent check file:line: proposed fix>, … \| none$/m,
+          'build-skill': /^Open: <check ID file:line: fix, … \| none>$/m,
+          'build-subagent': /^Open: <check ID file:line: fix, … \| none>$/m
+        };
+        const open = (openLines[skill] ?? /^Open: <ID \(lost pts\) file:line: fix, … \| none>$/m).test(output);
         // Assert
         assert.notEqual(start, -1, '## Output missing');
         assert.ok(waived, 'Waived: missing');
@@ -68,17 +77,21 @@ describe('scoring skills share one policy', () => {
         // Arrange
         const text = skillMd(skill);
         // Act
-        const rule = /^- Fix memory\b.*Claude auto memory/m.test(text);
+        const rule =
+          skill === 'audit-skill' || skill === 'audit-subagent' || /^- Fix memory\b.*Claude auto memory/m.test(text);
         const kinds = {
           'audit-skill': /^- Fix memory\b.*`name: cdk-fix-skill-<rubric-id>-<slug>`/m,
-          'audit-subagent': /^- Fix memory\b.*`name: cdk-fix-subagent-<rubric-id>-<slug>`/m,
-          'build-skill': /^- Fix memory\b.*`name: cdk-fix-skill-<rubric-id>-<slug>`/m,
-          'build-subagent': /^- Fix memory\b.*`name: cdk-fix-subagent-<rubric-id>-<slug>`/m,
+          'build-skill': /^- Fix memory\b.*`name: cdk-fix-skill-<check-id>-<slug>`/m,
+          'build-subagent': /^- Fix memory\b.*`name: cdk-fix-subagent-<check-id>-<slug>`/m,
           'update-readme': /^- Fix memory\b.*`name: cdk-fix-readme-<rubric-id>-<slug>`/m,
           'update-rules': /^- Fix memory\b.*`name: cdk-fix-rules-<rubric-id>-<slug>`/m
         };
-        const kind = kinds[skill].test(text);
-        const guard = /^- Fix memory\b.*never write under `\$\{CLAUDE_SKILL_DIR\}`/m.test(text);
+        const kind = ['audit-skill', 'audit-subagent'].includes(skill)
+          ? !/Fix memory/i.test(text)
+          : kinds[skill].test(text);
+        const guard =
+          ['audit-skill', 'audit-subagent'].includes(skill) ||
+          /^- Fix memory\b.*never write under `\$\{CLAUDE_SKILL_DIR\}`/m.test(text);
         // Assert
         assert.ok(rule, 'auto-memory rule missing');
         assert.ok(kind, 'cdk-fix-<kind>- name missing or wrong prefix');
@@ -112,105 +125,79 @@ describe('rubrics waive negligible items', () => {
     });
   }
 
-  test('audit-skill rubric sub-criteria sum to 100', () => {
+  test('audit-skill checks.md lists 32 checks across six groups and the rubric scales them 1-5', () => {
     // Arrange
-    const text = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
-    const rows = [...text.matchAll(/^- C\d+\.\d+ .*?\((\d+)\):/gm)];
-    // Act
-    const total = rows.reduce((sum, m) => sum + Number(m[1]), 0);
-    // Assert
-    assert.equal(rows.length, 33);
-    assert.equal(total, 100);
-  });
-
-  test('audit-skill rubric deducts only for material defects', () => {
-    // Arrange
-    const text = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
-    // Act
-    const rule =
-      /^- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the skill triggers, what it does or outputs, a safety stop, whether its result can be verified, or its token, step, or spawn cost\. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action\.\n- Negligible waiver: /m;
-    const tiers = [
-      /^- C1\.2 .*: 7 = 2 or more realistic user phrasings or contexts; 3 = 1; 0 = none\.$/m,
-      /^- C1\.4 .*2 = a sentence widens triggering toward a neighbor's requests or blurs when to fire, or a sentence adds no trigger information/m,
-      /^- C2\.1 .*3 = a step bundles actions so that one is likely skipped, or the order is unclear;/m,
-      /^- C2\.2 Rationale given for rules a model would plausibly break without their reason \(3\)/m,
-      /^- C2\.4 .*only where the word leaves an action, input, or stop undecided\..*List each counted occurrence\.$/m,
-      /^- C4\.3 .*1 = duplication or generic text that costs tokens on every run;/m,
-      /^- C8\.1 .*Count only contradictions that lead a model to different actions\.$/m,
-      /^- C8\.2 .*1 = drift that makes a model treat one concept as two;/m
-    ];
-    const stale = /use passive voice|1 = minor;|1 = minor drift|3 or more realistic user phrasings/;
-    // Assert
-    assert.match(text, rule);
-    for (const tier of tiers) assert.match(text, tier);
-    assert.doesNotMatch(text, stale);
-  });
-
-  test('audit-skill never scores or fixes invocation flags', () => {
-    // Arrange
+    const checks = readFileSync(join(root, 'skills/audit-skill/references/checks.md'), 'utf8');
     const rubric = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
-    const evals = readFileSync(join(root, 'skills/audit-skill/references/evals.md'), 'utf8');
     // Act
-    const rule =
-      /^- Invocation flags: never score, deduct for, or propose a fix \(VERIFIED, unverified, or Outside rubric\) that adds, removes, or changes `disable-model-invocation` or `user-invocable`; C5\.2 judges confirmation steps in the body, not these flags\.$/m;
-    const row =
-      /^\| no-invocation-flag-fix \| A skill with Write in `allowed-tools` and no `disable-model-invocation` \| Scores it with no flag finding \| No deduction, fix, or `Outside rubric` item that adds, removes, or changes `disable-model-invocation` or `user-invocable` \|$/m;
+    const rows = [...new Set([...checks.matchAll(/^\| ([FSQXTO]\d) +\|/gm)].map((m) => m[1]))];
+    const counts = ['F', 'S', 'Q', 'X', 'T', 'O'].map((letter) => rows.filter((id) => id.startsWith(letter)).length);
     // Assert
-    assert.match(rubric, rule, 'invocation flags rule missing');
-    assert.match(evals, row, 'no-invocation-flag-fix row missing');
+    assert.deepEqual(counts, [9, 8, 8, 3, 2, 2]);
+    assert.match(rubric, /^# Skill Score Rubric \(1–5\)$/m);
   });
 
-  test('audit-subagent rubric sub-criteria sum to 100', () => {
+  test('audit-skill checks.md fails only for material defects and judgment rows need a named action', () => {
     // Arrange
-    const text = readFileSync(join(root, 'skills/audit-subagent/references/rubric.md'), 'utf8');
-    const rows = [...text.matchAll(/^- C\d+\.\d+ .*?\((\d+)\):/gm)];
+    const text = readFileSync(join(root, 'skills/audit-skill/references/checks.md'), 'utf8');
     // Act
-    const total = rows.reduce((sum, m) => sum + Number(m[1]), 0);
+    const material =
+      /^- Fail only for a defect that changes what the skill does, when it triggers, a safety stop, whether its result can be verified, or its token cost\. Wording, voice, and style are Pass\.$/m;
+    const judgment =
+      /^- Judgment rows \(Q1, Q4, Q8\) are Fail only when you can name the concrete wrong action a model would take; two contradicting lines need both quoted with `file:line`\.$/m;
+    const flags = /^- Never check, propose, or fix `disable-model-invocation` or `user-invocable`\.$/m;
     // Assert
-    assert.equal(rows.length, 32);
-    assert.equal(total, 100);
+    assert.match(text, material);
+    assert.match(text, judgment);
+    assert.match(text, flags);
   });
 
-  test('audit-subagent rubric deducts only for material defects', () => {
+  test('audit-skill rubric is informational and has no waiver', () => {
     // Arrange
-    const text = readFileSync(join(root, 'skills/audit-subagent/references/rubric.md'), 'utf8');
+    const text = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
     // Act
-    const rule =
-      /^- Materiality: deduct only for a defect whose fix changes an observable effect: whether or when the parent delegates to the subagent, what it does or returns, a safety stop, whether its result can be verified, or its token, step, or spawn cost\. Negligible by this test: a reason added to a rule a model already follows, splitting a step whose actions and order are already unambiguous, passive voice, and a synonym that changes no action\.\n- Negligible waiver: .*\(fails Materiality: wording, synonyms, voice, style, ordering, cosmetics\)/m;
-    const tiers = [
-      /^- C1\.2 .*: 6 = 2 or more concrete situations or trigger phrasings; 3 = 1; 0 = none\.$/m,
-      /^- C3\.1 .*3 = a step bundles actions so one is likely skipped, or the order is unclear;/m,
-      /^- C3\.2 Rationale given for rules a model would plausibly break without their reason \(3\)/m,
-      /^- C3\.3 .*only where the word leaves an action, input, or stop undecided\..*List each counted occurrence\.$/m,
-      /^- C3\.4 .*1 = filler or generic text that costs tokens on every run \(e\.g\. generic persona lines\); 0 = substantial\.$/m,
-      /^- C8\.1 .*Count only contradictions that lead a model to different actions\.$/m,
-      /^- C8\.2 .*0 = drift that makes a model treat one concept as two\.$/m
-    ];
-    const coverage = /\(C3\.3 vague words that leave an action, input, or stop undecided, G4 secrets/;
-    const stale = /3 or more concrete situations|1-2; 0 = none|1 = minor \(|3 = most;|non-obvious rule|0 = drift\.$/m;
+    const info = /^Informational only: the score never changes a result, blocks, or triggers a fix\./m.test(text);
+    const stale = /Negligible waiver|Waived:/.test(text);
     // Assert
-    assert.match(text, rule);
-    assert.match(text, coverage);
-    for (const tier of tiers) assert.match(text, tier);
-    assert.doesNotMatch(text, stale);
+    assert.ok(info);
+    assert.equal(stale, false);
   });
 
-  const padding = {
-    'audit-skill':
-      /^- C1\.4 .*4 = within limit, no sentence widens or blurs triggering, and every sentence adds trigger information; 2 = .*, or a sentence adds no trigger information \(costs tokens every session\); 0 = /m,
-    'audit-subagent':
-      /^- C1\.4 .*3 = no sentence widens or blurs when to delegate, and every sentence adds trigger information; 1 = .*, or a sentence adds no trigger information \(costs tokens every session\); 0 = /m
-  };
-  for (const [skill, pattern] of Object.entries(padding)) {
-    test(`${skill} rubric C1.4 deducts a sentence that adds no trigger information`, () => {
-      // Arrange
-      const text = readRel(`skills/${skill}/references/rubric.md`);
-      // Act
-      const found = pattern.test(text);
-      // Assert
-      assert.ok(found, 'C1.4 padding tier missing');
-    });
-  }
+  test('audit-subagent checks.md lists 34 checks across six groups and the rubric scales them 1-5', () => {
+    // Arrange
+    const checks = readRel('skills/audit-subagent/references/checks.md');
+    const rubric = readRel('skills/audit-subagent/references/rubric.md');
+    // Act
+    const rows = [...new Set([...checks.matchAll(/^\| ([FSPTEO]\d+) +\|/gm)].map((m) => m[1]))];
+    const counts = ['F', 'S', 'P', 'T', 'E', 'O'].map((letter) => rows.filter((id) => id.startsWith(letter)).length);
+    // Assert
+    assert.deepEqual(counts, [10, 5, 8, 7, 2, 2]);
+    assert.match(rubric, /^# Subagent Score Rubric \(1–5\)$/m);
+  });
+
+  test('audit-subagent checks.md fails only for material defects and judgment rows need a named action', () => {
+    // Arrange
+    const text = readRel('skills/audit-subagent/references/checks.md');
+    // Act
+    const material =
+      /^- Fail only for a defect that changes whether or when the parent delegates, what the subagent does or returns, a safety stop, whether its result can be verified, or its token cost\. Wording, voice, and style are Pass\.$/m;
+    const judgment =
+      /^- Judgment rows \(P1, P3, P6, P8\) are Fail only when you can name the concrete wrong action a model would take; two contradicting lines need both quoted with `file:line`\.$/m;
+    // Assert
+    assert.match(text, material);
+    assert.match(text, judgment);
+  });
+
+  test('audit-subagent rubric is informational and has no waiver', () => {
+    // Arrange
+    const text = readRel('skills/audit-subagent/references/rubric.md');
+    // Act
+    const info = /^Informational only: the score never changes a result, blocks, or triggers a fix\./m.test(text);
+    const stale = /Negligible waiver|Waived:/.test(text);
+    // Assert
+    assert.ok(info);
+    assert.equal(stale, false);
+  });
 
   test('rubric-scorer lists exactly the four current kinds', () => {
     // Arrange
@@ -219,13 +206,17 @@ describe('rubrics waive negligible items', () => {
     // Act
     const kinds = step ? [...step[1].matchAll(/`([a-z-]+)`/g)].map((m) => m[1]) : [];
     // Assert
-    assert.deepEqual(kinds, ['skill-audit', 'subagent-audit', 'readme', 'project-instructions']);
+    assert.deepEqual(kinds, ['skill-checklist', 'subagent-checklist', 'readme', 'project-instructions']);
     assert.match(
       text,
-      /^description: Scores a skill or subagent audit, README\.md, or CLAUDE\.md and rules against its 100-point rubric after an edit, verifying commands, paths, and links\. Read-only\.$/m
+      /^description: Scores a skill or subagent checklist report 1–5 per category, or README\.md or CLAUDE\.md and rules against its 100-point rubric, verifying commands, paths, and links\. Read-only\.$/m
     );
     assert.doesNotMatch(text, /^### agent$/m);
     assert.doesNotMatch(text, /^### skill$/m);
+    assert.doesNotMatch(text, /^### skill-audit$/m);
+    assert.match(text, /^### skill-checklist$/m);
+    assert.match(text, /^### subagent-checklist$/m);
+    assert.doesNotMatch(text, /^### subagent-audit$/m);
     assert.doesNotMatch(text, /Contract:/);
     assert.doesNotMatch(text, /check JSON/);
   });
@@ -326,22 +317,28 @@ describe('update-readme and update-rules brief a write scope and a fixed approac
   });
 });
 
-describe('audit skills keep --score-only out of the write path', () => {
-  for (const skill of ['audit-skill', 'audit-subagent']) {
-    test(`${skill} --score-only runs steps 1–4 then 10 and never edits`, () => {
-      // Arrange
-      const text = skillMd(skill);
-      // Act
-      const rule = /^- `--score-only` runs steps 1–4 and then 10, never edits/m;
-      const decide =
-        /^\d+\. \*\*Decide\.\*\*(?: `--score-only` → go to step 10\.|\n {3}- `--score-only` → go to step 10\.)/m;
-      const stale = /^- `--score-only`[^\n]*(step 7|implement-spec)/m;
-      // Assert
-      assert.match(text, rule);
-      assert.match(text, decide);
-      assert.doesNotMatch(text, stale);
-    });
-  }
+describe('audit skills keep --report-only out of the write path', () => {
+  test('audit-skill --report-only runs steps 1–3 then 8 and never edits', () => {
+    // Arrange
+    const text = skillMd('audit-skill');
+    // Act
+    const rule = /^- `--report-only` runs steps 1–3 and 8: no score, no question, no edit, no backup\./m;
+    const stale = /^- `--report-only`[^\n]*(step 6|implement-spec)/m;
+    // Assert
+    assert.match(text, rule);
+    assert.doesNotMatch(text, stale);
+  });
+
+  test('audit-subagent --report-only runs steps 1–3 and 8 and never edits', () => {
+    // Arrange
+    const text = skillMd('audit-subagent');
+    // Act
+    const rule = /^- `--report-only` runs steps 1–3 and 8: no score, no question, no edit, no backup\./m;
+    const stale = /^- `--report-only`[^\n]*(step 6|implement-spec)/m;
+    // Assert
+    assert.match(text, rule);
+    assert.doesNotMatch(text, stale);
+  });
 });
 
 describe('implement-spec stops are split into input stops and cap stops', () => {
@@ -421,18 +418,6 @@ describe('audit skills brief a write scope and stop without git', () => {
     'audit-skill': /^Write scope: <absolute target skill directory>$/m,
     'audit-subagent': /^Write scope: <absolute target subagent file>$/m
   };
-  const noGit = {
-    'audit-skill':
-      /^ {3}- \*\*7c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel`; it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 7: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m,
-    'audit-subagent':
-      /^ {3}- \*\*7c\. Implement\.\*\* First run `git -C <dir> rev-parse --show-toplevel` \(`<dir>` is the target file's directory\); it fails \(no git\) → do not invoke implement-spec, leave the fixes under `Open:`, `Result: stopped`, `Stopped: 7: no git` \(this ends the whole run; the fixes of every remaining target go under `Open:`\)/m
-  };
-  const scopeCheck = {
-    'audit-skill':
-      /^ {3}- \*\*7d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 7: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m,
-    'audit-subagent':
-      /^ {3}- \*\*7d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target file, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 7: write outside scope`\. `status` cannot see ignored files or paths outside the repo\./m
-  };
   for (const skill of ['audit-skill', 'audit-subagent']) {
     test(`${skill} Spec brief has a literal Write scope line`, () => {
       // Arrange
@@ -445,33 +430,23 @@ describe('audit skills brief a write scope and stop without git', () => {
       assert.equal(dir, skill === 'audit-subagent');
     });
 
-    test(`${skill} stops with no git before invoking implement-spec`, () => {
+    test(`${skill} stops on an implement-spec conflict before invoking it`, () => {
       // Arrange
       const text = skillMd(skill);
       // Act
-      const stop = noGit[skill].test(text);
+      const conflict = /`Stopped: 6: implement-spec conflict`/.test(text);
       const footer =
-        /^`stopped` covers .*`write outside scope`, or cancelled\), a no-git scope stop, the round cap, and a no-progress stop; an? (?:implement-spec |retry-)?cap stop never sets it/m.test(
-          text
-        );
-      const stale = /^ +- \*\*7d\. Check scope\.\*\* With git/m.test(text);
-      const check = scopeCheck[skill].test(text);
+        skill === 'audit-skill'
+          ? /^`stopped` covers an input stop, a `cdk:implement-spec` stop or cancel, a missing scratchpad, and an approved check still Fail at the re-audit\./m.test(
+              text
+            )
+          : /^`stopped` covers an input stop, a `cdk:implement-spec` stop or cancel, and an approved check still Fail at the re-audit\./m.test(
+              text
+            );
       // Assert
-      assert.ok(stop, 'no-git stop missing at 7c');
-      assert.ok(check, 'status-based scope check missing at 7d');
-      assert.ok(footer, 'no-git scope stop missing from the stopped sentence');
-      assert.equal(stale, false);
+      assert.ok(conflict && footer, `${skill} stop wording missing`);
     });
   }
-
-  test('audit-subagent fallback scorer keeps Bash for the node -e sum only', () => {
-    // Arrange
-    const text = skillMd('audit-subagent');
-    // Act
-    const rule = /^ {3}- \*\*3b\.\*\* .*WebSearch, WebFetch, and Bash for the node -e sum only\)\./m.test(text);
-    // Assert
-    assert.ok(rule, 'node -e sum tool missing from the fallback');
-  });
 });
 
 describe('update-readme scorer runs command -v on a safe name only', () => {
@@ -737,22 +712,25 @@ describe('build-skill evals.md aligns dirty-tracked-edit with the audit dirty-ta
     const text = readRel('skills/build-skill/references/evals.md');
     // Act
     const row =
-      /^\| dirty-tracked-edit +\|.*\| Scores and edits the target +\| Applies the VERIFIED fixes through implement-spec; `Stopped: none` +\|$/m;
+      /^\| dirty-tracked-edit +\|.*\| Scores and edits the target +\| Applies the VERIFIED fixes through (?:cdk:)?implement-spec; `Stopped: none` +\|$/m;
     // Assert
     assert.match(text, row);
   });
 });
 
 describe('memory-reuse evals pass the remembered fix as a hint', () => {
-  const evalFiles = [
-    'audit-skill',
-    'audit-subagent',
-    'build-skill',
-    'build-subagent',
-    'update-readme',
-    'update-rules',
-    'review-code-changes'
-  ];
+  const evalFiles = ['build-skill', 'build-subagent', 'update-readme', 'update-rules', 'review-code-changes'];
+
+  for (const skill of ['audit-skill', 'audit-subagent']) {
+    test(`${skill} keeps no memory-reuse row`, () => {
+      // Arrange
+      const text = readRel(`skills/${skill}/references/evals.md`);
+      // Act
+      const row = /^\| memory-reuse /m.test(text);
+      // Assert
+      assert.equal(row, false);
+    });
+  }
 
   for (const skill of evalFiles) {
     test(`${skill} memory-reuse row names the hint, not the old wording`, () => {

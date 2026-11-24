@@ -1,95 +1,85 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const skillPath = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'skills', 'audit-skill', 'SKILL.md');
+const dir = dirname(skillPath);
+const read = (...parts) => readFileSync(join(dir, ...parts), 'utf8');
 
-describe('audit-skill closes every open item', () => {
+describe('audit-skill follows the checklist model', () => {
   const cases = {
-    'names the researcher subagent': /cdk:topic-researcher/,
-    'has a Decisions: Output line': /^Decisions: </m,
-    'defines the item ledger': /Item ledger/,
-    'reports item counts': /^Items: </m,
+    'names the report-only flag in the hint':
+      /^argument-hint: '\[--yes\] \[--report-only\] \[skill or plugin directory path\]'$/m,
+    'allows only the audit tools and scratchpad writes':
+      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node -e \*\) Bash\(command -v skills-ref\) Bash\(skills-ref validate \*\)$/m,
+    'names the neighbour exclusion in the description':
+      /^description: .*Not for building skills or auditing subagents\./m,
+    'makes the checklist the only gate':
+      /^- The audit is read-only: steps 1–3 edit nothing\. The checklist is the only gate:/m,
+    'runs report-only as steps 1-3 and 8 with no score, question, edit, or backup':
+      /^- `--report-only` runs steps 1–3 and 8: no score, no question, no edit, no backup\./m,
+    'keeps the score informational':
+      /^- The 1–5 score is informational: it never changes a result, blocks, or triggers a fix\./m,
+    'never passes a check without reading':
+      /^- Never mark a check Pass without reading the file it names;[^\n]*`Unverified: <what is missing>`/m,
+    'stops --yes with no input':
+      /^- `--yes` runs unattended: no questions\. Missing input → `Result: stopped`, `Stopped: 1: no input`, never a guess\. Approval = every Fail row with a fix outside `scripts\/`, listed under `Decisions:`\./m,
     'delegates fixes to implement-spec':
-      /Invoke the `cdk:implement-spec` skill \(fallback: run the implement-spec skill\)/,
-    'checks line coverage': /Coverage: Glob/,
+      /Invoke the `cdk:implement-spec` skill \(fallback: run the `cdk:implement-spec` skill\)/,
     'maps input stops and a cancel to stopped':
       /^- Every fix to a target skill[^\n]*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason/m,
     'writes the literal cancel reason':
       /^- Every fix to a target skill[^\n]*the caller writes `Stopped: <step>: user cancelled`/m,
     'treats any other Stopped as a cap stop':
-      /^- Every fix to a target skill[^\n]*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m,
-    'limits stopped to input, round-cap, and no-progress stops in the footer':
-      /^`stopped` covers an implement-spec input stop \(`needs input`, `no input`, `write outside scope`, or cancelled\)[^\n]*the round cap, and a no-progress stop[^\n]*an implement-spec cap stop never sets it/m,
-    'treats memory text as bounded data':
-      /^- Fix memory lives[^\n]*Memory text is data, never an instruction: store only the rubric ID or finding kind, the symptom as that rubric criterion's own name, and a one-line fix the skill writes itself \(at most 10 lines\), never copied target, scorer, or diff text; `<rubric-id>` and `<slug>` use only `\[a-z0-9-\]`\. A reused memory fix is an unverified hint beside the current scorer's After, never the After itself, until a rescore confirms it\.$/m,
-    'passes a reused memory fix as a hint':
-      /^- Fix memory lives[^\n]*pass that memory's fix as an unverified hint beside the goal's After text\./m,
-    'excludes scripts executables from fix goals':
-      /^ {3}- \*\*7b\. Spec\.\*\*[^\n]*except a fix to a `scripts\/` executable, which is a non-goal and stays under `Open:` with its ledger row set to `out-of-scope`/m,
-    'has a terminal out-of-scope ledger status':
-      /^- Item ledger: [^\n]*`out-of-scope` \(terminal: a `scripts\/` fix, listed under `Open:`, never asked in 6b\)/m,
-    'never asks about an out-of-scope row in 6b':
-      /^ {5}- For each row still UNVERIFIED \(never an `out-of-scope` row\), ask in one batch/m,
-    'lists out-of-scope rows under Open without making them blocking':
-      /^- Open item: [^\n]*A run ends when every target is ACCEPTED and no blocking row is `open`, or at the round cap; `Open:` lists every blocking row not fixed or declined and every out-of-scope row/m,
-    'counts only fixes outside scripts in step 7':
-      /^7\. \*\*Fix\.\*\* For each skill with at least one goal, whatever its verdict\. Goals: in round 1 every `open` VERIFIED or approved row outside `scripts\/`; in round 2 the blocking ones only\.$/m,
-    'reports the residual, settled, and out-of-scope counts in Items':
-      /^Items: <total> reported, <fixed> fixed, <declined> declined, <residual> residual, <settled> settled, <out-of-scope> out-of-scope, <open> open$/m,
-    'is done with no blocking row and leftovers Fixed, Declined, out-of-scope, or Residual':
-      /^Done when: every skill is ACCEPTED with no blocking row left, `Open:` lists only out-of-scope rows or `none`, and every leftover is Fixed, Declined, out-of-scope, or listed under `Residual:`\./m,
-    'pre-approves only the node -e sum':
-      /^allowed-tools: Read Glob Grep AskUserQuestion WebSearch WebFetch Bash\(node -e \*\)$/m,
-    'snapshots the root status at 7c and compares at 7d':
-      /^ {3}- \*\*7d\. Check scope\.\*\* Run `git -C <root> status --porcelain=v1` again; any new or changed entry outside the target directory, or such a path whose content differs from the kept copy → list it under `Open:` \(never revert\), `Result: stopped`, `Stopped: 7: write outside scope`\./m,
-    'keeps the content of dirty paths outside the target at 7c':
-      /^ {5,6}- Read and keep the content of each snapshot entry outside the target\.$/m,
-    'states that status cannot see ignored files or outside paths':
-      /^ {3}- \*\*7d\. Check scope\.\*\* .*`status` cannot see ignored files or paths outside the repo\.$/m,
-    'keeps a baseline item out of the ledger':
-      /^- Every fix to a target skill[^\n]*Its `Open:` items join the ledger, except a `baseline:` item \(implement-spec's step 1b repo status\), which is printed on its own line and never enters the ledger\./m,
-    'records Open items at 7c except baseline': /^ {5,6}- Record its `Open:` items in the ledger per the Rules\.$/m,
-    'limits its own spawns to scorer and researcher':
-      /^- Scorers and researchers are briefed to spawn no subagent; this skill spawns only the scorer and researcher subagents, never another one; the planner, implementer, and verifier spawns inside implement-spec follow its own spawn rule,/m,
-    'triages severity into blocking and non-blocking':
-      /^- Severity: a row is blocking when any holds: a gate FAIL;[^\n]*a row in the scorer's Path to ACCEPTED[^\n]*a regression, meaning a new row whose cited line holds text from an After this run applied \(Grep it\)\. Every other row is non-blocking\./m,
-    'keys ledger rows on rubric ID, file, and anchor':
-      /^- Item ledger: [^\n]*`id \| skill \| rubric ID \| file \| anchor \| severity \| tries \| status`[^\n]*never a step number[^\n]*Rows match across rescores by rubric ID plus file plus anchor, never by the Before text/m,
-    'has residual and settled statuses':
-      /^- Item ledger: [^\n]*`residual` \(non-blocking and terminal:[^\n]*`settled` \(non-blocking and suppressed by settled memory; terminal and not listed\)/m,
-    'never lets settled memory hide a blocking item':
-      /^- Settled memory [^\n]*A settled row never suppresses a blocking item, and it never changes the score:/m,
-    'hashes with only the path and line as arguments':
-      /^- Settled memory [^\n]*Compute the hash with `node -e`, passing only the absolute path and the line number as arguments and never file content:/m,
-    'validates the path and line before hashing and single-quotes the path':
-      /^- Settled memory [^\n]*Before hashing, require the full absolute path, not only the target-relative part, to match `\^\[A-Za-z0-9\._\/-\]\+\$` with no `\.\.` segment and to resolve inside the target skill's directory, and the line to match `\^\[0-9\]\+\$`; a row that fails a check is not hashed and is never `settled`\.[^\n]* '<abs path>' <line>`/m,
-    'writes settled memory at step 10, never under score-only':
-      /^- Settled memory [^\n]*Step 10 writes it, never under `--score-only`:/m,
-    'researches and asks before any fix':
-      /^6\. \*\*Research and decide\.\*\* Before any fix, so a question never waits for a rescore\./m,
-    'asks the open items in one batch':
-      /^ {5}- For each row still UNVERIFIED[^\n]*ask in one batch with AskUserQuestion/m,
-    'caps at 2 rounds and offers no extension':
-      /^ {3}- Otherwise → `Open:` lists the blocking rows, `Result: stopped`, `Stopped: 9: round cap` after round 2 or `Stopped: 9: no progress`/m,
-    'starts round 2 only when the blocking count fell':
-      /^ {3}- Round 1 just ran, a blocking `open` row has a fix, and the blocking count fell from the first score → round 2/m,
-    'reports Residual in the Output': /^Residual: <ID file:line — tried\|untried, … \| none>$/m,
-    'reports Rounds out of 2': /^Rounds: <n>\/2$/m,
-    'ends ACCEPTED with no open row':
-      /^5\. \*\*Decide\.\*\*\n {3}- `--score-only` → go to step 10\.\n {3}- ACCEPTED \(90 or more and all gates PASS\) and no `open` row → go to step 10\./m,
-    'leaves an ACCEPTED target unedited when no blocking row is open':
-      /^ {3}- ACCEPTED \(90 or more and all gates PASS\) and no `open` row → go to step 10\.\n {3}- Each ACCEPTED target with no blocking `open` row: its non-blocking `open` rows outside `scripts\/` become `residual` \(untried\) and its `scripts\/` rows `out-of-scope`, so an accepted skill is never edited for a leftover; no `open` row left on any target → go to step 10\.\n {3}- Each ACCEPTED target with a blocking `open` row: its non-blocking `open` rows outside `scripts\/` become `residual` \(untried\) and its `scripts\/` rows `out-of-scope`, so its fix round takes only the blocking rows\.\n {3}- Otherwise go to step 6\.$/m,
-    'counts an untried leftover on an ACCEPTED target as residual':
-      /^- Item ledger: [^\n]*`residual` \(non-blocking and terminal: tried once and still deducted, first found on a rescore, or left untried on an ACCEPTED target\)/m,
-    'settles an untried residual left on an ACCEPTED target':
-      /^- Settled memory [^\n]*plus the `residual` rows with `tries` of 1 or more or left untried on an ACCEPTED target, so a row/m,
-    'tags each score-only Open item with its severity':
-      /^Score-only: [^\n]*each `Open:` item ends with `— blocking` or `— non-blocking` per the Severity rule\.$/m,
-    'starts the example from a REJECTED target':
-      /^Example \(one skill, REJECTED at first, accepted after one fix round,/m
+      /^- Every fix to a target skill[^\n]*any other `Stopped:` is a cap stop: its `Open:` items join `Open:` and the run goes on to step 7/m,
+    'keeps scripts fixes out of scope':
+      /^- Every fix to a target skill[^\n]*any edit to a `scripts\/` executable is out of scope \(list it under `Open:` instead\)/m,
+    'runs no formatter or linter':
+      /^- Run no formatter or linter; repo hooks and CI own that, and the Spec brief says so\./m,
+    'spawns only the scorer':
+      /^- This skill spawns only `cdk:rubric-scorer`, never another subagent;[^\n]*`cdk:implement-spec` follow its own spawn rule/m,
+    'never edits outside implement-spec':
+      /^- Never edit outside `cdk:implement-spec`; if it is missing or fails, stop and leave the fixes under `Open:`, with no manual fix\./m,
+    'lists every unfixed Fail under Open':
+      /^- `Open:` lists every Fail row not fixed: Scripts Fails, declined rows, and rows a stop left unfixed\./m,
+    'resolves a skill or plugin directory':
+      /^ {3}- A skill directory has `SKILL\.md`; a plugin directory has `\.claude-plugin\/plugin\.json` and each `skills\/\*\/SKILL\.md` is a target\./m,
+    'asks for a missing path':
+      /^ {3}- A path that is missing or neither → ask one question with AskUserQuestion for the path; never guess\./m,
+    'ignores bak files': /^ {3}- Read every file in the skill directory except `\*\.bak`/m,
+    'runs skills-ref only when present':
+      /^ {3}- Run `skills-ref validate <dir>` only when `command -v skills-ref` succeeds \(O1\)/m,
+    'reads the scorer definition once and reports not scored':
+      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/\.\.\/agents\/rubric-scorer\.md` once; not found → `Not scored: definition not found`/m,
+    'spawns the scorer per skill in parallel with kind skill-checklist':
+      /^ {3}- Spawn one `cdk:rubric-scorer` per skill in parallel in one message, kind `skill-checklist`/m,
+    'respawns once on a scorer mismatch':
+      /^ {3}- Re-check each category's Fail count[^\n]*respawn once, then `Not scored: <reason>`\./m,
+    'asks approval per skill within the question limits':
+      /^ {3}- Per skill, ask one multi-select question of the Fail rows that have a fix outside `scripts\/`, at most 4 options per question and 4 questions per call\./m,
+    'stops on an implement-spec conflict':
+      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/implement-spec\/SKILL\.md`\. It sets `disable-model-invocation: true`[^\n]*`Stopped: 6: implement-spec conflict`/m,
+    'backs up to the scratchpad':
+      /^ {3}- Back up each file to edit to `<scratchpad>\/audit-skill-backups\/<skill>\/<relative path>\.bak` with Write\. No scratchpad → `Stopped: 6: no scratchpad`\./m,
+    'stops when an approved check is still Fail':
+      /^ {3}- An approved check that is still Fail → `Result: stopped`, `Stopped: 7: still failing`\./m,
+    're-audits once with no loop':
+      /^7\. \*\*Re-audit once\.\*\* Run steps 2–3 in report-only mode on each fixed skill, with no loop\./m,
+    'batches per skill':
+      /^A plugin run audits each skill on its own: one combined report, a score table per skill, one approval question per skill\./m,
+    'has the Skills line':
+      /^Skills: <name: <p> pass, <f> fail, <n> not checked; score <x\.x>\/5 \| not scored \(<reason>\) \| report-only>, …$/m,
+    'has the Fixed line': /^Fixed: <skill: check IDs> \| none$/m,
+    'has the Decisions line': /^Decisions: <skill: check → approved \| declined> \| none$/m,
+    'has the Open line': /^Open: <skill check file:line: proposed fix>, … \| none$/m,
+    'has the Backups line': /^Backups: <scratchpad paths> \| none$/m,
+    'has the Result and Stopped lines':
+      /^Result: done \| nothing-to-do \| stopped\nStopped: <step>: <reason> \| none$/m,
+    'fills an example': /^Example \(one skill, one Fail approved and fixed\):/m,
+    'names the report-only item':
+      /A `--report-only` item is `<name>: <p> pass, <f> fail, <n> not checked \(report-only\)`\./
   };
 
   for (const [name, pattern] of Object.entries(cases)) {
@@ -103,93 +93,264 @@ describe('audit-skill closes every open item', () => {
     });
   }
 
-  test('drops the fix round for an ACCEPTED target', () => {
+  test('drops the old 100-point model', () => {
     // Arrange
-    const text = readFileSync(skillPath, 'utf8');
+    const text = ['SKILL.md', 'references/briefs.md', 'references/rubric.md', 'references/evals.md']
+      .map((file) => read(file))
+      .join('\n');
     // Act
-    const stale = /still gets one fix round/.test(text);
+    const stale =
+      /--score-only|ACCEPTED|REJECTED|100-point|Item ledger|settled memory|topic-researcher|Rounds: <n>\/2/i.exec(text);
+    // Assert
+    assert.equal(stale, null, `stale old-model text: ${stale?.[0]}`);
+  });
+
+  test('keeps the body under 500 lines', () => {
+    // Arrange
+    const lines = readFileSync(skillPath, 'utf8').split('\n').length;
+    // Act
+    const small = lines < 500;
+    // Assert
+    assert.ok(small, `${lines} lines`);
+  });
+
+  test('keeps node -e argv-only in SKILL.md and checks.md', () => {
+    // Arrange
+    const head = '- Count lines, characters, and words with `node -e`, never by hand';
+    const guard =
+      'it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment, plus numbers, as single-quoted argv, and the script reads the file with `fs` itself and never embeds file text.';
+    // Act
+    const found = [read('SKILL.md'), read('references', 'checks.md')].map((text) =>
+      text.split('\n').some((line) => line.trimStart().startsWith(head) && line.includes(guard))
+    );
+    // Assert
+    assert.deepEqual(found, [true, true]);
+  });
+
+  test('qualifies every plugin skill and agent it names', () => {
+    // Arrange
+    const files = [
+      'SKILL.md',
+      'references/briefs.md',
+      'references/rubric.md',
+      'references/checks.md',
+      'references/evals.md'
+    ];
+    // Act
+    const names = /(?<![:\w/-])(implement-spec(?!'s| takes| skips| conflict)|rubric-scorer|build-skill)(?![\w-])/g;
+    const bare = files.flatMap((file) =>
+      read(file)
+        .split('\n')
+        .flatMap((line) => [...line.matchAll(names)].map((m) => `${file}: ${m[0]}`))
+    );
+    // Assert
+    assert.deepEqual(bare, []);
+  });
+});
+
+describe('audit-skill checks.md lists every required check', () => {
+  const ids = [
+    ...Array.from({ length: 9 }, (_, i) => `F${i + 1}`),
+    ...Array.from({ length: 8 }, (_, i) => `S${i + 1}`),
+    ...Array.from({ length: 8 }, (_, i) => `Q${i + 1}`),
+    'X1',
+    'X2',
+    'X3',
+    'T1',
+    'T2',
+    'O1',
+    'O2'
+  ];
+
+  for (const id of ids) {
+    test(`has a row for ${id}`, () => {
+      // Arrange
+      const text = read('references', 'checks.md');
+      // Act
+      const found = text.split('\n').some((line) => line.startsWith(`| ${id} `));
+      // Assert
+      assert.ok(found, `${id} row missing`);
+    });
+  }
+
+  test('keeps the contents list and the report columns', () => {
+    // Arrange
+    const text = read('references', 'checks.md');
+    // Act
+    const toc = /^## Contents$/m.test(text);
+    const columns = /^\| Check \| Result \| Location \(file:line\) \| Evidence \| Proposed fix \|$/m.test(text);
+    // Assert
+    assert.ok(toc, 'contents missing');
+    assert.ok(columns, 'report columns missing');
+  });
+
+  test('marks Testing always Not checked and Optional as never blocking', () => {
+    // Arrange
+    const text = read('references', 'checks.md');
+    // Act
+    const testing =
+      /^Informational: always Not checked, with the reason `needs a model run; this audit runs no prompts`\.$/m.test(
+        text
+      );
+    const optional = /^Never block and excluded from the score\.$/m.test(text);
+    const scripts = /^All Not checked when there is no `scripts\/` directory\.$/m.test(text);
+    // Assert
+    assert.ok(testing && optional && scripts);
+  });
+});
+
+describe('audit-skill rubric scores 1-5 and stays informational', () => {
+  test('keeps the scale, N/A rule, and Score table', () => {
+    // Arrange
+    const text = read('references', 'rubric.md');
+    // Act
+    const scale = /^\| 0 +\| 5 +\|\n\| 1 +\| 4 +\|\n\| 2 +\| 3 +\|\n\| 3 +\| 2 +\|\n\| 4 or more +\| 1 +\|$/m.test(
+      text
+    );
+    const na = /all Not checked scores `N\/A`/.test(text);
+    const overall = /Overall = the mean of the scored categories, rounded to one decimal/.test(text);
+    const table = /^\| Category \| Score \(1-5\) \| Basis \|$/m.test(text);
+    const info = /^Informational only: the score never changes a result, blocks, or triggers a fix\./m.test(text);
+    // Assert
+    assert.ok(scale && na && overall && table && info);
+  });
+});
+
+describe('audit-skill briefs keep the Scorer and Spec contracts', () => {
+  test('the Scorer brief takes the report and returns the Score table', () => {
+    // Arrange
+    const text = read('references', 'briefs.md');
+    // Act
+    const found = [
+      /^- `kind: skill-checklist`$/m,
+      /^- `Rubric: <abs path>`/m,
+      /^- `Target: <abs skill dir>`/m,
+      /^- `Report:` followed by the fenced audit report$/m,
+      /^- Add no check, report no finding, edit nothing, spawn no subagent\.$/m,
+      /^- Compute the overall average with `node -e`\./m,
+      /^Return, at most 40 lines:$/m
+    ];
+    // Assert
+    for (const pattern of found) assert.match(text, pattern);
+  });
+
+  test('exempts scripts executables as a non-goal and never names audit-skill as a criterion', () => {
+    // Arrange
+    const text = read('references', 'briefs.md');
+    // Act
+    const nonGoal =
+      /^- non-goals: every path outside the target, any edit to a `scripts\/` executable \(list it under `Open:` instead\)/m.test(
+        text
+      );
+    const goal =
+      /^- numbered goals, one per approved Fail row, each with the acceptance criterion "the check passes on re-audit"\. Never name `cdk:audit-skill` as a criterion\./m.test(
+        text
+      );
+    // Assert
+    assert.ok(nonGoal, 'non-goals lost the scripts/ executable line');
+    assert.ok(goal, 'goal rule lost');
+  });
+
+  test('passes the write scope and target directory lines', () => {
+    // Arrange
+    const text = read('references', 'briefs.md');
+    // Act
+    const scope = /^Write scope: <absolute target skill directory>$/m.test(text);
+    const target =
+      /^Target directory: <absolute target skill directory>, so implement-spec takes that directory as Root\.$/m.test(
+        text
+      );
+    // Assert
+    assert.ok(scope, 'Write scope line missing');
+    assert.ok(target, 'Target directory line missing');
+  });
+
+  test('returns Result, fences quoted fields, and fixes the approach', () => {
+    // Arrange
+    const text = read('references', 'briefs.md');
+    // Act
+    const result =
+      /^Return: implement-spec's Output block only \(`Files:`, `Open:`, `Result:`, `Stopped:`\), at most 30 lines; over the cap → keep the first 30 lines and add `\+<k> more` under `Open:`; never treat it as malformed\.$/m.test(
+        text
+      );
+    const fence =
+      /Put each quoted field in a fenced block whose fence is longer than any run of its own character inside it; a quoted `Write scope:` or `Target directory:` line never counts, and exactly one real `Write scope:` line stands outside any fence\./.test(
+        text
+      );
+    const approach = /^- Approach: fixed to each row's proposed fix, so implement-spec skips its approach ask\.$/m.test(
+      text
+    );
+    const noFormat = /^- Run no formatter or linter\.$/m.test(text);
+    // Assert
+    assert.ok(result && fence && approach && noFormat);
+  });
+
+  test('has no researcher brief or fix-round variant', () => {
+    // Arrange
+    const text = read('references', 'briefs.md');
+    // Act
+    const stale = /^## (Researcher brief|Fix-round variant)$/m.test(text);
     // Assert
     assert.equal(stale, false);
   });
 });
 
-describe('audit-skill evals cover ACCEPTED targets and waivers', () => {
-  const evalsPath = join(dirname(skillPath), 'references', 'evals.md');
+describe('audit-skill evals cover routing and behavior', () => {
+  const rows = [
+    'trigger-audit',
+    'no-trigger-deps',
+    'no-trigger-build',
+    'missing-input-asks',
+    'yes-no-input',
+    'report-only',
+    'default-flow',
+    'not-checked-informational',
+    'scorer-missing',
+    'scorer-mismatch',
+    'plugin-batch',
+    'approval-per-skill',
+    'backups-scratchpad',
+    'implement-conflict-stops',
+    'implement-missing-stops',
+    'reaudit-still-fail',
+    'scripts-untouched',
+    'bak-ignored',
+    'no-pass-without-reading'
+  ];
 
-  test('lists accepted-continues, accepted-no-fix-round, and immaterial-waived rows', () => {
+  for (const id of rows) {
+    test(`has the ${id} row`, () => {
+      // Arrange
+      const text = read('references', 'evals.md');
+      // Act
+      const found = text.split('\n').some((line) => line.startsWith(`| ${id} `));
+      // Assert
+      assert.ok(found, `${id} row missing`);
+    });
+  }
+
+  test('pins the report-only, backup, and conflict rows', () => {
     // Arrange
-    const text = readFileSync(evalsPath, 'utf8');
+    const text = read('references', 'evals.md');
     // Act
-    const rows = text;
+    const found = [
+      /^\| report-only \|[^\n]*no score, no question, no edit, no backup/m,
+      /^\| yes-no-input \|[^\n]*`Stopped: 1: no input`/m,
+      /^\| backups-scratchpad \|[^\n]*`<scratchpad>\/audit-skill-backups\/<skill>\/`, never beside the file/m,
+      /^\| implement-conflict-stops \|[^\n]*`Stopped: 6: implement-spec conflict`/m,
+      /^\| reaudit-still-fail \|[^\n]*`Stopped: 7: still failing`/m,
+      /^\| scorer-missing \|[^\n]*`Not scored: definition not found`/m
+    ];
     // Assert
-    assert.match(rows, /^\| accepted-continues \| A skill at 92 ACCEPTED with a blocking `open` row/m);
-    assert.match(
-      rows,
-      /^\| accepted-continues \|[^\n]*the non-blocking `open` rows are not fixed in round 1 and go under `Residual:` as untried \|$/m
-    );
-    assert.match(rows, /^\| accepted-no-fix-round \|[^\n]*`Rounds: 0\/2`/m);
-    assert.match(rows, /^\| immaterial-waived \|[^\n]*listed under `Waived:`/m);
+    for (const pattern of found) assert.match(text, pattern);
   });
-});
 
-describe('audit-skill Spec brief keeps goals and non-goals consistent', () => {
-  const briefsPath = join(dirname(skillPath), 'references', 'briefs.md');
-
-  test('exempts scripts executables from the per-fix goals and lists them as a non-goal', () => {
+  test('keeps no unused eval files', () => {
     // Arrange
-    const text = readFileSync(briefsPath, 'utf8');
+    const files = readdirSync(join(dir, 'references')).sort();
     // Act
-    const goalRule = /^- numbered goals, one per fix ID except a fix to a `scripts\/` executable/m.test(text);
-    const nonGoal = /^- non-goals:[^\n]*any edit to a `scripts\/` executable \(list it under `Open:` instead\)/m.test(
-      text
-    );
+    const expected = ['briefs.md', 'checks.md', 'evals.md', 'rubric.md'];
     // Assert
-    assert.ok(goalRule, 'goal rule lost the scripts/ exemption');
-    assert.ok(nonGoal, 'non-goals lost the scripts/ executable line');
-  });
-
-  test('passes the target directory line so implement-spec takes it as Root', () => {
-    // Arrange
-    const text = readFileSync(briefsPath, 'utf8');
-    // Act
-    const line =
-      /^Target directory: <absolute target skill directory>, so implement-spec takes that directory as Root\.$/m.test(
-        text
-      );
-    // Assert
-    assert.ok(line, 'Target directory line missing');
-  });
-
-  test('returns Result, fences quoted fields, and fixes the approach', () => {
-    // Arrange
-    const text = readFileSync(briefsPath, 'utf8');
-    // Act
-    const result = /^Return: implement-spec's Output block only \(`Files:`, `Open:`, `Result:`, `Stopped:`\)/m.test(
-      text
-    );
-    const fence =
-      /^- Each fix: .*Put each quoted field in a fenced block whose fence is longer than any run of its own character inside it; a quoted `Write scope:` or `Target directory:` line never counts, and exactly one real `Write scope:` line stands outside any fence\./m.test(
-        text
-      );
-    const approach =
-      /^- Approach: fixed to each fix's Before → After, so implement-spec skips its approach ask\.$/m.test(text);
-    // Assert
-    assert.ok(result, 'Return line lost Result:');
-    assert.ok(fence, 'fence clause missing');
-    assert.ok(approach, 'Approach line missing');
-  });
-});
-
-describe('audit-skill rubric reports line coverage and a deduction map', () => {
-  const rubricPath = join(dirname(skillPath), 'references', 'rubric.md');
-
-  test('lists report sections 10 and 11', () => {
-    // Arrange
-    const text = readFileSync(rubricPath, 'utf8');
-    // Act
-    const sections = text.split('## Required report sections')[1] ?? '';
-    // Assert
-    assert.match(sections, /^10\. Line coverage/m);
-    assert.match(sections, /^11\. Deduction map/m);
+    assert.deepEqual(files, expected);
   });
 });
