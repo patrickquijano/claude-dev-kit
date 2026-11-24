@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-24
+
+### Added
+
+- `/cdk:build-skill` and `/cdk:build-subagent` take a plugin directory with no new purpose and update or improve every skill or subagent in it, one at a time, with one combined report.
+- The `validate-skill` script warns when a skill name part is vague.
+
 ### Changed
 
 - `/cdk:audit-skill` and `/cdk:audit-subagent` audit against a Pass / Fail / Not checked checklist and score each category 1–5 for information only (breaking); the 100-point rubric and its gates are gone.
@@ -18,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:audit-subagent` checks `autoCompactWindow`, `permissionMode`, a self-check step before the return, whether the job fits a subagent, and a status with `file:line` evidence in the return, and it reports one row per check.
 - `/cdk:audit-subagent` labels the name charset, filename, description length, and `model` and `effort` rules as house rules, and notes that a project or personal agent overrides a plugin agent of the same name.
 - `/cdk:build-subagent` reference lists `propose_skills` and the plan-mode tools as removed from subagents, and says frontmatter hooks accept every hook event (`Stop` runs as `SubagentStop`).
+- The `check-agent` script allows a subagent description of up to 400 characters.
+- Skills no longer pre-approve `git -C` rules or unscoped `git ls-remote` and `gh api` calls in `allowed-tools`, so those calls ask first.
 
 ## [0.9.8] - 2026-11-23
 
@@ -674,7 +683,8 @@ The plugin ships skills, subagents, and hooks for Git and GitLab workflows (sign
 
 - `cdk:review-change-request` squash merges now use the PR or MR title as the commit subject with an empty body, so the squash commit passes commitlint instead of carrying a list of every commit subject.
 
-[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.8...HEAD
+[unreleased]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.8...v0.10.0
 [0.9.8]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.7...v0.9.8
 [0.9.7]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.6...v0.9.7
 [0.9.6]: https://github.com/patrickquijano/claude-dev-kit/compare/v0.9.5...v0.9.6
