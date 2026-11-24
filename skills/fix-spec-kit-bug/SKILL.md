@@ -53,3 +53,16 @@ Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Bug: .specify/bugs/login-plus-email/
+Verdict: valid; severity medium
+Fix: applied (1 pass(es), 0 re-assess)
+Test: verified
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

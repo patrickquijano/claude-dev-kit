@@ -3,7 +3,7 @@ name: delete-branches
 description: Deletes local, remote, or both git branches chosen from paged lists, excluding the default, host-protected, current, and worktree branches. Use when asked to delete or clean up git branches.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
-allowed-tools: Bash(git -C * rev-parse *) Bash(git -C * remote -v) Bash(git -C * remote get-url *) Bash(git -C * ls-remote *) Bash(git -C * worktree list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs *) Bash(gh api *repos/*/branches*) Bash(gh api *repos/*/rules/branches/*) Bash(glab api *projects/*/protected_branches*)
+allowed-tools: Bash(git rev-parse *) Bash(git remote -v) Bash(git remote get-url *) Bash(git ls-remote *) Bash(git worktree list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs *) Bash(gh api *repos/*/branches*) Bash(gh api *repos/*/rules/branches/*) Bash(glab api *projects/*/protected_branches*)
 ---
 
 # Delete Branches
@@ -62,4 +62,25 @@ Open: <item: impact; recommended fix, …> | none
 Next: none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
+```
+
+Example:
+
+```text
+Repository: /srv/dev/acme-api
+Remote: origin
+Scope: both
+Host protection: gh
+Protected: main, develop, release/*
+Local deleted: feat/old-login, fix/typo-readme
+Local skipped: spike/graphql: not fully merged (spike/graphql@4be19d2)
+Local failed: none
+Remote deleted: feat/old-login
+Remote skipped: none
+Remote failed: fix/typo-readme: ! [remote rejected] fix/typo-readme (protected branch hook declined)
+Diverged: none
+Open: none
+Next: none
+Result: done
+Stopped: none
 ```

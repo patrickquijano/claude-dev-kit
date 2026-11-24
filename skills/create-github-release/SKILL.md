@@ -61,3 +61,21 @@ Next: <follow-up in plain words> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Repo: acme/acme-api
+Release: https://github.com/acme/acme-api/releases/tag/v1.4.0
+Action: created
+Tag: v1.4.0 (created from main)
+Title: v1.4.0
+State: published; pre-release no; latest no
+Notes source: CHANGELOG.md [1.4.0] @ main
+Tool: gh
+Notes: ### Added - Bulk CSV export for the reports page.
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

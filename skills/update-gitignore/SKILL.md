@@ -62,3 +62,19 @@ Next: commit the .gitignore change | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Repository: /srv/dev/projects/app
+Explored: 214 files, stacks node
+Candidates: 4 (3 high, 1 medium)
+Added: node_modules/ (dependencies), dist/ (build output), .env (secrets)
+Skipped: coverage/: already ignored
+Tracked but ignored: none
+Secret exposure: none
+Verify: all written paths ignored
+Next: commit the .gitignore change
+Result: done
+Stopped: none
+```

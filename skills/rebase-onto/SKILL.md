@@ -63,3 +63,17 @@ Next: commit the uncommitted changes and rerun | finish or abort the rebase in p
 Result: done | nothing-to-do | stopped | cancelled (rebase aborted by choice)
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Rebased: feat/bulk-export onto main
+Commits replayed: 3 [signature: G]
+Conflicts: src/export.mjs — kept both the new column and the main rename
+Skipped: none
+Pushed: origin/feat/bulk-export (force-with-lease)
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

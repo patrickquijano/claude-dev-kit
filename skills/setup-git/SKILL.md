@@ -81,3 +81,22 @@ Open: <item: reason; recommended fix>, ... | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Repository: /srv/dev/projects/app (existing)
+Git: 2.47.0
+Identity: user.name Alex Rivera (global), user.email alex@example.com (global)
+Repaired: none
+Signing: format ssh (set local), key /srv/dev/.ssh/id_ed25519.pub (found), commit.gpgsign true (set local), tag.gpgsign true (set local)
+Allowed signers: /srv/dev/.ssh/allowed_signers (added)
+Verify: consistent
+Smoke test: ✅ Signed
+Ignores: .gitignore: .env
+Tracked but ignored: none
+Next: upload the signing public key to your forge account
+Open: none
+Result: done
+Stopped: none
+```

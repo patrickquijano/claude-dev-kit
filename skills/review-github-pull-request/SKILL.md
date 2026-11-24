@@ -1,7 +1,7 @@
 ---
 name: review-github-pull-request
-description: 'Reviews one GitHub PR in full: resolves its own addressed threads, then posts severity-labeled threads and approves when none is left unresolved. Use when asked to review a GitHub PR.'
-when_to_use: Use when asked to review PR 42, review a pull request URL, or re-review a GitHub PR after new commits. Not for GitLab merge requests (/cdk:review-gitlab-merge-request), local diffs (/cdk:review-code-changes), or answering review threads (/cdk:address-github-pull-request-review).
+description: 'Reviews one GitHub PR: resolves its addressed threads, posts severity-labeled threads, and approves when none is unresolved. Use when asked to review a GitHub PR.'
+when_to_use: Use for review PR 42, a PR URL, or a re-review after new commits. Not for GitLab MRs (/cdk:review-gitlab-merge-request), local diffs (/cdk:review-code-changes), or answering threads (/cdk:address-github-pull-request-review).
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr diff *) Bash(git remote get-url *) Bash(git branch --show-current) mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__issue_read
@@ -121,10 +121,22 @@ Stopped: <step>: <reason> | none
 
 `<files reviewed>` is the changed files minus those under `Skipped:`.
 
+Example:
+
 ```text
 PR: #9 https://github.com/acme/app/pull/9 (fix/null-guard → main) @ 3f2c9a1b7d4e5f60718293a4b5c6d7e8f9012345
+Path: argument number
 Mode: first review
+Threads: 0 resolved (0 fixed, 0 obsolete), 0 left open, 0 disputed, 0 unjudged, 0 ignored (not own or non-gating)
+Coverage: 4/4 files, 1 batches
 Verdict: REQUEST_CHANGES (1 major finding)
 Findings: 0 critical, 1 major, 0 minor, 2 nit, 0 question, 0 dropped
+Review: state review https://github.com/acme/app/pull/9#pullrequestreview-1234567 (3 new threads)
+Skipped: none
+Unverified: none
+Errors: none
+Open: none
+Next: none
 Result: done
+Stopped: none
 ```

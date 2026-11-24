@@ -54,3 +54,19 @@ Next: none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+PR: #57 https://github.com/acme/acme-api/pull/57
+Action: created
+Title: feat(export): add bulk CSV export
+Template: .github/pull_request_template.md
+Tool: mcp
+Pushed: yes
+Warnings: none
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

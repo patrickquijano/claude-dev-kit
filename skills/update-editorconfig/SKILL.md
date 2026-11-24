@@ -68,3 +68,20 @@ Next: set up formatters and linters if wanted | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+File types: TypeScript (42), YAML (4), Markdown (9)
+.editorconfig: created (root = true: added)
+Base [*]: added
+Sections: *.md: trim_trailing_whitespace = false, *.{yml,yaml}: indent_size = 2
+Removed: none
+Kept: none
+Nested configs: none
+Check: 2 problems before fix, 0 after
+Open: none
+Next: set up formatters and linters if wanted
+Result: done
+Stopped: none
+```

@@ -49,3 +49,18 @@ Open: <item: impact; recommended fix, …> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Branch: feat/bulk-export → origin/feat/bulk-export
+Commits:
+- a1b2c3d feat(export): add bulk CSV export
+- 7e8f9a0 test(export): cover empty result sets
+Pending after: 0
+Reason: none
+Next: none
+Open: none
+Result: done
+Stopped: none
+```

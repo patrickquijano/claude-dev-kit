@@ -92,3 +92,28 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Package: app (root)
+Package manager: npm (lockfile)
+package.json: present
+Installed: husky, @commitlint/cli, @commitlint/config-conventional
+hooksPath: ok
+prepare: husky (set)
+Init: ran
+pre-commit: removed
+Events: message commit-msg, signing pre-check + report
+Hooks: commit-msg copied, commit-msg.mjs copied, post-commit copied, post-commit.mjs copied
+Commitlint config: .commitlintrc.json (written; header-max-length added)
+Rules: .claude/rules/commits.md (written); CLAUDE.md mention present
+Line endings: .gitattributes (added)
+Ignores: .prettierignore: .husky/_
+Smoke test: commit-msg rejects "bad message": pass
+CI: set HUSKY=0 in CI and Docker builds to skip hook install.
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

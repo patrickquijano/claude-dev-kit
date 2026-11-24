@@ -65,3 +65,17 @@ Next: restart or reopen Claude Code to see the new color | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Target: ~/.claude/statusline.sh (updated)
+Backup: ~/.claude/statusline.sh.bak
+Color: \033[36m cyan (chosen)
+statusLine: set
+Smoke test: renders one line with cyan prefix: pass
+Open: none
+Next: restart or reopen Claude Code to see the new color
+Result: done
+Stopped: none
+```

@@ -77,3 +77,19 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Mode: configure-only
+Versions: PHP 8.3.14 (composer.json), Laravel 11.31 (composer.lock)
+Choices: Auth: Sanctum (9), Testing: Pest (8)
+Written: config/sanctum.php, tests/Pest.php
+Verify: php artisan test: pass
+Red flags: RF2: rate-limit the login route (open)
+Research: https://laravel.com/docs/11.x/sanctum
+Open: login rate limit: brute-force risk; add a throttle middleware
+Next: commit the changes
+Result: done
+Stopped: none
+```

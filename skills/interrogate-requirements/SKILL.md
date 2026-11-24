@@ -53,3 +53,16 @@ Next: <action> | none
 Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Spec: specs/bulk-csv-export.md
+Rounds: 3/5
+Requirements: 12
+Assumptions: 4 confirmed / 1 pending
+Open: Export row limit: the product owner has not answered
+Next: answer the pending assumption
+Result: done
+Stopped: none
+```

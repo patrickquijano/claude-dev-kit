@@ -76,3 +76,19 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Mode: scaffold
+Versions: .NET SDK 9.0.100 (dotnet --version), Swashbuckle 7.2.0 (NuGet)
+Choices: ORM: EF Core (9), Auth: JWT bearer (8)
+Written: Api.sln, src/Api/Program.cs, src/Api/Api.csproj
+Verify: dotnet build: pass, dotnet test: pass
+Red flags: RF3: enable nullable reference types (applied)
+Research: https://learn.microsoft.com/aspnet/core/web-api
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

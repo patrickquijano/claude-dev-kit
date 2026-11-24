@@ -70,3 +70,24 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+CHANGELOG: CHANGELOG.md (updated)
+Mode: non-release
+Range: main..HEAD (merge-base 5f1def8, 3 commits)
+Format: npx prettier --write CHANGELOG.md
+Working tree: staged 0, unstaged 0, untracked 0
+Entries:
+- Added: added 1, updated 0
+- Fixed: added 1, updated 0
+Excluded:
+- chore(deps): bump eslint — not user-facing
+Checks: completeness ok, accuracy ok, duplicates ok, classification ok, ordering ok, format ok, links ok, consistency ok, released sections unchanged, idempotency ok
+Blocked: none
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

@@ -57,3 +57,19 @@ Next: none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+MR: !57 https://gitlab.com/acme/acme-api/-/merge_requests/57
+Action: created
+Title: feat(export): add bulk CSV export
+Template: .gitlab/merge_request_templates/Default.md
+Tool: mcp
+Pushed: yes
+Warnings: none
+Open: none
+Next: none
+Result: done
+Stopped: none
+```
