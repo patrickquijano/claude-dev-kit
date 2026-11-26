@@ -3,7 +3,7 @@ name: audit-skill
 description: Audits a skill or plugin against a Pass / Fail / Not checked checklist, fixes approved Fails. Use when asked to audit, review, check, or score a skill. Not for building skills or auditing subagents.
 argument-hint: '[--yes] [--report-only] [skill or plugin directory path]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep Write AskUserQuestion Bash(node -e *) Bash(command -v skills-ref) Bash(skills-ref validate *)
+allowed-tools: Read Glob Grep Write AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(command -v skills-ref) Bash(skills-ref validate *)
 ---
 
 # Audit Skill
@@ -18,7 +18,8 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
 - Never mark a check Pass without reading the file it names; a check that cannot be verified is Not checked with `Unverified: <what is missing>`.
 - The 1–5 score is informational: it never changes a result, blocks, or triggers a fix.
 - `--yes` runs unattended: no questions. Missing input → `Result: stopped`, `Stopped: 1: no input`, never a guess. Approval = every Fail row with a fix outside `scripts/`, listed under `Decisions:`.
-- Every fix to a target skill goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the `cdk:implement-spec` skill)`` with the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`; this skill edits nothing itself except scratchpad backups. Its write scope is each target skill's directory, so a fix never touches another skill; any edit to a `scripts/` executable is out of scope (list it under `Open:` instead), because the Spec brief runs no code tests. Print the spec summary first and do not wait, since the user approved the fixes in step 5; never pass `--yes` unless the user did. A `Stopped:` whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`; any other `Stopped:` is a cap stop: its `Open:` items join `Open:` and the run goes on to step 7.
+- Ask with AskUserQuestion. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
+- Every fix to a target skill goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the `cdk:implement-spec` skill)`` with the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`; this skill edits nothing itself except scratchpad backups. Its write scope is each target skill's directory, so a fix never touches another skill; any edit to a `scripts/` executable is out of scope (list it under `Open:` instead), because the Spec brief runs no code tests. Print the spec summary first and do not wait, since the user approved the fixes in step 5; never pass `--yes` unless the user did. A `Stopped:` whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`; any other `Stopped:` is a cap stop: its `Open:` items join `Open:` and the run goes on to step 7.
 - Run no formatter or linter; repo hooks and CI own that, and the Spec brief says so.
 - This skill spawns only `cdk:rubric-scorer`, never another subagent; the planner, implementer, and verifier spawns inside `cdk:implement-spec` follow its own spawn rule, so context and token cost stay bounded.
 - Never edit outside `cdk:implement-spec`; if it is missing or fails, stop and leave the fixes under `Open:`, with no manual fix.
@@ -33,20 +34,20 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
    - `--yes` with no usable input → `Stopped: 1: no input`.
 2. **Audit each skill.**
    - Read every file in the skill directory except `*.bak`, then decide each check in `${CLAUDE_SKILL_DIR}/references/checks.md`.
-   - Count lines, characters, and words with `node -e`, never by hand; it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment, plus numbers, as single-quoted argv, and the script reads the file with `fs` itself and never embeds file text.
+   - Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand; it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text.
    - Run `skills-ref validate <dir>` only when `command -v skills-ref` succeeds (O1); otherwise O1 is Not checked.
 3. **Report.** Print the report per `checks.md`: first line the totals, then one row per check. A Fail never stops another skill; a plugin run prints one combined report.
 4. **Score.** Default mode only.
-   - Read `${CLAUDE_SKILL_DIR}/../../agents/rubric-scorer.md` once; not found → `Not scored: definition not found`, go to step 5.
+   - `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5.
    - Spawn one `cdk:rubric-scorer` per skill in parallel in one message, kind `skill-checklist`, with the Scorer brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
-   - Re-check each category's Fail count against the report and the overall average with `node -e`; a missing, failed, or mismatching return → respawn once, then `Not scored: <reason>`.
+   - Re-check each category's Fail count against the report and the overall average with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs --mean <score> …`; a missing, failed, or mismatching return → respawn once, then `Not scored: <reason>`.
 5. **Approve.** Default mode, at least one Fail.
    - Per skill, ask one multi-select question of the Fail rows that have a fix outside `scripts/`, at most 4 options per question and 4 questions per call.
    - `--yes` → every such row, listed under `Decisions:`; nothing to approve → go to step 8.
 6. **Fix.** One invocation per skill with at least one approved row.
-   - Read `${CLAUDE_SKILL_DIR}/../implement-spec/SKILL.md`. It sets `disable-model-invocation: true`, or has an approval ask a caller's fixed-approach spec cannot skip → `Stopped: 6: implement-spec conflict`. File missing → stop, no manual fix.
+   - `cdk:implement-spec` not invocable by a skill, or keeping an approval ask a caller's fixed-approach spec cannot skip → `Stopped: 6: implement-spec conflict`. Missing → stop, no manual fix.
    - Back up each file to edit to `<scratchpad>/audit-skill-backups/<skill>/<relative path>.bak` with Write. No scratchpad → `Stopped: 6: no scratchpad`.
-   - Build the Spec brief and invoke per the Rules. Record its `Open:` items.
+   - Build the Spec brief and invoke per the Rules; do not ask to approve its plan. Record its `Open:` items.
 7. **Re-audit once.** Run steps 2–3 in report-only mode on each fixed skill, with no loop.
    - An approved check that is still Fail → `Result: stopped`, `Stopped: 7: still failing`.
 8. **Report.** Print the Output block.
@@ -59,6 +60,7 @@ A plugin run audits each skill on its own: one combined report, a score table pe
 - For the score scale and the Score table, see `${CLAUDE_SKILL_DIR}/references/rubric.md`.
 - For the Scorer brief and the Spec brief (steps 4 and 6), see `${CLAUDE_SKILL_DIR}/references/briefs.md`.
 - For test prompts (routing and behavior), see `${CLAUDE_SKILL_DIR}/references/evals.md`.
+- For counting and score means (steps 2 and 4), run `${CLAUDE_SKILL_DIR}/scripts/count.mjs`; it is run, never read.
 
 ## Output
 

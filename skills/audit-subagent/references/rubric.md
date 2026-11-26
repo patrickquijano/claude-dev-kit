@@ -28,7 +28,7 @@ Score each category from its Fail count in the report:
 
 - A Not checked check is excluded: it is neither a Fail nor a Pass.
 - A category whose checks are all Not checked scores `N/A` (Testing always).
-- Overall = the mean of the scored categories, rounded to one decimal, computed with `node -e`; every category `N/A` → `Overall: N/A`.
+- Overall = the mean of the scored categories, rounded to one decimal, computed in code; every category `N/A` → `Overall: N/A`.
 
 ## Score table
 

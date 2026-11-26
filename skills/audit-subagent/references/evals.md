@@ -18,12 +18,13 @@
 | --- | --- | --- | --- |
 | missing-input-asks | `/cdk:audit-subagent` | Asks for the path | One AskUserQuestion; never guesses a subagent |
 | yes-no-input | `/cdk:audit-subagent --yes` | Stops without a question | No question; `Result: stopped`, `Stopped: 1: no input` |
+| cannot-interact | `/cdk:audit-subagent` with no path, headless (no question tool, no user to reply) | Stops without guessing | Nothing written; `Result: stopped`, `Stopped: <step>: cannot interact` |
 | report-only | `/cdk:audit-subagent --report-only <subagent file>` | Reports only | Totals line and table; no score, no question, no edit, no backup; `Subagents:` item ends `(report-only)`; `git status` unchanged |
 | default-flow | `/cdk:audit-subagent <subagent with one Fail>` | Report, score, approve, fix, re-audit | Spawns `cdk:rubric-scorer` kind `subagent-checklist`; asks approval; one `cdk:implement-spec` call; one report-only re-audit |
 | not-checked-informational | A subagent with no `model`, `effort`, or `color` | Marks conditional checks Not checked | F9 is Not checked with a reason, and F8 is a Fail (house rule: always set); E1–E2 Not checked; a Not checked is neither a Pass nor a Fail |
 | plugin-scope-fields | A plugin agent that sets `hooks` or `permissionMode` | Fails T4 | T4 Fail with the exact `file:line` and a fix that removes the field |
 | version-gated-unverified | A subagent that sets `omitClaudeMd`, Claude Code version unknown | Never passes the gated field | F10 is Not checked with `Unverified: Claude Code version unknown` |
-| scorer-missing | The `agents/rubric-scorer.md` file is absent | Skips the score | `Not scored: definition not found`; the audit and the fixes go on |
+| scorer-missing | `cdk:rubric-scorer` is unavailable | Skips the score | `Not scored: definition not found`; the audit and the fixes go on |
 | scorer-mismatch | A scorer return whose Fail count differs from the report | Respawns once | One respawn; still wrong → `Not scored: <reason>` |
 | plugin-batch | `/cdk:audit-subagent <plugin dir>` with one failing subagent | Audits every subagent | One combined report; the Fail never stops another subagent; a score table per subagent |
 | approval-per-subagent | A plugin batch with Fails in two subagents | Asks once per subagent | One multi-select question per subagent, at most 4 options per question and 4 questions per call |
