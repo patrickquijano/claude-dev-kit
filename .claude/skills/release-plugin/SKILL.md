@@ -50,7 +50,7 @@ Input: $ARGUMENTS (strip `--yes` first)
     - Record the PR URL from its Output (none → stop).
     - Record the release head branch `<head>` from `git rev-parse --abbrev-ref HEAD`.
 11. **Merge.**
-    - Run `gh pr checks <url> --watch --fail-fast`; a non-zero exit → `Stopped: 11: PR checks failed`.
+    - Run `gh pr checks <url> --watch --fail-fast`; when it prints `no checks reported`, re-run it, at most 5 times, so checks that never register end the wait with `Stopped: 11: no PR checks registered`; any other non-zero exit → `Stopped: 11: PR checks failed`.
     - Invoke the `cdk:merge-github-pull-request <url>` skill: squash, branch kept (unless the host deletes head branches on merge; step 13 deletes it only after the release check); record `<merged head sha>` from the `PR: … @ <sha>` line of its Output.
 12. **Release check.**
     - Run `git switch <default>`.

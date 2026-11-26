@@ -19,6 +19,7 @@ pass: <observable criteria>
 | step-stops | `/release-plugin` (the commit step ends `Result: stopped`) | Stops on the first non-done step | `Stopped: 8: ...`; no push, PR, or tag; `Steps:` lists 1-7 |
 | checks-stop | `/release-plugin` (`npm test` fails at the checks step) | Stops at step 7 | `Stopped: 7: test failed` with the exact error line; no commit, push, or PR; `Steps:` lists 1-6 |
 | pr-checks-stop | `/release-plugin` (`gh pr checks <url> --watch --fail-fast` exits non-zero) | Stops before the merge | `Stopped: 11: PR checks failed`; the merge skill not invoked; `Merged: no` |
+| pr-checks-late | `/release-plugin` (`gh pr checks <url> --watch --fail-fast` prints `no checks reported` on the first runs, then the checks pass) | Re-runs the watch, at most 5 times | The merge skill invoked once the checks pass; after 5 empty runs `Stopped: 11: no PR checks registered`, `Merged: no` |
 | nothing-pending | `/release-plugin` (clean tree, no commits ahead) | Stops at the pre-flight | `Result: nothing-to-do`; no skill step run |
 | bad-version-arg | `/release-plugin 0.0.1` (current is higher) | Rejects the override | `Stopped: 1: ...`; plugin.json unchanged |
 | non-github-origin | `/release-plugin` (`origin` is a GitLab remote) | Stops at the pre-flight | `Stopped: 1: origin is not a GitHub remote`; no skill invoked, no edit |
