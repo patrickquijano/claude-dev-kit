@@ -189,9 +189,9 @@ describe('build skills delegate writes to implement-spec', () => {
       const text = read('SKILL.md');
       const splitRules = {
         'build-skill':
-          /^- Before each (?:`cdk:)?implement-spec`? invocation.*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m,
+          /^- Before each (?:`cdk:)?implement-spec`? invocation.*whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m,
         'build-subagent':
-          /^- Every write, including.*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m
+          /^- Every write, including.*whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`.*any other `Stopped:` is a cap stop: its `Open:` items go to `Open:` and the run continues/m
       };
       const roundRules = {
         'build-skill':
@@ -304,7 +304,7 @@ describe('build-subagent allowed-tools', () => {
     const text = readFileSync(join(root, 'skills', 'build-subagent', 'SKILL.md'), 'utf8');
     // Act
     const tools =
-      /^allowed-tools: Read Glob Grep AskUserQuestion WebFetch\(domain:code\.claude\.com\) Bash\(claude plugin validate \*\) Bash\(claude --version\) Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/check-agent\.mjs \*\) Bash\(claude --print \*\) Bash\(claude --debug --print \*\)$/m.test(
+      /^allowed-tools: Read Glob Grep Write AskUserQuestion WebFetch\(domain:code\.claude\.com\) Bash\(claude plugin validate \*\) Bash\(claude --version\) Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/check-agent\.mjs \*\) Bash\(claude --print \*\) Bash\(claude --debug --print \*\) Bash\(grep -i \*\)$/m.test(
         text
       );
     // Assert
@@ -543,10 +543,18 @@ describe('build-subagent dependencies, backups, batch, and namespace', () => {
     // Act
     const rule =
       /^- Backup \(update and improve\): before the first `cdk:implement-spec` call, Write the old content to `<target path>\.bak` beside the original, never a `\.md` name/m;
-    const stale = /scratchpad|\.md\.bak/;
+    const stale = /\.md\.bak/;
+    const backupLine = text.split('\n').find((l) => l.startsWith('- Backup (update and improve)')) ?? '';
+    const scratchLines = text.split('\n').filter((l) => /scratchpad/.test(l));
     // Assert
     assert.match(text, rule);
     assert.doesNotMatch(text, stale);
+    assert.doesNotMatch(backupLine, /scratchpad/);
+    assert.equal(scratchLines.length, 1);
+    assert.match(
+      scratchLines[0],
+      /^- Write scope: the backup at `<target path>\.bak` beside the original, plus .*in the session scratchpad only\.$/
+    );
   });
 
   test('a plugin directory input sets Plugin scope and a batch runs per subagent', () => {

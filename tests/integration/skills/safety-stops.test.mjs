@@ -32,7 +32,9 @@ const STOPS = {
     /--match-head-commit|expectedHeadSha/
   ],
   'merge-gitlab-merge-request': [/draft/i, /conflict/i, /head.*(changed|moved)/i, /Bypass eligibility/],
-  'rebase-onto': [/--force-with-lease=<branch>:<[^>]+>/, /--force-if-includes/],
+  'rebase-onto': [/--force-with-lease=<branch>:<[^>]+>/, /--force-if-includes/, /Stopped: 1: protected branch/],
+  'create-github-issue': [/Stopped: 3: duplicate #<n> not owned/],
+  'create-gitlab-issue': [/Stopped: 3: duplicate #<iid> is not yours/],
   'setup-husky': [/foreign|another tool/i, /core\.hooksPath/],
   'push-commits': [/unsigned/i],
   'upgrade-dependencies': [/dirty|uncommitted/i],

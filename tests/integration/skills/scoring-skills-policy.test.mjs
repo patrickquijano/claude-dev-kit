@@ -209,7 +209,7 @@ describe('rubrics waive negligible items', () => {
     assert.deepEqual(kinds, ['skill-checklist', 'subagent-checklist', 'readme', 'project-instructions']);
     assert.match(
       text,
-      /^description: Scores a skill or subagent checklist report 1–5 per category, or README\.md or CLAUDE\.md and rules against its 100-point rubric, verifying commands, paths, and links\. Read-only\.$/m
+      /^description: Use when an audit or update skill needs a checklist report scored 1–5 per category, or README\.md or CLAUDE\.md and rules scored against its 100-point rubric, verifying commands, paths, and links\. Read-only\.$/m
     );
     assert.doesNotMatch(text, /^### agent$/m);
     assert.doesNotMatch(text, /^### skill$/m);
@@ -349,7 +349,7 @@ describe('implement-spec stops are split into input stops and cap stops', () => 
       // Act
       const cap = /^- Every write .*any other `Stopped:` is a cap stop: its `Open:` joins `Open:`/m;
       const input =
-        /^- Every write .*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`/m;
+        /^- Every write .*whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped`/m;
       const stale = /Its `Stopped:` becomes/;
       // Assert
       assert.match(text, cap, 'cap-stop rule missing');
@@ -486,7 +486,7 @@ describe('update-rules flow.md ties --yes choices to Open and defines the step 5
     const text = readRel('skills/update-rules/references/flow.md');
     // Act
     const rule =
-      /^- `--yes` or unattended runs follow the SKILL\.md Rules: a choice takes the Recommended option \(the tie-break: the first-listed one\) and goes under `Open:`; fact gaps go to `Omitted:`/m;
+      /^- `--yes` runs follow the SKILL\.md Rules \(headless without `--yes` stops with `Stopped: 8: cannot interact`\): a choice takes the Recommended option \(the tie-break: the first-listed one\) and goes under `Open:`; fact gaps go to `Omitted:`/m;
     // Assert
     assert.match(text, rule);
   });
@@ -676,7 +676,7 @@ describe('update-readme flow.md resolves fact gaps before implement-spec', () =>
     const text = readRel('skills/update-readme/references/flow.md');
     // Act
     const rule =
-      /^- Before invoking implement-spec, resolve each fact gap \(license, URL, version, contact, badge\) → AskUserQuestion with an "Omit" option \(max 4 per call\)\. `--yes` or unattended runs ask nothing: add it to `Omitted:`\./m;
+      /^- Before invoking implement-spec, resolve each fact gap \(license, URL, version, contact, badge\) → AskUserQuestion with an "Omit" option \(max 4 per call\)\. `--yes` runs ask nothing: add it to `Omitted:`; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 15: cannot interact`\./m;
     // Assert
     assert.match(text, rule);
   });

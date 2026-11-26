@@ -1,6 +1,6 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -113,7 +113,7 @@ describe('implement-spec policy', () => {
     const text = skillMd();
     // Act
     const contain =
-      /^- Write scope: .*A scope path outside Root, or one that is an ancestor of Root, writes nothing: ask \(unattended: `Stopped: 1: needs input`, write scope outside Root\), never a silent fall back to no scope/m.test(
+      /^- Write scope: .*A scope path outside Root, or one that is an ancestor of Root, writes nothing: ask \(`--yes`: `Stopped: 1: needs input`, write scope outside Root\), never a silent fall back to no scope/m.test(
         text
       );
     // Assert
@@ -194,7 +194,7 @@ describe('implement-spec policy', () => {
     const text = skillMd();
     // Act
     const one =
-      /^- Write scope: .*Only one top-level `Write scope:` line outside a fenced block counts; two or more write nothing: ask which one counts \(unattended: `Stopped: 1: needs input`, ambiguous write scope\), never a silent fall back to no scope/m.test(
+      /^- Write scope: .*Only one top-level `Write scope:` line outside a fenced block counts; two or more write nothing: ask which one counts \(`--yes`: `Stopped: 1: needs input`, ambiguous write scope\), never a silent fall back to no scope/m.test(
         text
       );
     const oldOne = /two or more count none and go under/.test(text);
@@ -217,7 +217,7 @@ describe('implement-spec policy', () => {
     const plan = skillFile('references', 'plan.md');
     // Act
     const planReject =
-      /^- A planned path outside a passed write scope → reject it; drop that approach; none left → ask \(unattended: `Stopped: 5: needs input`, planned path outside write scope\) \(scope rule: `SKILL.md` Rules, Write scope\)\.$/m.test(
+      /^- A planned path outside a passed write scope → reject it; drop that approach; none left → ask \(`--yes`: `Stopped: 5: needs input`, planned path outside write scope\) \(scope rule: `SKILL.md` Rules, Write scope\)\.$/m.test(
         plan
       );
     const stale = /scope rule: `SKILL.md` Rules, Dirty paths/.test(plan);
@@ -1117,7 +1117,7 @@ describe('implement-spec policy', () => {
         skill
       );
     const reentry =
-      /^- A revised approach is asked again as above; an unattended run takes the recommended one, or the highest total on a close call \(see above\)\.$/m.test(
+      /^- A revised approach is asked again as above; a `--yes` run takes the recommended one, or the highest total on a close call \(see above\)\.$/m.test(
         plan
       );
     const pass = /`--yes`: the highest total \(Rules, Decision questions\), recorded under `Open:`\)/.test(review);
@@ -1129,5 +1129,42 @@ describe('implement-spec policy', () => {
     assert.ok(pass, 'review.md Choose close-call wording missing');
     assert.equal(stale, false, 'plan.md still keeps the recommended one');
     assert.equal(staleReview, false, 'review.md still takes the recommended option');
+  });
+
+  test('stops with cannot interact when no user can reply and no --yes', () => {
+    // Arrange
+    const text = skillMd();
+    // Act
+    const ask =
+      /^- Ask what the input and repo cannot answer \(`--yes`: record it instead\); .*numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing more .*`Result: stopped`, `Stopped: <step>: cannot interact`\.$/m.test(
+        text
+      );
+    const pointer = /tool unavailable: the Ask rule above\)/.test(text);
+    // Assert
+    assert.ok(ask, 'Ask rule cannot-interact clause missing');
+    assert.ok(pointer, 'Decision questions pointer to the Ask rule missing');
+  });
+
+  test('every implement-spec caller lists cannot interact as an input stop', () => {
+    // Arrange
+    const files = readdirSync(join(root, 'skills'), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && entry.name !== 'implement-spec')
+      .flatMap((entry) =>
+        ['SKILL.md', ...readdirSync(join(root, 'skills', entry.name, 'references')).map((n) => `references/${n}`)].map(
+          (rel) => join('skills', entry.name, rel)
+        )
+      )
+      .filter((file) => file.endsWith('.md') && !file.endsWith('evals.md'))
+      .filter((file) => readFileSync(join(root, file), 'utf8').includes('`needs input`, `no input`'));
+    assert.ok(files.length >= 15, 'caller discovery found too few files');
+    // Act
+    const missing = files.filter(
+      (file) =>
+        !readFileSync(join(root, file), 'utf8').includes(
+          '`needs input`, `no input`, `cannot interact`, or `write outside scope`'
+        )
+    );
+    // Assert
+    assert.deepEqual(missing, [], 'caller does not list cannot interact as an input stop');
   });
 });

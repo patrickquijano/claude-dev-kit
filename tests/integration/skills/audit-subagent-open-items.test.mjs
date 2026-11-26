@@ -21,7 +21,9 @@ describe('audit-subagent follows the checklist model', () => {
     'names the report-only flag in the hint':
       /^argument-hint: '\[--yes\] \[--report-only\] \[subagent file or plugin directory path\]'$/m,
     'allows only the audit tools and backup writes':
-      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node -e \*\) Bash\(claude plugin validate \*\)$/m,
+      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(claude plugin validate \*\)$/m,
+    'has the cannot-interact path':
+      /^- Ask with AskUserQuestion\. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`\. Only `--yes` takes the Recommended option\./m,
     'names the neighbour exclusions in the description':
       /^description: .*Not for building a subagent or auditing skills\.$/m,
     'makes the checklist the only gate':
@@ -37,7 +39,7 @@ describe('audit-subagent follows the checklist model', () => {
     'delegates fixes to implement-spec':
       /Invoke the `cdk:implement-spec` skill \(fallback: run the `cdk:implement-spec` skill\)/,
     'maps input stops and a cancel to stopped':
-      /^- Every fix to a target subagent[^\n]*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason/m,
+      /^- Every fix to a target subagent[^\n]*whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason/m,
     'writes the literal cancel reason':
       /^- Every fix to a target subagent[^\n]*a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`/m,
     'treats any other Stopped as a cap stop':
@@ -59,11 +61,12 @@ describe('audit-subagent follows the checklist model', () => {
     'asks for a missing path':
       /^ {3}- A path that is missing or neither → ask one question with AskUserQuestion for the path; never guess\./m,
     'ignores bak files': /^ {3}- Read the subagent file and every file its body names[^\n]*never read `\*\.bak`\./m,
-    'counts with node -e': /^ {3}- Count lines, characters, and words with `node -e`, never by hand;/m,
+    'counts with the count script':
+      /^ {3}- Count lines, characters, and words with `node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs '<absolute path>'`, never by hand;/m,
     'runs plugin validate only for a plugin directory':
       /^ {3}- Run `claude plugin validate <plugin dir>` for O1 only on a plugin directory; if it cannot run, O1 is Not checked\./m,
     'reads the scorer definition once and reports not scored':
-      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/\.\.\/agents\/rubric-scorer\.md` once; not found → `Not scored: definition not found`/m,
+      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5\.$/m,
     'spawns the scorer per subagent in parallel with kind subagent-checklist':
       /^ {3}- Spawn one `cdk:rubric-scorer` per subagent in parallel in one message, kind `subagent-checklist`/m,
     'respawns once on a scorer mismatch':
@@ -71,7 +74,7 @@ describe('audit-subagent follows the checklist model', () => {
     'asks approval per subagent within the question limits':
       /^ {3}- Per subagent, ask one multi-select question of the Fail rows, at most 4 options per question and 4 questions per call\./m,
     'stops on an implement-spec conflict':
-      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/implement-spec\/SKILL\.md`\. It sets `disable-model-invocation: true`[^\n]*`Stopped: 6: implement-spec conflict`/m,
+      /^ {3}- `cdk:implement-spec` not invocable by a skill, or keeping an approval ask a caller's fixed-approach spec cannot skip → `Stopped: 6: implement-spec conflict`\. Missing → stop, no manual fix\.$/m,
     'backs up beside the file, never as markdown':
       /^ {3}- Write a backup of each file to edit to `<file>\.bak` beside it with Write, never `\.md`/m,
     'does not ask to approve the plan':
@@ -126,7 +129,7 @@ describe('audit-subagent follows the checklist model', () => {
     // Arrange
     const text = readFileSync(skillPath, 'utf8');
     // Act
-    const stale = /WebSearch|WebFetch|scripts\/|git -C|scratchpad|Fix memory/i.exec(text);
+    const stale = /WebSearch|WebFetch|scripts\/(?!count\.mjs)|git -C|scratchpad|Fix memory/i.exec(text);
     // Assert
     assert.equal(stale, null, `stale text: ${stale?.[0]}`);
   });
@@ -159,11 +162,12 @@ describe('audit-subagent follows the checklist model', () => {
     assert.match(spawns[0], /cdk:rubric-scorer/);
   });
 
-  test('keeps node -e argv-only at both counting sites', () => {
+  test('keeps the count script argv-only at both counting sites', () => {
     // Arrange
-    const head = '- Count lines, characters, and words with `node -e`, never by hand;';
+    const head =
+      "- Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand;";
     const guard =
-      'it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment, plus numbers, as single-quoted argv, and the script reads the file with `fs` itself and never embeds file text.';
+      'it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text.';
     // Act
     const missing = ['SKILL.md', 'references/checks.md'].filter(
       (file) =>
@@ -173,6 +177,7 @@ describe('audit-subagent follows the checklist model', () => {
     );
     // Assert
     assert.deepEqual(missing, []);
+    assert.doesNotMatch(read('SKILL.md'), /Bash\(node -e|with `node -e`/);
   });
 
   test('qualifies every plugin skill and agent it names', () => {
@@ -455,6 +460,7 @@ describe('audit-subagent evals cover routing and behavior', () => {
     'no-trigger-build',
     'missing-input-asks',
     'yes-no-input',
+    'cannot-interact',
     'report-only',
     'default-flow',
     'not-checked-informational',

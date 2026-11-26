@@ -13,7 +13,11 @@ describe('audit-skill follows the checklist model', () => {
     'names the report-only flag in the hint':
       /^argument-hint: '\[--yes\] \[--report-only\] \[skill or plugin directory path\]'$/m,
     'allows only the audit tools and scratchpad writes':
-      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node -e \*\) Bash\(command -v skills-ref\) Bash\(skills-ref validate \*\)$/m,
+      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(command -v skills-ref\) Bash\(skills-ref validate \*\)$/m,
+    'has the cannot-interact path':
+      /^- Ask with AskUserQuestion\. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`\. Only `--yes` takes the Recommended option\./m,
+    'does not ask to approve the implement-spec plan':
+      /^ {3}- Build the Spec brief and invoke per the Rules; do not ask to approve its plan\./m,
     'names the neighbour exclusion in the description':
       /^description: .*Not for building skills or auditing subagents\./m,
     'makes the checklist the only gate':
@@ -29,7 +33,7 @@ describe('audit-skill follows the checklist model', () => {
     'delegates fixes to implement-spec':
       /Invoke the `cdk:implement-spec` skill \(fallback: run the `cdk:implement-spec` skill\)/,
     'maps input stops and a cancel to stopped':
-      /^- Every fix to a target skill[^\n]*whose reason is `needs input`, `no input`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason/m,
+      /^- Every fix to a target skill[^\n]*whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason/m,
     'writes the literal cancel reason':
       /^- Every fix to a target skill[^\n]*the caller writes `Stopped: <step>: user cancelled`/m,
     'treats any other Stopped as a cap stop':
@@ -52,7 +56,7 @@ describe('audit-skill follows the checklist model', () => {
     'runs skills-ref only when present':
       /^ {3}- Run `skills-ref validate <dir>` only when `command -v skills-ref` succeeds \(O1\)/m,
     'reads the scorer definition once and reports not scored':
-      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/\.\.\/agents\/rubric-scorer\.md` once; not found → `Not scored: definition not found`/m,
+      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5\.$/m,
     'spawns the scorer per skill in parallel with kind skill-checklist':
       /^ {3}- Spawn one `cdk:rubric-scorer` per skill in parallel in one message, kind `skill-checklist`/m,
     'respawns once on a scorer mismatch':
@@ -60,7 +64,7 @@ describe('audit-skill follows the checklist model', () => {
     'asks approval per skill within the question limits':
       /^ {3}- Per skill, ask one multi-select question of the Fail rows that have a fix outside `scripts\/`, at most 4 options per question and 4 questions per call\./m,
     'stops on an implement-spec conflict':
-      /^ {3}- Read `\$\{CLAUDE_SKILL_DIR\}\/\.\.\/implement-spec\/SKILL\.md`\. It sets `disable-model-invocation: true`[^\n]*`Stopped: 6: implement-spec conflict`/m,
+      /^ {3}- `cdk:implement-spec` not invocable by a skill, or keeping an approval ask a caller's fixed-approach spec cannot skip → `Stopped: 6: implement-spec conflict`\. Missing → stop, no manual fix\.$/m,
     'backs up to the scratchpad':
       /^ {3}- Back up each file to edit to `<scratchpad>\/audit-skill-backups\/<skill>\/<relative path>\.bak` with Write\. No scratchpad → `Stopped: 6: no scratchpad`\./m,
     'stops when an approved check is still Fail':
@@ -114,17 +118,19 @@ describe('audit-skill follows the checklist model', () => {
     assert.ok(small, `${lines} lines`);
   });
 
-  test('keeps node -e argv-only in SKILL.md and checks.md', () => {
+  test('keeps the count script argv-only in SKILL.md and checks.md and drops node -e', () => {
     // Arrange
-    const head = '- Count lines, characters, and words with `node -e`, never by hand';
+    const head =
+      "- Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand";
     const guard =
-      'it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment, plus numbers, as single-quoted argv, and the script reads the file with `fs` itself and never embeds file text.';
+      'it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text.';
     // Act
     const found = [read('SKILL.md'), read('references', 'checks.md')].map((text) =>
       text.split('\n').some((line) => line.trimStart().startsWith(head) && line.includes(guard))
     );
     // Assert
     assert.deepEqual(found, [true, true]);
+    assert.doesNotMatch(read('SKILL.md'), /Bash\(node -e|with `node -e`/);
   });
 
   test('qualifies every plugin skill and agent it names', () => {
@@ -302,6 +308,7 @@ describe('audit-skill evals cover routing and behavior', () => {
     'no-trigger-build',
     'missing-input-asks',
     'yes-no-input',
+    'cannot-interact',
     'report-only',
     'default-flow',
     'not-checked-informational',
