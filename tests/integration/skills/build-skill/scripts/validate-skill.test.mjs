@@ -135,6 +135,16 @@ describe('validate-skill CLI', () => {
     assert.match(result.stderr, /usage/);
   });
 
+  test('reports no time-sensitive finding for skills/draft-prompt and skills/build-subagent', () => {
+    // Arrange
+    const dirs = [resolve('skills/draft-prompt'), resolve('skills/build-subagent')];
+    // Act
+    const reports = dirs.map((dir) => JSON.parse(run(dir, '--kind', 'task').stdout));
+    // Assert
+    const ids = reports.flatMap((r) => [...r.errors, ...r.warnings]).map((f) => f.id);
+    assert.ok(!ids.includes('time-sensitive'));
+  });
+
   test('exits 0 when run on skills/build-skill itself', () => {
     // Arrange
     const dir = resolve('skills/build-skill');

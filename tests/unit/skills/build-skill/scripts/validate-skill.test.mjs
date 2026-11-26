@@ -354,6 +354,24 @@ describe('checkBody', () => {
     assert.deepEqual(ids(found), ['injection-fallback', 'injection-fallback']);
   });
 
+  test('keeps a ```! block open across a shorter inner fence run', () => {
+    // Arrange
+    const body = '````!\n```text\ngit log\n```\n````\n- A: !`git status`\n';
+    // Act
+    const found = checkBody(body);
+    // Assert
+    assert.deepEqual(ids(found), ['injection-fallback', 'injection-fallback']);
+  });
+
+  test('ignores an inline injection inside a longer fence holding a shorter fence', () => {
+    // Arrange
+    const body = '````text\n```\n- A: !`git status`\n```\n````\n';
+    // Act
+    const found = checkBody(body);
+    // Assert
+    assert.deepEqual(ids(found), []);
+  });
+
   test('errors when bundled files exist but no navigation section does', () => {
     // Arrange
     const body = '# T\n\n## Rules\n';
@@ -802,6 +820,15 @@ describe('checkSkillReferences', () => {
     assert.deepEqual(found, []);
   });
 
+  test('allows ${CLAUDE_PLUGIN_ROOT} after a shorter inner fence run in a longer fence', () => {
+    // Arrange
+    const files = { 'SKILL.md': '````text\n```\n${CLAUDE_PLUGIN_ROOT}/x\n```\n````' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
   test('allows ${CLAUDE_PLUGIN_ROOT} in a fence or on a never line', () => {
     // Arrange
     const files = { 'SKILL.md': '```text\n${CLAUDE_PLUGIN_ROOT}/x\n```\nNever use ${CLAUDE_PLUGIN_ROOT}.' };
@@ -1244,6 +1271,36 @@ describe('checkSelfContained', () => {
   test('time-sensitive: passes an ISO date inside a code fence', () => {
     // Arrange
     const files = { 'SKILL.md': '```text\n## [1.0.0] - 2026-10-24\n```' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('time-sensitive: a four-backtick fence holding a three-backtick fence stays one fence', () => {
+    // Arrange
+    const files = { 'SKILL.md': '````markdown\n```\nReleased 2026-10-24.\n```\n````' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
+  test('time-sensitive: warns on an ISO date after a fence that closed', () => {
+    // Arrange
+    const files = { 'SKILL.md': '````markdown\nx\n````\nReleased 2026-10-24.' };
+    // Act
+    const found = run(files);
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.line]),
+      [['time-sensitive', 4]]
+    );
+  });
+
+  test('time-sensitive: a four-backtick opener is not closed by a shorter run', () => {
+    // Arrange
+    const files = { 'SKILL.md': '````text\n```\nReleased 2026-10-24.\n````' };
     // Act
     const found = run(files);
     // Assert

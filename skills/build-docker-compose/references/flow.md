@@ -8,7 +8,7 @@
 
 Root = `repo-root`, else cwd. Read the input (text, paths, pasted compose file); empty input → `Result: stopped`, `Stopped: 1: no input`. Find existing compose files at the root, and in a directory only when the input names it: `compose.yaml`, `compose.*.yaml`, `docker-compose.yml`, `docker-compose.yaml`. Read no other path. A named directory or file that does not exist → ask for it (`--yes`: `Result: stopped`, `Stopped: 1: path not found`). Mode: input asks only to review, score, or audit → review (writes nothing); a target compose file exists → update; else create. Review mode with no compose file → report it, suggest create mode, `Result: nothing-to-do`.
 
-An existing `docker-compose.yml` or `docker-compose.yaml` → AskUserQuestion: Rename to `compose.yaml` with `compose-rename` (Recommended: the Compose Specification's preferred name) | Keep the name and update in place. Keep → list it under `Skipped practices:`. Review mode asks nothing and lists it as a finding. Unattended → keep the name, list under `Skipped practices:`. This ask is outside the question groups. The rename runs right after the answer.
+An existing `docker-compose.yml` or `docker-compose.yaml` → AskUserQuestion: Rename to `compose.yaml` with `compose-rename` (Recommended: the Compose Specification's preferred name) | Keep the name and update in place. Keep → list it under `Skipped practices:`. Review mode asks nothing and lists it as a finding. `--yes` → keep the name, list under `Skipped practices:`. This ask is outside the question groups. The rename runs right after the answer.
 
 ## Analyze
 
@@ -22,11 +22,11 @@ Applies to create and update. The target is stated (`docker stack` in the input,
 - Only `deploy:` with resource limits, or no signal → Compose / DevContainer Recommended.
 - Update mode → the existing file's target is the Recommended option unless the file contradicts it. Review mode keeps it and asks nothing: with no clear signal, print `Target: Compose / DevContainer (assumed: <reason>)` and note it under `Open:`.
 
-Print the chosen target with its signal or answer; only an unattended create or update with no answer prints `Target: unset (<reason>)`.
+Print the chosen target with its signal or answer; only a `--yes` create or update with no answer prints `Target: unset (<reason>)`.
 
 ## App
 
-Applies to create and update; review mode asks nothing. The input states it, or an existing compose file does (a published API port with a database dependency, a static or SSR front end) → do not ask. Otherwise AskUserQuestion: **Backend API** | **Frontend UI**, with the grill table. A backend gets the backing-service questions; a frontend skips that group and gets every other Clarify group. Recommended: the app type a signal shows (a published API port with a database dependency → Backend API; a static or SSR front end → Frontend UI); no signal → no Recommended option, and under `--yes` leave it unset. A review or unattended run with no answer prints `App: unset (<reason>)` and lists it under `Open:`.
+Applies to create and update; review mode asks nothing. The input states it, or an existing compose file does (a published API port with a database dependency, a static or SSR front end) → do not ask. Otherwise AskUserQuestion: **Backend API** | **Frontend UI**, with the grill table. A backend gets the backing-service questions; a frontend skips that group and gets every other Clarify group. Recommended: the app type a signal shows (a published API port with a database dependency → Backend API; a static or SSR front end → Frontend UI); no signal → no Recommended option, and under `--yes` leave it unset. A review or `--yes` run with no answer prints `App: unset (<reason>)` and lists it under `Open:`.
 
 ## Clarify
 
@@ -40,7 +40,7 @@ Skip questions the input or an existing compose file already answers. Question c
 
 Update mode asks the backing-service and per-service deploy groups only when the input asks for them.
 
-Unattended → `--yes` takes each Recommended answer and lists it under `Open:`; otherwise write only stated values and list each unanswered choice under `Open:`. Under `--yes` the Recommended answer for backing services is `None`; for published ports and secrets it is the least exposed one (no published data-store port, secrets over env vars).
+`--yes` takes each Recommended answer and lists it under `Open:`; otherwise write only stated values and list each unanswered choice under `Open:`. Under `--yes` the Recommended answer for backing services is `None`; for published ports and secrets it is the least exposed one (no published data-store port, secrets over env vars).
 
 ## Draft
 

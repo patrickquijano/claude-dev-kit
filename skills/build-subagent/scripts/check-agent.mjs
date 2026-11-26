@@ -65,8 +65,28 @@ function unquote(value) {
   return quoted ? v.slice(1, -1) : v;
 }
 
-// Parses the frontmatter subset check-agent needs: top-level `key: value`, quoted strings, `- item` block lists, and
-// indented continuation or nested lines. Returns the fields, each key's 1-based line, and the closing `---` line.
+// Splits the inside of a YAML flow list on commas that sit outside quotes.
+function splitFlow(text) {
+  const parts = [];
+  let quote = null;
+  let current = '';
+  for (const ch of text) {
+    if (quote) {
+      if (ch === quote) quote = null;
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === ',') {
+      parts.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  parts.push(current);
+  return parts;
+}
+
+// Parses the frontmatter subset check-agent needs: top-level `key: value`, quoted strings, `[a, b]` flow lists, `- item`
+// block lists, and indented continuation or nested lines. Returns the fields, each key's 1-based line, and the closing `---` line.
 export function parseFrontmatter(text) {
   const lines = text.split('\n');
   if (lines[0].trimEnd() !== '---') throw new FrontmatterError('missing opening --- on line 1');
@@ -88,7 +108,9 @@ export function parseFrontmatter(text) {
       if (!/^["']/.test(raw) && value.includes(': ')) {
         throw new FrontmatterError(`line ${i + 1}: plain value holds ": "; quote it`);
       }
-      fields[key] = /^[>|][+-]?$/.test(value) ? '' : unquote(value);
+      const flow = /^\[(.*)\]$/.exec(value);
+      if (flow) fields[key] = splitFlow(flow[1]).map(unquote).filter(Boolean);
+      else fields[key] = /^[>|][+-]?$/.test(value) ? '' : unquote(value);
     } else if (key && /^\s+-\s/.test(line)) {
       if (!Array.isArray(fields[key])) fields[key] = [];
       fields[key].push(unquote(line.replace(/^\s+-\s+/, '')));
@@ -234,12 +256,14 @@ export function checkBody(content, bodyStart = 0, tools) {
   const lines = content.split('\n');
   const found = [];
   const headings = [];
-  let fence = false;
+  let fence = 0;
   let first = null;
   for (let i = bodyStart; i < lines.length; i += 1) {
     const line = lines[i];
-    if (/^\s*```/.test(line)) {
-      fence = !fence;
+    // `fence` is the opening backtick run length (0 = outside); a shorter inner run is content and does not close.
+    const run = /^\s*(`{3,})/.exec(line)?.[1].length;
+    if (run && (!fence || run >= fence)) {
+      fence = fence ? 0 : run;
       if (first === null) first = { line: i + 1, text: line };
       continue;
     }

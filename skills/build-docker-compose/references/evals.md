@@ -161,4 +161,11 @@ kind: behavior
 prompt: "Write a Compose file for a Node app." (`cdk:implement-spec` ends `Result: cancelled`)
 expected: Stops, keeping implement-spec's reason
 pass: `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback
+
+id: cannot-interact-stops
+kind: behavior
+prompt: "Write a Compose file for this Node app and Postgres." (no one to reply, no `--yes`)
+expected: Stops at the first question and writes nothing
+pass: `Result: stopped`, `Stopped: <step>: cannot interact`; no file written
+
 ```

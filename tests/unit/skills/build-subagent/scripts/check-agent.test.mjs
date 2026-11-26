@@ -31,6 +31,26 @@ function makeDeps(content) {
   };
 }
 
+describe('checkAgent with a flow-list tools field', () => {
+  test('passes a read-only agent whose tools are a flow list', () => {
+    // Arrange
+    const content = GOOD.replace('tools: Read, Grep', 'tools: [Read, Grep]');
+    // Act
+    const result = checkAgent('/a/demo.md', {}, makeDeps(content));
+    // Assert
+    assert.equal(result.ok, true);
+  });
+
+  test('flags a flow list holding only an always-removed tool', () => {
+    // Arrange
+    const content = GOOD.replace('tools: Read, Grep', 'tools: [AskUserQuestion]');
+    // Act
+    const result = checkAgent('/a/demo.md', {}, makeDeps(content));
+    // Assert
+    assert.deepEqual(ids(result.errors), ['tools-empty']);
+  });
+});
+
 describe('parseFrontmatter', () => {
   test('parses scalars, quoted strings, and block lists', () => {
     // Arrange
@@ -41,6 +61,34 @@ describe('parseFrontmatter', () => {
     assert.deepEqual(fields, { name: 'demo', description: 'Hi: there', skills: ['a', 'b'] });
     assert.equal(lineOf.skills, 4);
     assert.equal(endLine, 7);
+  });
+
+  test('parses a flow list into items', () => {
+    // Arrange
+    const text = '---\nname: x\ntools: [Read, "Bash(git log *)", Edit]\nskills: []\n---\n';
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.deepEqual(fields.tools, ['Read', 'Bash(git log *)', 'Edit']);
+    assert.deepEqual(fields.skills, []);
+  });
+
+  test('keeps a comma inside a quoted flow item', () => {
+    // Arrange
+    const text = '---\nname: x\ntools: ["Bash(a, b)", Read]\n---\n';
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.deepEqual(fields.tools, ['Bash(a, b)', 'Read']);
+  });
+
+  test('does not treat a scalar with brackets in the middle as a list', () => {
+    // Arrange
+    const text = '---\nname: x\ndescription: Reviews [draft] files\n---\n';
+    // Act
+    const { fields } = parseFrontmatter(text);
+    // Assert
+    assert.equal(fields.description, 'Reviews [draft] files');
   });
 
   test('keeps nested keys under their parent', () => {
@@ -431,6 +479,26 @@ describe('checkBody', () => {
     const found = checkBody(content, 0);
     // Assert
     assert.deepEqual(found, []);
+  });
+
+  test('keeps a longer fence open across a shorter inner fence', () => {
+    // Arrange
+    const head = 'Role.\n\n## Task\n\n1. Read.\n2. Self-check the result.\n\n';
+    const content = `${head}\`\`\`\`text\n\`\`\`\n## Return\n\`\`\`\n\`\`\`\`\n`;
+    // Act
+    const found = checkBody(content, 0, []);
+    // Assert
+    assert.ok(ids(found).includes('return-missing'));
+  });
+
+  test('reads a heading after a longer fence that closed as a heading', () => {
+    // Arrange
+    const head = 'Role.\n\n## Task\n\n1. Read.\n2. Self-check the result.\n\n';
+    const content = `${head}\`\`\`\`text\nx\n\`\`\`\`\n\n## Return\n\n\`\`\`text\nScore: 1\n\`\`\`\n`;
+    // Act
+    const found = checkBody(content, 0, []);
+    // Assert
+    assert.ok(!ids(found).includes('return-missing'));
   });
 
   test('flags a body that opens with a heading or list', () => {

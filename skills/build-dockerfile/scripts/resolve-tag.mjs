@@ -39,9 +39,12 @@ function compare(a, b) {
   return 0;
 }
 
-// Allowlist from the practices pin item: `<digits>(.<digits>)+-<variant>`, or `<digits>.<digits>` for `ubuntu`; pre-release forms never match.
+// Allowlist from the practices pin item: `<digits>(.<digits>)+-<variant>`, or an LTS `<even year>.04` for `ubuntu`; pre-release forms never match.
 function versionOf(name, variant) {
-  if (variant === 'ubuntu') return isDotted(name) && name.split('.').length === 2 ? name : null;
+  if (variant === 'ubuntu') {
+    const [year, month, ...rest] = name.split('.');
+    return isDotted(name) && !rest.length && month === '04' && Number(year) % 2 === 0 ? name : null;
+  }
   const suffix = `-${variant}`;
   if (!name.endsWith(suffix)) return null;
   const version = name.slice(0, -suffix.length);
@@ -76,7 +79,10 @@ export async function resolveTag({ image, runtime, variant }, fetchJson) {
   const names = [];
   let url = `https://hub.docker.com/v2/namespaces/${repo.split('/')[0]}/repositories/${repo.split('/')[1]}/tags?page_size=100${filter}`;
   for (let page = 0; url; page += 1) {
-    if (page >= MAX_PAGES) return { ok: false, error: `page cap of ${MAX_PAGES} reached with no match` };
+    if (page >= MAX_PAGES) {
+      const capped = pickTag({ names, runtime, variant });
+      return capped.ok ? capped : { ok: false, error: `page cap of ${MAX_PAGES} reached with no match` };
+    }
     const body = await fetchJson(url);
     if (!Array.isArray(body?.results)) return { ok: false, error: 'unexpected tags response' };
     names.push(...body.results.map((r) => r?.name));

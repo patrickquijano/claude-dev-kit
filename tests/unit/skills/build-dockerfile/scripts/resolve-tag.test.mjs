@@ -41,6 +41,24 @@ describe('pickTag', () => {
     assert.deepEqual(result, { ok: true, tag: '24.04' });
   });
 
+  test('takes the highest LTS ubuntu release and skips interim releases', () => {
+    // Arrange
+    const names = ['25.10', '25.04', '24.10', '24.04', '22.04'];
+    // Act
+    const result = pickTag({ names, variant: 'ubuntu' });
+    // Assert
+    assert.deepEqual(result, { ok: true, tag: '24.04' });
+  });
+
+  test('reports no match when ubuntu has only interim releases', () => {
+    // Arrange
+    const names = ['25.04', '25.10', '23.10', '24.04.1'];
+    // Act
+    const result = pickTag({ names, variant: 'ubuntu' });
+    // Assert
+    assert.equal(result.ok, false);
+  });
+
   test('requires the runtime major.minor prefix', () => {
     // Arrange
     const names = ['3.13.2-slim-bookworm', '3.12.9-slim-bookworm'];
@@ -106,6 +124,30 @@ describe('resolveTag', () => {
     // Assert
     assert.equal(result.ok, false);
     assert.ok(result.error.includes(String(MAX_PAGES)));
+  });
+
+  test('returns the best tag found when the page cap is reached', async () => {
+    // Arrange
+    const next = 'https://hub.docker.com/v2/x?page=n';
+    const fetchJson = async () => page(['22.1.0-alpine'], next);
+    // Act
+    const result = await resolveTag({ image: 'node', runtime: '22', variant: 'alpine' }, fetchJson);
+    // Assert
+    assert.deepEqual(result, { ok: true, tag: '22.1.0-alpine' });
+  });
+
+  test('fetches no more than the page cap', async () => {
+    // Arrange
+    const next = 'https://hub.docker.com/v2/x?page=n';
+    let calls = 0;
+    const fetchJson = async () => {
+      calls += 1;
+      return page(['22.1.0-alpine'], next);
+    };
+    // Act
+    await resolveTag({ image: 'node', runtime: '22', variant: 'alpine' }, fetchJson);
+    // Assert
+    assert.equal(calls, MAX_PAGES);
   });
 
   test('refuses a next link off Docker Hub', async () => {

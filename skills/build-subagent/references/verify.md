@@ -22,7 +22,7 @@ Once, after the loop ends: run `validate-agents` on the nearest ancestor directo
 
 ## Delegation test
 
-After validation, when `claude` can run: take the sample task from interview item 5 (Triggers), no trigger recorded → `Not tested: no sample task`; ask for it in natural language and by @-mention (`@<name>`, `@<plugin>:<name>`) with `delegation-test`, and report whether the right agent was picked and the return matches `## Return`; a wrong pick or a Return mismatch goes to `Open:`. The agent not loaded (a new plugin agents directory needs a restart), no `claude`, or a write-capable agent (never run for a test) → `Not tested: <why>`.
+After validation, when `claude` can run: take the sample task from interview item 5 (Triggers), no trigger recorded → `Not tested: no sample task`; write each phrasing (natural language, and by @-mention `@<name>`, `@<plugin>:<name>`) to its own file in the session scratchpad with Write (no scratchpad → `Not tested: no scratchpad`) and run `delegation-test` on each file, never with the text as an argument, and report whether the right agent was picked and the return matches `## Return`; a wrong pick or a Return mismatch goes to `Open:`. The agent not loaded (a new plugin agents directory needs a restart), no `claude`, or a write-capable agent (never run for a test) → `Not tested: <why>`.
 
 ## Open
 

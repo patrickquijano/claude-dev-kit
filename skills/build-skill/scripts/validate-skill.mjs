@@ -92,6 +92,14 @@ const LEADING_VERB = new Set([
 ]);
 const FENCE = /^\s*```/;
 
+// Fence state after `line`: `open` is the opening run length (0 = outside a fence). A shorter inner run is content and does not close.
+function nextFence(open, line) {
+  const run = /^\s*(`{3,})/.exec(line)?.[1].length;
+  if (!run) return open;
+  if (!open) return run;
+  return run >= open ? 0 : open;
+}
+
 export class FrontmatterError extends Error {}
 
 const error = (id, rule, file, line, message) => ({ level: 'error', id, rule, file, line, message });
@@ -267,12 +275,15 @@ const stripSpans = (line) => line.replace(/``.+?``/g, '');
 function bareInjections(lines, from, any = false) {
   const found = [];
   let fence = null;
+  let open = 0;
   for (let i = from; i < lines.length; i += 1) {
     const line = lines[i];
-    if (FENCE.test(line)) {
+    const was = open;
+    open = nextFence(open, line);
+    if (was !== open) {
       if (fence?.injection && (any || !fence.body.includes('||')))
         found.push({ line: fence.start, what: 'a ```! block' });
-      fence = fence ? null : { start: i + 1, injection: /^\s*```!/.test(line), body: '' };
+      fence = open ? { start: i + 1, injection: /^\s*`{3,}!/.test(line), body: '' } : null;
     } else if (fence) {
       fence.body += `${line}\n`;
     } else {
@@ -481,13 +492,13 @@ export function checkSelfContained(files, dir, deps = defaults) {
   const mdFiles = files.filter((f) => f.endsWith('.md'));
   for (const file of mdFiles) {
     const isRef = file.startsWith('references/');
-    let inFence = false;
+    let open = 0;
     deps
       .read(join(dir, file))
       .split('\n')
       .forEach((raw, i) => {
         const at = i + 1;
-        if (/^\s*```/.test(raw)) inFence = !inFence;
+        open = nextFence(open, raw);
         const line = raw.replace(SKILL_DIR_LINK, '');
         if (PARENT_PATH.test(line))
           found.push(
@@ -505,7 +516,7 @@ export function checkSelfContained(files, dir, deps = defaults) {
           );
         if (BACKSLASH_PATH.test(line))
           found.push(error('path-backslash', 'L5', file, at, 'backslash path: use forward slashes'));
-        if (TIME_SENSITIVE.test(line) || (ISO_DATE.test(line) && !inFence && !line.startsWith('Fetched:')))
+        if (TIME_SENSITIVE.test(line) || (ISO_DATE.test(line) && !open && !line.startsWith('Fetched:')))
           found.push(
             warning('time-sensitive', 'B11', file, at, 'time-sensitive text (dated or "currently"): it will go stale')
           );
@@ -539,21 +550,20 @@ export function checkSkillReferences(files, dir, name, deps = defaults) {
   const found = [];
   const targets = files.filter((f) => f === 'SKILL.md' || (f.startsWith('references/') && f.endsWith('.md')));
   for (const file of targets) {
-    let inFence = false;
+    let open = 0;
     deps
       .read(join(dir, file))
       .split('\n')
       .forEach((line, i) => {
-        if (FENCE.test(line)) {
-          inFence = !inFence;
-          return;
-        }
+        const was = open;
+        open = nextFence(open, line);
+        if (was !== open) return;
         if (/\bnever\b/i.test(line)) return;
         const hits = [];
         if (/^\s*Next:/.test(line)) {
           for (const m of line.matchAll(QUALIFIED_SLASH)) if (m[2] !== name) hits.push(`/${m[1]}:${m[2]}`);
         }
-        if (!inFence && PLUGIN_ROOT.test(line)) hits.push('${CLAUDE_PLUGIN_ROOT}');
+        if (!open && PLUGIN_ROOT.test(line)) hits.push('${CLAUDE_PLUGIN_ROOT}');
         for (const what of hits) {
           found.push(
             error('skill-reference', 'S1', file, i + 1, `${what} reaches another skill by path or on a Next: line`)

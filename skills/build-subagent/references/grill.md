@@ -20,6 +20,7 @@ Print before each question; options in alphabetical order.
 - 3–6 criteria taken from the user's stated goals, never from a preferred option.
 - Integer weights summing to 100, fixed and printed before any option is scored.
 - No stated goals → ask for them first.
+- Exception: a question whose step fixes its own criteria and weights (`interview.md` `## Name`, model, and effort) uses those; never ask for goals or change the weights.
 
 ## Anchors
 
