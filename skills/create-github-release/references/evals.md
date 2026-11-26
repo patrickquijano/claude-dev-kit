@@ -24,7 +24,7 @@ pass: <observable criteria>
 | immutable-retry-capped | "Update release v0.6.0." (GitHub rejects the edit as immutable) | Reports, retries the next tag | Error line reported; at most 2 rounds |
 | no-commits-offers-stop | "Cut a release." (no commits since the latest release) | Says so and includes Stop | A `Stop` option is listed; no write |
 | gh-flag-missing-fallback | "Cut a release." (`gh release edit --help` lacks `--notes-file`) | Uses the `gh api` PATCH | `Tool: gh api`; body sent with `-F body=@<file>`, never inline |
-| unattended-stops | "Cut a release." (run with no one to ask) | Stops at the first question | `Result: stopped`; nothing written or created |
+| unattended-stops | "Cut a release." (run with no one to ask) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; nothing written or created |
 | auto-invoke | "Can you publish a GitHub release for the new version?" (no `/cdk:` command) | Claude loads the skill on its own | The skill runs; the release is created or updated after the decision questions |
 | no-approval-step | "Cut a release." | Runs end to end; every write follows the last decision answer directly | Only the tag and draft-or-published questions are asked; `create` runs right after them with no confirm question; `Result: done` |
 

@@ -27,6 +27,7 @@ pass: <observable criteria>
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the PR is created or updated after the decision questions |
 | yes-no-overwrite | "/cdk:open-github-pull-request --yes" (a scratch or template path that already holds an unnamed file) | Asks nothing; overwrites nothing | No question; the existing file is unchanged; the skipped step is under `Open:` |
 | no-approval-step | "Open a PR." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| cannot-interact | "Open a PR." (a decision question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no push, no PR written |
 
 ## Running per model
 

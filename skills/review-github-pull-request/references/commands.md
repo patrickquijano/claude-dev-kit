@@ -1,6 +1,6 @@
 # Commands
 
-`<owner>`, `<repo>`, `<n>`, `<sha>`, `<path>`, `<file>` are literal values from Pre-flight and Resolve; text bodies go to scratch files, never inline in a shell argument; `<path>` is validated and single-quoted per the Rules in `SKILL.md`; `<last sha>` must match `^[0-9a-f]{40}$` and is single-quoted, any other value is rejected.
+`<owner>`, `<repo>`, `<n>`, `<sha>`, `<path>`, `<file>` are literal values from Pre-flight and Resolve; text bodies go to scratch files, never inline in a shell argument; `<path>` is validated and single-quoted per the Rules in `SKILL.md`; `<last sha>` must match `^[0-9a-f]{40}$` and is single-quoted, any other value is rejected. The `gh-get.mjs` rows take exactly one endpoint (or the fixed `graphql <query-name> <owner> <repo> <n>` form), add their own Accept header and `--paginate`, and exit 2 for any other argument; the write rows are not granted and prompt.
 
 | Name | Command | Purpose | MCP tool |
 | --- | --- | --- | --- |
@@ -8,16 +8,16 @@
 | `origin` | `git remote get-url origin` | Host check, must be `github.com` (preloaded in Context) | — |
 | `branch` | `git branch --show-current` | Current branch for the branch match (preloaded in Context) | — |
 | `repo-view` | `gh repo view --json nameWithOwner,url` | Owner and repo of the working directory | — |
-| `self` | `gh api user --jq .login` | Login of the reviewer | `mcp__plugin_github_github__get_me` |
+| `self` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs user` | Login of the reviewer: read `.login` from the JSON | `mcp__plugin_github_github__get_me` |
 | `pr-resolve-url` | `gh pr view <url> --json number,url,state,isDraft,headRefOid` | Resolve a PR URL or number to its repo, state, and head | `mcp__plugin_github_github__pull_request_read` |
 | `pr-for-branch` | `gh pr view <branch> --repo <owner>/<repo> --json number,url,state,isDraft,headRefOid,headRepositoryOwner` | Open PR whose head is the current branch; error = no match | `mcp__plugin_github_github__pull_request_read` |
 | `pr-view` | `gh pr view <n> --repo <owner>/<repo> --json number,url,title,body,author,baseRefName,baseRefOid,headRefName,headRefOid,state,isDraft,isCrossRepository,closingIssuesReferences,files,commits,reviews,statusCheckRollup` | Full PR details, head SHA, and checks | `mcp__plugin_github_github__pull_request_read` |
 | `pr-diff` | `gh pr diff <n> --repo <owner>/<repo>` | Unified diff to scratch | `mcp__plugin_github_github__pull_request_read` (`get_diff`) |
-| `compare-diff` | `gh api 'repos/<owner>/<repo>/compare/<last sha>...<sha>' -H 'Accept: application/vnd.github.diff'` | Unified diff of the changes since the last reviewed SHA (re-review) to scratch; a 404 or unknown commit (e.g. after a force-push) → use `pr-diff` instead | — |
-| `file-at-sha` | `gh api 'repos/<owner>/<repo>/contents/<path>?ref=<sha>' -H 'Accept: application/vnd.github.raw'` | One file at the head SHA to scratch | `mcp__plugin_github_github__get_file_contents` |
+| `compare-diff` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/compare/<last sha>...<sha>'` | Unified diff of the changes since the last reviewed SHA (re-review) to scratch; a 404 or unknown commit (e.g. after a force-push) → use `pr-diff` instead | — |
+| `file-at-sha` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/<path>?ref=<sha>'` | One file at the head SHA to scratch | `mcp__plugin_github_github__get_file_contents` |
 | `issue-view` | `gh issue view <number> --repo <owner>/<repo> --json title,body,state` | Linked issue text | `mcp__plugin_github_github__issue_read` |
-| `review-threads` | `gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100){nodes{id isResolved isOutdated resolvedBy{login} viewerCanResolve path line comments(first:5){nodes{author{login} body url createdAt}} lastComment: comments(last:1){nodes{databaseId author{login} body createdAt originalCommit{oid}}}}}}}}' -f o=<owner> -f r=<repo> -F n=<n>` | Read query: open and resolved threads with their comments | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
-| `issue-comments` | `gh api repos/<owner>/<repo>/issues/<n>/comments --paginate` | Read: PR conversation comments (own summary lookup: author, marker, id, `Last reviewed SHA:`) | `mcp__plugin_github_github__pull_request_read` (`get_comments`) |
+| `review-threads` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs graphql review-threads <owner> <repo> <n>` | Read query: open and resolved threads with their comments | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
+| `issue-comments` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/issues/<n>/comments'` | Read: PR conversation comments (own summary lookup: author, marker, id, `Last reviewed SHA:`) | `mcp__plugin_github_github__pull_request_read` (`get_comments`) |
 | `head-sha` | `gh pr view <n> --repo <owner>/<repo> --json headRefOid,state,isDraft` | Re-fetch the head SHA and state before posting | `mcp__plugin_github_github__pull_request_read` |
 | `thread-resolve` | `gh api graphql -f query='mutation($t:ID!){resolveReviewThread(input:{threadId:$t}){thread{isResolved}}}' -f t=<thread id>` | Write: resolve one thread | — |
 | `summary-post` | `gh api repos/<owner>/<repo>/issues/<n>/comments -X POST -F body=@<file>` | Write: the one summary conversation comment (first review); the body carries the marker | `mcp__plugin_github_github__add_issue_comment` |

@@ -45,8 +45,10 @@ Offer only methods `merge-methods` allows; drop Merge when `rules` has `required
 | Option | Recommended when | Reason | Trade-off when not recommended |
 | --- | --- | --- | --- |
 | Squash | Allowed | One commit per PR on the base | Folds the commits into one |
-| Rebase | Squash not allowed and linear history required | Keeps history linear and the individual commits | Rewrites the commit SHAs onto the base |
-| Merge | The only allowed method | Preserves the branch commits and their ancestry | Adds a merge commit |
+| Rebase | Squash not allowed and Merge not offered (disallowed or linear history required) | Keeps history linear and the individual commits | Rewrites the commit SHAs onto the base |
+| Merge | Squash not allowed and Merge offered (including when Rebase is also allowed and linear history is not required) | Preserves the branch commits and their ancestry | Adds a merge commit |
+
+Every offered set has exactly one Recommended option, so `--yes` always has a method to take.
 
 ## Branch cleanup
 

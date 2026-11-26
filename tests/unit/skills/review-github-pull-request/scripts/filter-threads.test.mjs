@@ -284,6 +284,36 @@ describe('main', () => {
     assert.deepEqual([code, err.length], [2, 1]);
   });
 
+  test('accepts a bot login with the [bot] suffix', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dependabot[bot]', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('rejects an author with shell metacharacters and exits 2', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev; rm -rf x', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.deepEqual([code, err.length], [2, 1]);
+  });
+
+  test('rejects a self login starting with a hyphen and exits 2', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', '-me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.deepEqual([code, err.length], [2, 1]);
+  });
+
   test('reports usage and exits 2 on an unknown command', () => {
     // Arrange
     err = [];

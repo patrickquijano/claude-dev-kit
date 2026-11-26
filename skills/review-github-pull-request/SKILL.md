@@ -1,10 +1,10 @@
 ---
 name: review-github-pull-request
-description: 'Reviews one GitHub PR: resolves its addressed threads, posts severity-labeled threads, and approves when none is unresolved. Use when asked to review a GitHub PR.'
-when_to_use: Use for review PR 42, a PR URL, or a re-review after new commits. Not for GitLab MRs (/cdk:review-gitlab-merge-request), local diffs (/cdk:review-code-changes), or answering threads (/cdk:address-github-pull-request-review).
+description: 'Reviews one GitHub PR: resolves its addressed threads, posts severity-labeled threads, and approves when none is unresolved. Use when asked to review a GitHub PR. Not for reviewing local diffs or answering review threads.'
+when_to_use: Use for review PR 42, a PR URL, or a re-review after new commits.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr diff *) Bash(git remote get-url *) Bash(git branch --show-current) mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__issue_read
+allowed-tools: 'Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh issue view *) Bash(git remote get-url *) Bash(git branch --show-current) mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__get_file_contents mcp__plugin_github_github__issue_read'
 ---
 
 # Review GitHub Pull Request
@@ -46,7 +46,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - One pass per invocation: never poll, re-trigger this skill, or invoke the address skills.
 - A PR path used in a shell argument or scratch path must match `[A-Za-z0-9._/@+-]+` with no `..` segment and no leading `/` or `-`, and goes in single quotes; any other path is skipped and listed under `Skipped:`.
 - Orchestrator vs subagents: only this skill talks to the user and the host; at most 4 read-only subagents per parallel turn, over scratch copies, spawned per `## Spawn briefs` in the reference of the step, each with an inline fallback.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Only the `gh-get.mjs` reads (including the `review-threads` GraphQL read) are granted; every write row is not in `allowed-tools` and prompts.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
 - Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. Caps keep one run from looping on a moving head or a failing subagent. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
@@ -60,9 +60,9 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 
    3b. Run the script.
 
-   3c. Spawn the judges: up to 4 `cdk:code-reviewer` subagents (fallback: read-only subagents that judge threads) per `threads.md` `## Spawn briefs`, to judge each thread as fixed, obsolete, or still open. A gating thread Self cannot resolve → stop.
+   3c. Spawn the judges: up to 4 `cdk:code-reviewer` subagents (fallback: read-only subagents that judge threads) per `threads.md` `## Spawn briefs`, to judge each thread as fixed, accepted, obsolete, or still open. A gating thread Self cannot resolve → stop.
 
-4. **Gating threads.** Any own gating thread judged Open or left unjudged (`threads.md` `## Gating check`) → the check fails and the state stays changes requested; continue to step 5 either way.
+4. **Gating threads.** Any own gating thread judged Open or Accepted, or left unjudged (`threads.md` `## Gating check`) → the check fails and the state stays changes requested; continue to step 5 either way.
 5. **Scratch.** Write the diff (re-review: only the changes since the last reviewed SHA), head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 6. **Analyze** per `analyze.md`:
 
@@ -97,6 +97,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - For scratch files, the four reviewer subagents, findings, the coverage check, the sweep, and the verdict table (steps 5–7), see `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 - For the pre-post report, head-SHA check, resolves, summary comment, state review, errors, and the report (steps 8–9), see `${CLAUDE_SKILL_DIR}/references/post.md`.
 - For the thread classifier (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs`.
+- For the read-only GitHub GET wrapper (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output

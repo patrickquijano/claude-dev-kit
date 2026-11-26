@@ -7,8 +7,9 @@
 | `auth` | — | `gh auth status` | Fallback only: must succeed, else tell the user to run `gh auth login` |
 | `origin` | — | `git remote get-url origin` | Owner and repo from a bare number |
 | `issue-get` | `mcp__plugin_github_github__issue_read` (`get`) | `gh issue view <n> --repo <owner>/<repo> --json number,url,title,body,labels,state,issueType` | Current title, body, labels, type, state |
-| `issue-search` | `mcp__plugin_github_github__search_issues` | `gh issue list --repo <owner>/<repo> --state open --search '<query>' --json number,url,title` | Open duplicates before a create |
-| `template-lookup` | `mcp__plugin_github_github__get_file_contents` (default branch) | `gh api repos/<owner>/<repo>/contents/<path>` | Probe the template paths in `template.md`; a directory lists candidates |
+| `issue-search` | `mcp__plugin_github_github__search_issues` | `gh issue list --repo <owner>/<repo> --state open --search '<query>' --json number,url,title,author` | Open duplicates before a create; `author` feeds the `--yes` duplicate stop |
+| `self` | `mcp__plugin_github_github__get_me` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs user` | Login of the user (read `.login` from the JSON), compared with a duplicate's author |
+| `template-lookup` | `mcp__plugin_github_github__get_file_contents` (default branch) | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/<path>'` | Probe the template paths in `template.md`; the JSON has base64 `content`, a directory lists candidates |
 | `label-list` | the MCP label-list tool found by ToolSearch | `gh label list --repo <owner>/<repo> --limit 200 --json name,description` | The repo's own label set |
 | `label-get` | `mcp__plugin_github_github__get_label` | `gh label list --repo <owner>/<repo> --search '<label>' --json name,description` | Confirm one label exists |
 | `list-issue-types` | `mcp__plugin_github_github__list_issue_types` | — | Valid issue types; no route → skip types |

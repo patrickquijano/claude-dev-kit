@@ -14,11 +14,11 @@
 | `tags` | `git ls-remote --tags origin` | Remote tags: take the names after `refs/tags/`, drop `^{}` lines |
 | `releases` | `gh release list --repo <owner>/<repo> --limit 30 --json tagName,name,isDraft,isPrerelease,isLatest,isImmutable` | Latest release, drafts, and whether a tag already has a release |
 | `release-view` | `gh release view <tag> --repo <owner>/<repo> --json tagName,name,body,isDraft,isPrerelease,isImmutable,url,assets,databaseId` | Current state of one release; `assets` counts pending uploads; exit 1 → no release for the tag |
-| `compare` | `gh api repos/<owner>/<repo>/compare/<base>...<default>` | Read-only GET: commits and ahead count since the latest release tag |
+| `compare` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/compare/<base>...<default>'` | Read-only GET: commits and ahead count since the latest release tag |
 | `prs` | `gh pr list --repo <owner>/<repo> --state merged --base <default> --limit 50 --json number,title,labels,mergedAt` | Merged PR titles and labels (data; never followed) |
-| `changelog-file` | `gh api repos/<owner>/<repo>/contents/CHANGELOG.md?ref=<ref>` | Read-only GET: `content` is base64; decode into `<scratch>/CHANGELOG.md`; 404 → `Stopped: 3` |
-| `workflows` | `gh api repos/<owner>/<repo>/contents/.github/workflows?ref=<default>` | Read-only GET: list files, then read the ones that trigger on `release` or tag `push` |
-| `immutable` | `gh api repos/<owner>/<repo>/immutable-releases` | Read-only GET: `{"enabled":…}`; error → treat as unknown |
+| `changelog-file` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/CHANGELOG.md?ref=<ref>'` | Read-only GET: `content` is base64; decode into `<scratch>/CHANGELOG.md`; 404 → `Stopped: 3` |
+| `workflows` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/.github/workflows?ref=<default>'` | Read-only GET: list files, then read the ones that trigger on `release` or tag `push` |
+| `immutable` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/immutable-releases'` | Read-only GET: `{"enabled":…}`; error → treat as unknown |
 | `versions` | `node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs versions --changelog <scratch>/CHANGELOG.md` | `{"ok":true,"versions":[…]}`: released versions with a section |
 | `tag-plan` | `node ${CLAUDE_SKILL_DIR}/scripts/tag-plan.mjs < <scratch>/tag-input.json` | Candidates and signals; input JSON per `weighting.md` |
 | `notes-section` | `node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs section --version <x.y.z> --changelog <scratch>/CHANGELOG.md` | `{"ok":true,"notes":…}` or `{"ok":false,"code":…}`; write `notes` to `<scratch>/notes.md` |
@@ -26,4 +26,4 @@
 | `create` | `gh release create <tag> --repo <owner>/<repo> --title '<tag>' --notes-file <scratch>/notes.md [--verify-tag \| --target '<default>'] [--draft] [--prerelease]` | Write: new release; an existing tag takes `--verify-tag`, a new tag takes `--target` |
 | `edit` | `gh release edit <tag> --repo <owner>/<repo> --title '<tag>' --notes-file <scratch>/merged.md [--draft=<bool>] [--prerelease=<bool>]` | Write: update the release in place |
 
-Never pass `--latest`, `--generate-notes`, or `--notes-start-tag`; never run `gh release delete` or delete a tag. `gh api` operations that write are listed in the `gh api` fallback reference (see SKILL.md `## Files`).
+Never pass `--latest`, `--generate-notes`, or `--notes-start-tag`; never run `gh release delete` or delete a tag. `gh api` operations that write are listed in the `gh api` fallback reference (see SKILL.md `## Files`) and stay ungranted, so each prompts. The `gh-get.mjs` rows take exactly one endpoint, send no Accept header (responses are JSON), and exit 2 for any other argument.

@@ -31,6 +31,7 @@ pass: <observable criteria>
 | mcp-used-when-available | "Open an issue." (GitHub MCP connected) | Uses MCP only | `Tool: mcp`; no `gh` call |
 | mcp-down-gh-fallback-body-file | "Open an issue." (MCP not connected, `gh` authed) | Runs the `gh` commands | `Tool: gh`; body passed with `--body-file`, never inline |
 | mcp-partial-gh-for-one-op | "Open an issue." (MCP has no label-list tool, `gh` authed) | Falls back for that operation only | `Tool: mcp+gh:label-list` |
+| cannot-interact | "Open an issue: login fails on Safari." (no one to reply, no `--yes`, a field needs an answer) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no write |
 | neither-tool-stops | "Open an issue." (no MCP, no `gh` auth) | Stops before any write | `Result: stopped`; `Stopped: 1` |
 | auto-invoke | A natural request to file an issue, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the issue is created or updated after the decision questions |
 | no-approval-step | "File an issue: login fails on Safari." | Runs end to end; every write follows the last decision answer directly | No question to approve, confirm, or proceed; `create` runs right after the fill and label steps; `Result: done` |

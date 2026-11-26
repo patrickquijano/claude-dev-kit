@@ -20,6 +20,8 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const PAGE = 100;
+// A GitHub login: alphanumerics and hyphens, with an optional `[bot]` suffix.
+const LOGIN = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}(\[bot\])?$/;
 const same = (a, b) => Boolean(a) && Boolean(b) && String(a).toLowerCase() === String(b).toLowerCase();
 
 // Accepts the raw GraphQL response or a bare `nodes` array.
@@ -104,6 +106,10 @@ export function main(argv, deps = {}) {
     d.error(
       'usage: filter-threads.mjs filter --file <json> --author <login> --self <login> --head <sha> --marker <text>'
     );
+    return 2;
+  }
+  if (![author, self].every((login) => LOGIN.test(login))) {
+    d.error('filter-threads: --author and --self must be GitHub logins');
     return 2;
   }
   const nodes = threadNodes(JSON.parse(d.readFileSync(file, 'utf8')));
