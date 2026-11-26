@@ -49,7 +49,7 @@ Run after every implementation (step 6, an applied step 6c review, each fix atte
 - Round-level stop: when a round ends with no fewer unmet goals plus blocking items than the previous round, stop with `Stopped: 8: no progress`.
 - The verify budget check runs before every verifier spawn (`Stopped: <step>: verify budget`).
 - Count each re-entry as a round; the cap is in `## Rules`.
-- Unattended runs re-enter without asking.
+- `--yes` runs re-enter without asking.
 
 ## Open
 

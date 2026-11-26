@@ -238,6 +238,27 @@ describe('main', () => {
     assert.throws(act, /ENOENT/);
   });
 
+  test('reports a missing or failing specify command as ok:false', () => {
+    // Arrange
+    const missing = stubs({ runError: Object.assign(new Error('spawn specify ENOENT'), { code: 'ENOENT' }) });
+    const failing = stubs({ runError: Object.assign(new Error('Command failed: specify\nusage'), { status: 2 }) });
+    // Act
+    const codes = [main([], missing.deps), main([], failing.deps)];
+    // Assert
+    assert.deepEqual(codes, [1, 1]);
+    assert.match(JSON.parse(missing.out.logs[0]).error, /ENOENT/);
+    assert.equal(JSON.parse(failing.out.logs[0]).error, 'Command failed: specify');
+  });
+
+  test('rethrows an error that is not a command failure', () => {
+    // Arrange
+    const { deps } = stubs({ runError: new TypeError('boom') });
+    // Act
+    const act = () => main([], deps);
+    // Assert
+    assert.throws(act, /boom/);
+  });
+
   test('reports a malformed --wanted as ok:false', () => {
     // Arrange
     const { deps, out } = stubs();
@@ -347,6 +368,19 @@ describe('main --latest-tag', () => {
     // Assert
     assert.equal(code, 1);
     assert.equal(JSON.parse(out.logs[0]).ok, false);
+  });
+
+  test('reports a failing git ls-remote as ok:false and rethrows other errors', () => {
+    // Arrange
+    const failing = stubs({ runError: Object.assign(new Error('fatal: unable to access'), { status: 128 }) });
+    const broken = stubs({ runError: new TypeError('boom') });
+    // Act
+    const code = main(['--latest-tag'], failing.deps);
+    const act = () => main(['--latest-tag'], broken.deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.equal(JSON.parse(failing.out.logs[0]).ok, false);
+    assert.throws(act, /boom/);
   });
 
   test('rejects --latest-tag combined with another flag', () => {

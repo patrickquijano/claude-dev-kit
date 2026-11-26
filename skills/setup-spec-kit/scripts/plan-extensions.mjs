@@ -122,6 +122,9 @@ export function missingIgnoreLines({ content, lines = IGNORE_LINES }) {
   return lines.filter((l) => !present.has(l));
 }
 
+// A command that is missing, timed out, or exited non-zero (child-process error shapes); anything else is a bug and propagates.
+const isRunFailure = (err) => err?.code === 'ENOENT' || err?.code === 'ETIMEDOUT' || typeof err?.status === 'number';
+
 function arg(argv, name) {
   const i = argv.indexOf(name);
   return i < 0 ? undefined : argv[i + 1];
@@ -141,7 +144,14 @@ const realDeps = {
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
   if (argv.length === 1 && argv[0] === '--latest-tag') {
-    const tag = latestTag(d.run('git', ['ls-remote', '--tags', '--refs', SPEC_KIT_REPO]));
+    let tag;
+    try {
+      tag = latestTag(d.run('git', ['ls-remote', '--tags', '--refs', SPEC_KIT_REPO]));
+    } catch (err) {
+      if (!isRunFailure(err)) throw err;
+      d.log(JSON.stringify({ ok: false, error: String(err.message).split('\n')[0] }));
+      return 1;
+    }
     d.log(JSON.stringify(tag ? { ok: true, tag } : { ok: false, error: 'no vX.Y.Z tag found' }));
     return tag ? 0 : 1;
   }
@@ -163,7 +173,12 @@ export function main(argv, deps = {}) {
     wanted = parseWanted(arg(argv, '--wanted') ?? DEFAULT_WANTED);
     list = JSON.parse(d.run('specify', ['extension', 'list', '--json']));
   } catch (err) {
-    if (!(err instanceof SyntaxError) && !/^(invalid --wanted|--wanted )/.test(err?.message ?? '')) throw err;
+    if (
+      !(err instanceof SyntaxError) &&
+      !isRunFailure(err) &&
+      !/^(invalid --wanted|--wanted )/.test(err?.message ?? '')
+    )
+      throw err;
     d.log(JSON.stringify({ ok: false, error: String(err.message).split('\n')[0] }));
     return 1;
   }

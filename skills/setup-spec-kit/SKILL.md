@@ -3,7 +3,7 @@ name: setup-spec-kit
 description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit.
 argument-hint: '[--yes]'
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: Bash(command -v specify) Bash(command -v uv) Bash(specify --version) Bash(specify integration install claude) Bash(specify extension list *) Bash(specify extension set-priority *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/plan-extensions.mjs *) Bash(git rev-parse --is-inside-work-tree)
+allowed-tools: Bash(command -v specify) Bash(command -v uv) Bash(specify --version) Bash(specify extension list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/plan-extensions.mjs *) Bash(git rev-parse --is-inside-work-tree)
 disable-model-invocation: true
 ---
 
@@ -13,7 +13,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is already done, so re-runs change nothing.
@@ -23,14 +23,15 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Extensions and priorities (lower number wins): `agent-context` 10, `assess` 20, `bug` 30. `agent-context` manages the CLAUDE.md context section, so it outranks the workflow extensions.
 - Required skill dirs: `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
 - Caps: `extension-add` or `extension-set-priority` runs once per extension, no retries; one reinstall per extension whose skill dirs are missing; one retry pass over skipped ignore edits (step 6).
-- `specify extension remove` and `specify extension add` are not in `allowed-tools`; the permission prompt guards them.
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
+- Not pre-approved on purpose: `install-specify`, `integration-install`, `init-here`, `extension-add`, `extension-set-priority`, and `extension-reinstall` write to the project or the machine, so the permission prompt is the second guard.
+- Plan once, before the first write: from the read-only state checks (`has-specify`, `.specify/` and the required skill dirs, `inside-work-tree`, and `plan-extensions` when the CLI exists) print each effect that will run (CLI install, init, each extension add or priority change, the `.gitignore` and ignore-file edits), then continue with no wait. No CLI yet → the three extensions are listed as to add.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → install and write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`, planned work under `Open:`. Only `--yes` takes the Recommended option.
 - Steps 1-2 stops: print the Output with `Open:` holding the item recorded at the stop (else `not run`) and end. A later stop still runs step 6 once, then prints the Output with `Result: stopped`.
 - Leftovers (failed extensions, missing skill dirs, skipped ignore edits) go to `Open:` with a recommended fix; never loop past the caps.
 
 ## Workflow
 
-1. **CLI.** `has-specify` succeeds → skip, else run `install-specify`; record `version`. Missing uv or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
+1. **CLI.** Print the plan (Rules). `has-specify` succeeds → skip, else run `install-specify`; record `version`. Missing uv or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
 2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. A non-empty project with speckit files it did not create stops. Cases and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
 3. **Extensions.** Run `plan-extensions`; per `extensions.adds` run `extension-add`, per `priorityFixes` run `extension-set-priority`. Then read `skills.missing` from the plan for the missing required skill dirs. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append the `gitignore.missing` lines from step 3's plan to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Leave `.specify/.gitignore` alone; `specify init` manages it.

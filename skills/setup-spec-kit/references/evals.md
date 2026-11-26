@@ -23,7 +23,8 @@ pass: <observable criteria, one per line>
 | missing-skill-dirs | "Set up Spec Kit." (an extension's skill dirs are missing) | One reinstall | At most one remove and add per extension; a second failure is under `Open:` with the recommended command |
 | extension-fails | "Set up Spec Kit." (`extension-add` fails once) | No retry | The command ran once; `Extensions: ... failed`; leftover under `Open:` |
 | config-ignores | "Set up Spec Kit." (a Prettier ignore file exists, no ESLint config) | Edits only existing configs | `.specify/` and `.claude/skills/speckit-*/` added to an existing ignore file; no ESLint config created; `specs/` stays linted |
-| no-approval-step | "Set up Spec Kit in this repo." (CLI present, no `.specify/`) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| plan-before-write | "Set up Spec Kit in this repo." (CLI present, no `.specify/`) | Prints the plan, then writes | The plan names init, each extension add, and the ignore edits, and prints before the first write |
+| no-approval-step | "Set up Spec Kit in this repo." (CLI present, no `.specify/`) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the printed plan |
 
 ## Running per model
 

@@ -9,7 +9,7 @@ Read Status in `fix.md`:
 - `applied` → step 5.
 - `not-applied` or `partial`, Deviations say the assessment is wrong → step 6 (re-assess).
 - `partial`, other reason → step 5; the test shows what the applied part fixes.
-- `not-applied`, other reason, unattended → `Test: not run`, `Result: stopped`, `Stopped: Fix: input needed`; list the blockers in `Open:`, print the Output.
+- `not-applied`, other reason, `--yes` → `Test: not run`, `Result: stopped`, `Stopped: Fix: input needed`; list the blockers in `Open:`, print the Output.
 - `not-applied`, other reason → blockers: AskUserQuestion with one option per blocker (option text = how to resolve it), plus Stop, free text via Other. An answer → step 6 (retry) with it as `<user input>`. Stop → `Test: not run`, `Result: stopped`, `Stopped: Fix: user stopped`; list the blockers in `Open:`, print the Output.
 
 ## Test result
