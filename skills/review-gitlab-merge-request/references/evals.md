@@ -50,6 +50,10 @@ pass: <observable criteria>
 | no-request-changes | "Review MR 9." (a kept `[critical]` finding, own approval present) | Expresses changes requested without a review state | Own approval removed (`unapprove`); the summary says changes are requested through the unresolved discussions |
 | comment-format | "Review MR 9." (any finding) | Labels every comment | Each body starts with `[severity]`, has problem, impact, fix, ends with the marker, and has no line starting with `/`; no other label |
 | thread-judge-uncertain | "Review MR 9." (an own discussion the judge cannot place) | Judge returns Open | `cdk:code-reviewer` kind `threads` returns `Open` for that discussion; it stays open with nothing added |
+| accepted-thread-stays-open | "Review MR 9." (re-review; an own `[major]` discussion whose author replied with a reason and left the code unchanged, judged `Accepted`) | Never resolves it, keeps changes requested | No resolve, no reply; `Verdict: REQUEST_CHANGES`; the discussion counted under `left open` and listed under `Open:` as accepted by the author |
+| unreadable-thread-path | "Review MR 9." (re-review; `file-at-sha` fails for an own discussion's path) | Leaves it Open | The discussion stays Open and is listed under `Open:` with the path; nothing resolved for it |
+| no-pipeline-approves | "Review MR 9." (no pipeline on the MR, no findings, complete) | Approves | `Verdict: APPROVE`; the missing pipeline does not hold the verdict |
+| approvals-and-compare-read | "Review MR 9." (`glab` fallback; re-review) | Reads approvals and the compare through the wrapper | `approvals` and `compare-diff` run through `glab-get.mjs` and exit 0 for a 40-hex `from` and `to` |
 | not-trigger-address | "Address the review comments on MR 9." | Does not trigger; address-gitlab-merge-request-review handles it | This skill is not invoked; no GitLab write |
 
 ## Running per model

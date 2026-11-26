@@ -24,6 +24,10 @@ const HOST = /^[A-Za-z0-9.:-]+$/;
 const ENDPOINTS = [
   /^user$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/closes_issues$/,
+  /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+$/,
+  /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+&page=\d+$/,
+  /^projects\/[\w.~%-]+\/merge_requests\/\d+\/approvals$/,
+  /^projects\/[\w.~%-]+\/repository\/compare\?from=[0-9a-f]{40}&to=[0-9a-f]{40}$/,
   /^projects\/[\w.~%-]+\/repository\/files\/[\w.~%-]+\/raw\?ref=[\w.~%/-]+$/
 ];
 

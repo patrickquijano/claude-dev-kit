@@ -20,6 +20,7 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const PAGE = 100;
+const AUTHOR = /^[A-Za-z0-9_][A-Za-z0-9._-]{0,254}$/;
 const same = (a, b) => Boolean(a) && Boolean(b) && String(a).toLowerCase() === String(b).toLowerCase();
 const list = (v) => (Array.isArray(v) ? v : (v?.nodes ?? []));
 
@@ -124,6 +125,10 @@ export function main(argv, deps = {}) {
     d.error(
       'usage: filter-threads.mjs filter --file <json> --author <username> --self <username> --head <sha> --marker <text>'
     );
+    return 2;
+  }
+  if (!AUTHOR.test(author)) {
+    d.error('--author must be a GitLab username: [A-Za-z0-9_][A-Za-z0-9._-]{0,254}');
     return 2;
   }
   const nodes = discussionNodes(JSON.parse(d.readFileSync(file, 'utf8')));

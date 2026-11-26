@@ -22,6 +22,7 @@ async function runIfMain(metaUrl, fn, label) {
 
 const HOST = /^[A-Za-z0-9.:-]+$/;
 const ENDPOINTS = [
+  /^user$/,
   /^projects\/[\w.~%-]+\/repository\/tree\?[\w.~%=&/-]+$/,
   /^projects\/[\w.~%-]+\/repository\/files\/[\w.~%-]+\/raw\?ref=[\w.~%/-]+$/
 ];

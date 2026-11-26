@@ -21,6 +21,8 @@ pass: <observable criteria>
 | update-by-url-preserves-human-text | "Update `gitlab.example.com/g/p/-/issues/7`: add the Windows repro." (description has a log) | Re-fills, keeps human content | Log, screenshots, and ticked boxes survive |
 | update-by-iid | "Update #7: retitle to ..." (`origin` is a GitLab project) | Resolves the project from `origin` | `Action: updated`; no create call |
 | duplicate-found-asks | "Open an issue: dark mode flickers." (open issue with the same title) | Asks before creating | Continue creating · Update #iid · Stop question; no write before the answer |
+| yes-duplicate-not-yours-stops | "/cdk:create-gitlab-issue --yes dark mode flickers" (open issue with the same title, authored by someone else) | Stops, never updates it | `Result: stopped`; `Stopped: 3: duplicate #<iid> is not yours`; no write |
+| yes-duplicate-own-updates | "/cdk:create-gitlab-issue --yes dark mode flickers" (open issue with the same title, authored by the authenticated user) | Takes Update | `Action: updated`; no create call |
 | missing-repro-steps-asks | "Report a bug: it crashes." (no steps given) | Asks for the steps | A question about steps; none invented |
 | label-missing-asks-create-or-skip | "Open a bug issue." (project has no `bug` label) | Asks Create or Skip | One Create · Skip question; the label is not applied unasked |
 | yes-missing-required-stops | "/cdk:create-gitlab-issue --yes crash" (template field with no source) | Stops, no assumption | `Result: stopped`; `Stopped: 5: missing <field>`; no write |
@@ -30,6 +32,7 @@ pass: <observable criteria>
 | github-remote-stops | "Open an issue." (`origin` is `github.com`) | Stops | `Stopped: 1: no GitLab remote`; no write |
 | mcp-host-mismatch-uses-glab | "Open an issue." (MCP `web_url` host differs from `origin`, `glab` authed) | Uses `glab` | `Tool: glab`; description passed with `--description-file`, never inline |
 | mcp-only-label-create-on-glab | "Open a bug issue." (MCP connected, `bug` label missing, user picks Create) | Creates the label with `glab` | `Tool: mcp+glab:label-create` |
+| cannot-interact | "Open an issue: login fails on Safari." (no one to reply, no `--yes`, a field needs an answer) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no write |
 | neither-tool-stops | "Open an issue." (no MCP, no `glab` auth) | Stops before any write | `Result: stopped`; `Stopped: 1: no GitLab MCP and no glab auth` |
 | auto-invoke | A natural request to file a GitLab issue, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the issue is created or updated after the decision questions |
 | no-approval-step | "File an issue: login fails on Safari." | Runs end to end; every write follows the last decision answer directly | No question to approve, confirm, or proceed; `create` runs right after the fill and label steps; `Result: done` |

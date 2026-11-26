@@ -358,6 +358,34 @@ describe('main', () => {
     assert.equal(code, 2);
   });
 
+  test('accepts a username with dots, dashes, and a leading underscore', () => {
+    // Arrange
+    out = [];
+    const usernames = ['_bot', 'a.b-c_d', 'x'.repeat(255)];
+    // Act
+    const codes = usernames.map((u) =>
+      main(['filter', '--file', 'f.json', '--author', u, '--self', 'me', '--head', HEAD, '--marker', MARKER], deps([]))
+    );
+    // Assert
+    assert.deepEqual(codes, [0, 0, 0]);
+  });
+
+  test('exits 2 with one stderr line for an author that is not a username', () => {
+    // Arrange
+    err = [];
+    const authors = ['-x', '.x', 'a b', 'a;b', 'a/b', '$(id)', 'x'.repeat(256)];
+    // Act
+    const codes = authors.map((a) =>
+      main(['filter', '--file', 'f.json', '--author', a, '--self', 'me', '--head', HEAD, '--marker', MARKER], deps([]))
+    );
+    // Assert
+    assert.deepEqual(
+      codes,
+      authors.map(() => 2)
+    );
+    assert.equal(err.length, authors.length);
+  });
+
   test('reports usage and exits 2 on an unknown command', () => {
     // Arrange
     err = [];

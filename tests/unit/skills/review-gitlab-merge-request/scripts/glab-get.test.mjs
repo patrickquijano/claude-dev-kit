@@ -2,8 +2,28 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { isAllowed, main } from '../../../../../skills/review-gitlab-merge-request/scripts/glab-get.mjs';
 
-const OK = ['user', 'projects/g%2Fp/repository/files/a%2Fb.js/raw?ref=abc123'];
-const BAD = ['users', 'projects/7/merge_requests/5/discussions'];
+const SHA_A = 'a'.repeat(40);
+const SHA_B = 'b'.repeat(40);
+const OK = [
+  'user',
+  'projects/g%2Fp/repository/files/a%2Fb.js/raw?ref=abc123',
+  'projects/g%2Fp/merge_requests/5/approvals',
+  `projects/g%2Fp/repository/compare?from=${SHA_A}&to=${SHA_B}`,
+  'projects/g%2Fp/merge_requests/5/discussions?per_page=100',
+  'projects/g%2Fp/merge_requests/5/discussions?per_page=100&page=2'
+];
+const BAD = [
+  'users',
+  'projects/7/merge_requests/5/discussions',
+  'projects/7/merge_requests/5/discussions?per_page=100&page=2&x=1',
+  'projects/7/merge_requests/5/discussions?page=2',
+  'projects/7/merge_requests/5/discussions/abc?per_page=100',
+  'projects/7/merge_requests/5/approvals/extra',
+  'projects/7/merge_requests/5/approval_state',
+  'projects/7/repository/compare?from=main&to=feature',
+  `projects/7/repository/compare?from=${SHA_A}&to=${SHA_B}&straight=true`,
+  `projects/7/repository/compare?from=${SHA_A}`
+];
 
 describe('isAllowed', () => {
   test('accepts the read-only endpoints the skill uses', () => {

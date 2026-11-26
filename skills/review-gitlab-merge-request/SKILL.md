@@ -1,10 +1,10 @@
 ---
 name: review-gitlab-merge-request
-description: 'Reviews one GitLab MR in full: resolves its own addressed threads, then posts severity-labeled threads and approves when none is left unresolved. Use when asked to review a GitLab MR.'
-when_to_use: Use when asked to review, re-review, or approve a GitLab MR by URL, IID, or the current branch. Not for addressing MR feedback (address-gitlab-merge-request-review) or GitHub PRs (review-github-pull-request).
+description: 'Reviews one GitLab MR in full: resolves its own addressed threads, then posts severity-labeled threads and approves when none is left unresolved. Use when asked to review a GitLab MR. Not for addressing MR feedback or GitHub PRs.'
+when_to_use: Use when asked to review, re-review, or approve a GitLab MR by URL, IID, or the current branch.
 compatibility: Claude Code only. Requires node and git; glab for commands with no MCP tool (compare-diff, approvals, summary-update) and as the fallback when the MCP host check fails. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | iid]'
-allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
+allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) Bash(glab auth status --help) Bash(glab mr view --help) Bash(glab mr diff --help) Bash(glab mr list --help) Bash(glab issue view --help) Bash(glab mr approve --help) Bash(glab mr unapprove --help) Bash(glab api --help) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
 ---
 
 # Review GitLab Merge Request
@@ -49,7 +49,8 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Run `glab <command> --help` before its first use.
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only when `get_project` on the project path succeeds and its `web_url` host equals the remote host; otherwise use `glab`. Call the row's MCP tool first; error or `—` → run the Command unchanged.
 - Never print tokens; never use `--show-token`.
-- Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. A cap hit → report it under `Errors:` and continue or stop as the reference says.
+- A username (the MR author or Self) goes in a shell argument only when it matches `[A-Za-z0-9._-]+`; any other value skips that command, and its rules are applied by hand. `filter-threads.mjs` enforces the same for `--author` (`[A-Za-z0-9_][A-Za-z0-9._-]{0,254}`) and exits 2 on any other value.
+- Caps: head-SHA-change redo 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
 ## Workflow
 
@@ -62,11 +63,11 @@ Marker (review and address skills only): `<!-- cdk-review -->`
    - 2b. Closed, merged, or locked stops; draft blocks `APPROVE`.
    - 2c. Pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review, or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
 3. **Threads** (per `${CLAUDE_SKILL_DIR}/references/threads.md`):
-   - 3a. Digest the own open discussions (Self + marker; all others ignored) and judge each as fixed, obsolete, or still open.
+   - 3a. Digest the own open discussions (Self + marker; all others ignored) and judge each as fixed, accepted, obsolete, or still open.
    - 3b. Run the script.
    - 3c. Spawn up to 4 `cdk:code-reviewer` subagents (fallback: read-only subagents that judge discussions) per `threads.md` `## Spawn briefs`.
    - 3d. A resolve GitLab refuses in step 8 → stop.
-4. **Gating discussions.** Any own gating discussion judged Open or left unjudged (`threads.md` `## Gating check`) → the check fails and the state stays changes requested; continue to step 5 either way.
+4. **Gating discussions.** Any own gating discussion judged Open or Accepted, or left unjudged (`threads.md` `## Gating check`) → the check fails and the state stays changes requested; continue to step 5 either way.
 5. **Scratch.** Write the diff (re-review: only the changes since the last reviewed SHA), head-SHA files, description, linked issues, and conventions per `${CLAUDE_SKILL_DIR}/references/analyze.md`.
 6. **Analyze** (per `analyze.md`):
    - 6a. Spawn four `cdk:code-reviewer` reviewer subagents (fallback: read-only subagents) in one turn per `analyze.md` `## Spawn briefs`.

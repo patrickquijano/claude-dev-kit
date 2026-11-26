@@ -10,6 +10,7 @@
 | `project-get` | `mcp__plugin_gitlab_gitlab__get_project` | — | MCP host check (`gitlab-mapping.md`) |
 | `issue-get` | `mcp__plugin_gitlab_gitlab__get_work_item` (`url` or `project_id` + `iid`) | `glab issue view <iid> -R <url> -F json` | Current title, description, labels, type, state |
 | `issue-search` | `mcp__plugin_gitlab_gitlab__list_work_items` (`search`, `state: opened`, `types: [ISSUE]`) | `glab issue list -R <url> --search '<query>' --in title -O json` | Open duplicates before a create |
+| `current-user` | `mcp__plugin_gitlab_gitlab__get_user` (`me: true`) | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> user` | Authenticated username (`username`); the owner check of a duplicate under `--yes` |
 | `template-lookup` | `mcp__plugin_gitlab_gitlab__list_repository_tree` + `mcp__plugin_gitlab_gitlab__get_repository_file` (default branch) | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> 'projects/<enc>/repository/tree?path=.gitlab/issue_templates&ref=<default>&per_page=100'`, then `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> 'projects/<enc>/repository/files/<enc-file>/raw?ref=<default>'` | List the template directory, then read one file (`<enc-file>` = URL-encoded path) |
 | `label-list` | `mcp__plugin_gitlab_gitlab__search_labels` (`full_path`, `is_project`) | `glab label list -R <url> -F json -P 100` | The project's own label set |
 | `work-item-types` | `mcp__plugin_gitlab_gitlab__get_work_item_types` | — | Valid types; no route → `Issue` |

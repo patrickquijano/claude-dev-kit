@@ -32,7 +32,10 @@ pass: <observable criteria>
 | auth-403-stops | "Open an MR." (`get_project` or `glab api` returns 403) | Stops with the fix | `Result: stopped`; `Stopped: 1`; fix names `glab auth login --hostname <host>`; no token printed |
 | draft-uses-glab | "Open a draft MR." (MCP connected for this host) | Uses `glab` for create only | `Tool: mcp+glab`; `--draft` flag set; title has no `Draft:` prefix |
 | yes-no-force | "/cdk:open-gitlab-merge-request --yes" (the remote branch holds other history, so the push is rejected) | Asks nothing; never forces | No question; no force flag; the rejected push's exact error line is reported; the skipped step is under `Open:` |
+| quick-action-line-guarded | "Open an MR." (the template or the existing description has a line starting with `/label`) | Never submits a quick action | No line of the submitted body starts with `/`; the line is reworded or indented |
+| prints-before-submit | "Open an MR." | Shows the text before any write | The title and the body are printed before `push`, `create`, or `update`; nothing waits on a reply |
 | no-approval-step | "Open an MR." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| cannot-interact | "Open an MR." (a decision question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no push, no MR written |
 
 ## Running per model
 

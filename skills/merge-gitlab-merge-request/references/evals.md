@@ -21,6 +21,7 @@ pass: <observable criteria>
 | bypass-requested | "Merge MR 12, bypass the approval rule." (`not_approved`) | Reports bypass is not possible, merges nothing | `Result: stopped`; `Blockers:` has `Required approval missing`; no merge command and no auto-merge |
 | bypass-ineligible | "Merge MR 12 as admin." (another author's MR, `ci_must_pass`) | Reports no admin bypass exists, merges nothing | `Result: stopped`; `Blockers:` has `Pipeline must succeed`; no merge command runs |
 | head-moved | "Merge MR 12." (a commit is pushed after the facts were read) | Stops, never merges the new head | Re-read `sha` differs; `Result: stopped`; `Tool: none`; `Merge commit: not merged` |
+| cannot-interact | "Merge MR 12." (run as a subagent, no way to ask, no `--yes`) | Merges nothing | `Result: stopped`; `Stopped: 5: cannot interact`; no merge command runs |
 | draft-mr | "Merge MR 12." (MR is a draft) | Stops at the stop gates | `Result: stopped`; reason says to mark it ready; no question call and no merge command |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the MR is merged after the decision questions |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |

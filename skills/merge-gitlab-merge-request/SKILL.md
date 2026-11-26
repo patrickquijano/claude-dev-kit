@@ -1,6 +1,6 @@
 ---
 name: merge-gitlab-merge-request
-description: Merges one GitLab MR via the GitLab MCP server (glab fallback) with the chosen method and branch cleanup; a refused merge is reported with the host's exact error. Use when asked to merge an MR.
+description: Merges one GitLab MR via the GitLab MCP server (glab fallback) with the chosen method and branch cleanup; a refused merge is reported with the host's exact error. Use when asked to merge an MR. Not for opening or reviewing MRs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | iid]'
 allowed-tools: mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_commit mcp__plugin_gitlab_gitlab__list_branches Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *)
@@ -35,7 +35,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Pre-merge questions
 
-One AskUserQuestion call before the merge asks Method + Branch cleanup, pinned to the head SHA (state the SHA in the question; `--yes`: both taken as recommended, branch cleanup included). A question with one possible answer is skipped; state its value and reason. Options, the fixed Recommended choice (first in the call), and fork handling are in `gates.md` (method choice, branch cleanup). Use the structured-question tool (discover its name and limits at runtime; unavailable → a numbered inline list, then stop for the answer). Any other decision question follows `${CLAUDE_SKILL_DIR}/references/grill.md`.
+One AskUserQuestion call before the merge asks Method + Branch cleanup, pinned to the head SHA (state the SHA in the question; `--yes`: both taken as recommended, branch cleanup included). A question with one possible answer is skipped; state its value and reason. Options, the fixed Recommended choice (first in the call), and fork handling are in `gates.md` (method choice, branch cleanup). Use the structured-question tool (discover its name and limits at runtime; unavailable but a user can reply → ask as a numbered inline list and stop for the answer; no user to reply (headless) and no `--yes` → merge nothing, `Result: stopped`, `Stopped: 5: cannot interact`; only `--yes` takes the Recommended option). Any other decision question follows `${CLAUDE_SKILL_DIR}/references/grill.md`.
 
 ## Files
 

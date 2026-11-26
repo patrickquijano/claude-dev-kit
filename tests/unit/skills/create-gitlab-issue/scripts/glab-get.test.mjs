@@ -4,10 +4,13 @@ import { isAllowed, main } from '../../../../../skills/create-gitlab-issue/scrip
 
 const OK = [
   'projects/g%2Fp/repository/tree?path=.gitlab/issue_templates&ref=release/1',
-  'projects/7/repository/files/a%2Fb/raw?ref=main'
+  'projects/7/repository/files/a%2Fb/raw?ref=main',
+  'user'
 ];
 const BAD = [
   'projects/7/merge_requests/5/diffs',
+  'users',
+  'user/emails',
   'projects/7/repository/branches/main',
   'projects/7/repository/files/a%2Fb/raw?ref=main&x=1'
 ];

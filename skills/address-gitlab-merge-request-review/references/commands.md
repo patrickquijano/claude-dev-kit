@@ -1,6 +1,6 @@
 # Commands
 
-`<host>`, `<url>`, `<enc>`, `<iid>`, `<source_branch>`, `<pid>`, `<job id>`, `<file>`, `<discussion id>`, `<issue iid>`, `<author id>`, `<page>` are literal values from Input and Identify (see `gitlab-mapping.md`); text bodies go to scratch files, never inline in a shell argument. MCP names are hints (discovery per SKILL.md Rules); `—` = no MCP tool, run the Command. A `<path>` containing `'` or a control character is never substituted into `log-paths`; list it under `Open:`. A `<source_branch>` containing `'` or a control character is never substituted into `pull-rebase` or `push`; stop at step 0 and report.
+`<host>`, `<url>`, `<enc>`, `<iid>`, `<source_branch>`, `<pid>`, `<job id>`, `<file>`, `<discussion id>`, `<issue iid>`, `<author id>`, `<page>` are literal values from Input and Identify (see `gitlab-mapping.md`); text bodies go to scratch files, never inline in a shell argument. MCP names are hints (discovery per SKILL.md Rules); `—` = no MCP tool, run the Command. A `<path>` containing `'` or a control character is never substituted into `log-paths`; list it under `Open:`. A `<source_branch>` containing `'` or a control character is never substituted into `pull-rebase`, `push`, or `remote-head-sha`; stop at step 0 and report.
 
 | Name | MCP tool (hint) | Command (`glab` / `git` fallback) | Purpose |
 | --- | --- | --- | --- |
@@ -10,9 +10,12 @@
 | `branch` | — | `git branch --show-current` | Current branch for the source-branch match |
 | `status` | — | `git status --porcelain` | Clean-tree check; empty = clean |
 | `status-tracked` | — | `git status --porcelain --untracked-files=no` | Tracked changes before `pull-rebase` |
+| `head-sha` | — | `git rev-parse HEAD` | Head SHA for the delivery check |
+| `remote-head-sha` | — | `git rev-parse 'origin/<source_branch>'` | Remote head SHA for the delivery check |
 | `log-paths` | — | `git log --oneline -1 -- '<path>' ['<path>' ...]` | SHA per item after `cdk:commit-changes` (provisional) and after push (cited in replies) |
 | `parse-ref` | — | `node ${CLAUDE_SKILL_DIR}/scripts/parse-mr-ref.mjs '<ref>' [--remote '<origin url>']` | Strict parse to `{host,project,iid}`; exit 1 prints `{error}`; exit 2 prints a usage line on stderr (bad arguments) |
 | `mr-get` | `mcp__plugin_gitlab_gitlab__get_merge_request` (`project_id`, `merge_request_iid`) | `glab mr view <iid> -R <url> --output json` | MR details: `state`, `source_branch`, `target_branch`, `sha`, `source_project_id`, `target_project_id`, `description` |
+| `project-default` | `mcp__plugin_gitlab_gitlab__get_project` (`project_id`: the path) | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> projects/<enc>` | Project `default_branch`, for the protected-source check |
 | `mr-files` | — | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> 'projects/<enc>/merge_requests/<iid>/diffs?per_page=100&page=<page>'` | Prints a compact JSON array of `new_path` (the write-scope list); repeat with the next `<page>` while a page returns 100 paths; exit 1 → stop per flow.md `## Spec` |
 | `reviewers` | — | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> projects/<enc>/merge_requests/<iid>/reviewers` | Reviewers with `state`; decides only the `requested_changes` state, not who has review-body items |
 | `mr-pipelines` | `mcp__plugin_gitlab_gitlab__get_merge_request` (`include: [pipelines]`) | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> 'projects/<enc>/merge_requests/<iid>/pipelines?per_page=1'` | Latest pipeline of the MR (`id`, `status`); failing = `failed` |

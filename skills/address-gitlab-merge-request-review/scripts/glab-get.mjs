@@ -23,6 +23,7 @@ async function runIfMain(metaUrl, fn, label) {
 const HOST = /^[A-Za-z0-9.:-]+$/;
 const DIFFS = /^projects\/[\w.~%-]+\/merge_requests\/\d+\/diffs\?per_page=\d+&page=\d+$/;
 const ENDPOINTS = [
+  /^projects\/[\w.~%-]+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+&page=\d+$/,
   DIFFS,

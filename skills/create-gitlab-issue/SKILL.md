@@ -1,9 +1,9 @@
 ---
 name: create-gitlab-issue
-description: Creates a GitLab issue from the project's template, or updates one by URL or IID, filling every field and setting labels. Use when asked to open, file, or update a GitLab issue.
+description: Creates a GitLab issue from the project's template, or updates one by URL or IID, filling every field and setting labels. Use when asked to open, file, or update a GitLab issue. Not for merge requests or GitHub issues.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [issue-url | iid] [change]'
-allowed-tools: Read Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(glab auth status --hostname *) Bash(glab issue view *) Bash(glab issue list *) Bash(glab label list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_work_items mcp__plugin_gitlab_gitlab__search_labels mcp__plugin_gitlab_gitlab__get_work_item_types mcp__plugin_gitlab_gitlab__list_repository_tree mcp__plugin_gitlab_gitlab__get_repository_file
+allowed-tools: Read Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(glab auth status --hostname *) Bash(glab issue view *) Bash(glab issue list *) Bash(glab label list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_work_item mcp__plugin_gitlab_gitlab__list_work_items mcp__plugin_gitlab_gitlab__search_labels mcp__plugin_gitlab_gitlab__get_work_item_types mcp__plugin_gitlab_gitlab__list_repository_tree mcp__plugin_gitlab_gitlab__get_repository_file
 ---
 
 # Create GitLab Issue
@@ -17,6 +17,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - No secrets, no attribution, and no mention of AI or tools in the title or body.
 - No line of the body starts with `/`: quick actions are converted to labels or asked, then stripped, never submitted.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (`<step>` is the first asking step of 3, 4, 5, or 6). Only `--yes` takes the Recommended option.
 - Under `--yes`, a missing optional field becomes `N/A` and is listed under `Open:`; a missing required field stops (`Stopped: 5: missing <field>`), because filling it would be an assumption.
 - Host ops, MCP first: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab work item`, `gitlab label`, `gitlab repository`). Use MCP only when the host check in `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md` passes; use `glab` for each operation MCP lacks (label create) and report it under `Tool:`. A 403, a 404, or neither tool working → stop with the fix from that file.
 - Never print tokens; never use `--show-token`.
@@ -29,7 +30,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Tooling.** Parse `origin` into host and project path per `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`; no GitLab host → `Stopped: 1: no GitLab remote`. Run the MCP host check via `project-get`; else run `auth`. Record per operation whether it runs on MCP or `glab`. Neither works → `Stopped: 1: no GitLab MCP and no glab auth`.
 2. **Target.** An issue URL (`/-/issues/<iid>` or `/-/work_items/<iid>`) or an IID or `#n` (project from `origin`) → update. Anything else → create. A `/-/merge_requests/` URL → `Stopped: 2: merge request, not an issue`. A work item whose type is not Issue or Incident → `Stopped: 2: <type>, not an issue`. A closed issue → `Stopped: 2: issue #<iid> is closed` unless the input says to update the closed issue (then update it and note it is closed under `Open:`); `--yes` never skips this stop.
-3. **Context.** Update: `issue-get`. Create: `issue-search` for open duplicates; on a match ask `Continue creating` | `Update #<iid>` (Recommended when the title matches) | `Stop`.
+3. **Context.** Update: `issue-get`. Create: `issue-search` for open duplicates; on a match ask `Continue creating` | `Update #<iid>` (Recommended when the title matches) | `Stop`. Safety stop: a `--yes` run that would take `Update #<iid>` for an issue whose author is not the `current-user` username → `Result: stopped`, `Stopped: 3: duplicate #<iid> is not yours`, nothing written; `--yes` never skips it, because it would edit another person's text.
 4. **Template.** Pick per `${CLAUDE_SKILL_DIR}/references/template.md`: the project's `.gitlab/issue_templates/` on the default branch, then the bundled set. Several templates → the request decides, then `Default.md`, else ask. Update keeps the description's existing structure.
 5. **Fill.** Fill every field from cited sources. Each missing or ambiguous item → ask, one question per round. Quick-action lines become label candidates (`/label`) or are asked or listed under `Open:` (`/assign`, `/milestone`, others), then stripped.
 6. **Labels.** Candidates are the template's `/label` plus a fit from `label-list`; every candidate must exist in the project. A fitting label that is missing → ask `Create` | `Skip` (`--yes`, or no `glab`: skip and list it under `Open:`). Update keeps the existing labels unless the user's change removes one. Type is `Issue` unless the template or the user names another type found in `work-item-types`.

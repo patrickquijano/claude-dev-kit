@@ -2,16 +2,16 @@
 
 ## Contents
 
-- Input · Identify · Triage · Spec · Implement · Outcome · Commit · Ledger · Push · Reply
+- Input · Identify · Triage · Spec · Implement · Outcome · Commit · Ledger · Push · Reply · Delivery
 
 ## Input
 
 1. Parse `origin` into host and project path per `gitlab-mapping.md`; no GitLab host → `Stopped: 0: no GitLab remote`.
    - Run the MCP host check; it fails → run `auth`.
    - Neither works → `Stopped: 0: no GitLab MCP and no glab auth`.
-2. Run `parse-ref` on the argument (the first token that is not `--dry-run`). A bare IID, `!<iid>`, or `group/project!<iid>` needs `origin` as `--remote`. No argument → ask for the MR (AskUserQuestion, recommended option first). Exit 1 or 2 from `parse-ref`, or a 404 from `mr-get` → stop and ask with the fix from `gitlab-mapping.md`; make no edits.
+2. Run `parse-ref` on the argument (the first token that is not `--dry-run`). A bare IID, `!<iid>`, or `group/project!<iid>` needs `origin` as `--remote`. No argument → ask for the MR (AskUserQuestion, recommended option first); with `--yes` → `Result: stopped`, `Stopped: 0: no MR reference`. Exit 1 or 2 from `parse-ref`, or a 404 from `mr-get` → stop and ask with the fix from `gitlab-mapping.md` (`--yes` → `Result: stopped`, `Stopped: 0: invalid MR reference`); make no edits.
 3. Run `mr-get`. `state` not `opened` → stop and report.
-4. Local checks: `source_project_id` equals `target_project_id` (a fork MR → stop, the push target is not `origin`); `branch` equals `source_branch`; `status` is empty; `source_branch` is not `target_branch` or a protected branch per SKILL.md Rules (a protected source → stop, the push is refused by the rules). `source_branch` contains `'` or a control character → `Result: stopped`, `Stopped: 0: unsafe source branch`. Any mismatch → stop and report which.
+4. Local checks: `source_project_id` equals `target_project_id` (a fork MR → stop, the push target is not `origin`); `branch` equals `source_branch`; `status` is empty; `source_branch` is not `target_branch`, the `project-default` output, or a protected branch per SKILL.md Rules (a protected or default source → stop, the push is refused by the rules). `source_branch` contains `'` or a control character → `Result: stopped`, `Stopped: 0: unsafe source branch`. Any mismatch → stop and report which.
 
 ## Identify
 
@@ -113,3 +113,7 @@ Write each body to a scratch file. Replies post only after the push succeeded, b
 - Discussions: run `discussion-reply` with the discussion's `id`. Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed one (line gone at the source head) → `Already fixed at <path:line>.` Disputed → `Not changed: <justification, evidence path:line>.` Question → `Answer: <answer>.`, plus `Addressed in <short sha>: <what changed>.` when the answer led to a fix. Needs-clarification → `Question: <one question>`. An unfixed nit gets no reply.
 - Review-body items: one MR summary note starting `**note:** Review feedback summary:` and listing each item and its outcome, run `mr-note`.
 - `--dry-run` → print the reply commands (see `## Push`).
+
+## Delivery
+
+After the push and replies, run `head-sha` and `remote-head-sha`; they must match, and the posted reply count must equal the plan's. A mismatch → `Result: stopped`, `Stopped: 10: delivery mismatch`, items under `Open:`. No commits → skip the head check but still check the reply count. `--dry-run` → skip both.
