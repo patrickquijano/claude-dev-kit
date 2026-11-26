@@ -23,7 +23,8 @@ pass: <observable criteria>
 | nothing-changed | "Update the changelog." (no new changes) | No write | `Result: nothing-to-do`; `CHANGELOG: unchanged` |
 | release-no-date | "Update the changelog release 1.3.0" | Asks the date | Offers Today (the session date, else `date +%F`), Enter another, Stop |
 | released-section | "Update the changelog." (a released entry looks wrong) | Leaves it | Released section content unchanged; item under `Open:` |
-| unattended | "Update the changelog" (no way to ask, release without version) | Stops | `Stopped: 5: version or date missing`; no write |
+| unattended | "Update the changelog release --yes" (release without version) | Stops | `Stopped: 5: version or date missing`; no write |
+| cannot-interact | "Update the changelog release" (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; no write |
 | no-approval-step | "Update the changelog." (two user-facing commits) | Runs end to end; every write follows the last decision answer directly | Only the review-loop and release-mode questions are asked; the entries are written right after them with no confirm question; `Result: done` |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; each side-effect step runs directly after the decision questions |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |

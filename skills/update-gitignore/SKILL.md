@@ -1,6 +1,6 @@
 ---
 name: update-gitignore
-description: Finds generated, local, and secret paths not to commit and appends the chosen ones to .gitignore. Use when asked to update .gitignore.
+description: Finds generated, local, and secret paths not to commit and appends the chosen ones to .gitignore. Use when asked to update .gitignore. Not for untracking committed files or other ignore files.
 argument-hint: '[--yes]'
 compatibility: Claude Code only. Uses CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(git check-ignore *)
@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead). AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (step 2 or 4, whichever asks). Only `--yes` takes the Recommended option.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Skipped:` (the unattended rules below apply). Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Evidence only: every candidate cites a file on disk, a manifest, or a tool config that produces it; never add a path from the stack name alone.
@@ -26,16 +26,16 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Idempotent: a path already ignored (`check-ignore`) is skipped; existing `.gitignore` lines are kept and never reordered. `nothing-to-do` = no candidate left.
 - Never untrack, delete, commit, or push; a tracked file that matches a candidate is reported under `Tracked but ignored:`, not changed. A tracked `.env*`, key, or credential file is secret exposure: report it under `Secret exposure:` (name only, never contents) with the advice to rotate the secret and untrack the file.
 - `check-ignore` paths are repo-relative to the root (no leading `/`, no absolute path), run from the root.
-- Write only the root `.gitignore`, after the step 4 choice; unattended (`--yes`, or no way to ask) writes only `high`-confidence candidates.
+- Write only the root `.gitignore`, after the step 4 choice; `--yes` writes only `high`-confidence candidates.
 - Caps: the analyst reads at most 40 files and is re-spawned at most once; one choose round.
 - Decision questions: at most 4 per call, the Recommended first, a Stop option on every call (Stop → `Result: cancelled`). Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 
 ## Workflow
 
 1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
-2. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once; unattended → skip the affected candidates, list them under `Skipped:`, never re-spawn. `Candidates:` `(none)` → step 3 for the secret check, then step 6 with `nothing-to-do`.
+2. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once; `--yes` → skip the affected candidates, list them under `Skipped:`, never re-spawn; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 2: cannot interact`. `Candidates:` `(none)` → step 3 for the secret check, then step 6 with `nothing-to-do`.
 3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:` (every tracked secret path, none dropped); the Output prints it even with `Candidates: none`, `Report only`, or `Stop`.
-4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high (and high is at least 1): then Add high-confidence only goes first and is marked. Zero high candidates → never recommend or offer Add high-confidence only. Each option names what will be written. One reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing; Report only, or unattended with no high candidate, ends `Result: done` with medium candidates under `Skipped:`. No candidate left → no ask. Unattended → write per the Rules.
+4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high (and high is at least 1): then Add high-confidence only goes first and is marked. Zero high candidates → never recommend or offer Add high-confidence only. Each option names what will be written. One reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing; Report only, or `--yes` with no high candidate, ends `Result: done` with medium candidates under `Skipped:`. No candidate left → no ask. `--yes` → write per the Rules; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 4: cannot interact`.
 5. **Write.** Append each category under a `# <Category>` comment, creating the file if missing; anchor root-only paths with a leading `/`. Write the category lines first, then run `check-ignore` on each `!` negation path (for example `.env.example`); not ignored → remove that negation line (it would do nothing). Then `check-ignore` the written paths. Write unavailable → print the lines to append, `Result: stopped`, `Stopped: 5: write unavailable`.
 6. **Output.** Print the block below, nothing else.
 

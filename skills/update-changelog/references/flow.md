@@ -38,7 +38,7 @@ A failing item that needs unavailable information, touches a released section, o
 
 ## Fallback
 
-AskUserQuestion or Write unavailable, or `--yes` (unattended run) → ask nothing and act per row; a row wins over any Recommended option:
+AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option, unless a row below names its own action; a `--yes` (unattended) run asks nothing and acts per row. Write unavailable also acts per its row:
 
 | Ask                                     | Action                                                    |
 | --------------------------------------- | --------------------------------------------------------- |

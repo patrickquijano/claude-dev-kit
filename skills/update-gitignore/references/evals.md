@@ -23,7 +23,8 @@ pass: <observable criteria>
 | tracked-secret | "Update .gitignore." (a tracked `.env`) | Reports it, never reads or untracks it | Name under `Secret exposure:` with the rotate advice; no `.env` contents read; no `git rm` run |
 | nothing-to-do | "Update .gitignore." (everything already ignored) | No ask, no write | No question; `Result: nothing-to-do`; `Added: none` |
 | analyst-unavailable | "Update .gitignore." (the subagent cannot be spawned) | Runs inventory, explore, and filter inline | Reads at most 40 files; same Output block; no stop |
-| unattended | "Update .gitignore." (no way to ask, medium candidates only) | Writes nothing | No question; nothing written; medium candidates under `Skipped:`; `Result: done` |
+| unattended | "Update .gitignore. --yes" (medium candidates only) | Writes nothing | No question; nothing written; medium candidates under `Skipped:`; `Result: done` |
+| cannot-interact | "Update .gitignore." (run as a subagent, no way to ask, no `--yes`, candidates found) | Asks nothing and writes nothing | No question; `.gitignore` unchanged; `Result: stopped`, `Stopped: 4: cannot interact` |
 | choose-stop | "Update .gitignore." (the user picks Stop at the choose ask) | Cancels, writes nothing | `Result: cancelled`; `.gitignore` unchanged |
 | negation-round | "Update .gitignore." (a written `!` negation path is not ignored) | Removes the no-op negation line | The negation line is removed with no question; the other written lines stay |
 | no-approval-step | "Update .gitignore." (Node repo with untracked `node_modules/` and `dist/`) | Runs end to end; every write follows the last decision answer directly | Only the Add all, Add high-confidence only, Report only, or Stop ask appears; the append runs right after the answer; `Result: done` |

@@ -25,6 +25,10 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 - Swift PM — `Package.swift` + `Package.resolved` — `swift package update --dry-run` — edit `Package.swift`, then `swift package update <pkg>` — <https://www.swift.org/documentation/package-manager/>
 - Mix — `mix.exs` + `mix.lock` — `mix hex.outdated` — edit `mix.exs`, then `mix deps.update <pkg>` — <https://hexdocs.pm/hex/Mix.Tasks.Hex.Outdated.html>
 
+## Safe names
+
+A package, crate, gem, module, or artifact name must match `^[A-Za-z0-9@][A-Za-z0-9._/@:+~!-]*$` and hold no `..` segment; a version must match `^[0-9A-Za-z][0-9A-Za-z._+~-]*$`. Test them before the first command row or URL that holds them, and put each accepted value in single quotes. A name that fails is never passed to a shell, so a leading `-`, a space, a quote, `;`, `|`, `&`, `$`, a backtick, or a newline can never become a flag or a second command.
+
 ## Keep the existing specifier prefix
 
 This section overrides the upgrade-command rows above. A bare add or upgrade rewrites the specifier with the manager's default prefix (`^`). Read the recorded specifier first and keep its form (pip: keep the operator in the requirements file, `==`, `~=`, or `>=`, and change only the version): a range with a prefix (`~1.2.0`, `>=1.2`) → pass the same prefix with the new version (`<pkg>@~<version>`); an exact pin → the manager's exact flag (`-E` for npm, pnpm, Yarn 1, and Bun; Yarn 2+ writes an explicit range as given). A prefix the manager cannot express → list it under `Open:` and keep the manager's output.

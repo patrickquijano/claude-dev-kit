@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versions descending. Heading `## [version] - YYYY-MM-DD` (ISO 8601); yanked → `## [version] - YYYY-MM-DD [YANKED]`.
 - Section order inside a version: Added, Changed, Deprecated, Removed, Fixed, Security. Omit empty sections.
 - Link references are always present: one per version heading plus `[unreleased]` (lowercase), newest first. Oldest version links to its tag or release page (no earlier tag to compare).
-- URLs come from `origin`: GitHub `/compare/a...b` and `/releases/tag/<tag>`, GitLab `/-/compare/a...b` and `/-/tags/<tag>`. Another host or no remote → ask (unattended: `Open:`). A tag that does not exist yet → still write the link and flag under `Open:`.
+- URLs come from `origin`: GitHub `/compare/a...b` and `/releases/tag/<tag>`, GitLab `/-/compare/a...b` and `/-/tags/<tag>`. Another host or no remote → ask (`--yes`: `Open:`). A tag that does not exist yet → still write the link and flag under `Open:`.
 
 ## Types
 
@@ -85,7 +85,7 @@ Report each with its reason; never add:
 1. Run the non-release flow first so Unreleased is complete.
 2. `[version]` already in the file: stop or update in place per `flow.md` `## Release mode`; an unmerged section takes new Unreleased entries merged in by meaning, keeps its date, leaves Unreleased empty, and refreshes the links.
 3. Else rename the Unreleased content into `## [version] - date`; add a fresh empty `## [Unreleased]` above it.
-4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` per Template; other host or no remote → ask (unattended: `Open:`).
+4. Link refs: add `[version]` compare link from the previous version to this one (first release → release page or tag URL); repoint `[unreleased]` to `<tag-for-version>...HEAD`. Use the file's existing tag prefix (`v1.2.3` or `1.2.3`) and URL host style. New file or unknown style → derive from `git remote get-url origin` per Template; other host or no remote → ask (`--yes`: `Open:`).
 5. Re-running with the same version and date changes nothing.
 6. Never create tags, commits, or pushes; mention that the tag must exist for links to resolve.
 

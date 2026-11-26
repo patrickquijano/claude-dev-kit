@@ -21,7 +21,8 @@ pass: <observable criteria>
 | --- | --- | --- | --- |
 | create-set | "Write CLAUDE.md for this repo." (none exists) | Fills the template, writes, scores | Only `CLAUDE.md` and `.claude/rules/**` written, with no approval wait; always-loaded lines under 200 |
 | score-only | "Score my CLAUDE.md." | Scores without writing | No file changed; deductions listed |
-| conflict-ask | "Update the rules." (two files disagree) | Asks, never resolves silently | One question per conflict with keep A, keep B, merge; unattended keeps the existing side |
+| conflict-ask | "Update the rules." (two files disagree) | Asks, never resolves silently | One question per conflict with keep A, keep B, merge; `--yes` keeps the existing side |
+| cannot-interact | "Update the rules." (two files disagree; run as a subagent, no way to ask, no `--yes`) | Asks nothing and writes nothing | No file written; `Result: stopped`, `Stopped: 3: cannot interact` |
 | known-issues-move | "Update the rules." (a `Known issues` section exists) | Moves it to auto memory | `feedback` memory plus `MEMORY.md` pointer listed in `Files:`; section removed |
 | subagents-unavailable | "Update the rules." (no subagent can be spawned) | Gathers facts, scores, and improves inline | Same Output block; no stop |
 | below-pass | "Improve my rules." (score under 95) | Improves in rounds | 3 rounds, then the extend ask (3 more per Extend); Stop leaves the rest under `Open:` |

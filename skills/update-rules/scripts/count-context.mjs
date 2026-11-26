@@ -1,5 +1,5 @@
 // Context size for update-rules: non-blank line counts of the always-loaded memory files and the tracked-file match count of each rule `paths` glob.
-// Read-only. CLI: `count-context.mjs <project-dir>`, JSON on stdout.
+// Read-only; outside a git repo the glob counts come from a directory walk. CLI: `count-context.mjs <project-dir>`, JSON on stdout.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import path from 'node:path';
@@ -106,15 +106,42 @@ const inside = (root, target) => {
   return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
 };
 
+const SKIP_DIRS = new Set(['.git', 'node_modules']);
+
+// Tracked files of a git work tree; `null` when `root` is not inside one (git exits 128), any other failure rethrows.
+export function gitTracked(root, run = execFileSync) {
+  try {
+    const out = run('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', timeout: 30000 });
+    return out.split('\0').filter(Boolean);
+  } catch (err) {
+    if (err?.status === 128) return null;
+    throw err;
+  }
+}
+
+// Posix paths of every regular file under `root`, sorted, skipping `.git` and `node_modules`; the fallback outside a git repo.
+export function walkFiles(root, deps = {}) {
+  const d = { readdirSync, ...deps };
+  const found = [];
+  const visit = (rel) => {
+    for (const entry of d.readdirSync(path.join(root, rel), { withFileTypes: true })) {
+      const next = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        if (!SKIP_DIRS.has(entry.name)) visit(next);
+      } else if (entry.isFile()) found.push(next);
+    }
+  };
+  visit('');
+  return found.sort();
+}
+
 // Side effects; tests pass stubs, everything else uses the real ones.
 const realDeps = {
   existsSync,
   readFileSync,
   readdirSync,
-  trackedFiles: (root) =>
-    execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', timeout: 30000 })
-      .split('\0')
-      .filter(Boolean),
+  trackedFiles: (root) => gitTracked(root),
+  walkFiles,
   matchesGlob,
   log: (text) => console.log(text),
   error: (text) => console.error(text)
@@ -160,13 +187,14 @@ export function countContext(root, deps = {}) {
       if (inside(root, target) && d.existsSync(target)) add(target, hop + 1);
     }
   }
+  // Mirrors Claude Code's ancestor CLAUDE.md loading; only paths and line counts leave the script.
   const ancestors = [];
   for (let dir = path.dirname(root); ; dir = path.dirname(dir)) {
     const file = path.join(dir, 'CLAUDE.md');
     if (d.existsSync(file)) ancestors.push({ path: file, lines: countNonBlank(read(file)) });
     if (path.dirname(dir) === dir) break;
   }
-  const tracked = scoped.length ? d.trackedFiles(root) : [];
+  const tracked = scoped.length ? (d.trackedFiles(root) ?? d.walkFiles(root, d)) : [];
   const rules = scoped.map(({ file, globs }) => ({
     file,
     globs: globs.map((glob) => ({ glob, matches: tracked.filter((f) => d.matchesGlob(f, glob)).length }))

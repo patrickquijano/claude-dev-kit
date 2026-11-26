@@ -21,6 +21,7 @@ pass: <observable criteria>
 | no-search | Web search unavailable | Labels external claims Unverified | Every external claim Unverified; no URL invented |
 | contradiction | The user answers a question in a way that conflicts with an earlier answer | Surfaces the conflict | Both statements shown; asked again |
 | existing-spec | The spec file was created by this skill earlier in the conversation | Updates without overwriting | Diff shown; the file is updated in place with no approval wait |
+| cannot-interact | "Help me pin down what this feature needs: add retry." (no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no spec written |
 | foreign-spec | The input names a `spec.md` that already exists and the skill did not create | Does not touch it | File unchanged; spec printed inline; `Spec: inline`; `Result: stopped`; `Stopped: 9`; path under `Open:` |
 | round-cap | The user keeps answering vaguely | Stops at the cap | Stops after 5 rounds; leftovers listed under Open questions; `Rounds: 5/5` |
 | grill-close-call | A decision whose top two totals are ≤5 apart | Table, then no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |

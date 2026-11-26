@@ -25,7 +25,8 @@ pass: <observable criteria>
 | rescore-always | "Improve my README." (implement-spec reports every goal met) | Rescores after every improve round | `Score:` comes from the round's fresh rescore, never implement-spec's own report; the last round at the cap is rescored |
 | gap-omit | "Write a README." (no license file, user answers Omit) | Leaves the item out | `Omitted:` names it; no re-ask; C1 treated as N/A |
 | subagents-unavailable | "Write a README." (no subagent can be spawned) | Gathers facts, scores, and improves inline | Same Output block; no stop |
-| unattended | "Write a README." (no way to ask) | Writes without asking | Unanswerable items under `Omitted:` |
+| unattended | "Write a README. --yes" | Writes without asking | Unanswerable items under `Omitted:` |
+| cannot-interact | "Write a README." (run as a subagent, no way to ask, no `--yes`, a question pending) | Asks nothing and writes nothing | No file written; `Result: stopped`, `Stopped: <step>: cannot interact` |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs and carries out its steps with no approval step |
 | readme-in-place | Only `.gitlab/README.md` exists | Edits it where it is | Edited in place, never moved |
 | several-readmes | READMEs in more than one location | Asks which one | Asks which, root Recommended |

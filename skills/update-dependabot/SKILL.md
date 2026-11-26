@@ -1,6 +1,6 @@
 ---
 name: update-dependabot
-description: Creates or updates .github/dependabot.yaml from the repo's package ecosystems and directories, merged in place and schema-checked. Use when asked to set up, add, or update Dependabot.
+description: Creates or updates .github/dependabot.yaml from the repo's package ecosystems and directories, merged in place and schema-checked. Use when asked to set up, add, or update Dependabot. Not for upgrading dependencies or other CI config.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v uvx) Bash(command -v pipx)
@@ -25,8 +25,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Every option, key, and ecosystem value comes from the official options reference fetched this run (step 3), never from memory. No source reachable → `unverified`, the entry is not written.
 - Existing file: merge in place, keep its extension and every user entry; change only invalid or stale keys, each named in the printed summary. Idempotent: a re-run changes nothing.
 - Never run git write commands; never create a branch or commit.
-- Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Grill: mine the repo first, ask only what changes the output, never fill a gap with an assumption. Use the structured-question tool (unavailable → take the Recommended and list it under `Open:`). Before each question show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md`; a close call has no Recommended and goes under `Open:`.
-- No way to ask and no `--yes` → write nothing, `Stopped: 0: cannot interact`.
+- Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Grill: mine the repo first, ask only what changes the output, never fill a gap with an assumption. Use the structured-question tool (unavailable → the no-ask rule below). Before each question show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md`; a close call has no Recommended and goes under `Open:`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - Cap: fix loop 3 rounds; leftovers go under `Open:`.
 
 ## Workflow

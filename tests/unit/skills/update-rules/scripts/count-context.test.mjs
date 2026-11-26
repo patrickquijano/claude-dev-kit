@@ -5,9 +5,11 @@ import {
   countContext,
   countNonBlank,
   findImports,
+  gitTracked,
   main,
   matchesGlob,
-  parsePaths
+  parsePaths,
+  walkFiles
 } from '../../../../../skills/update-rules/scripts/count-context.mjs';
 
 const ROOT = path.resolve('/stub/proj');
@@ -257,6 +259,178 @@ describe('countContext', () => {
     const result = countContext(ROOT, deps);
     // Assert
     assert.deepEqual(result.rules, []);
+  });
+});
+
+describe('countContext outside a git repo', () => {
+  const scopedFiles = () => ({
+    [at('CLAUDE.md')]: 'a\n',
+    [at('.claude', 'rules', 'scoped.md')]: '---\npaths:\n  - "**/*.mjs"\n---\nbody\n'
+  });
+
+  test('counts glob matches from the directory walk when trackedFiles returns null', () => {
+    // Arrange
+    const deps = fsStub(scopedFiles(), {
+      trackedFiles: () => null,
+      walkFiles: () => ['a.mjs', 'x/b.mjs', 'c.md']
+    });
+    // Act
+    const result = countContext(ROOT, deps);
+    // Assert
+    assert.deepEqual(result.rules, [{ file: '.claude/rules/scoped.md', globs: [{ glob: '**/*.mjs', matches: 2 }] }]);
+  });
+
+  test('passes the root to the walk', () => {
+    // Arrange
+    const roots = [];
+    const deps = fsStub(scopedFiles(), {
+      trackedFiles: () => null,
+      walkFiles: (root) => {
+        roots.push(root);
+        return [];
+      }
+    });
+    // Act
+    countContext(ROOT, deps);
+    // Assert
+    assert.deepEqual(roots, [ROOT]);
+  });
+
+  test('does not walk when git lists the files', () => {
+    // Arrange
+    const deps = fsStub(scopedFiles(), {
+      trackedFiles: () => ['a.mjs'],
+      walkFiles: () => assert.fail('walkFiles must not run')
+    });
+    // Act
+    const result = countContext(ROOT, deps);
+    // Assert
+    assert.equal(result.rules[0].globs[0].matches, 1);
+  });
+
+  test('does not walk when no rule is path-scoped', () => {
+    // Arrange
+    const deps = fsStub(
+      { [at('CLAUDE.md')]: 'a\n' },
+      { trackedFiles: () => null, walkFiles: () => assert.fail('walkFiles must not run') }
+    );
+    // Act
+    const result = countContext(ROOT, deps);
+    // Assert
+    assert.deepEqual(result.rules, []);
+  });
+});
+
+describe('gitTracked', () => {
+  test('splits the NUL-separated listing', () => {
+    // Arrange
+    const run = () => 'a.mjs\0b/c.md\0';
+    // Act
+    const result = gitTracked(ROOT, run);
+    // Assert
+    assert.deepEqual(result, ['a.mjs', 'b/c.md']);
+  });
+
+  test('runs git ls-files against the root', () => {
+    // Arrange
+    const calls = [];
+    const run = (cmd, args) => {
+      calls.push([cmd, ...args]);
+      return '';
+    };
+    // Act
+    gitTracked(ROOT, run);
+    // Assert
+    assert.deepEqual(calls, [['git', '-C', ROOT, 'ls-files', '-z']]);
+  });
+
+  test('returns null when git reports that the root is not a repository', () => {
+    // Arrange
+    const run = () => {
+      throw Object.assign(new Error('fatal: not a git repository'), { status: 128 });
+    };
+    // Act
+    const result = gitTracked(ROOT, run);
+    // Assert
+    assert.equal(result, null);
+  });
+
+  test('rethrows any other failure', () => {
+    // Arrange
+    const run = () => {
+      throw Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' });
+    };
+    // Act
+    const act = () => gitTracked(ROOT, run);
+    // Assert
+    assert.throws(act, /ENOENT/);
+  });
+});
+
+describe('walkFiles', () => {
+  const entry = (name, dir = false) => ({ name, isDirectory: () => dir, isFile: () => !dir });
+  const tree = {
+    [ROOT]: [entry('b.md'), entry('a.mjs'), entry('src', true), entry('.git', true), entry('node_modules', true)],
+    [at('src')]: [entry('c.mjs'), entry('deep', true)],
+    [at('src', 'deep')]: [entry('d.mjs')],
+    [at('.git')]: [entry('HEAD')],
+    [at('node_modules')]: [entry('pkg.js')]
+  };
+  const readdirSync = (dir) => tree[dir];
+
+  test('lists nested regular files as sorted posix paths', () => {
+    // Arrange
+    const deps = { readdirSync };
+    // Act
+    const result = walkFiles(ROOT, deps);
+    // Assert
+    assert.deepEqual(result, ['a.mjs', 'b.md', 'src/c.mjs', 'src/deep/d.mjs']);
+  });
+
+  test('asks for directory entries with file types', () => {
+    // Arrange
+    const options = [];
+    const deps = {
+      readdirSync: (_, opts) => {
+        options.push(opts);
+        return [];
+      }
+    };
+    // Act
+    walkFiles(ROOT, deps);
+    // Assert
+    assert.deepEqual(options, [{ withFileTypes: true }]);
+  });
+
+  test('skips .git and node_modules', () => {
+    // Arrange
+    const deps = { readdirSync };
+    // Act
+    const result = walkFiles(ROOT, deps);
+    // Assert
+    assert.equal(
+      result.some((f) => f.startsWith('.git') || f.startsWith('node_modules')),
+      false
+    );
+  });
+
+  test('skips entries that are neither files nor directories', () => {
+    // Arrange
+    const link = { name: 'link', isDirectory: () => false, isFile: () => false };
+    const deps = { readdirSync: () => [link, entry('a.md')] };
+    // Act
+    const result = walkFiles(ROOT, deps);
+    // Assert
+    assert.deepEqual(result, ['a.md']);
+  });
+
+  test('returns an empty list for an empty directory', () => {
+    // Arrange
+    const deps = { readdirSync: () => [] };
+    // Act
+    const result = walkFiles(ROOT, deps);
+    // Assert
+    assert.deepEqual(result, []);
   });
 });
 

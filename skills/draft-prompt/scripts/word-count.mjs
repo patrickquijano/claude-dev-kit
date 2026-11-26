@@ -1,5 +1,5 @@
-// Word count for a drafted prompt, read from stdin; fenced-code marker lines are not counted.
-// CLI: `word-count.mjs [--limit <n>] < prompt.txt`, JSON `{ok, words, limit}` on stdout; exit 1 when over the limit.
+// Word count for a drafted prompt, read from stdin or `--file`; fenced-code marker lines are not counted.
+// CLI: `word-count.mjs [--limit <n>] [--file <path>] [< prompt.txt]`, JSON `{ok, words, limit}` on stdout; exit 1 when over the limit, 2 on bad arguments.
 import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -34,6 +34,7 @@ export function countWords(text) {
 // Side effects the CLI needs; tests pass stubs.
 const realDeps = {
   readStdin: () => readFileSync(0, 'utf8'),
+  readFile: (path) => readFileSync(path, 'utf8'),
   log: (text) => console.log(text),
   error: (text) => console.error(text)
 };
@@ -43,11 +44,13 @@ export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
   const i = argv.indexOf('--limit');
   const limit = i < 0 ? DEFAULT_LIMIT : Number(argv[i + 1]);
-  if (!Number.isInteger(limit) || limit < 1) {
-    d.error('usage: word-count.mjs [--limit <positive integer>] < prompt.txt');
+  const f = argv.indexOf('--file');
+  const file = f < 0 ? null : argv[f + 1];
+  if (!Number.isInteger(limit) || limit < 1 || (f >= 0 && (!file || file.startsWith('-')))) {
+    d.error('usage: word-count.mjs [--limit <positive integer>] [--file <path>] [< prompt.txt]');
     return 2;
   }
-  const words = countWords(d.readStdin());
+  const words = countWords(file ? d.readFile(file) : d.readStdin());
   const ok = words <= limit;
   d.log(JSON.stringify({ ok, words, limit }));
   return ok ? 0 : 1;

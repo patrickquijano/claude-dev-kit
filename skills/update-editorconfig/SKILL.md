@@ -1,6 +1,6 @@
 ---
 name: update-editorconfig
-description: 'Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use when asked to update EditorConfig.'
+description: 'Creates or updates .editorconfig for repo file types only: 4-space base, final newline except Git, Markdown, text. Use when asked to update EditorConfig. Not for formatter or linter configs.'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(ec -version) Bash(editorconfig-checker) Bash(ec) Bash(node ${CLAUDE_SKILL_DIR}/scripts/stale-sections.mjs *)
@@ -18,7 +18,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Unattended = `--yes`, or run by a hook with no AskUserQuestion: record what the input and repo cannot answer.
+- With `--yes`, record what the input and repo cannot answer. AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: 6: cannot interact` (only when the step 6 stale-removal ask is needed). Only `--yes` takes the Recommended option.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - No questions except the step 6 stale-removal ask: apply the defaults in `${CLAUDE_SKILL_DIR}/references/defaults.md`. Use only EditorConfig spec properties (`indent_style`, `indent_size`, `tab_width`, `end_of_line`, `charset`, `trim_trailing_whitespace`, `insert_final_newline`).
@@ -27,7 +27,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Never change or reorder an existing section, except removing a stale one chosen for removal (step 6). Append new type sections at the end, because later sections win and must follow `[*]`. Exception: a new `[*]` goes right after the preamble (`root = true` and leading comments), before the first section.
 - Fix loop: at most 2 passes over syntax or glob errors in sections this run wrote; the checker never auto-fixes, and style problems in existing files are never touched.
 - Leftovers (still-failing checks, `uncovered` types) go under `Open:` in the Output, never silently dropped.
-- Write tool unavailable: print the file content and the Output with `Stopped: 6: Write unavailable`, then end the turn. Unattended: ask nothing.
+- Write tool unavailable: print the file content and the Output with `Stopped: 6: Write unavailable`, then end the turn. `--yes`: ask nothing.
 
 ## Workflow
 
@@ -39,7 +39,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - No `[*]` section → insert the base per the Rules exception.
    - No `root = true` in the preamble (key and value case-insensitive, any spacing) → insert it as the first line.
 5. **Choose per type.** Keep only the `defaults.md` properties that differ from the actual `[*]`; group identical sets ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
-6. **Write.** Print the sections to append and the stale ones to remove, ask the stale-removal question. Then write, including the step 4 inserts ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write`). Unattended: remove nothing and list stale sections under `Open:`.
+6. **Write.** Print the sections to append and the stale ones to remove, ask the stale-removal question. Then write, including the step 4 inserts ([flow](${CLAUDE_SKILL_DIR}/references/flow.md) `## Write`). `--yes`: remove nothing and list stale sections under `Open:`. Headless without `--yes` and a stale section found → write nothing, `Result: stopped`, `Stopped: 6: cannot interact`.
 7. **Check.** Run `checker` (or `checker-ec`) from the git root for the first pass and count problems; no checker found → skip ([flow](${CLAUDE_SKILL_DIR}/references/flow.md)).
 8. **Fix.** Syntax or glob errors in sections this run wrote → correct the section, and re-run the check (cap in Rules). Per-file violations and anything else → `Open:`.
 9. **Report** the Output.

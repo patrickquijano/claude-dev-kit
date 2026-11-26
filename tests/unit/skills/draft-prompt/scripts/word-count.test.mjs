@@ -91,6 +91,36 @@ describe('main', () => {
     assert.equal(result.errors.length, 1);
   });
 
+  test('counts the file named by --file and ignores stdin', () => {
+    // Arrange
+    const out = { logs: [], errors: [] };
+    const paths = [];
+    // Act
+    const code = main(['--file', '/s/draft.txt'], {
+      readStdin: () => 'ignored words here',
+      readFile: (p) => {
+        paths.push(p);
+        return 'one two';
+      },
+      log: (t) => out.logs.push(t),
+      error: (t) => out.errors.push(t)
+    });
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(paths, ['/s/draft.txt']);
+    assert.deepEqual(JSON.parse(out.logs[0]), { ok: true, words: 2, limit: 250 });
+  });
+
+  test('exits 2 on --file without a path or with a flag as the path', () => {
+    // Act
+    const results = [run(['--file'], 'x'), run(['--file', '--limit', '3'], 'x')];
+    // Assert
+    assert.deepEqual(
+      results.map((r) => r.code),
+      [2, 2]
+    );
+  });
+
   test('exits 2 on a missing limit value', () => {
     // Arrange
     const argv = ['--limit'];

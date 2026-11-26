@@ -22,7 +22,7 @@ Map the `remote-url` result to `github`, `gitlab`, `bitbucket`, `gitea`, or `gen
 
 ## Fallback
 
-AskUserQuestion unavailable → ask the pending question as plain text with its options, end the turn, and take the next message as the answer. Never print a finished README in place of a pending question. The fallback list is numbered, one option per number. Unattended runs ask nothing: pick each Recommended option, write the files, omit unanswerable items and list them in `Omitted:`.
+AskUserQuestion unavailable but a user can reply → ask the pending question as a numbered inline list with its options and stop for the answer. Never print a finished README in place of a pending question. The fallback list is numbered, one option per number. `--yes` runs ask nothing: pick each Recommended option, write the files, omit unanswerable items and list them in `Omitted:`. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (the step of the first pending question). Only `--yes` takes the Recommended option.
 
 ## Questions
 
@@ -49,7 +49,7 @@ Entered from SKILL.md step 15: rounds + 1.
 
 Build the Spec brief per SKILL.md Rules (memory lookup and the shared fields: non-goals, `Write scope:`, `Approach:`, `Tests:`, no formatter or linter), plus the improve-round extras: root, rubric path, README path, archetype, the chosen max, one goal per deduction (ID, file:line, Before → After) (Before read verbatim with Read from the target at the deduction's file:line, because the scorer return carries only the fix) with last round's unresolved items first, the facts block (answers merged), and `Omitted:` as non-goals; each quoted field goes in a fenced block per the SKILL.md Rules fence clause. Invoke implement-spec with it; it edits the README and its split files only, each at most the max.
 
-- Before invoking implement-spec, resolve each fact gap (license, URL, version, contact, badge) → AskUserQuestion with an "Omit" option (max 4 per call). `--yes` or unattended runs ask nothing: add it to `Omitted:`. implement-spec's `Open:` items and cap stops go into the leftovers; the caller still rescores and reaches the cap ask.
+- Before invoking implement-spec, resolve each fact gap (license, URL, version, contact, badge) → AskUserQuestion with an "Omit" option (max 4 per call). `--yes` runs ask nothing: add it to `Omitted:`; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 15: cannot interact`. implement-spec's `Open:` items and cap stops go into the leftovers; the caller still rescores and reaches the cap ask.
 - Then rescore (step 13) and report (step 14), per SKILL.md Rules.
 
 ## Leftovers

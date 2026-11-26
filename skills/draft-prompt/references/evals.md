@@ -28,6 +28,7 @@ pass: <observable criteria>
 | rules-location-ask | A repo with `AGENTS.md` and `.claude/rules/` but no CLAUDE.md | Asks where the rules live | The score table comes before a location question; options name the found paths; the draft never says "Read CLAUDE.md"; it names the confirmed paths |
 | no-rules-found | A repo with no instruction file | Still asks the location question | The location question is asked with a "None" option; `Rules: none` |
 | fill-in-ask | "Write a prompt to add retry to fetchUser" in a repo with `npm test` | Researches, then asks each open field | The repo is searched before asking; the done-when question offers `npm test` with a `package.json:<line>` citation; no placeholder for an answered field |
+| cannot-interact | "Write a prompt: add retry to fetchUser" (no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: 1: cannot interact`; nothing written |
 | no-approval-step | "Write a prompt: add retry to fetchUser" | Runs end to end; every write follows the last decision answer directly | Only the rules-location and field questions are asked; the draft prints right after the review passes with no confirm question; `Result: done` |
 
 ## Running per model

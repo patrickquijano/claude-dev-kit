@@ -20,6 +20,6 @@ For each candidate ask once (max 4 per call): `Add rule` | `Build a skill` (only
 - `Build a skill` → no skill is built here; the `Next:` line says in plain words to build a skill for the workflow, naming it and its sources.
 - `Omit` → add it to `Omitted:`; never re-ask it.
 
-## Unattended
+## `--yes`
 
-`--yes` or no way to ask → ask nothing and write nothing for a candidate; list each under `Open:` with its count and the offered options.
+`--yes` → ask nothing and write nothing for a candidate; list each under `Open:` with its count and the offered options. Headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 3: cannot interact`.

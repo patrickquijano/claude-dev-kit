@@ -6,7 +6,7 @@
 
 ## Spec brief
 
-The text passed to `cdk:implement-spec`, one call per package step. upgrade-dependencies runs the manager upgrade and lock commands first; implement-spec applies the planned code and config edits and fixes new check failures.
+The text passed to `cdk:implement-spec`, one call per package step. upgrade-dependencies runs the manager upgrade and lock commands first; implement-spec applies the planned code and config edits and fixes new type-check, test, and build failures.
 
 Goal: apply the planned edits for one upgraded package (or tightly coupled set) so that every type check, test, and build `[required]` check that passed at the step 7 baseline passes (implement-spec runs no linter; step 9's check-runner judges a lint check).
 
