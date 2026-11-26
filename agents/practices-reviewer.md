@@ -1,6 +1,6 @@
 ---
 name: practices-reviewer
-description: Use right after a Dockerfile or workflow is written or edited, when asked to review, audit, or lint one, or before a PR touching either. Runs linters, returns line findings. Read-only; not for fixing.
+description: Use right after a Dockerfile is written or edited, or when asked to review, audit, or lint one. Kind `workflow` is for a skill that supplies its resolver table and written-files list. Runs linters, returns line findings. Read-only; not for fixing.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 effort: medium

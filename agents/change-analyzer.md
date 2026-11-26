@@ -13,7 +13,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from the prompt: root, `mode` (`group` | `branch-name`), optional hints, optional answers to an earlier `Question`, and per mode: `branch-name` takes optional `base=<ref>|none` (default `none`); `group` takes `branch=yes|no`, optional `paths` (analyze only changes under them; list every other changed file under `Excluded` as `pre-existing`), and optional prior `Groups`, `Split`, `Excluded`, and commitlint error lines to fix (keep grouping and order, redraft only the failing subjects). Missing input → return `Question: <what is needed and why>` and stop.
+1. Inputs from the prompt: root, `mode` (`group` | `branch-name`; sent as `mode=group branch=yes|no` or `mode=branch-name base=<ref>|none input=<hints>`), optional hints (also given as `input=<hints>`), optional answers to an earlier `Question`, and per mode: `branch-name` takes optional `base=<ref>|none` (default `none`); `group` takes `branch=yes|no`, optional `paths` (analyze only changes under them; list every other changed file under `Excluded` as `pre-existing`), and optional prior `Groups`, `Split`, `Excluded`, and commitlint error lines to fix (keep grouping and order, redraft only the failing subjects). Missing input → return `Question: <what is needed and why>` and stop.
 2. `group` and `branch-name`: `git -C <root> status --porcelain=v1 -uall`, `git -C <root> diff --stat`, `git -C <root> diff --cached --stat`; read each diff (staged hunks via `git -C <root> diff --cached`) and new file enough to know its purpose, but never read a `.env*` (except `.env.example`, read and grouped like any config file) or key file's contents (its name is enough). Batch independent reads, greps, and commands in one turn; read large files by line range. `branch-name` with a `base` → also `git -C <root> log --format='%h %s%n%b%x1e' <base>..HEAD` (unique commits; read a diff only when a subject is unclear). No changes, no unique commits, and no hints → `Changes: none`, stop.
 3. `group`: split the changes into atomic commits, one logical change each, config with the files it configures; a rename (`D` old + `??` new) stays in one commit; order groups so no commit depends on a later one (tooling and config first); honor hints. A file mixing unrelated changes → list its `@@` hunk headers per group under `Split`. Draft one subject per group per `## Conventions`; commitlint error lines given → redraft only the failing subjects from them. `branch=yes` → also return `Branch` as in step 4.
 4. `branch-name`: dominant change type + imperative summary as `<type>/<short-description>` per `## Conventions`, plus a one-line reason. Hints win over commits and changes on a type or description conflict. With unique commits, parse each subject as `<type>(<scope>)!: <subject>` and take the intent from subjects and bodies (a non-Conventional subject counts as intent only). Type: a `!` or `BREAKING CHANGE` footer or any `feat` → `feat`, else any `fix` → `fix`, else the most frequent type, weighing uncommitted changes the same way. A scope shared by every Conventional commit leads the description. Describe the combined intent, not one commit. Do not check whether the name exists; the parent does.
@@ -37,4 +37,19 @@ Split: <file: group n @@ headers; group m @@ headers>, … | none
 Branch: <type/short-description> — <reason> | n/a
 Excluded: <file — reason>, … | none
 Question: <what is needed and why> | omit when no input is missing
+```
+
+Size cap: at most 40 lines; a `Groups` or `Excluded` list over 20 entries keeps the first 20 and ends with `+<n> more`, because the caller needs the grouping, not the diff.
+
+Filled Return (`group`):
+
+```text
+Mode: group
+Changes: 3 files
+Groups: 2.
+1. build(deps): bump eslint — package.json, package-lock.json
+2. feat(api): add health route — src/health.mjs
+Split: none
+Branch: n/a
+Excluded: .env — env file
 ```

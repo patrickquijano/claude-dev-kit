@@ -83,7 +83,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### instructions
 
 - Bash: `git -C <root> ls-files` only.
-- Required inputs: root. Optional: `Target:`, `Input files:`, `Input text:`. List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
+- Required inputs: root. Optional: `Target:`, `Input files:`, `Input text:`, `Context counts:` (size counts the caller already ran; prefer them over counting). List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
 - Memory files: `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/**/*.md`, subdirectory `CLAUDE.md`, ancestor `CLAUDE.md` up to `/` (read-only context). Record path, non-blank line count, `paths` frontmatter, `@imports` (resolve relative to file, max 4 hops).
 - Instructions: split each memory file, input file, and input text into instruction lines. Record source `file:line` (input text → `input`). Tag each: `keep` | `duplicate` (same meaning elsewhere; name other) | `derivable` (code, std convention, file listing, volatile) | `vague` (not verifiable) | `stale` (command or path not in repo).
 - Conflicts: pairs of instructions that cannot both hold. Include ancestor and `CLAUDE.local.md` conflicts.
@@ -159,7 +159,7 @@ Commands: <name: exact command, ...>
 Components: <name — path — purpose, ...>
 Config: user: <var/file — meaning, ...> | internal: <var/file, ...>
 License: <SPDX — owner — file | none>
-Visibility: <public | private | unknown> (from host/manifest `private` flag; unknown when not derivable)
+Visibility: <public | private | unknown> (from the manifest `private` flag; unknown otherwise, since no host query runs)
 Community files: <list or none>
 Host: <github | gitlab | other>
 Existing README: <none | headings list>
@@ -208,3 +208,18 @@ Gaps: <topic, ... | none>
 ```
 
 A required input missing → `Question: <what is needed and why>` instead.
+
+Size cap: at most 150 lines; a list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs conclusions, not a file dump.
+
+Filled Return (`gitignore`):
+
+```text
+Root: /repo
+Explored: 42 files, stacks node
+Candidates:
+- dist/ — build output — dist/ exists, not ignored — high
+Skipped: none
+Tracked but ignored: none
+Gitignore: present
+Questions: none
+```

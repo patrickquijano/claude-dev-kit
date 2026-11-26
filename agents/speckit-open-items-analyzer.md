@@ -34,3 +34,16 @@ Open items: <count> | none
    a) <approach> — <files> (code: yes | no) (Recommended: <reason>)
    b) <approach> — <files> (code: yes | no)
 ```
+
+Size cap: at most 40 items; more → list the first 40 in the order of step 4 and end with `+<n> more items`, because the caller reads conclusions, not raw material.
+
+Filled Return:
+
+```text
+Round: 2 of 5
+Converged: no (1 tasks appended)
+Open items: 1
+1. [CRITICAL finding] specs/001/spec.md:42 — FR-3 has no acceptance test
+   a) Add a test task for FR-3 — specs/001/tasks.md (code: yes) (Recommended: the plan already covers FR-3)
+   b) Drop FR-3 from the spec — specs/001/spec.md (code: no)
+```

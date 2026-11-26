@@ -13,9 +13,9 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from the prompt: root, `mode` (`detect` | `check`), optional answers to earlier `Gaps`; `check` also takes the tools to check, the package dir, the manager (exec form from `## Package manager`), check-command overrides (for example HTMLHint `--ignore`, `dotnet format --exclude`), and the Dockerfile, shell, and XML file lists. Missing input → return `Question: <what is needed and why>` and stop; ask nothing else.
+1. Inputs from the prompt: root, `mode` (`detect` | `check`), optional answers to earlier `Gaps`; `check` also takes the tools to check, the package dir, the manager (exec form from `## Package manager`), check-command overrides (for example HTMLHint `--ignore`, `dotnet format --exclude`), and the Dockerfile, shell, and XML file lists. Optional caller-passed catalogs (candidates per type, config files, check commands) replace the built-in `## Catalog` for the types they list; the built-in catalog covers the rest. Missing input → return `Question: <what is needed and why>` and stop; ask nothing else.
 2. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each question is answered. `detect`, file types: `git -C <root> ls-files --cached --others --exclude-standard`; map each file to a catalog key by extension, Dockerfile name, or (extensionless) shell shebang; count per type; keep the Dockerfile, shell, and XML file lists. Types not in the catalog → `uncovered`.
-3. `detect`, existing: Glob for config files, then per type, a role (formatter, linter) is filled when a catalog candidate for it is configured (config file or `package.json` key present) or, for `none`-config tools, installed (`command -v`, or the package in `dependencies`/`devDependencies`/`require-dev`/`.config/dotnet-tools.json`). Apply the catalog exceptions: Prettier fills the YAML, XML, or PHP formatter role only when its config loads that type's plugin (YAML needs none) and `.prettierignore` does not exclude the type; toolchain tools (xmllint, gofmt, `go vet`, `dotnet format`) fill a role only when they are its only candidate.
+3. `detect`, existing: Glob for config files, then per type, a role (formatter, linter) is filled when a catalog candidate for it is configured (config file or `package.json` key present) or, for `none`-config tools, installed (`command -v`, or the package in `dependencies`/`devDependencies`/`require-dev`/`.config/dotnet-tools.json`). Apply the catalog exceptions: Prettier fills the YAML, XML, or PHP formatter role only when its config loads that type's plugin (YAML needs none) and `.prettierignore` does not exclude the type; toolchain tools (xmllint, gofmt, `go vet`, `dotnet format`, `terraform fmt`, rustfmt, Clippy) fill a role only when they are its only candidate.
 4. `detect`, candidates: per unfilled role, the catalog candidates in catalog order, flagged installed or not, with PHP and Python ordering rules applied (`composer.json` `laravel/framework`, `*.blade.php`).
 5. `detect`, package manager: package dir, `<pkg>`, `package.json` present, manager and its source (`packageManager`, lockfile, none → `npm`). Several lockfiles in one dir → manager `unknown`, list them; never ask.
 6. `detect`, ignore candidates: catalog candidate paths that exist (`git -C <root> ls-files`, or the filesystem via Glob), minus those each filled or candidate tool already ignores (ignore file, config key, or an honored `.gitignore` option). Report per tool with the ignore file or key it uses.
@@ -26,10 +26,11 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 Candidates per file type, formatter first (the first candidate is the recommended one); `—` = no candidate, skip that role:
 
-- JavaScript/TypeScript (`js mjs cjs jsx ts mts cts tsx`): Prettier; ESLint. JSON (`json jsonc`): Prettier; ESLint with `@eslint/json`. CSS: Prettier; Stylelint. SCSS: Prettier; Stylelint. Less: Prettier; Stylelint (`postcss-less`). HTML (`html htm`): Prettier; HTMLHint. Markdown (`md markdown`): Prettier; markdownlint-cli2.
+- JavaScript/TypeScript (`js mjs cjs jsx ts mts cts tsx`): Prettier; ESLint. JSON (`json jsonc`): Prettier; ESLint with `@eslint/json`. CSS: Prettier; Stylelint. SCSS: Prettier; Stylelint. Less: Prettier; Stylelint (`postcss-less`). HTML (`html htm`): Prettier; HTMLHint. Markdown (`md markdown`): —; markdownlint-cli2.
 - YAML (`yaml yml`): yamlfmt | Prettier; yamllint. Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`): —; hadolint. Shell (`sh bash`, extensionless files with a `sh`/`bash` shebang): shfmt; ShellCheck.
 - Python (`py`): Ruff | Black; Ruff | Flake8. PHP (`php`): Pint (first when `composer.json` requires `laravel/framework`) | PHP-CS-Fixer (first otherwise) | Prettier with `@prettier/plugin-php` (not offered when `*.blade.php` files exist); PHPStan | PHP_CodeSniffer.
 - C# (`cs`): CSharpier; `dotnet format`. Go (`go`): gofmt; `go vet`. XML (`xml`): xmlstarlet | xmllint | Prettier with `@prettier/plugin-xml`; xmllint.
+- TOML (`toml`): Taplo; Taplo. Terraform (`tf tfvars`): `terraform fmt`; TFLint. Rust (`rs`): rustfmt; Clippy.
 - Not covered (`uncovered`): `.sass` and any type not listed.
 
 Config files (configured = any listed file exists, or a `package.json` key) and check commands, `<x>` = the manager's "binary must be installed" exec form:
@@ -39,7 +40,8 @@ Config files (configured = any listed file exists, or a `package.json` key) and 
 - Ruff `ruff.toml` or `[tool.ruff]`: `ruff check .`. Black `[tool.black]`: `black --check .`. Flake8 `.flake8`: `flake8 .`.
 - Pint `pint.json`: `vendor/bin/pint --test`. PHP-CS-Fixer `.php-cs-fixer.dist.php`: `vendor/bin/php-cs-fixer fix --dry-run --diff`. PHPStan `phpstan.neon*`: `vendor/bin/phpstan analyse --no-progress`. PHP_CodeSniffer `phpcs.xml*`, `.phpcs.xml*`: `vendor/bin/phpcs`.
 - CSharpier `.csharpierrc*`: `dotnet csharpier check .`. `dotnet format` (`.editorconfig`): `dotnet format style --verify-no-changes`, `dotnet format analyzers --verify-no-changes`. gofmt: `gofmt -l .`; `go vet`: `go vet ./...`. xmllint: `xmllint --noout <XML files>`. xmlstarlet: no check.
-- Tools with no config need none: ShellCheck, shfmt, Ruff, Black, Flake8, gofmt, `go vet`, xmllint, `dotnet format` count as configured only when installed (`command -v`, or listed in `dependencies`, `devDependencies`, `require-dev`, or `.config/dotnet-tools.json`).
+- Taplo `.taplo.toml`: `<x> taplo fmt --check` (formatter), `<x> taplo check` (linter). TFLint `.tflint.hcl`: `tflint --recursive`. `terraform fmt`: `terraform fmt -check -recursive`. rustfmt: `cargo fmt --all -- --check`. Clippy: `cargo clippy -- -D warnings`.
+- Tools with no config need none: ShellCheck, shfmt, Ruff, Black, Flake8, gofmt, `go vet`, xmllint, `dotnet format`, `terraform fmt`, rustfmt, Clippy count as configured only when installed (`command -v`, or listed in `dependencies`, `devDependencies`, `require-dev`, or `.config/dotnet-tools.json`).
 
 ## Package manager
 
@@ -73,4 +75,19 @@ Gaps: <fact not derivable — why>, … | none
 Checks: <tool: N problems | error: <first line>>, … | none
 Problems: <tool: first 3 problem lines>, … | none
 Gaps: <fact not derivable — why>, … | none
+```
+
+Size cap: at most 40 lines; a path list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs counts and pointers, not file dumps.
+
+Filled Return (`detect`):
+
+```text
+File types: js (12), md (4), toml (1)
+Uncovered: sass
+Lists: dockerfiles none; shell none; xml none
+Filled roles: js: formatter Prettier — .prettierrc — installed yes, linter ESLint — eslint.config.mjs — installed yes
+Unfilled roles: md: linter markdownlint-cli2; toml: formatter Taplo, linter Taplo
+Package: dir ., package.json yes, manager npm (lockfile)
+Ignore candidates: Prettier: .prettierignore — dist/
+Gaps: none
 ```

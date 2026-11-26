@@ -37,6 +37,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Latest stable: per outdated package, the registry lookup from managers.md; skip pre-release versions. Bump = patch | minor | major by semver (0.x: minor counts as major).
 - Breaking changes: for each minor or major bump, find the official changelog, release notes, or migration guide (package homepage or repository from the registry metadata; WebFetch it). List each breaking change and deprecation between current and latest that could apply, with its URL. Not found → `unknown`.
 - Impact: Grep the project for each breaking change's API, import, CLI flag, or config key (skip `node_modules/`, `vendor/`, lockfiles, build output). Record `file:line` hits and config files that set affected options. Also check peer and engine constraints: a new version needing a newer runtime or a newer peer.
+- Checks: Read the project's manifest scripts (`package.json`, `composer.json`), Makefile, and CI config for install, build, type check, lint, and test commands; list them verbatim in `Checks:` and never run them; none found → `none`.
 - Self-check: confirm each reported package, current version, latest version, `file:line`, and changelog URL exists in the registry output, lockfile, project, or fetched page; drop or mark `unknown` any that does not.
 
 ### images

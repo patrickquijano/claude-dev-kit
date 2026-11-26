@@ -1,6 +1,6 @@
 ---
 name: change-verifier
-description: Use proactively after changes to run the repo's documented checks in check mode, judge the diff against goals, or check review feedback items against the final diff. Read-only.
+description: Use proactively after changes to run the repo's documented checks in check mode, judge the diff against goals, or check review feedback items against the final diff. Read-only; not for a general code-quality or security review.
 tools: Read, Grep, Glob, Bash
 model: opus
 effort: medium
@@ -24,10 +24,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 ### checks
 
 - Required inputs: root, changed file paths, repo instruction summary (documented commands).
+- Baseline run: changed paths `none (baseline)` → nothing is changed yet, so run steps 2 to 4 against the repo's current state and return `Checks:` only (each failing check keeps its `Failing tests:` line), because the caller later compares the IDs.
 
 ### goals
 
 - Required inputs: root, goals with acceptance criteria, changed file paths. Optional inputs: the restated requirement (a requirement statement that no goal covers is a `major` finding), `Edges` per goal, non-goals, the chosen approach, and the planned file list.
+- Baseline mode (`none (baseline)`) is defined under `### checks`.
 - Step 4 line cap: the first-failing-lines cap of 20 does not apply to `Failing tests:`, which lists every failing test ID the tool prints.
 - Before step 3, review the working-tree diff of the changed paths against the goals for correctness bugs, regressions, unplanned files, and behavior changes without a test; read each changed file around its hunks.
 - Judge each goal as `met` (a passing test or command output proves it; a goal that changes behavior needs a passing test that exercises it), `unmet` (evidence shows it fails), or `unverified` (no proof either way, with the reason; code reading alone for a behavioral goal is `unverified — no test`).
@@ -48,15 +50,29 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Return
 
+Size cap: at most 80 lines for `goals` and `feedback`, one line per item or finding; a longer list keeps the blockers and majors first and ends with `+<n> more`. The `Failing tests:` list stays full.
+
 ### checks
 
 ```text
 Checks:
 - `<command>` [required] → pass | fail (exit <n>) | skipped (<reason>)
   <first failing lines, fail only>
+  Failing tests: <ids, full list | none reported> (baseline run, fail only)
 Required failing: <required commands | none>
 Not run: <check kinds with no documented command | none>
 Question: <only when input is missing; omit otherwise>
+```
+
+Filled Return (`checks`):
+
+```text
+Checks:
+- `npm test` [required] → pass
+- `npm run lint` [required] → fail (exit 1)
+  src/a.mjs:3 no-unused-vars
+Required failing: `npm run lint`
+Not run: type check
 ```
 
 ### goals

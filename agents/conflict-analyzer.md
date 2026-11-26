@@ -40,3 +40,21 @@ Hunks:
   risk: <semantic risk | none>
 Recommendation: ours | theirs | combined — <one sentence justification>
 ```
+
+Size cap: at most 12 lines per hunk and 15 hunks; more hunks → list the first 15 and end with `+<n> more hunks`, because the caller resolves one file at a time.
+
+Filled Return:
+
+```text
+File: src/a.mjs
+Conflict: content
+Hunks:
+- lines: 10-18
+  ours: target renamed `load` to `read` (a1b2c3d)
+  theirs: adds a `timeout` argument to `load`
+  recommend: combined
+  why: both intents are independent
+  combined: export function read(path, timeout) { … }
+  risk: other callers of `load` need the rename
+Recommendation: combined — each side changes a different part of the call
+```

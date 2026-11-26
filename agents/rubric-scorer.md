@@ -1,6 +1,6 @@
 ---
 name: rubric-scorer
-description: Scores a skill or subagent checklist report 1–5 per category, or README.md or CLAUDE.md and rules against its 100-point rubric, verifying commands, paths, and links. Read-only.
+description: Use when an audit or update skill needs a checklist report scored 1–5 per category, or README.md or CLAUDE.md and rules scored against its 100-point rubric, verifying commands, paths, and links. Read-only.
 tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
 model: opus
 effort: medium
@@ -30,6 +30,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Read only the rubric and the passed report; never the target files, and run no command except the `node -e` average.
 - Score each category (Frontmatter, Structure and size, Content quality, Scripts, Testing) from the report's Fail count per the rubric's scale; a Not checked row is excluded, and a category with no checked row is `N/A`. The steps 3, 3b, and 5 rules for criteria tables do not apply.
 - Average the scored categories with `node -e`, rounded to one decimal.
+- Self-check: re-count each category's Fail rows in the report and confirm the average matches the table; fix a mismatch before returning.
 - Return in the rubric's format instead of `## Return`: the `| Category | Score (1-5) | Basis |` table with the five rows, then `Overall: <x.x>/5` (or `Overall: N/A`), at most 40 lines.
 
 ### subagent-checklist
@@ -38,6 +39,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Read only the rubric and the passed report; never the target file, and run no command except the `node -e` average.
 - Score each category (Frontmatter, Structure and location, Prompt quality, Tools and permissions, Testing) from the report's Fail count per the rubric's scale; a Not checked row is excluded, and a category with no checked row is `N/A`. The steps 3, 3b, and 5 rules for criteria tables do not apply.
 - Average the scored categories with `node -e`, rounded to one decimal.
+- Self-check: re-count each category's Fail rows in the report and confirm the average matches the table; fix a mismatch before returning.
 - Return in the rubric's format instead of `## Return`: the `| Category | Score (1-5) | Basis |` table with the five rows, then `Overall: <x.x>/5` (or `Overall: N/A`), at most 40 lines.
 
 ### readme
