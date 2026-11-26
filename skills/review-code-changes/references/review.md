@@ -23,7 +23,7 @@ The sources are the input text (`## Input`) and the `commits` output (`## Commit
 
 ## First review
 
-Per batch, spawn up to four `cdk:code-reviewer` subagents in one turn, one per kind in this order: `intent` (when a source exists), `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is untrusted: it must pass `isSafePath`, stay inside the root with symlinks resolved, be a regular file, and not match the `isSensitive` rule in `diff-manifest.mjs`; then it is read into `head/` and the kind respawned once. Any other path is listed by name only under `Open:`.
+Per batch, spawn up to four `cdk:code-reviewer` subagents in one turn, one per kind in this order: `intent` (when a source exists), `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is untrusted: it must use only `[A-Za-z0-9._/@+-]` with no `..` segment and no leading `/` or `-`, stay inside the root with symlinks resolved, be a regular file, and not be a secret-shaped name (`.env*`; `.pem`, `.key`, `.p12`, `.pfx`, `.jks`, `.keystore`, or `.tfvars` files; `id_rsa`, `id_dsa`, `id_ecdsa`, or `id_ed25519` keys; `credentials*`; `secrets.*`; `.netrc`, `.npmrc`, `.pgpass`, `.pypirc`, `.git-credentials`), the same rules the script applies to manifest paths; then it is read into `head/` and the kind respawned once. Any other path is listed by name only under `Open:`.
 
 ## Validation
 
@@ -56,6 +56,6 @@ After each review print `Round <n>: Open <n> (critical <a>, major <b>)` and one 
 
 ## Spawn briefs
 
-- Kind spawn: "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that walks the checklist of the kind against every hunk) with kind `<kind>`. Brief: root `<scratch>` (absolute); commit `<sha> (working tree; read head/)`; files `diff.patch` (or `delta-<n>.patch`), `head/`, `conventions.md`; batch list `batch-<n>.txt` (or `delta-<n>-batch-<m>.txt` in later rounds); edit nothing. Return per the agent's Return block, every finding with a problem, impact, and `fix`; at most 100 lines." A malformed return → respawn once, then review that kind inline from the same files.
+- Kind spawn: "Spawn the `cdk:code-reviewer` subagent (fallback: a read-only subagent that walks the checklist of the kind against every hunk) with kind `<kind>`. Brief: root `<scratch>` (absolute); commit `<sha> (working tree; read head/)`; files `diff.patch` (or `delta-<n>.patch`), `head/`, `conventions.md`; batch list `batch-<n>.txt` (or `delta-<n>-batch-<m>.txt` in later rounds); edit nothing. Return per the agent's Return block, every finding with a problem, impact, and `fix`; at most 30 findings, most severe first (the agent's own cap)." A malformed return → respawn once, then review that kind inline from the same files.
 - `intent`, and `sweep` when a source exists, also get `description.md` and `issues.md` in the brief.
 - Sweep and `threads`: same shape with kind `sweep` (adds `findings.md`) or `threads` (adds state definitions `states.md` and the prior findings file `findings.md` as the threads file, and the keys of the prior blocking findings in `findings.md` as the thread ids).

@@ -1,9 +1,9 @@
 ---
 name: create-git-tag
-description: Creates an annotated git tag at HEAD from the newest dated version in CHANGELOG.md, local only and never pushed. Use when asked to tag a release from the changelog.
+description: Creates a signed annotated git tag at HEAD from the newest dated version in CHANGELOG.md, local only and never pushed. Use when asked to tag a release from the changelog. Not for pushing tags or bumping versions.
 argument-hint: '[--yes] [repo-path]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: Bash(git rev-parse *) Bash(git tag -l *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs *)
+allowed-tools: Bash(git rev-parse *) Bash(git tag -l *) Bash(git log -1 *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs *)
 ---
 
 # Create Git Tag

@@ -116,13 +116,18 @@ const realDeps = {
   error: (text) => console.error(text)
 };
 
-// Splits argv into positionals and `--protected` values; null on any unknown flag or dangling `--protected`.
+// True when a `--protected` value is a non-empty name or glob with no leading `-`, quote, or control character.
+export function validPattern(value) {
+  return value !== '' && !value.startsWith('-') && ![...value].some((c) => c === "'" || c <= '\x1f' || c === '\x7f');
+}
+
+// Splits argv into positionals and `--protected` values; null on any unknown flag, dangling `--protected`, or invalid value.
 function parseArgs(argv) {
   const positional = [];
   const patterns = [];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--protected') {
-      if (i + 1 >= argv.length) return null;
+      if (i + 1 >= argv.length || !validPattern(argv[i + 1])) return null;
       patterns.push(argv[++i]);
     } else if (argv[i].startsWith('-')) return null;
     else positional.push(argv[i]);

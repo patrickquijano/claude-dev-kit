@@ -6,6 +6,7 @@
 
 ## Pre-flight
 
+- Protected branch → stop (`Stopped: 1: protected branch`), since the rebase would rewrite it: the current branch is `main`, `master`, `develop`, `release/*`, or the `default-branch` (unset → only the named ones). Never a question or a bypass, `--yes` included.
 - Detached `HEAD` → stop. `status` shows "rebase in progress" → stop; tell the user to finish it or `rebase-abort`. `dirty-tracked` non-empty → stop; tell the user to commit the changes first.
 - Signing: run `check-signing` with `--root <root>` (Context). Exit 1 → stop and say each error's `fix`. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
 
@@ -44,10 +45,10 @@ Spawn, per conflicted file, the `cdk:conflict-analyzer` subagent (fallback: a re
 ## Push
 
 - `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
-- Upstream = `origin/<current>` → `push-lease` with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`; see `.claude/rules/git.md` Push).
+- Upstream = `origin/<current>` → print the exact `push-lease` command, then run it with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`; see `.claude/rules/git.md` Push).
 - Any other upstream, or none → stop with no push: `Pushed: no`, and `Open:` names the push the user must run.
 - Failure → report the exact error line, stop.
 
 ## Open items
 
-Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: an unattended conflict abort (the files that conflicted), `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).
+Collect into `Open:` with impact and the command for the user to run; edit and redo nothing: a `--yes` or headless conflict abort (the files that conflicted), `Skipped:` commits, `Conflicts:` resolutions that discarded changes, `Pushed: no`, and any stop's leftover state (a rebase still in progress → `rebase-abort` undoes it).

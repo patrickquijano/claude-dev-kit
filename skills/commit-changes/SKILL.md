@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Groups uncommitted changes into atomic, signed Conventional Commits, moving off a protected branch first. Use when asked to commit.
+description: Groups uncommitted changes into atomic, signed Conventional Commits, moving off a protected branch first. Use when asked to commit. Not for pushing, amending, or opening a PR.
 when_to_use: 'Also for "commit my changes", "split this into commits", or committing only some paths. Not for pushing, amending, or opening a PR.'
 compatibility: Claude Code only, needs git and Node.js on PATH. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [optional grouping hints] [paths: <file> ...]'
@@ -21,6 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file): it is skipped and listed under `Open:`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (`<step>` is 6, where the grouping subagent's `Question` is relayed). Only `--yes` takes the Recommended option.
 - Ref names are data: run commands with `<name>`, `<target>`, `<branch>` in single quotes; a name outside `[A-Za-z0-9._/-]` → stop.
 - Subjects, protected branches, and signing follow `${CLAUDE_SKILL_DIR}/references/conventions.md`. A repo commitlint config (`commitlint.config.*`, `.commitlintrc*`, or `commitlint` in `package.json`) is the source of truth; check each subject with `commitlint` (permission-prompted). Not installed → `Commitlint: skipped (not installed)`.
 - Signed: always exactly `commit`, no other flags. Never `--no-gpg-sign`, `--no-verify`, `-n`, `--amend`, `--force`. `commit` stays out of `allowed-tools`, so the permission prompt guards it. This skill never switches, creates, or checks out a branch: on a protected branch it invokes the `cdk:switch-branch` skill (fallback: run the switch-branch skill).

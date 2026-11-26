@@ -1,6 +1,6 @@
 ---
 name: push-commits
-description: Pushes the current branch's pending commits to its origin branch, and stops with the reason when none are pending. Use when asked to push commits.
+description: Pushes the current branch's pending commits to its origin branch, and stops with the reason when none are pending. Use when asked to push commits. Not for pushing tags or force-pushing.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git remote get-url *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git rev-list --count *) Bash(git log --format=*) Bash(git merge-base --is-ancestor *)
@@ -23,7 +23,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** `current-branch`; `HEAD` (detached) → `Stopped: 1: detached HEAD`. `origin-url` fails → `Stopped: 1: no origin remote`.
+1. **Pre-flight.** `current-branch`; `HEAD` (detached) → `Stopped: 1: detached HEAD`. A name outside `[A-Za-z0-9._/-]` → `Stopped: 1: unsafe branch name`, before any later command takes `<branch>`. `origin-url` fails → `Stopped: 1: no origin remote`.
 2. **Branch guard.** `default-branch` minus `origin/` (unset → `main`). Current is that name or `main`, `master`, `develop`, `release/*` → `Stopped: 2: protected branch <name>`.
 3. **Pending.** `pending-count`. `0` → `Result: nothing-to-do`; reason: no commit on this branch is missing from origin. A failed read → `Stopped: 3: <error line>`. Otherwise `pending-log` lists them and `head-sha` records HEAD.
 4. **Summary.** Print `Branch: <branch> → origin/<branch>`, the count, and each pending commit. Any commit whose `%G?` is not `G` → `Stopped: 4: unsigned commit <hash>` (commits are signed by repo rule; fix the signing and rerun). Note (one line each, then push anyway) any `fixup!`, `squash!`, or `WIP` subject, and a remote with commits not in HEAD (`remote-head` sha not an ancestor per `is-ancestor`, or unknown). The text names the effect: `origin/<branch>`, N commits, and "creates the remote branch and sets upstream" when `push-upstream` applies. No wait.

@@ -7,8 +7,8 @@ Rows use the plain `git <subcommand> …` form with the repository root as the w
 | Name | Command | Purpose | MCP tool |
 | --- | --- | --- | --- |
 | `repo-root` | `git rev-parse --show-toplevel` | Repository root; failure = not a repository | — |
-| `release-json` | `node "${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs" '<root>/CHANGELOG.md'` | JSON `{ok, version, tag, message}` or a stop code (`no-changelog`, `no-dated-version`) | — |
+| `release-json` | `node ${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs '<root>/CHANGELOG.md'` | JSON `{ok, version, tag, message}` or a stop code (`no-changelog`, `no-dated-version`) | — |
 | `tag-exists` | `git tag -l '<tag>'` | Non-empty = the tag exists locally | — |
-| `head` | `git rev-parse --short HEAD` and `git log -1 --format=%s` | HEAD short sha and subject, recorded at step 5 | — |
-| `create-tag` | `msg=$(node "${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs" --message '<root>/CHANGELOG.md') && git tag -a --cleanup=whitespace -m "$msg" '<tag>'` | Annotated tag at HEAD with the release message; a script failure creates no tag | — |
+| `head` | `git rev-parse --short HEAD` and `git log -1 --format=%s` (both in `allowed-tools`) | HEAD short sha and subject, recorded at step 5 | — |
+| `create-tag` | `msg=$(node ${CLAUDE_SKILL_DIR}/scripts/changelog-tag.mjs --message '<root>/CHANGELOG.md') && git tag -s --cleanup=whitespace -m "$msg" '<tag>'` | Signed annotated tag at HEAD (`-s` implies annotated; `.claude/rules/git.md`) with the release message; a script failure creates no tag | — |
 | `tag-sha` | `git rev-parse --short '<tag>^{commit}'` | Commit the tag points to | — |

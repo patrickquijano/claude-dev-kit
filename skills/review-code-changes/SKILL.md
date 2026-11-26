@@ -3,7 +3,7 @@ name: review-code-changes
 description: Reviews uncommitted and branch changes, fixes critical, major, and minor findings, then commits. Use to review, self-review, or look over local changes. Not for GitHub PRs or GitLab MRs.
 compatibility: Claude Code only. Requires git and Node.js 22 or newer. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[intent text] [--yes]'
-allowed-tools: Read Grep Glob Edit Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *)
+allowed-tools: Read Grep Glob Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git log *)
 ---
 
 # Review Code Changes
@@ -119,7 +119,7 @@ Files: <path>, … | none
 Commits: <hash subject>, … | none
 Unaddressed: <key [nit|question] <path>:<line> — problem>, … | none
 Open: <key: severity, reason; recommended fix>, <alternatives not taken>, <verification skipped: reason>, <intent skipped: no input text or commits>, … | none
-Next: review the commits, then push through `cdk:push-commits` if needed (no commit made: review the changes, then commit them); update the README and changelog through their own skills if needed
+Next: review the commits, then push if needed (no commit made: review the changes, then commit them); update the README and changelog through their own skills if needed
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
@@ -140,7 +140,7 @@ Files: src/a.mjs, src/b.mjs
 Commits: 9d4e7a1 fix(core): handle empty input in a and b
 Unaddressed: src/a.mjs:quality:vague-name [nit] src/a.mjs:12 — rename `x` to `count`
 Open: none
-Next: review the commits, then push through `cdk:push-commits` if needed
+Next: review the commits, then push if needed
 Result: done
 Stopped: none
 ```

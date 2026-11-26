@@ -5,7 +5,8 @@ import {
   main,
   pageCandidates,
   parseRefLines,
-  parseTrack
+  parseTrack,
+  validPattern
 } from '../../../../../skills/delete-branches/scripts/list-branches.mjs';
 
 const SEP = '\x1f';
@@ -41,6 +42,22 @@ describe('parseTrack', () => {
     const result = parseTrack('origin/x', '');
     // Assert
     assert.equal(result, 'in sync with origin/x');
+  });
+});
+
+describe('validPattern', () => {
+  test('accepts a name and a glob', () => {
+    // Act
+    const results = [validPattern('main'), validPattern('release/*')];
+    // Assert
+    assert.deepEqual(results, [true, true]);
+  });
+
+  test('rejects empty, a leading dash, a quote, and a control character', () => {
+    // Act
+    const results = [validPattern(''), validPattern('-f'), validPattern("a'b"), validPattern('a\nb')];
+    // Assert
+    assert.deepEqual(results, [false, false, false, false]);
   });
 });
 
@@ -204,6 +221,20 @@ describe('main', () => {
     // Assert
     assert.equal(code, 1);
     assert.deepEqual(out, { ok: false, code: 'git-error', message: 'fatal: not a git repository' });
+  });
+
+  test('exits 2 on a --protected value with a quote, a leading dash, or a newline', () => {
+    // Act
+    const results = [
+      run(['/r', 'local', '--protected', "a'; rm -rf /; '"]),
+      run(['/r', 'local', '--protected', '--force']),
+      run(['/r', 'local', '--protected', 'a\nb'])
+    ];
+    // Assert
+    assert.deepEqual(
+      results.map((r) => r.code),
+      [2, 2, 2]
+    );
   });
 
   test('exits 2 on a missing remote, unknown mode, or dangling flag', () => {

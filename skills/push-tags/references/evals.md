@@ -21,7 +21,7 @@ pass: <observable criteria>
 | mismatch-excluded | "Push my tags." (one new tag, one tag on a different remote commit) | Pushes the new tag only | Mismatch listed as excluded and in `Mismatches:`; `push` names only the new tag |
 | remote-unreachable | "Push my tags." (remote URL cannot be reached) | Stops | `Stopped: 3:` with git's error line; no question asked |
 | yes-mismatch-skipped | "/cdk:push-tags --yes" (one unpushed tag, one tag with a different commit on the remote) | Pushes only the unpushed tag | No question; `push` names only the unpushed tag; no force; the mismatch is reported and untouched |
-| no-approval-step | "Push my tags." (two unpushed tags) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| no-approval-step | "Push my tags." (two unpushed tags) | Runs end to end with no approval step, no confirmation, and no question | No approval wait; the push runs directly after the printed summary |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; no approval step precedes any push |
 
 ## Running per model

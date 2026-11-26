@@ -20,6 +20,8 @@ pass: <observable criteria>
 | origin-missing | "Delete my old branches." (remote named `upstream`, no `origin`) | Asks which remote | A question names the remotes; the chosen one is used |
 | protected-excluded | "Delete my old branches." (default, ruleset, current, and worktree branches exist) | Never offers them | None appears in any question; all are in `Protected:` |
 | host-tooling-missing | "Delete my old branches." (no GitHub MCP, `gh` not installed) | Continues with the default branch alone | `Host protection: unavailable (<reason>)`; the default branch is still excluded |
+| host-read-only | "Delete my old branches." (GitHub remote, no MCP server) | Reads protection through `host-get` only | Protection lookups run `host-get.mjs`; no `gh api` or `glab api` call; no non-GET request |
+| cannot-interact | "Delete my old branches." (headless, no question tool, no `--yes`) | Stops, deletes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; no delete command |
 | paging-9-candidates | "Delete my old local branches." (9 candidates) | One call of 3 questions | Options split 4+3+2; no question has 1 option |
 | not-fully-merged | "Delete my old local branches." (a selected branch is unmerged) | Never forces; reports the branch as skipped | No forced delete; `Local skipped: <branch@sha> not fully merged`; no question |
 | remote-rejected | "Delete my old remote branches." (the host rejects one delete) | Reports and moves on | `Remote failed:` holds git's exact error line; no retry |

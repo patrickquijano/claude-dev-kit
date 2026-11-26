@@ -31,6 +31,6 @@
 | `skip` | `git rebase --skip` | Drop the empty commit | — |
 | `continue` | `git -c core.editor=true rebase --continue` | Next commit | — |
 | `signatures` | `git log --format='%h %G? %s' <target>..HEAD` | `%G?` per commit | — |
-| `open-mr` | `glab mr list --source-branch <current> -F json` | Open MR for the branch | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
-| `open-pr` | `gh pr list --head <current> --state open --json number,url` | Open GitHub PR for the branch | `mcp__plugin_github_github__list_pull_requests` |
+| `open-mr` | `glab mr list --source-branch '<current>' -F json` | Open MR for the branch | `mcp__plugin_gitlab_gitlab__list_merge_requests` |
+| `open-pr` | `gh pr list --head '<current>' --state open --json number,url` | Open GitHub PR for the branch | `mcp__plugin_github_github__list_pull_requests` |
 | `push-lease` | `git push --force-with-lease=<current>:<pre-rebase sha> --force-if-includes origin HEAD:<current>` | Rewritten history | — |
