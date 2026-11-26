@@ -5,27 +5,28 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const everyWrite = /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m;
 const callers = {
   'audit-skill':
     /^- Every fix to a target skill.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'audit-subagent':
     /^- Every fix to a target subagent.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'build-skill':
-    /^- Before each implement-spec invocation.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+    /^- Before each `cdk:implement-spec` invocation.*a cancel keeps (?:cdk:)?implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'build-subagent':
-    /^- Every write, including.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
+    /^- Every write, including.*a cancel keeps (?:cdk:)?implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'update-readme':
     /^- Every write in steps 11.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
   'update-rules':
     /^- Every write in step 5 and step 8.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-hook': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-github-action': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-github-workflow': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-gitlab-ci': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-dockerfile': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'build-docker-compose': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'setup-devcontainer': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m,
-  'upgrade-dependencies': /^- Every write.*a cancel keeps implement-spec's reason.*`Stopped: <step>: user cancelled`/m
+  'build-hook': everyWrite,
+  'build-github-action': everyWrite,
+  'build-github-workflow': everyWrite,
+  'build-gitlab-ci': everyWrite,
+  'build-dockerfile': everyWrite,
+  'build-docker-compose': everyWrite,
+  'setup-devcontainer': everyWrite,
+  'upgrade-dependencies': everyWrite
 };
 
 describe('implement-spec callers keep the cancel reason', () => {

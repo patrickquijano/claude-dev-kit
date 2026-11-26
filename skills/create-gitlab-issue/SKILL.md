@@ -61,3 +61,19 @@ Next: none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Issue: #42 https://gitlab.com/acme/acme-api/-/issues/42
+Action: created
+Title: Login form rejects valid emails with a plus sign
+Template: .gitlab/issue_templates/Bug.md
+Labels: bug
+Type: Issue
+Tool: mcp
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

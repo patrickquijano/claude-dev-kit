@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | A1 | 5 | S: valid YAML, `---` on line 1, only known fields |
 | A2 | 3 | S: `name` valid (no `:`, no leading `-`, ≤256) |
-| A3 | 6 | `description` ≤200 (S), says when to delegate (a plain trigger names the situation: before, after, or during X); `Use proactively` only for a plain-request agent (the parent can fill every input of at least one kind from its own context; skill-only data → plain trigger) with confirmed auto-delegation (a plain trigger on an agent needing skill-supplied inputs is not deducted); names no skill or subagent (S/judgment), distinct from siblings |
+| A3 | 6 | `description` ≤400 (S), says when to delegate (a plain trigger names the situation: before, after, or during X); `Use proactively` only for a plain-request agent (the parent can fill every input of at least one kind from its own context; skill-only data → plain trigger) with confirmed auto-delegation (a plain trigger on an agent needing skill-supplied inputs is not deducted); names no skill or subagent (S/judgment), distinct from siblings |
 | A4 | 8 | `tools` is an explicit non-empty minimal allowlist (S); read-only excludes Edit and Write; `memory` counts as write; `Agent` only if it must spawn, never `Agent(type)` (S) |
 | A5 | 4 | `model` and `effort` are the interview answers, backed by the criteria in `interview.md` `## Model and effort`; neither omitted; `inherit` only if the user confirmed it; a spawner's `model:` override for a judgment kind counts as backed |
 | A6 | 4 | S: `color` `cyan` read-only, `red` write-capable (Edit, Write, NotebookEdit, `memory`, or tools omitted with a write tool not disallowed); other optional fields on a signal only |

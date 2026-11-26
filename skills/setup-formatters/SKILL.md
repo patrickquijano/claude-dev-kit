@@ -83,3 +83,23 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+File types: TypeScript (42), JSON (6), Markdown (9)
+Package manager: npm (lockfile), package dir .
+Formatters: TypeScript: prettier (chosen), JSON: prettier (only option), Markdown: prettier (only option)
+Versions: prettier: 3.3.3 (npm registry)
+Installed: prettier
+Skipped tools: none
+Constraints: none
+Configs: .prettierrc.json (written)
+Ignores: .prettierignore: dist/, coverage/
+Check: prettier: 0 problems
+Problems: none
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

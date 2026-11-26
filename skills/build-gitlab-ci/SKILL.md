@@ -40,7 +40,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Files
 
 - For layout, naming, the root file and include shape, reuse, scalar style, POSIX `sh` rules, `after_script` semantics, and default-omission docs, read `${CLAUDE_SKILL_DIR}/references/conventions.md` at steps 2 and 6.
-- For a stack's detection, cache, test, report, image, and deploy notes, read the matching `${CLAUDE_SKILL_DIR}/references/stacks/<stack>.md` at step 1: `node.md`, `python.md`, `go.md`, `java.md`, `php.md`, `ruby.md`, `dotnet.md`, `rust.md`, `docker.md`, or `generic.md` for an unlisted stack (research steps).
+- For a stack's detection, cache, test, report, image, and deploy notes, read the matching file in `${CLAUDE_SKILL_DIR}/references/stacks/` at step 1: `node.md`, `python.md`, `go.md`, `java.md`, `php.md`, `ruby.md`, `dotnet.md`, `rust.md`, `docker.md`, or `generic.md` for an unlisted stack (research steps).
 - For choosing image tags and the fallback order, read `${CLAUDE_SKILL_DIR}/references/image-resolution.md` at step 4.
 - For runner feature flags, read `${CLAUDE_SKILL_DIR}/references/feature-flags.md` at step 5.
 - For the root and per-job skeletons, copy `${CLAUDE_SKILL_DIR}/assets/templates/root.gitlab-ci.yml` and `${CLAUDE_SKILL_DIR}/assets/templates/job.gitlab-ci.yml` at step 6.

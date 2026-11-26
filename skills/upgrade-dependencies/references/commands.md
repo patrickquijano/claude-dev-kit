@@ -7,5 +7,6 @@
 | `tool-check` | `command -v <package manager>` | Package manager installed (step 3) |
 | `diff-stat` | `git diff --stat` | Changed-file summary |
 | `checkpoint` | `git stash create` | Checkpoint commit before each package; empty output → `git rev-parse HEAD`; touches no stash list |
+| `untracked-files` | `git ls-files --others --exclude-standard` | Untracked files recorded beside each checkpoint; a file absent from both counts as created by the step |
 | `restore-files` | `git restore --source=<checkpoint sha> --worktree -- <file>` | Revert one changed file of a failed package to its checkpoint |
 | `frozen-install` | the project's row in `managers.md` `## Frozen install` | Install from the lockfile without rewriting it (step 9) |

@@ -41,3 +41,12 @@ pass: <observable criteria, one per line>
 - `cannot-interact`: "Create an action." (run as a subagent)
   - Expected: Asks nothing, writes nothing
   - Pass: `Result: stopped`, `Stopped: <step>: cannot interact`
+- `implement-needs-input-stops`: "Create an action." (`cdk:implement-spec` ends `Stopped: <step>: needs input`)
+  - Expected: Stops, never writes inline
+  - Pass: `Result: stopped`, `Stopped: <step>: needs input`; no inline write fallback
+- `implement-outside-scope-stops`: "Create an action." (`cdk:implement-spec` ends `Stopped: <step>: write outside scope`)
+  - Expected: Stops, never writes inline
+  - Pass: `Result: stopped`, `Stopped: <step>: write outside scope`; no inline write fallback
+- `implement-cancelled-stops`: "Create an action." (`cdk:implement-spec` ends `Result: cancelled`)
+  - Expected: Stops, keeping implement-spec's reason
+  - Pass: `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback

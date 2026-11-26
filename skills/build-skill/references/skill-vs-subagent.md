@@ -16,7 +16,7 @@ Signals to check, in order: Does the main thread need the intermediate work? (ye
 
 ## Subagent outline
 
-build-skill never builds a subagent. For a subagent fit, explain why in two sentences and give at most 10 lines:
+cdk:build-skill never builds a subagent. For a subagent fit, explain why in two sentences and give at most 10 lines:
 
 ```text
 name: <verb-first-or-role-name>

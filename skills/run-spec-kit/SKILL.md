@@ -66,3 +66,18 @@ Next: none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Feature: specs/001-bulk-csv-export (branch 001-bulk-csv-export)
+Constitution: unchanged
+Clarify: ran
+Analyze: 5 found, 5 remediated, 0 open
+Implement: 2 round(s), converged
+Addressed: 3 fixed, 1 skipped (0 of them CRITICAL), 0 open
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

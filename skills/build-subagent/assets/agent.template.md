@@ -7,7 +7,7 @@ Path: `<scope root>/<name>.md`
 ````markdown
 ---
 name: <kebab-case actor noun, no ":">
-description: <When to delegate and the job; trigger wording per `references/agent-checklist.md` `## Frontmatter` Description. Read-only.> # ≤200 chars, no skill or agent names
+description: <When to delegate and the job; trigger wording per `references/agent-checklist.md` `## Frontmatter` Description. Read-only.> # ≤400 chars, no skill or agent names
 tools: <minimal comma list> # read-only: Read, Grep, Glob
 model: <haiku|sonnet|opus|fable|inherit|<full model id>>
 effort: <low|medium|high|xhigh|max>

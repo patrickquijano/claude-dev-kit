@@ -64,3 +64,22 @@ Next: <follow-up> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+MR: !57 https://gitlab.com/acme/acme-api/-/merge_requests/57 (feat/bulk-export → main) @ 9f3c2ab41d7e08a5c6b1f2e3d4a5b6c7d8e9f012
+Author: dana
+State: opened, ready, mergeable
+Method: squash
+Tool: mcp accept_merge_request
+Fallbacks: none
+Blockers: none
+Refusal: none
+Merge commit: 5d2e8f1a9b3c4d6e7f8091a2b3c4d5e6f7a8b9c0
+Branch: deleted
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

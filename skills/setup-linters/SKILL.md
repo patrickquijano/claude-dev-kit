@@ -87,3 +87,25 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+File types: TypeScript (42), YAML (4)
+Package manager: npm (lockfile), package dir .
+Formatter: prettier (only one)
+Linters: TypeScript: eslint (chosen), YAML: yamllint (only option)
+Versions: eslint: 9.15.0 (npm registry)
+Installed: eslint
+Skipped tools: none
+Constraints: none
+Configs: eslint.config.mjs (written), .yamllint.yaml (written)
+Disabled rules: none
+Ignores: eslint.config.mjs: dist/
+Check: eslint: 0 problems, yamllint: 0 problems
+Problems: none
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

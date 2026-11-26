@@ -77,3 +77,21 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+CLI: installed 0.4.2
+Skill: registered (project)
+Claude hooks: added
+Git hooks: added
+Graph: pending (run the third-party /graphify .)
+Names: skipped (graph pending)
+Git ignore: shared graph.json + GRAPH_REPORT.md (3 lines added)
+Lint/format ignores: .prettierignore: graphify-out/
+Rules: .claude/rules/graphify.md added; CLAUDE.md section present
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

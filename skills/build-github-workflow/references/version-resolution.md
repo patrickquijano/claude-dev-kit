@@ -9,7 +9,7 @@ Resolve fresh on every run; never use a remembered value. Network lookups that f
 ## Actions
 
 1. Keep an existing valid pin as is (update mode), unless the user asked to upgrade.
-2. Latest release tag: `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name`. If that fails or the repo publishes no releases: `git ls-remote --tags --refs https://github.com/<owner>/<repo>` and take the highest stable `vX.Y.Z` (ignore pre-releases).
+2. Latest release tag: `gh api repos/<owner>/<repo>/releases/latest --jq .tag_name` (permission-prompted: no `allowed-tools` rule can pin a variable owner and repo without a wildcard that also matches extra flags). If that fails or the repo publishes no releases: `git ls-remote --tags --refs https://github.com/<owner>/<repo>` and take the highest stable `vX.Y.Z` (ignore pre-releases).
 3. A floating major tag (`v4`) → find the full `vX.Y.Z` that it points to, from the same tag list.
 4. Tag → commit SHA: `git ls-remote https://github.com/<owner>/<repo> refs/tags/<tag> 'refs/tags/<tag>^{}'`. An annotated tag lists a `^{}` line; use that SHA, else the plain line.
 5. Write `uses: <owner>/<repo>@<sha> # <tag>`.

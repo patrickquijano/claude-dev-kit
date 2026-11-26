@@ -61,3 +61,16 @@ Next: commit the carried changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Branch: feat/add-login-form → origin/feat/add-login-form
+Switched from: main
+Unstaged: none
+Changes carried: 3 files
+Commits carried: none
+Next: commit the carried changes
+Result: done
+Stopped: none
+```

@@ -17,18 +17,21 @@ From `rules.md` F1. A candidate that fails one is dropped and listed with the ru
 
 - kebab-case a–z and 0–9, at most 64 characters, no leading, trailing, or double hyphen.
 - No "anthropic" or "claude".
+- No XML tags.
+- No vague name (`helper`, `utils`).
+- No plugin namespace: a colon is invalid and the plugin adds `plugin:` itself.
 - Equals the folder name.
 - Not already used at the target scope.
 
 ## Criteria
 
-| Criterion                                             | Weight |
-| ----------------------------------------------------- | ------ |
-| Names the action: verb first, then the object         | 30     |
-| Matches the trigger words the user gave               | 25     |
-| Fits the sibling convention (cite siblings; none → 1) | 20     |
-| Distinct from siblings and built-in commands          | 15     |
-| Short to type: fewest words that still name the job   | 10     |
+| Criterion                                                                                 | Weight |
+| ----------------------------------------------------------------------------------------- | ------ |
+| Names the action: gerund (`processing-pdfs`) or verb-first (`process-pdfs`), object after | 30     |
+| Matches the trigger words the user gave                                                   | 25     |
+| Fits the sibling convention (cite siblings; none → 1)                                     | 20     |
+| Distinct from siblings and built-in commands                                              | 15     |
+| Short to type: fewest words that still name the job                                       | 10     |
 
 ## Scoring
 

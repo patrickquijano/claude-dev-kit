@@ -8,43 +8,27 @@
 
 | id | prompt | expected route | pass |
 | --- | --- | --- | --- |
-| trigger-audit | "audit my commit-changes skill" | audit-skill | Resolves `skills/commit-changes/SKILL.md`; scores it |
+| trigger-audit | "audit my commit-changes skill" | audit-skill | Resolves `skills/commit-changes/SKILL.md`; prints the checklist report |
 | no-trigger-deps | "audit my npm dependencies" | not this skill | Skill is not loaded |
-| no-trigger-build | "build a new skill that tidies logs" | build-skill | Skill is not loaded; build-skill handles it |
+| no-trigger-build | "build a new skill that tidies logs" | cdk:build-skill | Skill is not loaded; `cdk:build-skill` handles it |
 
 ## Behavior cases
 
 | id | prompt | expected behavior | pass |
 | --- | --- | --- | --- |
-| no-args-select | `/cdk:audit-skill` | Lists skills, asks paged multi-select | At most 4 options per question and 4 questions per call; nothing selected → `nothing-to-do` |
-| dirty-target | `/cdk:audit-skill <skill>` (tracked file modified) | Scores and edits the target | Applies the VERIFIED fixes; `Stopped: none` |
-| cap-reached | A skill still REJECTED with a blocking row after 2 rounds | Stops at the cap, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: round cap`; blocking rows under `Open:` |
-| declined-blocking | A skill with a blocking row whose fix the user declines | Stops, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: declined`; blocking row under `Open:` |
-| no-fix | Round 1 ran, the blocking count fell, yet no blocking row has a fix | Stops, never asks to extend | No extension question; `Result: stopped`, `Stopped: 9: no fix`; blocking row under `Open:` |
-| yes-no-args | `/cdk:audit-skill --yes` | Selects nothing | No question asked; `Result: nothing-to-do`; assumption under `Decisions:`; `Open: none` |
-| parallel-score | `/cdk:audit-skill a b` | One scorer per skill in one message | Both spawns in a single message; totals re-summed with `node -e` |
-| fresh-rescore | A skill fixed in round 1 | Rescores from current files | Reported score comes from the step 8 rescore, none carried over |
-| implement-handoff | A skill REJECTED with 1+ VERIFIED fixes | Writes through implement-spec | One implement-spec invocation per skill; goals are the fix IDs; no planner or implementer named |
-| no-format-lint | Any fix round | Runs no formatter or linter | The Spec brief says so; no format or lint command runs |
-| no-extra-spawn | Any fix round | Spawns only the allowed subagents | This skill spawns only scorer and researcher subagents; any other spawn comes from implement-spec under its spawn rule |
-| scorer-agent | `/cdk:audit-skill <skill>` | Scores through the plugin scorer | Spawns `cdk:rubric-scorer` with kind `skill-audit`, not a generic subagent |
-| accepted-continues | A skill at 92 ACCEPTED with a blocking `open` row (a deduction that affects a safety stop) | Fixes once, then stops | One fix round runs; ends at step 10 once no blocking row is open; the non-blocking `open` rows are not fixed in round 1 and go under `Residual:` as untried |
-| accepted-no-fix-round | A skill at 92 ACCEPTED with only non-blocking `open` rows | Edits nothing | No implement-spec call and no step 6 question; each row is `residual` and listed under `Residual:` as untried; `Rounds: 0/2`; `Result: done` |
-| immaterial-waived | A skill whose only flaws are passive voice and a missing reason on a rule a model already follows | Deducts nothing for them | Both score full under Materiality, with no fix ID; listed under `Waived:`, absent from `Open:` |
-| unverified-research | A skill with UNVERIFIED suggestions | Researches before asking | Spawns `cdk:topic-researcher`; a confirmed source promotes the fix and it is applied |
-| unverified-ask | UNVERIFIED suggestion, researcher finds no source | Asks per item | Asks `Apply anyway \| Decline \| Provide a source or fact`, Recommended first |
-| yes-decisions | `--yes` with an UNVERIFIED suggestion left | Takes the Recommended option | No question; `Decisions:` filled; `Open: none` |
-| one-try | A fix round leaves a row still deducted | Does not retry or ask again | The row had one try; blocking → stays `open` for round 2 only if the count fell, non-blocking → `residual`; no `Apply anyway` re-ask |
-| line-coverage | A scorer return lacks a section-10 row for a target file | Respawns, then scores inline | Missing or short file → scorer respawned once, then that file scored inline |
-| fix-per-deduction | A deduction has no fix or `no fix:` reason | Respawns the scorer | Scorer respawned once; still missing → fix written inline |
-| memory-reuse | An open item matches a `feedback` memory `cdk-fix-skill-…` | Reuses the stored fix | `MEMORY.md` read before step 7; memory fix: unverified hint beside the After; a confirmed fix updates one memory, no duplicate |
-| waived-item | A would-be deduction whose fix changes no behavior | Waives it | Scores full, no fix ID, listed under `Waived:`, absent from `Open:` |
-| ledger-no-drop | A rescore omits an earlier open item | Keeps it in the ledger | Row matches by rubric ID, file, and anchor, not Before text; an item still deducted is not re-asked; `Items:` counts it |
-| score-only | `/cdk:audit-skill --score-only <skill>` | Scores and reports, never edits | No implement-spec call and no memory write; no step 6 question; `Open:` lists every item but a settled one and `Waived:` lists the waived ones |
-| scripts-untouched | A VERIFIED fix targets a `scripts/` executable | Leaves the script unedited | The Spec brief lists `scripts/` edits as a non-goal; no `scripts/` file changes; the fix stays under `Open:` |
-| residual-once | A non-blocking item still deducted after its one try | Reports it once | Status `residual`; listed under `Residual:` as tried; no later round retries it |
-| settled-skip | A later run finds a residual item whose cited line is unchanged | Suppresses it | Matching settled memory row (rubric ID, file, hash) → `settled`, counted in `Items:`, not listed; score unchanged |
-| settled-reopens | A later run finds the same item after its cited line changed | Reports it again | Hash differs → the item is not `settled`; a blocking item is never settled |
-| regression-blocks | A rescore adds a row on a line holding an applied After | Treats it as blocking | Grep finds the After text on the cited line → blocking, `open`, eligible for round 2 |
-| no-invocation-flag-fix | A skill with Write in `allowed-tools` and no `disable-model-invocation` | Scores it with no flag finding | No deduction, fix, or `Outside rubric` item that adds, removes, or changes `disable-model-invocation` or `user-invocable` |
-| front-loaded-ask | A skill with UNVERIFIED rows | Researches and asks before any fix | Step 6 runs before step 7: researcher first, then one batched `Apply anyway \| Decline \| Provide a source or fact` ask |
+| missing-input-asks | `/cdk:audit-skill` | Asks for the path | One AskUserQuestion; never guesses a skill |
+| yes-no-input | `/cdk:audit-skill --yes` | Stops without a question | No question; `Result: stopped`, `Stopped: 1: no input` |
+| report-only | `/cdk:audit-skill --report-only <skill>` | Reports only | Totals line and table; no score, no question, no edit, no backup; `Skills:` item ends `(report-only)`; `git status` unchanged |
+| default-flow | `/cdk:audit-skill <skill with one Fail>` | Report, score, approve, fix, re-audit | Spawns `cdk:rubric-scorer` kind `skill-checklist`; asks approval; one `cdk:implement-spec` call; one report-only re-audit |
+| not-checked-informational | A skill with no `when_to_use` and no `scripts/` | Marks conditional checks Not checked | F7 and X1–X3 are Not checked with a reason; T1–T2 Not checked; none is counted as a Pass or a Fail |
+| scorer-missing | The `agents/rubric-scorer.md` file is absent | Skips the score | `Not scored: definition not found`; the audit and the fixes go on |
+| scorer-mismatch | A scorer return whose Fail count differs from the report | Respawns once | One respawn; still wrong → `Not scored: <reason>` |
+| plugin-batch | `/cdk:audit-skill <plugin dir>` with one failing skill | Audits every skill | One combined report; the Fail never stops another skill; a score table per skill |
+| approval-per-skill | A plugin batch with Fails in two skills | Asks once per skill | One multi-select question per skill, at most 4 options per question and 4 questions per call |
+| backups-scratchpad | An approved fix | Backs up before editing | Backups under `<scratchpad>/audit-skill-backups/<skill>/`, never beside the file; `Backups:` lists them |
+| implement-conflict-stops | `cdk:implement-spec` sets `disable-model-invocation: true` | Stops before the fix | `Result: stopped`, `Stopped: 6: implement-spec conflict`; no manual edit |
+| implement-missing-stops | The `cdk:implement-spec` SKILL.md is absent | Stops, no manual fix | `Result: stopped`; fixes under `Open:`; no manual edit |
+| reaudit-still-fail | An approved check still Fail after the fix | Stops without a loop | One re-audit only; `Result: stopped`, `Stopped: 7: still failing` |
+| scripts-untouched | A Fail in `scripts/` | Reports it, never edits it | Listed under `Open:`; not offered for approval; no `scripts/` file changes |
+| bak-ignored | A skill folder holding `SKILL.md.bak` | Ignores the backup | The `.bak` file is read by no check |
+| no-pass-without-reading | A check whose file cannot be read | Never passes it | Not checked with `Unverified: <what is missing>` |

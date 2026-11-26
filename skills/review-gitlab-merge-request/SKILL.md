@@ -1,7 +1,7 @@
 ---
 name: review-gitlab-merge-request
 description: 'Reviews one GitLab MR in full: resolves its own addressed threads, then posts severity-labeled threads and approves when none is left unresolved. Use when asked to review a GitLab MR.'
-when_to_use: Use when asked to review, re-review, or approve a GitLab merge request by MR URL, IID, or the current branch. Not for addressing MR feedback (address-gitlab-merge-request-review) or GitHub PRs (review-github-pull-request).
+when_to_use: Use when asked to review, re-review, or approve a GitLab MR by URL, IID, or the current branch. Not for addressing MR feedback (address-gitlab-merge-request-review) or GitHub PRs (review-github-pull-request).
 compatibility: Claude Code only. Requires node and git; glab for commands with no MCP tool (compare-diff, approvals, summary-update) and as the fallback when the MCP host check fails. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | iid]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/filter-threads.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(glab auth status --hostname *) Bash(glab mr view *) Bash(glab mr diff *) Bash(glab mr list *) Bash(glab issue view *) mcp__plugin_gitlab_gitlab__get_user mcp__plugin_gitlab_gitlab__get_project mcp__plugin_gitlab_gitlab__get_merge_request mcp__plugin_gitlab_gitlab__get_repository_file mcp__plugin_gitlab_gitlab__get_work_item
@@ -119,3 +119,24 @@ Stopped: <step>: <reason> | none
 ```
 
 `<files reviewed>` is the changed files minus those under `Skipped:`.
+
+Example:
+
+```text
+MR: !9 https://gitlab.com/acme/app/-/merge_requests/9 (fix/null-guard → main) @ 3f2c9a1b7d4e5f60718293a4b5c6d7e8f9012345
+Path: argument iid
+Tool: mcp
+Mode: first review
+Threads: 0 resolved (0 fixed, 0 obsolete), 0 left open, 0 disputed, 0 unjudged, 0 ignored (not own or non-gating)
+Coverage: 4/4 files, 1 batches
+Verdict: REQUEST_CHANGES (1 major finding)
+Findings: 0 critical, 1 major, 0 minor, 2 nit, 0 question, 0 dropped
+Review: 3 new discussions, approval removed
+Skipped: none
+Unverified: none
+Errors: none
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

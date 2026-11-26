@@ -65,3 +65,20 @@ Stopped: <step>: <reason> | none
 ```
 
 `done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an existing `compose.sonar.yaml`, an unresolved image tag, or a failed validation ended the run.
+
+Example:
+
+```text
+Stack: maven
+File: /srv/dev/projects/app/compose.sonar.yaml
+Tasks: .vscode/tasks.json (sonar: up, sonar: scan)
+Services: sonarqube
+Server: sonarqube:10.7-community; scanner: none
+Validate: pass
+Env: /srv/dev/projects/app/.env.sonar (token created, user)
+Server state: stopped
+Open: none
+Next: none
+Result: done
+Stopped: none
+```

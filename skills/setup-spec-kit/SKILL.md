@@ -63,3 +63,18 @@ Next: run the Spec Kit workflow on a feature | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+specify-cli: installed 0.0.22
+Init: done
+Extensions: agent-context added, assess added, bug added
+Git ignore: 2 lines added to .gitignore
+Lint/format ignores: .prettierignore: .specify/
+Required skills: all present
+Open: none
+Next: run the Spec Kit workflow on a feature
+Result: done
+Stopped: none
+```

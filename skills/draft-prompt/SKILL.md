@@ -48,3 +48,22 @@ Next: none
 Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+````text
+```text
+Context: CLAUDE.md lists `npm test` as the test command.
+Task: Add a failing test, then fix it, so `parseDate` in [PATH?] accepts `2026-02-30` as invalid.
+Constraints: Change only the parser and its test.
+Done when: `npm test` passes.
+Guardrails: No refactor; no new dependency.
+```
+Changelog: pass 1 replaced "fix the date bug" with a named function and a done check
+Placeholders: [PATH?] (file holding parseDate)
+Rules: CLAUDE.md
+Open: none
+Next: none
+Result: done
+Stopped: none
+````

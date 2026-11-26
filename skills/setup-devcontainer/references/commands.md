@@ -17,4 +17,6 @@
 | `devcontainer-exec` | `devcontainer exec --workspace-folder <root> --config <devcontainer> --id-label cdk-test=<run id> true` | Test: the started container runs a command |
 | `test-containers` | `docker ps -aq --filter label=cdk-test=<run id>` | Ids of the test container(s) to remove |
 | `test-remove` | `docker rm -f <ids>` | Remove the test container (permission-prompted) |
-| `compose-down` | `docker compose -p <run id> -f <dev compose files…> down` | Compose approach: remove the test project's containers and network; `-v` is left out because a volume with an explicit `name:` is global, so the run id does not scope it (permission-prompted) |
+| `compose-down` | `docker compose -p <run id> -f <dev compose files…> down` | Compose approach: remove the test project's containers and network; `-v` is left out because it would also remove a pre-existing volume with an explicit `name:`, which the run id does not scope (permission-prompted) |
+| `test-volumes` | `docker volume ls -q --filter label=com.docker.compose.project=<run id>` | Compose approach: ids of the volumes this test project created, found by the project label |
+| `test-volume-remove` | `docker volume rm <ids>` | Compose approach: remove the test project's volumes (permission-prompted) |

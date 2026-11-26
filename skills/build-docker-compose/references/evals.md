@@ -143,4 +143,22 @@ kind: behavior
 prompt: "Write a Dockerfile for my Node app."
 expected: build-docker-compose does not load
 pass: No compose file is written and no Compose question is asked
+
+id: implement-needs-input-stops
+kind: behavior
+prompt: "Write a Compose file for a Node app." (`cdk:implement-spec` ends `Stopped: <step>: needs input`)
+expected: Stops, never writes inline
+pass: `Result: stopped`, `Stopped: <step>: needs input`; no inline write fallback
+
+id: implement-outside-scope-stops
+kind: behavior
+prompt: "Write a Compose file for a Node app." (`cdk:implement-spec` ends `Stopped: <step>: write outside scope`)
+expected: Stops, never writes inline
+pass: `Result: stopped`, `Stopped: <step>: write outside scope`; no inline write fallback
+
+id: implement-cancelled-stops
+kind: behavior
+prompt: "Write a Compose file for a Node app." (`cdk:implement-spec` ends `Result: cancelled`)
+expected: Stops, keeping implement-spec's reason
+pass: `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback
 ```

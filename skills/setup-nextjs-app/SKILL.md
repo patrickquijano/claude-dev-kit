@@ -76,3 +76,19 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+Mode: scaffold
+Versions: Node 22.11.0 (.nvmrc), Next.js 15.0.3 (npm registry)
+Choices: Styling: Tailwind CSS (9), Testing: Vitest (8)
+Written: package.json, next.config.ts, app/page.tsx
+Verify: npm run build: pass, npm test: pass
+Red flags: RF1: set security headers (applied)
+Research: https://nextjs.org/docs
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

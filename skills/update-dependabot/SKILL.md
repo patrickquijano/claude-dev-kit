@@ -64,3 +64,17 @@ Next: commit the changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
+
+Example:
+
+```text
+File: .github/dependabot.yaml (created)
+Ecosystems: npm: /, github-actions: /
+Changes: added 2 entries
+Research: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+Validation: schema check pass
+Open: none
+Next: commit the changes
+Result: done
+Stopped: none
+```

@@ -1,8 +1,8 @@
 # Docs snapshot
 
-Source: <https://code.claude.com/docs/en/subagents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists, except `experimental.cacheTtl` and the `autoCompactWindow` range.
+Source: <https://code.claude.com/docs/en/sub-agents> (full page, read to its end), also <https://code.claude.com/docs/en/plugins-reference>. Facts only, paraphrased. `check-agent` mirrors the field, enum, and removed-tool lists, except `experimental.cacheTtl`, the `autoCompactWindow` range, and the `propose_skills`, `EnterPlanMode`, and `ExitPlanMode` entries of the removed-tool list.
 
-Fetched: 2026-10-24
+Fetched: 2026-11-24
 
 Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch` on the first URL and use the result in memory for this run only (never write it to this file or any file under `${CLAUDE_SKILL_DIR}`); unreachable or no `WebFetch` → label every rule that depends on a changed fact "Unverified (baseline dated <the `Fetched:` date>)": omit it and list it in `Unverified:`.
 
@@ -29,7 +29,7 @@ Freshness: fetched over 30 days ago, or the user asks → refresh with `WebFetch
 | `maxTurns` | positive integer | none | - |
 | `skills` | list, at most 32; full content injected at startup; a skill with `disable-model-invocation` cannot be preloaded | none | - |
 | `mcpServers` | MCP servers scoped to the agent | none | ignored by plugin agents |
-| `hooks` | `PreToolUse`, `PostToolUse`, `Stop` scoped to the agent | none | ignored by plugin agents |
+| `hooks` | all hook events scoped to the agent (`Stop` runs as `SubagentStop`; docs fetched 2026-11-24, <https://code.claude.com/docs/en/sub-agents>) | none | ignored by plugin agents |
 | `memory` | `user`, `project`, `local`; adds Read, Write, Edit and up to 200 lines / 25KB of `MEMORY.md` | none | - |
 | `background` | `true` or `false` | `false` | - |
 | `omitClaudeMd` | `true` or `false` | `false` | - |
@@ -62,7 +62,7 @@ A field used on a Claude Code older than its gate is "Unverified" for that user;
 ## Tools
 
 - `tools` is the allowlist (rules: `agent-checklist.md` `## Frontmatter`); `Agent` lets the agent spawn subagents (3 layers at most). An empty list leaves the agent no tools. Confirmed.
-- Always removed from subagents: `AskUserQuestion`, `EndConversation`, `ScheduleWakeup`, `WaitForMcpServers`, `Workflow`; `Agent` too at the depth limit. Confirmed.
+- Always removed from subagents: `AskUserQuestion`, `EndConversation`, `ScheduleWakeup`, `WaitForMcpServers`, `Workflow`, `propose_skills`, `EnterPlanMode`, and `ExitPlanMode` (unless `permissionMode: plan`); `Agent` too at the depth limit. `Agent(type)` in a subagent's `tools` is ignored and plain `Agent` is still granted. Docs fetched 2026-11-24, <https://code.claude.com/docs/en/sub-agents>.
 - Omit `Skill` from `tools` to block on-demand skill loading. Confirmed.
 - MCP tools: `mcp__<server>__<tool>`; for a server name containing `__`, list each tool individually, not the whole server. Changed.
 - Background runs get a filtered tool set (the docs list it under Available tools). Confirmed.
