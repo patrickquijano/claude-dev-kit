@@ -29,7 +29,7 @@ Runs once, right after the root check.
 ## Stack
 
 - `compose` runs `detect` and returns `stack` (`cli`, `maven`, `gradle`, or null). A supported stack gets a `scanner` service at that stack's scanner image; the key comes from `sonar.projectKey` in `sonar-project.properties`, else the sanitized directory name.
-- `ask` = `["maven","gradle"]` (two build tools at the same depth) → attended: AskUserQuestion between them, `maven` first (Recommended); unattended: `maven`. Then re-run `compose` with `--stack <choice>`.
+- `ask` = `["maven","gradle"]` (two build tools at the same depth) → no `--yes`: AskUserQuestion between them, `maven` first (Recommended); `--yes`: `maven`. Then re-run `compose` with `--stack <choice>`.
 - Each pattern in `dropped` has unsafe characters and is not written: list it under `Open:` as `exclusion <pattern>: unsafe characters, dropped`.
 - `tasksStop` set → `.vscode/tasks.json` has comments or trailing commas and was left untouched; `Tasks: skipped (not plain JSON)`, and put the task labels (two, or three with a scanner) under `Open:` for the user to add by hand.
 
@@ -52,7 +52,7 @@ Runs once, right after the root check.
 
 ## Configure
 
-- `.env.sonar` exists and its first line is not `# Written by setup-local-sonarqube` → `Env: skipped (.env.sonar not created by this skill)`; `Open:` names it, no token is revoked or written.
+- `.env.sonar` exists and its first line does not start with `# Written by setup-local-sonarqube` → `Env: skipped (.env.sonar not created by this skill)`; `Open:` names it, no token is revoked or written. `configure` enforces the same check and returns `stop` = `.env.sonar not created by this skill`.
 - Skip with `Env: skipped (no Docker)` or `Env: skipped (validation failed)`; a `compose` `stop` for an unsupported stack still configures (server-only, global token).
 - `server-state` empty → run `server-up` (`Server state: stopped` at the end); an id → leave the server running (`Server state: left running (was running)`). `server-up` non-zero exit → `Env: skipped (server did not start)` and `Open:` gets the first stderr line.
 - `configure` reads the host port from the running container (`docker compose port`), waits for `UP`, sets the admin password (first run) or reuses `SONAR_ADMIN_PASSWORD` from `.env.sonar`, creates the project when the stack has a key, then revokes and regenerates the token named `cdk-setup-local-sonarqube` (project token, or global for a server-only file). A rerun rotates it.

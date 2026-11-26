@@ -10,7 +10,7 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `scratch` | `mktemp -d` | Scratch dir for the scaffold |
 | `latest` | `composer show <pkg> --latest --format=json` | Latest stable version of a package; fallback registry row |
 | `available` | `composer show --all --available <pkg>` | Versions and PHP requirements of a package |
-| `create` | `composer create-project laravel/laravel <scratch>` | Scaffold into the scratch dir; never `laravel new --force` |
+| `create` | `composer create-project laravel/laravel <scratch> --no-scripts` | Scaffold into the scratch dir; `--no-scripts` skips the post-create scripts that write `.env` and an app key; never `laravel new --force` |
 | `require` | `composer require <pkg>` | No constraint: stable by default; `--dev` for dev tools |
 | `artisan` | `php artisan <command>` | Framework commands (`install:api`, `scalar:install`, `boost:install`, `stub:publish`) |
 | `pint` | `vendor/bin/pint --test` | Style check without changes |

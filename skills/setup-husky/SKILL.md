@@ -3,7 +3,7 @@ name: setup-husky
 description: Installs Husky Git hooks that enforce Conventional Commits and signed commits, with an optional signing pre-check. Use only when the user explicitly asks to set up Husky or Git hooks.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)
+allowed-tools: Read Write Glob AskUserQuestion Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)
 disable-model-invocation: true
 ---
 
@@ -21,19 +21,20 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask (`--yes`: record) what the input and repo cannot answer.
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never deletes a file: where a step's Recommended option is a removal, `--yes` keeps the file and lists it under `Open:`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
 - `${CLAUDE_SKILL_DIR}/assets/` holds the canonical hooks. Copy `.mjs` files byte for byte; stubs change only in their path prefix and step 5 flags (step 9).
 - Hooks: `.husky/<hook>` is a POSIX stub `node .husky/<hook>.mjs "$@"`; the logic lives in Node. `commit-msg.mjs` runs commitlint through the package manager: the stub's `--pm=<pm>` flag, else detected at run time.
 - Run `husky-init` only when Husky is not initialized. It overwrites `scripts.prepare` and `.husky/pre-commit`, so snapshot both first; step 7 merges `prepare`, never overwrites it.
-- Never overwrite a user file; never pass `--no-verify`.
+- Never overwrite a user file; never pass `--no-verify`. `Write` is for one scratchpad file only, the `scripts.prepare` snapshot handed to `merge-prepare.mjs`.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
 - Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
-- Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → take the Recommended option and list it under `Open:`). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
+- Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → the no-ask rule below). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
 - Plan: step 5 prints the plan naming every install, write (package.json, dependencies, init, hooks, config, ignores, rules), then step 6 starts with no wait (`plan.md`). Each step 16 fix round prints its items, then applies them.
-- Pre-flight stops and a foreign hook owner or `core.hooksPath` stop (step 5): print the Output with `Result: stopped`.
+- Pre-flight stops and a foreign hook owner or `core.hooksPath` stop (step 5, before any question): print the Output with `Result: stopped`.
 
 ## Workflow
 
@@ -41,12 +42,12 @@ Input: $ARGUMENTS (strip `--yes` first)
 2. **Package dir.** Per `package-manager.md` Package dir. `<pkg>` = package dir relative to the git root (`.` at root).
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
 4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json once the plan is printed.
-5. **Hook events + signing.** Reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop (`--yes`: skip it, under `Open:`). `hooks.md` Events. Another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` (`init.md` read-only checks) → stop, list it under `Open:`, replace nothing. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
+5. **Hook events + signing.** First run the read-only foreign hook-owner and `core.hooksPath` checks (`init.md`): another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → stop before any question, list it under `Open:`, replace nothing. Then reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop (`--yes`: skip it, under `Open:`). Ask every other question here too (unchosen asset hook: Remove | Keep; differing `header-max-length`: Set 72 | Keep), before any write; headless without `--yes` → `Stopped: 5: cannot interact`. `hooks.md` Events. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
 6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
 7. **Initialize Husky.** `hooks-path` check (a foreign owner already stopped the run at step 5); not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
-9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); `chmod-exec` copied stubs. `hooks.md` Copy.
-10. **Commitlint config.** Existing → keep and enforce header ≤72; none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
+9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); apply the step 5 Remove | Keep answer for an unchosen asset hook; `chmod-exec` copied stubs. `hooks.md` Copy.
+10. **Commitlint config.** Existing → keep and enforce header ≤72 (a differing value follows the step 5 Set 72 | Keep answer); none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
 11. **Commit rules.** Message check skipped → skip. Copy `assets/commit-rules.md` to `.claude/rules/commits.md` at the git root (absent → write, identical → skip, differs → keep and report). Report when root `CLAUDE.md` does not mention commit rules; never edit it.
 12. **Git ignore.** Append `<pkg>/.husky/_/` (`.husky/_/` at root) to root `.gitignore`, creating it if missing; linters read only the root one.
 13. **Line endings.** Append `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root) to root `.gitattributes`, creating it if missing, unless an identical `eol=lf` line exists (CRLF breaks the `sh` stubs).
@@ -110,7 +111,7 @@ Commitlint config: .commitlintrc.json (written; header-max-length added)
 Rules: .claude/rules/commits.md (written); CLAUDE.md mention present
 Line endings: .gitattributes (added)
 Ignores: .prettierignore: .husky/_
-Smoke test: commit-msg rejects "bad message": pass
+Smoke test: valid header pass; past-tense header rejected: pass; 73-char header rejected: pass
 CI: set HUSKY=0 in CI and Docker builds to skip hook install.
 Open: none
 Next: commit the changes

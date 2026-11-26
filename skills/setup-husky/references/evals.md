@@ -23,8 +23,12 @@ pass: <observable criteria, one per line>
 | other-hook-owner | "Set up Husky." (lefthook is already installed) | Stops; replaces nothing | `Result: stopped`; the owner is listed under `Open:`; no install, no write, `core.hooksPath` unchanged, with or without `--yes` |
 | foreign-hooks-path | "Set up Husky --yes." (`core.hooksPath` is `.githooks`) | Stops; never changes it | `Result: stopped`; `.githooks` listed under `Open:`; `core.hooksPath` still `.githooks`; no file written |
 | init-guards-prepare | "Set up Husky." (`scripts.prepare` and `.husky/pre-commit` exist, Husky not initialized) | Snapshots then restores or merges | `prepare` merged, not overwritten; the existing `pre-commit` restored; no placeholder `pre-commit` left |
+| prepare-via-file | "Set up Husky." (`scripts.prepare` is `tsc && husky install`, Husky not initialized) | Passes the script through a file | `merge-prepare` runs with `--existing-file` or `--package-json`; no shell argument holds the script; `prepare` becomes `tsc && husky` |
+| yes-keeps-unchosen-hook | "Set up Husky --yes." (a `post-commit` asset stub exists but the post-commit report is not chosen) | Keeps the hook | No delete; the hook is listed under `Open:` |
 | install-fails | "Set up Husky." (the add command fails) | Stops after one attempt | The error line is quoted; no retry; `Result: stopped` |
-| unattended | "Set up Husky." (run as a subagent, no way to ask) | Applies recommended options | No question asked; the recommended choices are listed under `Open:` |
+| unattended | "Set up Husky --yes." (run as a subagent, no way to ask) | Applies recommended options | No question asked; the recommended choices are listed under `Open:` |
+| cannot-interact | "Set up Husky." (run as a subagent, no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; no install and no write |
+| headless-unchosen-hook | "Set up Husky." (run as a subagent, no way to ask, no `--yes`; a `post-commit` asset stub exists but the post-commit report is not chosen) | Asks at step 5, so stops before any write | `Result: stopped`, `Stopped: 5: cannot interact`; no hook deleted or copied, no install and no write |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |
 | no-approval-step | "Set up Husky with commitlint." (npm project, no hooks) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 

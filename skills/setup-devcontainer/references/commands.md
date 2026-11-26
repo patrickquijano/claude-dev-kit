@@ -9,7 +9,7 @@
 | `pick-tag-hub` | `node ${CLAUDE_SKILL_DIR}/scripts/pick-tag.mjs --mode hub < <tags-file>` | JSON `{ok, tag}`: highest stable semver tag from Docker Hub tag names read from `<tags-file>`, a session scratch file outside the repo that the Write tool wrote (a JSON array of names, or `{results:[{name}]}`); `ok` false → WebFetch pick |
 | `ext-list` | `code --list-extensions` | Host VS Code extension ids, read as data |
 | `run-id` | `date +%s` | Epoch seconds; the run id is `cdk-<seconds>`, used once for the whole test |
-| `json-check` | `node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' <devcontainer>` | devcontainer.json parses as JSON |
+| `json-check` | `node ${CLAUDE_SKILL_DIR}/scripts/check-json.mjs <abs path of devcontainer>` | Exit 0 and no output: devcontainer.json parses as JSON; exit 1: invalid (one stderr line); exit 2: path not absolute, has `..`, has a character outside `A-Za-z0-9._/-`, or resolves (symlinks followed) outside `CLAUDE_PROJECT_DIR` (default: the working directory), or `CLAUDE_PROJECT_DIR` does not exist (a usage or containment error, not a JSON failure) |
 | `read-configuration` | `devcontainer read-configuration --workspace-folder <root> --config <devcontainer>` | CLI validates the config |
 | `compose-config` | `docker compose -f <dev compose files…> config --quiet` | Compose files resolve (not in allowed-tools, so the permission prompt approves it) |
 | `shellcheck-firewall` | `shellcheck <init-firewall.sh>` | Lint the firewall script this skill wrote |

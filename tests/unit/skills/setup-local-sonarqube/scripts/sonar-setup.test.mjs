@@ -1502,7 +1502,10 @@ describe('configure', () => {
 
   test('reuses the file password, keeps unknown keys, and rotates the token on a rerun', async () => {
     // Arrange
-    const existing = { [ENV_PATH]: 'SONAR_ADMIN_PASSWORD=Known-Pass-1234\nCUSTOM=1\nSONAR_PORT=9100\n' };
+    const existing = {
+      [ENV_PATH]:
+        '# Written by setup-local-sonarqube. Docker Compose interpolation reads the shell or .env, not this file.\nSONAR_ADMIN_PASSWORD=Known-Pass-1234\nCUSTOM=1\nSONAR_PORT=9100\n'
+    };
     const deps = configureDeps({
       existing,
       docker: '0.0.0.0:9123\n',
@@ -1522,6 +1525,33 @@ describe('configure', () => {
     assert.ok(deps.files.get(ENV_PATH).includes('SONAR_PORT=9100\n'));
     assert.ok(!deps.calls.some((c) => c.endpoint === 'api/users/change_password'));
     assert.equal(deps.files.has(IGNORE_PATH), false);
+  });
+
+  test('stops without a request or write when .env.sonar lacks the skill marker', async () => {
+    // Arrange
+    const foreign = '# my own file\nSONAR_ADMIN_PASSWORD=Known-Pass-1234\n';
+    const deps = configureDeps({ existing: { [ENV_PATH]: foreign } });
+    // Act
+    const res = await configure({ root: ROOT }, deps);
+    // Assert
+    assert.equal(res.stop, '.env.sonar not created by this skill');
+    assert.equal(res.env, null);
+    assert.deepEqual(deps.calls, []);
+    assert.deepEqual(deps.dockerCalls, []);
+    assert.equal(deps.files.get(ENV_PATH), foreign);
+  });
+
+  test('treats an empty .env.sonar as unwritten and a marker line with a suffix as skill-written', async () => {
+    // Arrange
+    const empty = configureDeps({ existing: { [ENV_PATH]: '\n' } });
+    const marked = configureDeps({ existing: { [ENV_PATH]: '# Written by setup-local-sonarqube. Any suffix.\n' } });
+    // Act
+    const emptyRes = await configure({ root: ROOT }, empty);
+    const markedRes = await configure({ root: ROOT }, marked);
+    // Assert
+    assert.equal(emptyRes.stop, undefined);
+    assert.equal(markedRes.stop, undefined);
+    assert.equal(markedRes.token, 'created');
   });
 
   test('writes a global token for a server-only repo and appends to an existing .gitignore', async () => {

@@ -24,7 +24,7 @@ pass: <observable criteria, one per line>
 | red-flag-round | "Set up .NET." (main path) | Red-flag pass, fixes applied directly | Table with ID, cause, options, chosen, source; fixes applied with no approval wait; checks re-run |
 | no-source | "Set up .NET." (research sources unreachable) | Marks `unverified`, applies nothing silently | Each unsourced item listed under `Open:`; none applied |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
-| cannot-interact | "Set up .NET." (no way to ask, no `--yes`) | Writes nothing | Nothing written; `Result: stopped`, `Stopped: 0: cannot interact` |
+| cannot-interact | "Set up .NET." (no way to ask, no `--yes`) | Writes nothing | Nothing written; `Result: stopped`, `Stopped: <step>: cannot interact` |
 | no-approval-step | "Set up .NET." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 
 ## Running per model

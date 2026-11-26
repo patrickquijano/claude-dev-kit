@@ -1,6 +1,29 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { main, mergePrepare, target } from '../../../../../skills/setup-husky/scripts/merge-prepare.mjs';
+import { main, mergePrepare, readPrepare, target } from '../../../../../skills/setup-husky/scripts/merge-prepare.mjs';
+
+describe('readPrepare', () => {
+  test('returns scripts.prepare', () => {
+    // Act
+    const result = readPrepare('{"scripts":{"prepare":"tsc && husky install"}}');
+    // Assert
+    assert.equal(result, 'tsc && husky install');
+  });
+
+  test('returns undefined when scripts or prepare is absent or not a string', () => {
+    // Act
+    const results = [readPrepare('{}'), readPrepare('{"scripts":{}}'), readPrepare('{"scripts":{"prepare":1}}')];
+    // Assert
+    assert.deepEqual(results, [undefined, undefined, undefined]);
+  });
+
+  test('throws on invalid JSON', () => {
+    // Act
+    const act = () => readPrepare('{nope');
+    // Assert
+    assert.throws(act, SyntaxError);
+  });
+});
 
 describe('target', () => {
   test('returns husky at the git root', () => {
@@ -125,6 +148,52 @@ describe('main', () => {
     main(['--pkg', 'web'], deps);
     // Assert
     assert.equal(JSON.parse(lines[0]).action, 'set');
+  });
+
+  test('reads the existing script from --existing-file', () => {
+    // Arrange
+    const lines = [];
+    const deps = { log: (line) => lines.push(line), readFile: () => 'tsc && husky install\n' };
+    // Act
+    main(['--pkg', '.', '--existing-file', '/s/prepare.txt'], deps);
+    // Assert
+    assert.deepEqual(JSON.parse(lines[0]), { prepare: 'tsc && husky', action: 'replaced' });
+  });
+
+  test('reads scripts.prepare from --package-json and sets when it is absent', () => {
+    // Arrange
+    const lines = [];
+    const paths = [];
+    const deps = {
+      log: (line) => lines.push(line),
+      readFile: (p) => {
+        paths.push(p);
+        return '{"name":"x"}';
+      }
+    };
+    // Act
+    main(['--pkg', '.', '--package-json', '/r/package.json'], deps);
+    // Assert
+    assert.deepEqual(paths, ['/r/package.json']);
+    assert.deepEqual(JSON.parse(lines[0]), { prepare: 'husky', action: 'set' });
+  });
+
+  test('throws when two existing sources are given', () => {
+    // Arrange
+    const deps = { log: () => {}, readFile: () => '' };
+    // Act
+    const act = () => main(['--pkg', '.', '--existing', 'a', '--existing-file', '/f'], deps);
+    // Assert
+    assert.throws(act, /use only one of/);
+  });
+
+  test('throws when --package-json is not valid JSON', () => {
+    // Arrange
+    const deps = { log: () => {}, readFile: () => '{nope' };
+    // Act
+    const act = () => main(['--pkg', '.', '--package-json', '/r/package.json'], deps);
+    // Assert
+    assert.throws(act, SyntaxError);
   });
 
   test('throws when --pkg is missing', () => {

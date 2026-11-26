@@ -19,7 +19,7 @@ Each option question below is a decision question, the Recommended option first 
   - Stack and runtime version, when `Empty: yes` or the version is not derivable.
   - Config to update, when update mode found more than one config.
   - Extensions, when the analyzer's `Host extensions` lists any: keep only IDs matching the analyzer's stacks and configured tools, and ask a multiSelect of that filtered list, all preselected as Recommended (they match this repo). `code` missing in `CLIs` → skip and note it in `Open:`.
-- Unattended: ask nothing; take each Recommended option (close call: the highest total, noted under `Open:`) and list the gaps under `Open:`; a failed step 4 lookup stops per the `SKILL.md` Rules.
+- `--yes`: ask nothing; take each Recommended option (close call: the highest total, noted under `Open:`) and list the gaps under `Open:`; a failed step 4 lookup stops per the `SKILL.md` Rules.
 - Call 3: only for gaps left after call 2 and failed step 4 lookups (step 4 re-runs for the answers).
 
 ## Draft (step 5)

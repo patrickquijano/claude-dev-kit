@@ -134,12 +134,25 @@ export async function main(argv, deps = {}) {
     return 2;
   }
   const url = `https://mcr.microsoft.com/v2/devcontainers/${image}/tags/list`;
-  const res = await d.fetch(url, { signal: AbortSignal.timeout(20000) });
-  if (!res.ok) {
-    d.log(JSON.stringify({ ok: false, error: `tag list request failed (${res.status})`, source: url }));
+  let body;
+  try {
+    const res = await d.fetch(url, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) {
+      d.log(JSON.stringify({ ok: false, error: `tag list request failed (${res.status})`, source: url }));
+      return 1;
+    }
+    body = await res.json();
+  } catch (err) {
+    if (!(err instanceof TypeError || err instanceof SyntaxError || err?.name === 'TimeoutError')) throw err;
+    d.log(
+      JSON.stringify({
+        ok: false,
+        error: `tag list request failed (${String(err.message).split('\n')[0]})`,
+        source: url
+      })
+    );
     return 1;
   }
-  const body = await res.json();
   const picked = pickTag({ tags: body?.tags, runtime, mode });
   d.log(JSON.stringify({ ...picked, source: url }));
   return picked.ok ? 0 : 1;

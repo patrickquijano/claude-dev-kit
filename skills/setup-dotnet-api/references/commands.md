@@ -8,6 +8,7 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `sdks` | `dotnet --list-sdks` | Installed SDKs (preloaded) |
 | `releases` | `curl -fsS https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json` | Channels; pick the highest `active` channel with a stable `latest-sdk` |
 | `scratch` | `mktemp -d` | Scratch dir for the scaffold |
+| `move-files` | `cp -Rn <scratch>/. <root>` | Move the scaffold from the scratch dir into the repo root without overwriting; a path that already exists is skipped and listed under `Open:` |
 | `pkg-latest` | `dotnet package search <id> --exact-match --format json` | Latest stable version of a package; fallback registry row |
 | `new-global` | `dotnet new globaljson --sdk-version <v> --roll-forward latestFeature` | Write `global.json` |
 | `new-sln` | `dotnet new sln --format slnx --name <RepoNamePascalCase>` | Solution file |

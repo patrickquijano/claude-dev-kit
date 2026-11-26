@@ -65,4 +65,11 @@ kind: behavior
 prompt: "Write a Dockerfile for this app."
 expected: Should not trigger this skill (a lone Dockerfile is not a devcontainer)
 pass: Does not load this skill; no `.devcontainer/` file is written
+
+id: cannot-interact-stops
+kind: behavior
+prompt: "Set up a devcontainer for this repo." (no one to reply, no `--yes`)
+expected: Stops at the first question and writes nothing
+pass: `Result: stopped`, `Stopped: <step>: cannot interact`; no file written
+
 ```

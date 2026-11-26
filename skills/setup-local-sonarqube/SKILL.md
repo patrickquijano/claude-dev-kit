@@ -3,7 +3,7 @@ name: setup-local-sonarqube
 description: Writes compose.sonar.yaml (SonarQube Community Build and a stack scanner), VS Code tasks, and an analysis token in .env.sonar. Use only when the user explicitly asks to set up local SonarQube.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
-allowed-tools: Bash(git rev-parse *) Bash(docker info *) Bash(docker compose -f compose.sonar.yaml config -q) Bash(docker compose -f compose.sonar.yaml ps -q sonarqube) Bash(docker compose -f compose.sonar.yaml up -d --wait --wait-timeout 300 sonarqube) Bash(docker compose -f compose.sonar.yaml stop sonarqube) Bash(node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs *) WebFetch(domain:docs.sonarsource.com) WebFetch(domain:docs.docker.com)
+allowed-tools: Glob WebSearch Bash(git rev-parse *) Bash(docker info *) Bash(docker compose -f compose.sonar.yaml config -q) Bash(docker compose -f compose.sonar.yaml ps -q sonarqube) Bash(docker compose -f compose.sonar.yaml up -d --wait --wait-timeout 300 sonarqube) Bash(docker compose -f compose.sonar.yaml stop sonarqube) Bash(node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs *) WebFetch(domain:docs.sonarsource.com) WebFetch(domain:docs.docker.com)
 disable-model-invocation: true
 ---
 
@@ -19,16 +19,17 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Spawn only the `cdk:topic-researcher` subagent (fallback: a read-only research subagent), with a complete brief (task, literal inputs, scope, return block; missing or ambiguous → `Question:`, never assume).
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Setup only: write `compose.sonar.yaml`, `.vscode/tasks.json`, `.env.sonar`, and a `.gitignore` entry at the repo root; start `sonarqube` only to configure it and stop it afterwards unless it was already running; never scan, fix, or remove volumes.
 - Exact tags: the images are pinned to the tags `compose` resolves (looked up at most once per day); never `latest`, never a host install.
 - One scanner per stack: the scanner is the one the detected stack needs (`maven`, `gradle`, or `cli`); an unsupported or undetected stack gets a server-only file and a researched approach, never a guess.
 - Secrets: they live only in `.env.sonar` (mode 600, gitignored), which the scanner service reads; `compose.sonar.yaml` and the tasks hold none. Never print, quote, or commit one.
-- Before the first write, print the plan naming every effect (the files, starting the server, rotating the analysis token), then continue with no wait. Never overwrite a file this skill did not create, never rotate a token in a `.env.sonar` it did not write (its first line is `# Written by setup-local-sonarqube`), and never pass `--force`; list such files under `Open:`. Never commit, push, or stash.
+- Before the first write, print the plan naming every effect (the files, starting the server, rotating the analysis token), then continue with no wait. Never overwrite a file this skill did not create, never rotate a token in a `.env.sonar` it did not write (its first line starts with `# Written by setup-local-sonarqube`), and never pass `--force`; list such files under `Open:`. Never commit, push, or stash.
 - Only this skill talks to the user.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: 2: cannot interact`, planned work under `Open:`. Only `--yes` takes the Recommended option.
 
 ## Workflow
 
@@ -37,7 +38,7 @@ A Context value of `<none>` means that read failed. A missing value or `[shell c
 3. **Exists.** `stop` = `compose.sonar.yaml exists` (nothing written) → the file has no skill marker, so it is not treated as skill-created: stop with `Result: stopped`, list the file under `Open:` (rename or remove it to re-run). Detail: `flow.md` `## Exists`.
 4. **Unsupported stack.** Any other `stop` except `invalid sonar.projectKey` → spawn the `cdk:topic-researcher` subagent (fallback: a research subagent; inline research when it is unavailable); its answer and sources go under `Open:`. Detail: `flow.md` `## Unsupported stack`.
 5. **Validate.** `docker-info` succeeds → run `compose-check`; else `Validate: skipped (no Docker)`. Detail: `flow.md` `## Validate`.
-6. **Configure.** `.env.sonar` exists without the first-line marker → `Env: skipped (.env.sonar not created by this skill)`, list it under `Open:`. Else, Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
+6. **Configure.** `.env.sonar` exists without the first-line marker → `Env: skipped (.env.sonar not created by this skill)`, list it under `Open:`; `configure` also stops with that text, so a stop is never overridden. Else, Docker available and validation passed → run `server-state`; empty → `server-up`; then `configure --root <root>`; run `server-stop` when this skill started the server, also when `configure` stops or throws. No Docker or a failed validation → `Env: skipped (<reason>)`. Detail: `flow.md` `## Configure`.
 7. **Report.** Print the Output block; tell the user how to run it (`flow.md` `## Running it`).
 
 ## Files
@@ -64,7 +65,7 @@ Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an existing `compose.sonar.yaml`, an unresolved image tag, or a failed validation ended the run.
+`done` = the file was written (a server-only file for an unsupported stack is still `done`, with the approach under `Open:`). `stopped` = pre-flight, an existing `compose.sonar.yaml`, an unresolved image tag, a failed validation, or a headless run with no `--yes` ended the run.
 
 Example:
 
@@ -72,8 +73,8 @@ Example:
 Stack: maven
 File: /srv/dev/projects/app/compose.sonar.yaml
 Tasks: .vscode/tasks.json (sonar: up, sonar: scan)
-Services: sonarqube
-Server: sonarqube:10.7-community; scanner: none
+Services: sonarqube, scanner
+Server: sonarqube:10.7-community; scanner: maven:3.9-eclipse-temurin-21
 Validate: pass
 Env: /srv/dev/projects/app/.env.sonar (token created, user)
 Server state: stopped

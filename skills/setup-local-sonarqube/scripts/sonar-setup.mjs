@@ -628,6 +628,8 @@ export async function compose({ root, stack, force } = {}, deps = {}) {
 }
 
 const ENV_FILE = '.env.sonar';
+// The text a skill-written `.env.sonar` starts with; any other first line means a foreign file.
+const ENV_MARKER = '# Written by setup-local-sonarqube';
 const GITIGNORE_FILE = '.gitignore';
 const TOKEN_NAME = 'cdk-setup-local-sonarqube';
 const DOCKER_TIMEOUT_MS = 30_000;
@@ -742,7 +744,20 @@ export async function configure({ root } = {}, deps = {}) {
   const file = path.join(dir, ENV_FILE);
   if (!contained(d, dir, file) || d.isSymlink(file))
     throw new Error(`${ENV_FILE} is a symlink or resolves outside the repo root`);
-  const env = parseEnv(d.readText(file));
+  const existing = d.readText(file);
+  if (existing?.trim() && !existing.startsWith(ENV_MARKER)) {
+    return {
+      env: null,
+      url: null,
+      password: null,
+      project: null,
+      token: null,
+      tokenType: null,
+      gitignore: null,
+      stop: `${ENV_FILE} not created by this skill`
+    };
+  }
+  const env = parseEnv(existing);
   const n = publishedPort(d, dir);
   const det = detect({ root: dir }, d);
   const result = {
@@ -762,7 +777,7 @@ export async function configure({ root } = {}, deps = {}) {
     const body = [...env].map(([k, v]) => `${k}=${v}`).join('\n');
     d.writeText(
       file,
-      `# Written by setup-local-sonarqube. Docker Compose interpolation reads the shell or .env, not this file.\n${body}\n`,
+      `${ENV_MARKER}. Docker Compose interpolation reads the shell or .env, not this file.\n${body}\n`,
       0o600
     );
     result.env = file;

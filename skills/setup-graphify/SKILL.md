@@ -19,7 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Idempotent: check each step's state first and skip what is done, so re-runs change nothing.
@@ -30,13 +30,13 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Tool-made files (`CLAUDE.md`, `.claude/settings.json`, `.claude/skills/graphify/`, `.gitattributes`) are expected; only report them. Never hand-write the `CLAUDE.md` `## graphify` section.
 - Share only `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` (repo-relative paths, safe across machines); the rest of `graphify-out/` holds absolute paths or per-machine state.
 - Pre-flight or CLI (step 2) stop → print the Output with `Stopped: <step>: <reason>` and end. Any later failure → continue with the remaining steps, list it under `Open:`, and set `Result: stopped` only when nothing more can run.
-- AskUserQuestion unavailable: ask the pending question as plain text with its options, end the turn, and take the next message as the answer.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → install and write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`, planned work under `Open:`. Only `--yes` takes the Recommended option. The stop covers only this skill's own asks, not the third-party graphify skill's prompts in step 5.
 - `install-uv` and `install-pipx` are global installs, so they run only when the CLI is missing; the install is unpinned, so the package index resolves its latest stable release.
 - Plan once: after the pre-flight and the state checks of steps 2-5 and before the first write (the global install, skill, hooks, graph build, `label-missing` (spends LLM tokens, rewrites names in `graphify-out/`), `.gitignore`, ignores, rules, lint and format config edits), print the plan and apply it with no wait. A file this skill did not create is never overwritten and a `.gitignore` line is never deleted: list it under `Open:`.
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and step 7. Then print the plan per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan`.
+1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and the `.gitignore` write in step 7; the `.prettierignore` and other line-based ignore entries still apply. Then print the plan per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan`.
 2. **CLI.** Install `graphifyy` unless `has-graphify` succeeds; record `version`. Flow and failures: `${CLAUDE_SKILL_DIR}/references/details.md`.
 3. **Skill.** Run `state` once (the run for the plan is only a pre-check); steps 4-9 read this JSON. `skill` is `project` or `user` → skip. Else run `install-skill` (also does the Claude half of step 4).
 4. **Hooks.**
@@ -44,7 +44,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Git: `hook-status` reports post-commit, post-checkout, and the merge driver installed → skip. Else run `install-git-hooks` (also adds `graphify-out/graph.json merge=graphify` to `.gitattributes`).
 5. **Graph.** `graph.present` is `true` → skip. Say docs and images spend session tokens (code is parsed free), then invoke the third-party `graphify` skill (installed by the graphify tool in step 3, not part of this plugin) via the Skill tool with `.`; a large repo makes it ask which folder to scan, let it. Skill unavailable → tell the user to run the third-party `/graphify .` after a restart; report the graph as pending.
 6. **Names.** Graph pending or `placeholders` is `0` → skip. Else run `label-missing` once and report how many remain. Detail: `${CLAUDE_SKILL_DIR}/references/details.md`.
-7. **Git ignore.** `gitignore.missing` is empty → skip. A `gitignore.conflict` line is never deleted: keep the graph local only and list the line under `Open:` (`${CLAUDE_SKILL_DIR}/references/details.md`). Else run `append-ignores` (with `--create-gitignore` in a git repo): it adds the `graphify-out/*` block that un-ignores `graph.json` and `GRAPH_REPORT.md`, and `graphify-out/` to each existing line-based ignore file in `ignoreFiles`; report its `changes` and `skipped`.
+7. **Git ignore.** `gitignore.missing` is empty → skip. A `gitignore.conflict` line is never deleted: keep the graph local only and list the line under `Open:` (`${CLAUDE_SKILL_DIR}/references/details.md`). Else run `append-ignores` (with `--create-gitignore` in a git repo, without it elsewhere: the existing line-based ignore files still get their entry): it adds the `graphify-out/*` block that un-ignores `graph.json` and `GRAPH_REPORT.md`, and `graphify-out/` to each existing line-based ignore file in `ignoreFiles`; report its `changes` and `skipped`.
 8. **Lint and format ignores.** Add `graphify-out/` to each remaining existing linter and formatter config: `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 9. **Rules.** Copy `${CLAUDE_SKILL_DIR}/assets/graphify-rules.md` to `.claude/rules/graphify.md`: `rules` is `absent` → write; `identical` → skip; `differs` → keep the user's file, report it. `claudeMdSection` is `false` → report it.
 10. **Open items.** List as `Open:` any pending graph, placeholder names left, kept-local `.gitignore`, kept rules file, missing `CLAUDE.md` section, or skipped git steps, each with a suggested fix.
@@ -85,10 +85,10 @@ CLI: installed 0.4.2
 Skill: registered (project)
 Claude hooks: added
 Git hooks: added
-Graph: pending (run the third-party /graphify .)
-Names: skipped (graph pending)
+Graph: built
+Names: renamed 6, 0 left
 Git ignore: shared graph.json + GRAPH_REPORT.md (3 lines added)
-Lint/format ignores: .prettierignore: graphify-out/
+Lint/format ignores: eslint.config.mjs: graphify-out/
 Rules: .claude/rules/graphify.md added; CLAUDE.md section present
 Open: none
 Next: commit the changes

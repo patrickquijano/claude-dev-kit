@@ -19,13 +19,13 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Spawn only the subagents named in the steps; briefs in `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Analysis in subagents: the `cdk:format-lint-analyzer` subagent (fallback: a read-only repo analyst) detects (step 2) and checks (step 9), and the `cdk:version-resolver` subagent (fallback: a read-only version resolver) resolves packages (step 5). They cannot ask or install; relay their `Gaps` and an `unknown` manager with AskUserQuestion. Each spawn has an inline fallback, so no step stops on an unavailable subagent.
 - Spawn paths: pass the analyst `${CLAUDE_SKILL_DIR}/references/tools.md`, `configs.md`, `package-manager.md`, and `ignores.md`, and the resolver `tools.md`, as absolute paths.
-- Spawn input: root, the step's mode, and answers to earlier `Gaps`; the resolver takes the packages to install and the package dir; the check adds the tools, package dir, manager, and the shell and XML file lists.
+- Spawn input: root, the step's mode, and answers to earlier `Gaps`; the resolver takes the packages to install and the package dir; the check adds the tools, package dir, manager, and the Dockerfile, shell, and XML file lists.
 - Tool names come from `tools.md` plus the project manifests; a file type or tool not in them → ask the user for a tool name, never guess one.
 - No pinned versions: never write or remember a version; every install and version-dependent config uses a version the `versions` step returned. A tool in `Unverified` is skipped with the reason.
 - Idempotent: installed tool → skip install; ignore entry present → skip; ignores are explicit, never left to a tool's default skips. Ignore edits append only missing entries, so a re-run adds no duplicates.
@@ -33,17 +33,17 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Write only non-default keys: a config key that restates the tool's default is never written; each key is checked against the tool's docs (`configs.md`).
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
 - Native tools change the machine: install one only through its `tools.md` channel command. Git hooks and CI are out of scope; ask before touching either.
-- Decision questions: at most 4 per call, 2-4 options each, the Recommended first. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output. Use the structured-question tool (discover its name and limits at runtime; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no source → "unverified", never an invented fact. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
+- Decision questions: at most 4 per call, 2-4 options each, the Recommended first. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output. Use the structured-question tool (discover its name and limits at runtime; unavailable → the no-ask rule below). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no source → "unverified", never an invented fact. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 - Caps: analyst respawn after `Gaps` 1; each question asked once; step 10 fix loop 1 pass and one extra check.
-- No AskUserQuestion and no `--yes`: install and write nothing, ask nothing; print the Output with `Result: stopped`, `Stopped: 1: unattended` and the planned work under `Open:`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → install and write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`, planned work under `Open:`. Only `--yes` takes the Recommended option.
 - Pre-flight stop → print the Output with `Stopped:` and end. A later failure or cap → run step 10 once on what is left, then print the Output.
 
 ## Workflow
 
 1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
-2. **Detect.** Spawn the analyst (detect); keep `File types`, `Unknown types`, `Lists`, `Filled roles`, `Unfilled roles`, `Package`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`). A filled formatter role keeps its tool; a type absent from `tools.md` → ask for a tool name.
+2. **Detect.** Spawn the analyst (detect); keep `File types`, `Uncovered`, `Lists`, `Filled roles`, `Unfilled roles`, `Package`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`). A filled formatter role keeps its tool; a type absent from `tools.md` → ask for a tool name.
 3. **Choose formatter.** Per `flow.md` `## Choose tools`.
-4. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`; a missing `package.json` is created (`package-manager.md`).
+4. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`; a missing `package.json` is only listed in the plan, and step 6 creates it (`package-manager.md` `## Missing package.json`).
 5. **Versions.** Only for tools to install or version-dependent configs; spawn the version resolver; `Unverified` → skip that tool. Unavailable or malformed → resolve inline (`flow.md` `## Spawn briefs`). At its end print the plan (`flow.md` `## Plan`), then go on with no wait.
 6. **Install.** Create a missing `package.json`, then install missing formatters only, each at its resolved version (workspace-root flag per `package-manager.md`); native tools run the command the plan names (`flow.md` `## Install`).
 7. **Configure.** Create each missing config with the catalog's non-default keys; an existing config → diff and ask `Overwrite` | `Keep` (`configs.md` `## Config files and defaults`, `## YAML alignment`).
@@ -89,8 +89,8 @@ Example:
 ```text
 File types: TypeScript (42), JSON (6), Markdown (9)
 Package manager: npm (lockfile), package dir .
-Formatters: TypeScript: prettier (chosen), JSON: prettier (only option), Markdown: prettier (only option)
-Versions: prettier: 3.3.3 (npm registry)
+Formatters: TypeScript: prettier (only option), JSON: prettier (only option)
+Versions: prettier: 3.3.3 (npm)
 Installed: prettier
 Skipped tools: none
 Constraints: none

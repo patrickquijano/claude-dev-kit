@@ -31,7 +31,7 @@ pass: `Result: stopped`; the file is listed under `Open:`
 
 id: foreign-env-kept
 kind: behavior
-prompt: "/setup-local-sonarqube --yes" (.env.sonar exists and its first line is not `# Written by setup-local-sonarqube`)
+prompt: "/setup-local-sonarqube --yes" (.env.sonar exists and its first line does not start with `# Written by setup-local-sonarqube`)
 expected: No token rotation, no overwrite
 pass: `.env.sonar` is unchanged and no token is revoked or created
 pass: `Env: skipped (.env.sonar not created by this skill)`; the file is listed under `Open:`

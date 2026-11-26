@@ -19,7 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Ask (unattended: record) what the input and repo cannot answer.
+- Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Spawn only the subagents named in the steps; briefs in `${CLAUDE_SKILL_DIR}/references/flow.md` `## Spawn briefs`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
@@ -34,15 +34,15 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Write only non-default keys: a config key that restates the tool's default is never written; each key is checked against the tool's docs (`configs.md`).
 - Config format: `.jsonc` > `.json` > `.yaml`; a tool supporting none uses its native format from the catalog.
 - Native tools change the machine: install one only through its `tools.md` channel command, which the plan names. Git hooks and CI are out of scope; ask before touching either.
-- Decision questions: at most 4 per call, 2-4 options each, the Recommended first. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output. Use the structured-question tool (discover its name and limits at runtime; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no source → "unverified", never an invented fact. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
+- Decision questions: at most 4 per call, 2-4 options each, the Recommended first. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output. Use the structured-question tool (discover its name and limits at runtime; unavailable → the no-ask rule below). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no source → "unverified", never an invented fact. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 - Caps: analyst respawn after `Gaps` 1; each question asked once; step 11 fix loop 1 pass and one extra check.
-- No AskUserQuestion and no `--yes`: install and write nothing, ask nothing; print the Output with `Result: stopped`, `Stopped: 1: unattended` and the planned work under `Open:`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → install and write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`, planned work under `Open:`. Only `--yes` takes the Recommended option.
 - Pre-flight stop → print the Output with `Stopped:` and end. A later failure or cap → run step 11 once on what is left, then print the Output.
 
 ## Workflow
 
 1. **Pre-flight.** Context Repo root `<none>` → stop ("not a git repository"). Work from the git root.
-2. **Detect.** Spawn the analyst (detect); keep `File types`, `Unknown types`, `Lists`, `Filled roles`, `Unfilled roles`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`). A filled linter role keeps its tool; a type absent from `tools.md` → ask for a tool name.
+2. **Detect.** Spawn the analyst (detect); keep `File types`, `Uncovered`, `Lists`, `Filled roles`, `Unfilled roles`, `Ignore candidates`. `Gaps` → ask, respawn once. Unavailable or malformed → detect inline (`flow.md` `## Spawn briefs`). A filled linter role keeps its tool; a type absent from `tools.md` → ask for a tool name.
 3. **Formatters present.** Glob the formatter configs (`flow.md` `## Formatters present`). One → load `formatter-conflicts.md` and plan its disables; several → ask which applies; none → disable nothing.
 4. **Choose linters.** One candidate → use it; several → `multiSelect` question (`flow.md` `## Choose tools`).
 5. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`, exec forms per `flow.md` `## Package manager`; a missing `package.json` is created at step 7.
@@ -95,7 +95,7 @@ File types: TypeScript (42), YAML (4)
 Package manager: npm (lockfile), package dir .
 Formatter: prettier (only one)
 Linters: TypeScript: eslint (chosen), YAML: yamllint (only option)
-Versions: eslint: 9.15.0 (npm registry)
+Versions: eslint: 9.15.0 (npm)
 Installed: eslint
 Skipped tools: none
 Constraints: none

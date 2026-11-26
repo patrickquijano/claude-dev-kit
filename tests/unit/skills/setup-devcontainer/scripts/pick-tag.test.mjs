@@ -154,6 +154,60 @@ describe('main', () => {
     assert.match(JSON.parse(s.out.logs[0]).error, /503/);
   });
 
+  test('a network failure, timeout, or bad JSON exits 1 with ok:false on stdout', async () => {
+    // Arrange
+    const argv = ['--image', 'python', '--runtime', '3.12', '--mode', 'image'];
+    const network = stubs();
+    const timeout = stubs();
+    const badJson = stubs();
+    const timeoutError = Object.assign(new Error('The operation timed out'), { name: 'TimeoutError' });
+    // Act
+    const codes = [
+      await main(argv, {
+        fetch: async () => {
+          throw new TypeError('fetch failed');
+        },
+        log: network.log,
+        error: network.error
+      }),
+      await main(argv, {
+        fetch: async () => {
+          throw timeoutError;
+        },
+        log: timeout.log,
+        error: timeout.error
+      }),
+      await main(argv, {
+        fetch: async () => ({
+          ok: true,
+          status: 200,
+          json: async () => {
+            throw new SyntaxError('Unexpected token');
+          }
+        }),
+        log: badJson.log,
+        error: badJson.error
+      })
+    ];
+    // Assert
+    assert.deepEqual(codes, [1, 1, 1]);
+    assert.match(JSON.parse(network.out.logs[0]).error, /fetch failed/);
+    assert.equal(JSON.parse(timeout.out.logs[0]).ok, false);
+    assert.equal(JSON.parse(badJson.out.logs[0]).ok, false);
+  });
+
+  test('rethrows an unexpected fetch error', async () => {
+    // Arrange
+    const s = stubs();
+    const fetchStub = async () => {
+      throw new RangeError('boom');
+    };
+    // Act
+    const act = main(['--image', 'python', '--mode', 'image'], { fetch: fetchStub, log: s.log, error: s.error });
+    // Assert
+    await assert.rejects(act, /boom/);
+  });
+
   test('an unknown mode exits 2', async () => {
     // Arrange
     const s = stubs();

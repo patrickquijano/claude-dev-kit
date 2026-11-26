@@ -28,9 +28,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Existing repo: scaffold into a scratch dir and move files in; never overwrite or delete a tracked or user file (one this run did not create), even `--yes`: keep it and list it under `Open:` with the change it would take. An existing Laravel app → configure-only; re-runs change nothing.
 - Never write `.env` contents or read secrets; `.env.example` holds keys only.
 - Git ownership: never branch or commit; `Next:` says "commit the changes" in plain words.
-- Decision questions: at most 4 per call; each data-store category is one multi-select question with the top 3 scored options plus **Skip** (the full table lists every candidate; Other picks any); each asked once. Mine the repo first, ask only what changes the output. Use the structured-question tool (unavailable → take the Recommended and list it under `Open:`). Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` with the fixed criteria from `options.md` before each question; a close call has no Recommended and goes under `Open:`.
+- Decision questions: at most 4 per call; each data-store category is one multi-select question with the top 3 scored options plus **Skip** (the full table lists every candidate; Other picks any); each asked once. Mine the repo first, ask only what changes the output. Use the structured-question tool (unavailable → the no-ask rule below). Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` with the fixed criteria from `options.md` before each question; a close call has no Recommended and goes under `Open:`.
 - Plan: step 5 prints the plan naming every install, write, and backup, then step 6 starts with no wait (`plan.md`). Each fix round prints its items, then applies them.
-- No way to ask and no `--yes` → write nothing, `Stopped: 0: cannot interact`.
+- No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - Caps: verify loop 3 rounds; red-flag pass 3 rounds; install 1 attempt per package. Leftovers go under `Open:`.
 
 ## Workflow
@@ -82,13 +82,13 @@ Example:
 
 ```text
 Mode: configure-only
-Versions: PHP 8.3.14 (composer.json), Laravel 11.31 (composer.lock)
-Choices: Auth: Sanctum (9), Testing: Pest (8)
-Written: config/sanctum.php, tests/Pest.php
-Verify: php artisan test: pass
-Red flags: RF2: rate-limit the login route (open)
-Research: https://laravel.com/docs/11.x/sanctum
-Open: login rate limit: brute-force risk; add a throttle middleware
+Versions: PHP 8.3.14 (php --version), Laravel 11.31.0 (Packagist)
+Choices: SQL: PostgreSQL (9), Cache: Redis (8)
+Written: config/database.php, .env.example
+Verify: vendor/bin/pint --test: pass, vendor/bin/pest: pass
+Red flags: L4: frontend left in place (open)
+Research: https://laravel.com/docs/eloquent
+Open: frontend left in place: the docs give no removal steps; remove the welcome view and Vite steps as a plan entry
 Next: commit the changes
 Result: done
 Stopped: none
