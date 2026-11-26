@@ -11,7 +11,7 @@ const bashRules = (tools, command) =>
   tools
     .split('Bash(')
     .slice(1)
-    .map((piece) => piece.trim().replace('"', ''))
+    .map((piece) => piece.trim().replaceAll('"', ''))
     .filter((rule) => rule.startsWith(`${command} `));
 const overflow = (n) => ({
   test: (line) =>
