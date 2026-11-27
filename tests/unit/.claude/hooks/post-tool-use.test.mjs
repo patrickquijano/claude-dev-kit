@@ -235,6 +235,16 @@ describe('validate', () => {
     assert.equal(result, 'claude CLI could not run: spawn claude ENOENT');
   });
 
+  test('reports a timeout, not a CLI that could not run, on ETIMEDOUT', () => {
+    // Arrange
+    const error = Object.assign(new Error('spawnSync claude ETIMEDOUT'), { code: 'ETIMEDOUT' });
+    const { deps } = makeDeps({ spawnResult: { status: null, signal: 'SIGTERM', error } });
+    // Act
+    const result = validate(CWD, deps);
+    // Assert
+    assert.equal(result, 'claude plugin validate --strict . timed out after 100 s');
+  });
+
   test('reports the exit status, not a CLI error, for a normal failure', () => {
     // Arrange
     const { deps } = makeDeps({ spawnResult: { status: 3, stdout: 'bad', stderr: '' } });

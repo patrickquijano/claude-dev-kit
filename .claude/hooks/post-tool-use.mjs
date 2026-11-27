@@ -15,6 +15,7 @@ import {
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
 const PROJECT_FILES = ['settings.json', 'CLAUDE.md'];
+const TIMEOUT_MS = 100_000;
 
 const defaults = {
   spawn: spawnSync,
@@ -71,10 +72,13 @@ export function validate(cwd, deps = defaults) {
     env: { ...deps.env, NO_COLOR: '1' },
     encoding: 'utf8',
     shell: deps.platform === 'win32',
-    timeout: 100_000,
+    timeout: TIMEOUT_MS,
     windowsHide: true
   });
   if (res.status === 0) return null;
+  if (res.error?.code === 'ETIMEDOUT') {
+    return `claude plugin validate --strict . timed out after ${TIMEOUT_MS / 1000} s`;
+  }
   if (res.error) return `claude CLI could not run: ${res.error.message}`;
   const out = [res.stdout, res.stderr].filter(Boolean).join('\n').trim();
   return (
