@@ -56,7 +56,7 @@ Type: <type | none>
 Tool: mcp | gh | mcp+gh:<ops on gh>
 Open: <item: reason> | none
 Next: none
-Result: done | nothing-to-do | stopped
+Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
