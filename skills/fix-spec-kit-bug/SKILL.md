@@ -29,7 +29,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **Pre-flight.** `.specify/` and the three bug skill dirs must exist; else stop (`${CLAUDE_SKILL_DIR}/references/required-skills.md`). Input empty → AskUserQuestion for it.
-2. **Extract.** Pull out the stack trace, error or warning, URL, and bug report (symptom, expected versus actual, steps). None → ask for one; none given or cancelled → `Result: cancelled`. Show the items.
+2. **Extract.** Pull out the stack trace, error or warning, URL, and bug report (symptom, expected versus actual, steps). None → ask for one; none given or cancelled → `Result: cancelled`, `Stopped: Extract: user cancelled`. Show the items.
 3. **Assess.** Run third-party `speckit-bug-assess <evidence>`, URLs verbatim; take the slug from its `Slug:` line. Verdict `invalid` → `Fix: not-applied (0 pass(es), 0 re-assess)`, `Test: not run`, `Result: stopped`, `Stopped: Assess: verdict invalid`, stop.
 4. **Fix.** Run third-party `speckit-bug-fix slug=<slug>`; branch on Status in `fix.md` (`${CLAUDE_SKILL_DIR}/references/flow.md` `## Fix status`).
 5. **Test.** Run third-party `speckit-bug-test slug=<slug>`; `verified` → done. Failing → step 6; only skipped or not-run checks → re-run the test step (`flow.md` `## Test result`).
