@@ -72,18 +72,20 @@ test('runIfMain: skips fn when a symlinked entry path resolves to another script
   assert.equal(calls.length, 0);
 });
 
-test('runIfMain: skips fn when the entry path does not exist', async () => {
+test('runIfMain: runs fn without error when the entry path is missing but matches the module', async () => {
   // Arrange
   const calls = [];
+  const seen = { err: [], exit: [] };
   const realpath = () => {
     throw Object.assign(new Error('missing'), { code: 'ENOENT' });
   };
+  const io = { realpath, stderr: (t) => seen.err.push(t), setExit: (c) => seen.exit.push(c) };
   // Act
-  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, ['node', '/tmp/other.mjs'], {
-    realpath
-  });
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, ['node', '/tmp/entry.mjs'], io);
   // Assert
-  assert.equal(calls.length, 0);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(seen.err, []);
+  assert.deepEqual(seen.exit, []);
 });
 
 test('runIfMain: reports a realpath error that is not ENOENT at the boundary and skips fn', async () => {

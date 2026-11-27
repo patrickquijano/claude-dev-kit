@@ -6,7 +6,13 @@ const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };
 
 // Builds stub deps; `spawnResult` is what the stubbed `claude` returns.
-function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux', realpath = (p) => p } = {}) {
+function makeDeps({
+  stdin = '',
+  spawnResult = ok,
+  platform = 'linux',
+  realpath = (p) => p,
+  env = { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' }
+} = {}) {
   const calls = { spawn: [], stdout: [], stderr: [] };
   const deps = {
     spawn: (cmd, args, opts) => {
@@ -14,7 +20,7 @@ function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux', realpath =
       return spawnResult;
     },
     platform,
-    env: { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' },
+    env,
     realpath,
     readJsonStdin: async () => JSON.parse(stdin),
     stdout: (text) => calls.stdout.push(text),
@@ -105,9 +111,10 @@ describe('plan', () => {
 
   test('accepts a file whose real path stays inside the project', () => {
     // Arrange
-    const file = `${CWD}/skills/x/SKILL.md`;
+    const file = `${CWD}/skills/link.md`;
+    const realpath = (p) => (p === file ? `${CWD}/skills/x/SKILL.md` : p);
     // Act
-    const result = plan(file, CWD, (p) => p);
+    const result = plan(file, CWD, realpath);
     // Assert
     assert.equal(result.rel, 'skills/x/SKILL.md');
   });
@@ -143,6 +150,21 @@ describe('plan', () => {
     const act = () => plan(`${CWD}/skills/x.md`, CWD, realpath);
     // Assert
     assert.throws(act, /denied/);
+  });
+
+  test('rethrows ELOOP and ENOTDIR errors from realpath', () => {
+    // Arrange
+    const codes = ['ELOOP', 'ENOTDIR'];
+    const acts = codes.map(
+      (code) => () =>
+        plan(`${CWD}/skills/x.md`, CWD, () => {
+          throw Object.assign(new Error(code), { code });
+        })
+    );
+    // Act
+    const results = acts.map((act) => ({ act }));
+    // Assert
+    results.forEach(({ act }, i) => assert.throws(act, { code: codes[i] }));
   });
 
   test('returns no notice for a path that needs no reload', () => {
@@ -213,7 +235,6 @@ describe('validate', () => {
     const result = validate(CWD, deps);
     // Assert
     assert.equal(result, 'claude CLI could not run: spawn claude ENOENT');
-    assert.doesNotMatch(result, /exit null/);
   });
 
   test('reports the exit status, not a CLI error, for a normal failure', () => {
@@ -222,8 +243,7 @@ describe('validate', () => {
     // Act
     const result = validate(CWD, deps);
     // Assert
-    assert.match(result, /failed \(exit 3\)/);
-    assert.doesNotMatch(result, /could not run/);
+    assert.match(result, /^claude plugin validate --strict \. failed \(exit 3\):\nbad\n/);
   });
 
   test('reports the signal when claude is killed with no spawn error', () => {
@@ -270,6 +290,18 @@ describe('main', () => {
     assert.equal(code, 2);
     assert.match(calls.stderr[0], /broken/);
     assert.equal(calls.stdout.length, 0);
+  });
+
+  test('uses the event cwd when CLAUDE_PROJECT_DIR is unset', async () => {
+    // Arrange
+    const stdin = JSON.stringify({ cwd: '/other', tool_input: { file_path: '/other/skills/x/SKILL.md' } });
+    const { deps, calls } = makeDeps({ stdin, env: {} });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(calls.spawn.length, 1);
+    assert.equal(calls.spawn[0].opts.cwd, '/other');
   });
 
   test('prints nothing for input without a file path', async () => {
