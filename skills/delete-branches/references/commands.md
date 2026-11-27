@@ -13,8 +13,8 @@ Rows use the plain `git <subcommand> …` form with the repository root as the w
 | `current-branch` | `git rev-parse --abbrev-ref HEAD` | Current branch; `HEAD` = detached | — |
 | `worktrees` | `git worktree list --porcelain` | Branches checked out in any worktree | — |
 | `fetch-all` | `git fetch --all --prune` | Refresh remote-tracking refs and drop stale ones | — |
-| `list-local` | `node "${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs" '<root>' local '<remote>' --protected '<p>' …` | JSON: `candidates`, `excluded`, `skipped`, `pages`; `<remote>` unused for local | — |
-| `list-remote` | `node "${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs" '<root>' remote '<remote>' --protected '<p>' …` | Same JSON for remote-tracking branches | — |
+| `list-local` | `node ${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs '<root>' local '<remote>' --protected '<p>' …` | JSON: `candidates`, `excluded`, `skipped`, `pages`; `<remote>` unused for local | — |
+| `list-remote` | `node ${CLAUDE_SKILL_DIR}/scripts/list-branches.mjs '<root>' remote '<remote>' --protected '<p>' …` | Same JSON for remote-tracking branches | — |
 | `github-protected` | `node ${CLAUDE_SKILL_DIR}/scripts/host-get.mjs github 'repos/<owner>/<repo>/branches?protected=true'` | GitHub branches with classic protection (GET only; the script adds `--paginate`) | GitHub MCP `list_branches` (`protected`) |
 | `github-rules` | `node ${CLAUDE_SKILL_DIR}/scripts/host-get.mjs github 'repos/<owner>/<repo>/rules/branches/<branch>'` | Ruleset rules on a branch; a non-empty list = protected | — |
 | `gitlab-protected` | `node ${CLAUDE_SKILL_DIR}/scripts/host-get.mjs gitlab 'projects/<id>/protected_branches'` | GitLab protected branches and wildcards; `<id>` = URL-encoded path | GitLab MCP `list_branches` (protected) |

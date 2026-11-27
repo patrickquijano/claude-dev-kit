@@ -23,14 +23,19 @@ async function runIfMain(metaUrl, fn, label) {
 const ENDPOINTS = {
   github: [
     /^repos\/[\w.-]+\/[\w.-]+\/branches\?protected=true$/,
-    /^repos\/[\w.-]+\/[\w.-]+\/rules\/branches\/[\w.~%-]+$/
+    /^repos\/[\w.-]+\/[\w.-]+\/rules\/branches\/[\w.~%+-]+$/
   ],
   gitlab: [/^projects\/[\w.~%-]+\/protected_branches$/]
 };
 
 // True when `kind` is a known host and `endpoint` matches one of its read-only shapes.
 export function isAllowed(kind, endpoint) {
-  return Object.hasOwn(ENDPOINTS, kind) && !endpoint.includes('..') && ENDPOINTS[kind].some((re) => re.test(endpoint));
+  return (
+    Object.hasOwn(ENDPOINTS, kind) &&
+    !endpoint.includes('..') &&
+    !/%2e/i.test(endpoint) &&
+    ENDPOINTS[kind].some((re) => re.test(endpoint))
+  );
 }
 
 const realDeps = {
@@ -43,7 +48,7 @@ const realDeps = {
   error: (text) => console.error(text)
 };
 
-// CLI body; returns the exit code. The branches listing adds `--paginate`.
+// CLI body; returns the exit code. The GitHub branches listing and the GitLab listing add `--paginate`.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
   if (argv.length !== 2 || !isAllowed(argv[0], argv[1])) {
@@ -52,7 +57,7 @@ export function main(argv, deps = {}) {
   }
   const [kind, endpoint] = argv;
   const args = ['api', endpoint];
-  if (kind === 'github' && endpoint.endsWith('/branches?protected=true')) args.push('--paginate');
+  if (kind === 'gitlab' || endpoint.endsWith('/branches?protected=true')) args.push('--paginate');
   const res = d.run(kind === 'github' ? 'gh' : 'glab', args);
   if (res.status !== 0) {
     d.error((res.stderr.split('\n').find((l) => l.trim()) ?? `${kind} CLI exited ${res.status}`).trim().slice(0, 300));

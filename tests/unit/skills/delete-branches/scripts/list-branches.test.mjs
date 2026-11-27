@@ -181,12 +181,16 @@ describe('main', () => {
   const run = (argv, stdout = '', status = 0, stderr = '') => {
     const logs = [];
     const errors = [];
+    const calls = [];
     const code = main(argv, {
-      run: () => ({ status, stdout, stderr }),
+      run: (...args) => {
+        calls.push(args);
+        return { status, stdout, stderr };
+      },
       log: (t) => logs.push(t),
       error: (t) => errors.push(t)
     });
-    return { code, out: logs[0] && JSON.parse(logs[0]), errors };
+    return { code, out: logs[0] && JSON.parse(logs[0]), errors, calls };
   };
 
   test('lists candidates, excludes protected, and skips unsafe names', () => {
@@ -234,6 +238,14 @@ describe('main', () => {
     assert.deepEqual(
       results.map((r) => r.code),
       [2, 2, 2]
+    );
+    assert.deepEqual(
+      results.map((r) => [r.calls.length, r.errors.length]),
+      [
+        [0, 1],
+        [0, 1],
+        [0, 1]
+      ]
     );
   });
 

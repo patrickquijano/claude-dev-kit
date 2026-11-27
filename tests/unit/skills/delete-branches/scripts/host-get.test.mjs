@@ -30,12 +30,30 @@ describe('isAllowed', () => {
     assert.deepEqual(results, [false, false]);
   });
 
+  test('accepts a GitHub rules lookup for a branch name with a plus', () => {
+    // Act
+    const result = isAllowed('github', 'repos/acme/api/rules/branches/release+1');
+    // Assert
+    assert.equal(result, true);
+  });
+
   test('rejects an unknown host kind and a path traversal', () => {
     // Act
     const results = [
       isAllowed('gitea', 'repos/acme/api/branches?protected=true'),
       isAllowed('gitlab', 'projects/../user/protected_branches'),
       isAllowed('__proto__', 'x')
+    ];
+    // Assert
+    assert.deepEqual(results, [false, false, false]);
+  });
+
+  test('rejects an encoded path traversal in either case', () => {
+    // Act
+    const results = [
+      isAllowed('gitlab', 'projects/%2e%2e/protected_branches'),
+      isAllowed('github', 'repos/acme/api/rules/branches/%2e%2e'),
+      isAllowed('github', 'repos/acme/api/rules/branches/%2E%2E')
     ];
     // Assert
     assert.deepEqual(results, [false, false, false]);
@@ -67,12 +85,20 @@ describe('main', () => {
     assert.deepEqual(written, ['[]']);
   });
 
-  test('runs glab api with no extra flag', () => {
+  test('runs glab api with --paginate for the protected branches', () => {
     // Act
     const { code, calls } = run(['gitlab', 'projects/7/protected_branches']);
     // Assert
     assert.equal(code, 0);
-    assert.deepEqual(calls, [['glab', ['api', 'projects/7/protected_branches']]]);
+    assert.deepEqual(calls, [['glab', ['api', 'projects/7/protected_branches', '--paginate']]]);
+  });
+
+  test('runs gh api with no extra flag for the rules lookup', () => {
+    // Act
+    const { code, calls } = run(['github', 'repos/a/b/rules/branches/feat%2Fx']);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(calls, [['gh', ['api', 'repos/a/b/rules/branches/feat%2Fx']]]);
   });
 
   test('exits 2 without running anything on a disallowed endpoint or wrong arity', () => {
