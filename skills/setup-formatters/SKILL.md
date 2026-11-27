@@ -50,7 +50,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 8. **Overlaps and ignores.** Apply the catalog overlaps (`configs.md` `## Overlaps`), then append every ignore candidate that exists and is missing, in each tool's syntax (`ignores.md`).
 9. **Check.** Spawn the analyst (check) for the installed and kept formatters in check mode; report counts and first `Problems` lines; never auto-fix user code.
 10. **Resolve.** One pass, capped (`flow.md` `## Resolve`): fix a config this run wrote only when itself invalid; re-run the check once; list leftovers in `Open:`.
-11. **Report.** Print the Output.
+11. **Report.** Print the Output; `Result: nothing-to-do` when steps 6 to 8 wrote nothing (every tool, config, and ignore already present) and `Open:` is none.
 
 ## Files
 
