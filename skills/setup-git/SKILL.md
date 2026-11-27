@@ -49,7 +49,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 9. **Validate and repair.** Re-check steps 3-8 values and fix each failure locally; list changes under `Repaired:`. Checks: `${CLAUDE_SKILL_DIR}/references/validate.md`.
 10. **Verify.** Re-read every key and re-run the step 9 checks (one more repair pass if any fail). Then `smoke-commit`, `smoke-verify`: pass → `✅ Signed`. Failure or SSH without allowed signers: `${CLAUDE_SKILL_DIR}/references/smoke-test.md`.
 11. **Ignore candidates.** Signing artifacts inside the work tree (allowed signers file, SSH private signing key); drop `check-ignore`d ones. None left → step 14. Detail: `${CLAUDE_SKILL_DIR}/references/ignores.md`.
-12. **Choose ignores.** Candidates are the choice; target `.gitignore`. Declined → step 14.
+12. **Choose ignores.** Candidates are the choice; target `.gitignore`; `--yes`: write all candidates and say so. Declined → step 14.
 13. **Write ignores.** Append each path under a `# Signing` comment, creating the file if missing; keep existing lines.
 14. **Tracked but ignored.** Of the `tracked-ignored` files, only signing artifacts count; none → skip. Else AskUserQuestion: Keep tracked (Recommended; untracking deletes the file in other clones on pull) | Untrack with `git rm --cached` (you commit the removal); `--yes`: keep tracked and list under `Open:`. A private key → warn history still holds it; rotate the key.
 15. **Report.** Print the Output. Key set up or changed in step 6 or 9 → `Next:` upload the public key as a signing key.

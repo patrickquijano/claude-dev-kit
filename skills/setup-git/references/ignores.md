@@ -10,3 +10,4 @@ Only signing artifacts that sit inside the work tree are ignore candidates; othe
 - Skip a path that `check-ignore` already reports ignored.
 - Write each pattern once, under a `# Signing` comment; keep existing lines.
 - A listed artifact that `tracked-ignored` reports as tracked: warn that history still holds it and that a private key must be rotated.
+- Choosing (step 12): `--yes` writes every candidate with no question and says so in the step output.
