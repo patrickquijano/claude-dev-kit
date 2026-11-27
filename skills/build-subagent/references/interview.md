@@ -73,7 +73,7 @@ Multi-responsibility. A job is one verb on one object; "and" or "also" in the pu
 
 - Split: each split agent gets its own interview; it inherits no tools, model, or trigger from the others. Show a before/after map (job → agent) and run the item 13 overlap check across the new descriptions (Unverified). Build the first now; `Next: build <names>` lists the rest.
 - Skill: move the work to a Skill: tell the user; build nothing, `Result: stopped`, `Stopped: <step>: moved to a skill` (the step that ran the question).
-- All options rejected or Stop → write nothing, `Result: cancelled`.
+- All options rejected or Stop → write nothing, `Result: stopped`, `Stopped: <step>: user stopped` (the step that ran the question).
 
 ## Update and improve
 

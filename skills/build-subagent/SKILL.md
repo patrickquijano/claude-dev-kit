@@ -21,7 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - A plugin directory as input → scope is Plugin; with no new-subagent purpose it is a batch (`${CLAUDE_SKILL_DIR}/references/batch.md`), with one it is a single create at plugin scope.
 - Update and improve: an existing `description` over 400 chars → show the before/after rewrite and ask `Apply | Keep` before building the spec; `--yes` keeps it unchanged and lists it under `Open:`.
 - Two phases, in order: Preflight (step 3) and Interview (step 5); the Brief is printed before any write, with no wait (`interview.md` `## Brief`); asking first keeps the Brief grounded in answers, not guesses.
-- Ask with AskUserQuestion per `${CLAUDE_SKILL_DIR}/references/interview.md` `## Protocol`: batch size, option rules, vague answers, and the Stop option as written there (Stop → `Result: cancelled`); skip a question the input already answers, since resolved means a user choice or a named file, never an assumption.
+- Ask with AskUserQuestion per `${CLAUDE_SKILL_DIR}/references/interview.md` `## Protocol`: batch size, option rules, vague answers, and the Stop option as written there (Stop → `Result: stopped`, `Stopped: <step>: user stopped`); skip a question the input already answers, since resolved means a user choice or a named file, never an assumption.
 - Never invent: use only the fields and behaviors in `${CLAUDE_SKILL_DIR}/references/docs-snapshot.md` and `${CLAUDE_SKILL_DIR}/references/agent-checklist.md`; anything unverified is omitted and listed in `Unverified:`, since an invented field is silently ignored or breaks the file.
 - Report failures as found: never write `check-agent pass` or an `Audit:` count without that run's fresh output; a failure goes to `Open:`.
 - Caps: interview batch cap and arithmetic per `interview.md` `## Protocol`, a hit → `Result: stopped`, `Stopped: <step>: batch cap`; `check-agent` fix at most 3 rounds (each through `cdk:implement-spec`); `check-agent` exit 2 → fix the call and re-run once, then `Open:`. A loop that never ends hides a stuck fix, so never loop past a cap; report what is left in `Open:`.
@@ -150,7 +150,7 @@ Not tested: <what | none>
 Not checked: <check IDs> | none
 Open: <check ID file:line: fix, … | none>
 Next: none | build <remaining subagents> | run the subagent audit without report-only on <path>
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
