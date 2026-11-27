@@ -153,11 +153,116 @@ describe('main', () => {
   test('reads the existing script from --existing-file', () => {
     // Arrange
     const lines = [];
-    const deps = { log: (line) => lines.push(line), readFile: () => 'tsc && husky install\n' };
+    const paths = [];
+    const deps = {
+      log: (line) => lines.push(line),
+      readFile: (p) => {
+        paths.push(p);
+        return 'tsc && husky install\n';
+      }
+    };
     // Act
     main(['--pkg', '.', '--existing-file', '/s/prepare.txt'], deps);
     // Assert
+    assert.deepEqual(paths, ['/s/prepare.txt']);
     assert.deepEqual(JSON.parse(lines[0]), { prepare: 'tsc && husky', action: 'replaced' });
+  });
+
+  test('replaces a legacy husky segment read from --package-json', () => {
+    // Arrange
+    const lines = [];
+    const deps = { log: (line) => lines.push(line), readFile: () => '{"scripts":{"prepare":"tsc && husky install"}}' };
+    // Act
+    main(['--pkg', '.', '--package-json', '/r/package.json'], deps);
+    // Assert
+    assert.deepEqual(JSON.parse(lines[0]), { prepare: 'tsc && husky', action: 'replaced' });
+  });
+
+  // Runs `main` with stubs and returns the exit code with the error lines.
+  const failing = (argv) => {
+    const errors = [];
+    const deps = { log: () => {}, error: (t) => errors.push(t), readFile: () => '' };
+    return { code: main(argv, deps), errors };
+  };
+
+  test('exits 2 when a path has a .. segment', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--package-json', '/r/../etc/package.json'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /must not contain a \.\. segment/);
+  });
+
+  test('exits 2 when --existing-file has a .. segment', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--existing-file', '../secret.txt'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /must not contain a \.\. segment/);
+  });
+
+  test('exits 2 when --existing-file is a relative path', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--existing-file', 'prepare.txt'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /existingFile must be an absolute path/);
+  });
+
+  test('exits 2 when --package-json is a relative path', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--package-json', 'package.json'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /packageJson must be an absolute path/);
+  });
+
+  test('exits 2 when --package-json is not named package.json', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--package-json', '/r/other.json'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /--package-json must end in \/package\.json/);
+  });
+
+  test('exits 2 when --package-json ends in a name that only contains package.json', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--package-json', '/r/mypackage.json'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /--package-json must end in \/package\.json/);
+  });
+
+  test('exits 2 when --pkg is the last argument with no value', () => {
+    // Arrange
+    const argv = ['--pkg'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /--pkg needs a value/);
+  });
+
+  test('exits 2 when a source flag is the last argument with no value', () => {
+    // Arrange
+    const argv = ['--pkg', '.', '--existing-file'];
+    // Act
+    const { code, errors } = failing(argv);
+    // Assert
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /--existing-file needs a value/);
   });
 
   test('reads scripts.prepare from --package-json and sets when it is absent', () => {
@@ -178,13 +283,14 @@ describe('main', () => {
     assert.deepEqual(JSON.parse(lines[0]), { prepare: 'husky', action: 'set' });
   });
 
-  test('throws when two existing sources are given', () => {
+  test('exits 2 when two existing sources are given', () => {
     // Arrange
-    const deps = { log: () => {}, readFile: () => '' };
+    const argv = ['--pkg', '.', '--existing', 'a', '--existing-file', '/f'];
     // Act
-    const act = () => main(['--pkg', '.', '--existing', 'a', '--existing-file', '/f'], deps);
+    const { code, errors } = failing(argv);
     // Assert
-    assert.throws(act, /use only one of/);
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /use only one of/);
   });
 
   test('throws when --package-json is not valid JSON', () => {
@@ -196,21 +302,23 @@ describe('main', () => {
     assert.throws(act, SyntaxError);
   });
 
-  test('throws when --pkg is missing', () => {
+  test('exits 2 when --pkg is missing', () => {
     // Arrange
-    const deps = { log: () => {} };
+    const argv = [];
     // Act
-    const act = () => main([], deps);
+    const { code, errors } = failing(argv);
     // Assert
-    assert.throws(act, /--pkg is required/);
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /--pkg is required/);
   });
 
-  test('throws on an unknown argument', () => {
+  test('exits 2 on an unknown argument', () => {
     // Arrange
-    const deps = { log: () => {} };
+    const argv = ['--bogus', 'x'];
     // Act
-    const act = () => main(['--bogus', 'x'], deps);
+    const { code, errors } = failing(argv);
     // Assert
-    assert.throws(act, /unknown argument/);
+    assert.deepEqual([code, errors.length], [2, 1]);
+    assert.match(errors[0], /unknown argument/);
   });
 });

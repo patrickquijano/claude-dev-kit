@@ -3,7 +3,7 @@ name: setup-husky
 description: Installs Husky Git hooks that enforce Conventional Commits and signed commits, with an optional signing pre-check. Use only when the user explicitly asks to set up Husky or Git hooks. Not for Claude Code hooks.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
-allowed-tools: Read Write Glob AskUserQuestion Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)
+allowed-tools: Read Edit(**/package.json) Edit(**/.husky/*) Edit(**/.commitlintrc.json) Edit(**/.claude/rules/commits.md) Edit(**/.gitignore) Edit(**/.gitattributes) Edit(**/.prettierignore) Edit(**/.markdownlintignore) Edit(**/.markdownlint-cli2.*) Edit(**/.stylelintignore) Edit(**/.eslintignore) Edit(**/eslint.config.*) Edit(**/biome.json*) Edit(**/.yamllint*) Edit(**/.yamlfmt*) Edit(**/yamlfmt.yaml) Edit(**/cspell.json) Edit(**/.cspell.json) Edit(**/cspell.config.*) Edit(**/.npmignore) Edit(**/*.dockerignore) Glob AskUserQuestion Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)
 disable-model-invocation: true
 ---
 
@@ -27,9 +27,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 - `${CLAUDE_SKILL_DIR}/assets/` holds the canonical hooks. Copy `.mjs` files byte for byte; stubs change only in their path prefix and step 5 flags (step 9).
 - Hooks: `.husky/<hook>` is a POSIX stub `node .husky/<hook>.mjs "$@"`; the logic lives in Node. `commit-msg.mjs` runs commitlint through the package manager: the stub's `--pm=<pm>` flag, else detected at run time.
 - Run `husky-init` only when Husky is not initialized. It overwrites `scripts.prepare` and `.husky/pre-commit`, so snapshot both first; step 7 merges `prepare`, never overwrites it.
-- Never overwrite a user file; never pass `--no-verify`. `Write` is for one scratchpad file only, the `scripts.prepare` snapshot handed to `merge-prepare.mjs`.
+- Never overwrite a user file; never pass `--no-verify`. `Write` creates the scratchpad snapshot, a missing `package.json` (step 4), the files steps 9-11 copy, and a missing root `.gitignore` or `.gitattributes` (steps 12-13); step 14 edits only existing files.
 - Commit header max 72 characters, enforced by `commit-msg.mjs` and the commitlint config; never raise it.
-- Config edits append only missing entries. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
+- Config edits append only missing entries, except the step 5 Set 72 answer. Only `.gitignore` and `.gitattributes` may be created among ignore files; `package.json`, hooks, the commitlint config, and `.claude/rules/commits.md` are created only by their steps.
 - Decision questions: at most 4 per call, 2-4 options, the Recommended first in the call; each asked once. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → the no-ask rule below). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`. `--yes` → same; a close call has no Recommended and goes under `Open:`.
 - No-ask rule: AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - Caps: install 1 attempt; fix loop for smoke-test failures and files this run wrote 3 rounds. A kept user file is never replaced: report its diff and how to overwrite it. Leftovers go under `Open:`.
@@ -82,7 +82,7 @@ Init: ran | already initialized
 pre-commit: removed | kept (test script) | restored | untouched
 Events: message <commit-msg | skipped>, signing <pre-check + report | pre-check | report | skipped> | kept user hook
 Hooks: commit-msg <copied|same|kept|removed>, commit-msg.mjs <...>, post-commit <...>, post-commit.mjs <...>
-Commitlint config: <file> (<kept | written>; header-max-length <added | present | kept <value> | report-only>)
+Commitlint config: <file> (<kept | written>; header-max-length <added | present | set 72 (was <value>) | kept <value> | report-only>)
 Rules: .claude/rules/commits.md (<written | same | kept>); CLAUDE.md mention <present | missing>
 Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, ... | up to date

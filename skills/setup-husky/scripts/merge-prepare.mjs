@@ -1,9 +1,14 @@
 // Merges the Husky `prepare` target into an existing `scripts.prepare` value for setup-husky; reads a file only through `deps` when given a path.
-// CLI: `--pkg <pkg> [--existing <script> | --existing-file <path> | --package-json <path>]` (`<pkg>` is `.` at the git root), JSON on stdout. The file forms keep the script out of a shell argument.
+// CLI: `--pkg <pkg> [--existing <script> | --existing-file <abs path> | --package-json <abs path>]` (`<pkg>` is `.` at the git root; exit 2 = bad arguments), JSON on stdout. The file forms keep the script out of a shell argument.
 import { readFileSync, realpathSync } from 'node:fs';
+import { isAbsolute } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const defaults = { log: (line) => console.log(line), readFile: (path) => readFileSync(path, 'utf8') };
+const defaults = {
+  log: (line) => console.log(line),
+  error: (line) => console.error(line),
+  readFile: (path) => readFileSync(path, 'utf8')
+};
 
 // Runs `fn` only when this module is the entry script; an error it throws prints one stderr line and sets exit code 1.
 async function runIfMain(metaUrl, fn, label) {
@@ -66,23 +71,43 @@ export function readPrepare(text) {
 
 const SOURCES = { '--existing': 'existing', '--existing-file': 'existingFile', '--package-json': 'packageJson' };
 
+// A bad command line; `main` reports it and exits 2, while any other error propagates.
+class UsageError extends Error {}
+
 function parseArgs(argv) {
   const out = {};
   for (let i = 0; i < argv.length; i += 2) {
-    if (argv[i] === '--pkg') out.pkg = argv[i + 1];
-    else if (Object.hasOwn(SOURCES, argv[i])) out[SOURCES[argv[i]]] = argv[i + 1];
-    else throw new Error(`unknown argument ${argv[i]}`);
+    const isPkg = argv[i] === '--pkg';
+    if (!isPkg && !Object.hasOwn(SOURCES, argv[i])) throw new UsageError(`unknown argument ${argv[i]}`);
+    if (i + 1 >= argv.length) throw new UsageError(`${argv[i]} needs a value`);
+    if (isPkg) out.pkg = argv[i + 1];
+    else out[SOURCES[argv[i]]] = argv[i + 1];
   }
-  if (out.pkg === undefined) throw new Error('--pkg is required');
+  if (out.pkg === undefined) throw new UsageError('--pkg is required');
   if (Object.values(SOURCES).filter((key) => out[key] !== undefined).length > 1) {
-    throw new Error('use only one of --existing, --existing-file, --package-json');
+    throw new UsageError('use only one of --existing, --existing-file, --package-json');
+  }
+  for (const key of ['existingFile', 'packageJson']) {
+    if (out[key] === undefined) continue;
+    if (out[key].split(/[\\/]/).includes('..')) throw new UsageError(`${key} must not contain a .. segment`);
+    if (!isAbsolute(out[key])) throw new UsageError(`${key} must be an absolute path`);
+  }
+  if (out.packageJson !== undefined && !/[\\/]package\.json$/.test(out.packageJson)) {
+    throw new UsageError('--package-json must end in /package.json');
   }
   return out;
 }
 
 export function main(argv = process.argv.slice(2), deps = {}) {
   const d = { ...defaults, ...deps };
-  const args = parseArgs(argv);
+  let args;
+  try {
+    args = parseArgs(argv);
+  } catch (err) {
+    if (!(err instanceof UsageError)) throw err;
+    d.error(`merge-prepare: ${err.message}`);
+    return 2;
+  }
   let existing = args.existing;
   if (args.existingFile !== undefined) existing = d.readFile(args.existingFile);
   if (args.packageJson !== undefined) existing = readPrepare(d.readFile(args.packageJson));

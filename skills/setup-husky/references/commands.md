@@ -14,5 +14,5 @@
 | `husky-init` | `<exec> husky init` | Initialize Husky |
 | `run-prepare` | `<pm> run prepare` | Install hooks, set `core.hooksPath` |
 | `chmod-exec` | `chmod +x <path>` | Make copied stubs executable |
-| `merge-prepare` | `node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs --pkg '<pkg>' (--existing-file '<snapshot file>' \| --package-json '<package.json path>')` | JSON `{prepare, action}`: merged `scripts.prepare`; the existing script is read from a file, never passed as a shell argument |
+| `merge-prepare` | `node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs --pkg '<pkg>' (--existing-file '<absolute snapshot file>' \| --package-json '<absolute package.json path>')` | JSON `{prepare, action}`: merged `scripts.prepare`; the existing script is read from a file, never passed as a shell argument |
 | `smoke-commit-msg` | `node <pkg>/.husky/commit-msg.mjs <file>` | Check the commit-msg hook |
