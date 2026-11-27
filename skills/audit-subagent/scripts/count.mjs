@@ -1,5 +1,5 @@
 // Size counts and score means for audit-subagent; the file is read here and never embedded in a command.
-// CLI: `count.mjs <absolute path>` prints JSON `{ok, lines, chars, words, bodyLines, bodyChars}`; `count.mjs --mean <n>…` prints `{ok, mean}` to one decimal. Exit 0 = ok, 1 = read failed, 2 = bad arguments.
+// CLI: `count.mjs <absolute path>` prints JSON `{ok, lines, chars, words, bodyLines, bodyChars, descriptionChars, whenToUseChars}`; `count.mjs --mean <n>…` prints `{ok, mean}` to one decimal. Exit 0 = ok, 1 = read failed, 2 = bad arguments.
 import { readFileSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
@@ -27,18 +27,33 @@ export function isSafePath(path) {
   return path.startsWith('/') && PATH_OK.test(path) && !path.split('/').includes('..');
 }
 
-// Counts lines (a trailing newline adds none), characters, and words; `body*` skip a leading `---` frontmatter block.
+// Counts lines (a trailing newline adds none), characters, and words; `body*` skip a leading `---` frontmatter block; `descriptionChars` and `whenToUseChars` count that block's `description:` and `when_to_use:` values, including a `>` or `|` block scalar's indented lines (0 when absent).
 export function countText(text) {
   const lines = (s) => (s === '' ? 0 : s.split('\n').length - (s.endsWith('\n') ? 1 : 0));
   const all = String(text ?? '');
   const m = /^---\r?\n[\s\S]*?\r?\n---[ \t]*(\r?\n|$)/.exec(all);
   const body = m ? all.slice(m[0].length) : all;
+  const field = (key) => {
+    const rows = (m ? m[0] : '').split(/\r?\n/);
+    const at = rows.findIndex((l) => l.startsWith(`${key}:`));
+    if (at < 0) return 0;
+    const value = rows[at].slice(key.length + 1).trim();
+    if (/^[>|]/.test(value)) {
+      const block = [];
+      for (let i = at + 1; i < rows.length && /^([ \t]|\s*$)/.test(rows[i]); i++) block.push(rows[i].trim());
+      while (block.length > 0 && block[block.length - 1] === '') block.pop();
+      return [...block.join(value[0] === '>' ? ' ' : '\n')].length;
+    }
+    return [...value.replace(/^(["'])(.*)\1$/, '$2')].length;
+  };
   return {
     lines: lines(all),
     chars: [...all].length,
     words: all.split(/\s+/).filter(Boolean).length,
     bodyLines: lines(body),
-    bodyChars: [...body].length
+    bodyChars: [...body].length,
+    descriptionChars: field('description'),
+    whenToUseChars: field('when_to_use')
   };
 }
 

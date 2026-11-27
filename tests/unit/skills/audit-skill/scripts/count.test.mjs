@@ -29,7 +29,55 @@ describe('countText', () => {
     // Act
     const result = countText('one two\nthree\n');
     // Assert
-    assert.deepEqual(result, { lines: 2, chars: 14, words: 3, bodyLines: 2, bodyChars: 14 });
+    assert.deepEqual(result, {
+      lines: 2,
+      chars: 14,
+      words: 3,
+      bodyLines: 2,
+      bodyChars: 14,
+      descriptionChars: 0,
+      whenToUseChars: 0
+    });
+  });
+
+  test('counts description and when_to_use code points from the frontmatter', () => {
+    // Arrange
+    const text = '---\nname: x\ndescription: "Use → now"\nwhen_to_use: When asked\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 9);
+    assert.equal(result.whenToUseChars, 10);
+  });
+
+  test('returns 0 for when_to_use when only description is present', () => {
+    // Arrange
+    const text = '---\ndescription: Does a thing\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 12);
+    assert.equal(result.whenToUseChars, 0);
+  });
+
+  test('returns 0 for both fields without frontmatter', () => {
+    // Arrange
+    const text = 'description: not frontmatter\nwhen_to_use: nor this\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 0);
+    assert.equal(result.whenToUseChars, 0);
+  });
+
+  test('returns 0 for an empty description', () => {
+    // Arrange
+    const text = '---\ndescription:\nwhen_to_use: ""\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 0);
+    assert.equal(result.whenToUseChars, 0);
   });
 
   test('splits the body from the frontmatter block', () => {
@@ -52,9 +100,45 @@ describe('countText', () => {
 
   test('counts a code point as one char', () => {
     // Act
-    const result = countText('→→');
+    const result = countText('🚀🚀');
     // Assert
     assert.equal(result.chars, 2);
+  });
+
+  test('joins a folded block scalar description with single spaces', () => {
+    // Arrange
+    const text = '---\ndescription: >-\n  ab cd\n  ef\nname: x\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 8);
+  });
+
+  test('joins a literal block scalar description with newlines', () => {
+    // Arrange
+    const text = '---\ndescription: |\n  ab\n  cd\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 5);
+  });
+
+  test('counts a blank line inside a block scalar but not trailing blank lines', () => {
+    // Arrange
+    const text = '---\ndescription: >-\n  ab\n\n  cd\n\n\nname: x\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 6);
+  });
+
+  test('counts a quoted value starting with > as plain text, not a block scalar', () => {
+    // Arrange
+    const text = '---\ndescription: "> ab"\n  indented: no\n---\nbody\n';
+    // Act
+    const result = countText(text);
+    // Assert
+    assert.equal(result.descriptionChars, 4);
   });
 });
 
@@ -91,7 +175,16 @@ describe('main', () => {
     const { code, logs } = run(['/a/SKILL.md']);
     // Assert
     assert.equal(code, 0);
-    assert.deepEqual(JSON.parse(logs[0]), { ok: true, lines: 1, chars: 4, words: 2, bodyLines: 1, bodyChars: 4 });
+    assert.deepEqual(JSON.parse(logs[0]), {
+      ok: true,
+      lines: 1,
+      chars: 4,
+      words: 2,
+      bodyLines: 1,
+      bodyChars: 4,
+      descriptionChars: 0,
+      whenToUseChars: 0
+    });
   });
 
   test('prints a mean', () => {
