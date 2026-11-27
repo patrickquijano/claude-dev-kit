@@ -6,7 +6,7 @@ const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };
 
 // Builds stub deps; `spawnResult` is what the stubbed `claude` returns.
-function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux' } = {}) {
+function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux', realpath = (p) => p } = {}) {
   const calls = { spawn: [], stdout: [], stderr: [] };
   const deps = {
     spawn: (cmd, args, opts) => {
@@ -15,6 +15,7 @@ function makeDeps({ stdin = '', spawnResult = ok, platform = 'linux' } = {}) {
     },
     platform,
     env: { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' },
+    realpath,
     readJsonStdin: async () => JSON.parse(stdin),
     stdout: (text) => calls.stdout.push(text),
     stderr: (text) => calls.stderr.push(text)
@@ -102,6 +103,48 @@ describe('plan', () => {
     assert.equal(result, null);
   });
 
+  test('accepts a file whose real path stays inside the project', () => {
+    // Arrange
+    const file = `${CWD}/skills/x/SKILL.md`;
+    // Act
+    const result = plan(file, CWD, (p) => p);
+    // Assert
+    assert.equal(result.rel, 'skills/x/SKILL.md');
+  });
+
+  test('returns null for a symlink whose target is outside the project', () => {
+    // Arrange
+    const file = `${CWD}/skills/link.md`;
+    const realpath = (p) => (p === file ? '/outside/secret.md' : p);
+    // Act
+    const result = plan(file, CWD, realpath);
+    // Assert
+    assert.equal(result, null);
+  });
+
+  test('keeps the resolved path when the file does not exist', () => {
+    // Arrange
+    const file = `${CWD}/skills/gone.md`;
+    const realpath = () => {
+      throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+    };
+    // Act
+    const result = plan(file, CWD, realpath);
+    // Assert
+    assert.equal(result.rel, 'skills/gone.md');
+  });
+
+  test('rethrows a realpath error that is not ENOENT', () => {
+    // Arrange
+    const realpath = () => {
+      throw Object.assign(new Error('denied'), { code: 'EACCES' });
+    };
+    // Act
+    const act = () => plan(`${CWD}/skills/x.md`, CWD, realpath);
+    // Assert
+    assert.throws(act, /denied/);
+  });
+
   test('returns no notice for a path that needs no reload', () => {
     // Arrange
     const file = `${CWD}/README.md`;
@@ -161,13 +204,35 @@ describe('validate', () => {
     assert.match(result, /Warning: long description/);
   });
 
-  test('reports the signal and spawn error when claude cannot run', () => {
+  test('names the spawn error when claude cannot run', () => {
     // Arrange
-    const { deps } = makeDeps({ spawnResult: { status: null, signal: 'SIGTERM', error: new Error('ENOENT') } });
+    const { deps } = makeDeps({
+      spawnResult: { status: null, signal: 'SIGTERM', error: new Error('spawn claude ENOENT') }
+    });
     // Act
     const result = validate(CWD, deps);
     // Assert
-    assert.match(result, /exit SIGTERM\):\nENOENT/);
+    assert.equal(result, 'claude CLI could not run: spawn claude ENOENT');
+    assert.doesNotMatch(result, /exit null/);
+  });
+
+  test('reports the exit status, not a CLI error, for a normal failure', () => {
+    // Arrange
+    const { deps } = makeDeps({ spawnResult: { status: 3, stdout: 'bad', stderr: '' } });
+    // Act
+    const result = validate(CWD, deps);
+    // Assert
+    assert.match(result, /failed \(exit 3\)/);
+    assert.doesNotMatch(result, /could not run/);
+  });
+
+  test('reports the signal when claude is killed with no spawn error', () => {
+    // Arrange
+    const { deps } = makeDeps({ spawnResult: { status: null, signal: 'SIGKILL', stdout: '', stderr: '' } });
+    // Act
+    const result = validate(CWD, deps);
+    // Assert
+    assert.match(result, /failed \(exit SIGKILL\)/);
   });
 });
 
@@ -215,6 +280,31 @@ describe('main', () => {
     // Assert
     assert.equal(code, 0);
     assert.equal(calls.stdout.length + calls.stderr.length + calls.spawn.length, 0);
+  });
+
+  test('fails fast when the project directory does not exist', async () => {
+    // Arrange
+    const realpath = () => {
+      throw Object.assign(new Error('ENOENT: no such directory'), { code: 'ENOENT' });
+    };
+    const { deps, calls } = makeDeps({ stdin: event(`${CWD}/skills/x/SKILL.md`), realpath });
+    // Act
+    const act = main(deps);
+    // Assert
+    await assert.rejects(act, /ENOENT/);
+    assert.equal(calls.spawn.length, 0);
+  });
+
+  test('prints nothing for a symlink that points outside the project', async () => {
+    // Arrange
+    const link = `${CWD}/skills/link.md`;
+    const realpath = (p) => (p === link ? '/outside/x.md' : p);
+    const { deps, calls } = makeDeps({ stdin: event(link), realpath });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(calls.stdout.length + calls.spawn.length, 0);
   });
 
   test('prints nothing for a path outside the project', async () => {

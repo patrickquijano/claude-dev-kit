@@ -1,9 +1,16 @@
-// PostToolUse hook: structural plugin check after Claude edits a plugin file; never runs the LLM-graded eval.
-// On a nonzero exit (`--strict` turns warnings into errors), prints it to stderr and exits 2 so Claude fixes it.
+// PostToolUse hook: structural plugin check after Claude edits a plugin file (never the LLM-graded eval); a nonzero exit (`--strict` turns warnings into errors) goes to stderr with exit 2 so Claude fixes it.
 // Hooks cannot run slash commands, so each valid project component edit prints a `/reload-skills` notice instead.
 import { spawnSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
-import { MAX, contextOutput, readJsonStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
+import {
+  MAX,
+  contextOutput,
+  expected,
+  projectDir,
+  readJsonStdin,
+  runIfMain
+} from '../../hooks/scripts/lib/hook-io.mjs';
 
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
@@ -13,6 +20,7 @@ const defaults = {
   spawn: spawnSync,
   platform: process.platform,
   env: process.env,
+  realpath: realpathSync,
   readJsonStdin,
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text)
@@ -24,10 +32,21 @@ export function isProjectScoped(parts) {
   return parts.length === 2 ? PROJECT_FILES.includes(parts[1]) : PROJECT_DIRS.includes(parts[1]);
 }
 
+// Resolves symlinks so a link cannot point outside the project; a missing file keeps its resolved path.
+function realTarget(path, realpath) {
+  try {
+    return realpath(path);
+  } catch (err) {
+    if (!expected(err, 'ENOENT')) throw err;
+    return path;
+  }
+}
+
 // Plans the hook's work for one edited file: its project-relative path, whether to validate, and the notice to print.
-export function plan(file, cwd) {
+// `cwd` must already be a real path (`projectDir`).
+export function plan(file, cwd, realpath = realpathSync) {
   if (typeof file !== 'string' || !file) return null;
-  const rel = relative(cwd, resolve(cwd, file));
+  const rel = relative(cwd, realTarget(resolve(cwd, file), realpath));
   if (!rel || rel.startsWith('..') || isAbsolute(rel)) return null;
   const parts = rel.split(/[\\/]/);
   const top = parts[0];
@@ -55,8 +74,9 @@ export function validate(cwd, deps = defaults) {
     timeout: 100_000,
     windowsHide: true
   });
-  const out = [res.stdout, res.stderr, res.error?.message].filter(Boolean).join('\n').trim();
   if (res.status === 0) return null;
+  if (res.error) return `claude CLI could not run: ${res.error.message}`;
+  const out = [res.stdout, res.stderr].filter(Boolean).join('\n').trim();
   return (
     `claude plugin validate --strict . failed (exit ${res.status ?? res.signal}):\n${out.slice(-MAX)}\n` +
     'Fix every error and warning; validation re-runs after the next plugin file edit.'
@@ -66,8 +86,8 @@ export function validate(cwd, deps = defaults) {
 // Returns the exit code: 2 when validation reports a problem, else 0.
 export async function main(deps = defaults) {
   const event = await deps.readJsonStdin();
-  const cwd = deps.env.CLAUDE_PROJECT_DIR || process.cwd();
-  const work = plan(event.tool_input?.file_path, cwd);
+  const cwd = projectDir(event, { env: deps.env, realpath: deps.realpath });
+  const work = plan(event.tool_input?.file_path, cwd, deps.realpath);
   if (!work) return 0;
   if (work.validate) {
     const report = validate(cwd, deps);
