@@ -3,7 +3,7 @@ name: open-github-pull-request
 description: Creates a GitHub PR from the diff, or updates one by URL or number, with a Conventional Commits title and the repo's filled template. Use when asked to open or update a PR. Not for merging or reviewing PRs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number] [--draft]'
-allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr list *) Bash(gh api repos/*/contents/*) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__get_file_contents
+allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --format=%s%n%b --no-merges origin/*..HEAD) Bash(git diff origin/*...HEAD) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__get_file_contents
 ---
 
 # Open GitHub Pull Request
@@ -38,6 +38,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - For template selection, filling, the update merge, and the type map, see `${CLAUDE_SKILL_DIR}/references/body.md`.
 - For the fallback templates, read the one the type map names at step 6: `${CLAUDE_SKILL_DIR}/assets/templates/default.md`, `${CLAUDE_SKILL_DIR}/assets/templates/feature.md`, `${CLAUDE_SKILL_DIR}/assets/templates/bugfix.md`, `${CLAUDE_SKILL_DIR}/assets/templates/refactor.md`, `${CLAUDE_SKILL_DIR}/assets/templates/hotfix.md`.
 - For the title check (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/check-title.mjs`.
+- For the read-only `gh api` wrapper the `template-lookup` row runs (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 
 ## Output

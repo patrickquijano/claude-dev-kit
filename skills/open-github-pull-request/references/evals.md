@@ -28,6 +28,7 @@ pass: <observable criteria>
 | yes-no-overwrite | "/cdk:open-github-pull-request --yes" (a scratch or template path that already holds an unnamed file) | Asks nothing; overwrites nothing | No question; the existing file is unchanged; the skipped step is under `Open:` |
 | no-approval-step | "Open a PR." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 | cannot-interact | "Open a PR." (a decision question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no push, no PR written |
+| prints-before-submit | "Open a PR." (pushed branch, non-empty diff) | Prints before it writes | The title, the body, and the action (create or update) are printed before the `create` call |
 
 ## Running per model
 

@@ -3,7 +3,7 @@ name: merge-github-pull-request
 description: Merges one GitHub PR via the GitHub MCP server (gh fallback) with the chosen method and branch cleanup; admin bypass only when the user asks for it. Use when asked to merge a PR. Not for opening or reviewing PRs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number]'
-allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(gh api repos/*/rules/branches/*) Bash(gh api repos/*/branches/*) Bash(gh api repos/*/commits/*) Bash(gh api user *)
+allowed-tools: mcp__plugin_github_github__get_me mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__list_repository_collaborators mcp__plugin_github_github__get_commit Bash(git remote get-url *) Bash(git branch --show-current) Bash(gh auth status) Bash(gh repo view *) Bash(gh pr view *) Bash(gh pr checks *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *)
 ---
 
 # Merge GitHub Pull Request
@@ -40,6 +40,7 @@ One AskUserQuestion call before the merge asks Method + Branch cleanup (`--yes`:
 
 - For every runnable command, its MCP tool, and the `gh` fallback, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For stop gates, bypass eligibility, blocker mapping, method and branch choices, the merge tool, and the post-merge check (steps 4–7), see `${CLAUDE_SKILL_DIR}/references/gates.md`.
+- For the read-only `gh api` wrapper the `self`, `rules`, `merge-parents`, and `branch-exists` rows run (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
 - For the grill table, anchors, and sensitivity rule, read `${CLAUDE_SKILL_DIR}/references/grill.md` when the pre-merge questions ask a decision question.
 

@@ -28,6 +28,7 @@ pass: <observable criteria>
 | host-auto-delete | "Merge PR 12." (repo `deleteBranchOnMerge` true) | No Branch cleanup question; Keep tool; `Branch: deleted (host setting)` | Question call asks Method only; `Tool: mcp merge_pull_request` (no `--delete-branch`); `Branch: deleted (host setting)`; no `Open: branch missing` |
 | host-kept | "Merge PR 12." (repo `deleteBranchOnMerge` true, the branch still exists after the merge) | No Branch cleanup question; Keep tool; `Branch: kept` | `branch-exists` returns 200; `Branch: kept`; no `Open:` |
 | fork-setting-on | "Merge PR 12." (head in a fork, repo `deleteBranchOnMerge` true) | No Branch cleanup question; Keep behavior | `Branch: not offered (fork)`; question call asks Method only; no `--delete-branch` |
+| cannot-interact | "Merge PR 12." (no one to reply, no `--yes`) | Stops at the first question, merges nothing | `Result: stopped`; `Stopped: 5: cannot interact`; `Tool: none`; `Merge commit: not merged`; no merge command runs |
 
 ## Running per model
 

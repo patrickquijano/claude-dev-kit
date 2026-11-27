@@ -15,7 +15,7 @@
 | `pr-files` | `mcp__plugin_github_github__pull_request_read` (`get_files`) | `gh pr view <n> --repo <owner>/<repo> --json files` | Changed files of an existing PR |
 | `commits` | — | `git log --format=%s%n%b --no-merges origin/<default>..HEAD` | Commit messages of the new PR |
 | `diff` | — | `git diff origin/<default>...HEAD` | Diff of the new PR |
-| `template-lookup` | `mcp__plugin_github_github__get_file_contents` (default branch) | `gh api repos/<owner>/<repo>/contents/<path>?ref=<default>` | Probe the template paths in `body.md`; a directory listing lists candidates |
+| `template-lookup` | `mcp__plugin_github_github__get_file_contents` (default branch) | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/<path>?ref=<default>'` | Probe the template paths in `body.md`; a directory listing lists candidates |
 | `create` | `mcp__plugin_github_github__create_pull_request` | `gh pr create --repo <owner>/<repo> --base '<default>' --head '<head>' --title '<title>' --body-file <file> [--draft]` | Write: open the PR |
 | `update` | `mcp__plugin_github_github__update_pull_request` | `gh pr edit <n> --repo <owner>/<repo> --title '<title>' --body-file <file>` | Write: replace title and body |
 | `push` | — | `git push -u origin '<head>'` | Write: one normal push, no flags |
