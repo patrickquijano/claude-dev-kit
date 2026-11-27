@@ -152,20 +152,18 @@ describe('plan', () => {
     assert.throws(act, /denied/);
   });
 
-  test('rethrows ELOOP and ENOTDIR errors from realpath', () => {
-    // Arrange
-    const codes = ['ELOOP', 'ENOTDIR'];
-    const acts = codes.map(
-      (code) => () =>
-        plan(`${CWD}/skills/x.md`, CWD, () => {
-          throw Object.assign(new Error(code), { code });
-        })
-    );
-    // Act
-    const results = acts.map((act) => ({ act }));
-    // Assert
-    results.forEach(({ act }, i) => assert.throws(act, { code: codes[i] }));
-  });
+  for (const code of ['ELOOP', 'ENOTDIR']) {
+    test(`rethrows a ${code} error from realpath`, () => {
+      // Arrange
+      const realpath = () => {
+        throw Object.assign(new Error(code), { code });
+      };
+      // Act
+      const act = () => plan(`${CWD}/skills/x.md`, CWD, realpath);
+      // Assert
+      assert.throws(act, { code });
+    });
+  }
 
   test('returns no notice for a path that needs no reload', () => {
     // Arrange
