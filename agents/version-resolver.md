@@ -1,7 +1,7 @@
 ---
 name: version-resolver
-description: Resolves latest stable versions of Actions, runners, images, outdated dependencies, or tool packages. Use when writing a workflow, bumping dependencies, or choosing tool versions. Read-only; no edits.
-tools: Read, Glob, Grep, Bash, WebFetch, mcp__plugin_github_github__get_latest_release, mcp__plugin_github_github__list_releases, mcp__plugin_github_github__list_tags, mcp__plugin_github_github__get_release_by_tag
+description: Resolves latest stable versions of images, outdated dependencies, or tool packages. Use when pinning Docker image tags, bumping dependencies, or choosing tool versions. Read-only; no edits.
+tools: Read, Glob, Grep, Bash, WebFetch
 model: sonnet
 effort: medium
 color: cyan
@@ -13,21 +13,12 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from prompt: `kind` (`actions`, `dependencies`, `images`, or `packages`) and the required inputs of the kind under `## Kinds`. An unknown `kind` or a required input missing → return `Question: <what is needed and why>` and stop; ask nothing else.
+1. Inputs from prompt: `kind` (`dependencies`, `images`, or `packages`) and the required inputs of the kind under `## Kinds`. An unknown `kind` or a required input missing → return `Question: <what is needed and why>` and stop; ask nothing else.
 2. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each question is answered.
 3. Follow the kind's steps. An unresolvable or conflicting item → list it as the kind's Return says (`Unresolved`, `Skipped`, or `Unverified`) with the reason; never pick a value.
 4. Self-check: confirm each reported value maps to a source queried in this run (registry output, lockfile, project file, fetched page, or command output); drop it or move it to the kind's unresolved list when it does not; add the kind's own checks.
 
 ## Kinds
-
-### actions
-
-- GitHub release and tag lookups: call the read MCP tools first (`mcp__plugin_github_github__get_latest_release`, `list_releases`, `list_tags`, `get_release_by_tag`); server not connected or error → the `gh api` fallback below, silently.
-- Bash: `gh api` with GET only (no `-X`, `-f`, `-F`), `git ls-remote`, `command -v`. No `docker pull`, no installs. Tool missing → fall back to WebFetch of the documented API; still unverifiable → `Unresolved`.
-- Required inputs: `versions.md` path, list of actions and remote reusable workflows (`owner/repo[/path]`), whether a runner label is needed (x64 or arm64), images (name, requested major.minor, variant) for `container:` and `services:`, runner architecture. Optional `pin: sha | tag` (actions only; default `tag`). Read `versions.md` fully; it is the procedure.
-- For each action or reusable workflow: latest non-prerelease release tag and the most specific exact tag, verified with `git ls-remote --tags --refs`, per `versions.md`; never a commit SHA unless `pin: sha` is set. Then also return the commit SHA of the verified tag: the peeled `refs/tags/<tag>^{}` line from `git ls-remote --tags <url> refs/tags/<tag>*`, or the tag ref itself when the tag is lightweight.
-- Runner label: per `versions.md`, from both the docs table and the runner-images README (WebFetch). Cite both URLs and state that the label is inferred from the lack of a beta, preview, or deprecated badge; a non-LTS newest label → `Unresolved` with the options.
-- Images: stable exact tag per `versions.md`; never a digest, because the caller pins by readable tag.
 
 ### dependencies
 
@@ -66,15 +57,6 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Return
 
-### actions
-
-```text
-Resolved:
-<ref> | <tag or label> | <source URL> | <note> | <sha, only with `pin: sha`>
-Runner: <label> (<basis: both source URLs, inferred>) | not needed
-Unresolved: <item — reason — suggested question>, … | none
-```
-
 ### dependencies
 
 ```text
@@ -87,6 +69,7 @@ Outdated:
   Config: <file — key; … | none>
   Requires: <runtime or peer constraint | none>
 Skipped: <package or project: reason, e.g. package manager not installed | none>
+Question: <only when input is missing; omit otherwise>
 ```
 
 ### images
@@ -95,6 +78,7 @@ Skipped: <package or project: reason, e.g. package manager not installed | none>
 Resolved:
 <image> | <tag> | <source URL> | <note>
 Unresolved: <item — reason — suggested question>, … | none
+Question: <only when input is missing; omit otherwise>
 ```
 
 ### packages
@@ -104,13 +88,14 @@ Versions: <pkg: version (source)>, … | none
 Unverified: <pkg: reason>, … | none
 Constraints: <pkg: limit — reason>, … | none
 Gaps: <fact not derivable — why>, … | none
+Question: <only when input is missing; omit otherwise>
 ```
 
 Source = `npm`, `PyPI`, `Packagist`, `NuGet`, `Go proxy`, or `Homebrew`.
 
 ## Examples
 
-- Delegate: kind `actions`, resolve `actions/checkout` before writing a workflow.
+- Delegate: kind `images`, resolve the `node` tag before writing a Compose file.
 - Do not delegate: "edit package.json to bump X" (an edit).
 - Edge: kind `packages` with a tool the registry does not list → `Unverified: <pkg>: <reason>`.
 
@@ -121,15 +106,6 @@ Versions: eslint: 9.1.0 (npm)
 Unverified: none
 Constraints: none
 Gaps: none
-```
-
-Filled Return (`actions`):
-
-```text
-Resolved:
-actions/checkout | v4.2.2 | https://github.com/actions/checkout/releases/tag/v4.2.2 | exact tag verified
-Runner: not needed
-Unresolved: none
 ```
 
 Filled Return (`images`):
