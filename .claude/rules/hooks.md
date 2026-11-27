@@ -7,7 +7,7 @@ paths:
 
 # Hooks
 
-- `Stop` fires every turn, no matcher; the plugin continues Claude with Stop `hookSpecificOutput.additionalContext` JSON (shown as `Stop hook feedback`, no hook error), not `decision: "block"` or exit 2. Stop `additionalContext` always renders as `Stop hook feedback` and cannot be hidden, so fire less, not quieter.
+- `Stop` fires every turn, no matcher; the plugin continues Claude with Stop `hookSpecificOutput.additionalContext` JSON (shown as `Stop hook feedback`, no hook error), not `decision: "block"` or exit 2. Stop `additionalContext` always renders as `Stop hook feedback` and cannot be hidden, so Stop must emit nothing when no covered file changed.
 - Plugin hooks never block (no exit 2, no `decision: "block"`).
 - Every hook entry script imports the `lib/hook-io.mjs` helpers (`readJsonStdin`, `runIfMain`) instead of copying them; a plugin hook from `/cdk:build-hook` adapts its template to them and is advise-only.
 - New or changed handlers register in exec form (`"command": "node"` plus `args`); existing shell-string entries stay until touched.
