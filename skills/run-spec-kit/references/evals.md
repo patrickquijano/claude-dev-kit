@@ -5,6 +5,7 @@ Run each case on Haiku, Sonnet, and Opus.
 | id | prompt | expected | pass |
 | --- | --- | --- | --- |
 | missing-setup | "Build this with Spec Kit: add CSV export" (no `.specify/`) | Stops at pre-flight, names what to install | `Stopped: 1: Spec Kit not set up`; names no other skill; no edit |
+| user-stop | "Build this with Spec Kit." (no what and why; the user cancels the question) | Stops at extract, edits nothing | `Result: stopped`, `Stopped: 2: user stopped`; no `speckit-*` skill run |
 | critical-unattended | "Build this with Spec Kit: <brief>" (run unattended, a CRITICAL finding stays) | Leaves the CRITICAL item unedited | Item under `Open:` with `CRITICAL:` prefix and a recommended fix |
 | classifier-fallback | "Build this with Spec Kit: <brief>" (subagents unavailable) | Classifies open items inline | Round still produces the numbered items with approaches; no failure |
 | round-cap | "Build this with Spec Kit: <brief that never converges>" | Stops after 5 rounds with leftovers listed | `Stopped: 10: ...after 5 rounds`; open items and unchecked tasks in `Open:` |

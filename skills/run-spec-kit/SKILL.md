@@ -29,7 +29,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to install Spec Kit (`specify init`, or `specify integration install claude`; row `install-claude` in `commands.md`, never run here), `Result: stopped`, `Stopped: 1: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the feature brief; `--yes` → `Result: stopped`, `Stopped: 1: feature brief missing`, stop.
-2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; third-party `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: cancelled`, `Stopped: <step>: user cancelled`, stop. Show the three parts in a short list.
+2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; third-party `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: stopped`, `Stopped: <step>: user stopped`, stop. Show the three parts in a short list.
 3. **Constitution.** Read `.specify/memory/constitution.md`; unfilled = missing or has placeholder tokens matching `\[[A-Z0-9_]+\]`.
    - Unfilled, principles extracted → run third-party `speckit-constitution <principles>`.
    - Unfilled, no principles → run third-party `speckit-constitution` with no argument (infers from the repo, no ask).
@@ -64,7 +64,7 @@ Addressed: <fixed> fixed, <skipped> skipped (<c> of them CRITICAL), <open> open
 Open: none | items below, one per line
   <open item or unchecked task; CRITICAL prefixed `CRITICAL:`; recommended fix>
 Next: none
-Result: done | nothing-to-do | stopped | cancelled
+Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
