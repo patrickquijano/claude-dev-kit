@@ -28,6 +28,7 @@ pass: <observable criteria, one per line>
 | cannot-interact | "Update the status line." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: 4: cannot interact`; no backup or write |
 | smoke-fix-loop | "Update the status line." (smoke test fails after the write) | At most 3 fix rounds | Each round applies its fix directly; leftovers under `Open:`; backup path reported |
 | no-approval-step | "Make my branch name stand out in the status line." (script exists) | Runs end to end; every write follows the last decision answer directly | Only the color question is asked; the backup and write run right after it with no confirm question; `Result: done` |
+| no-trigger-project-scope | "Change the status line in this project's `.claude/settings.json`." | The skill does not load | No update-statusline Output; no user-scope backup or write |
 
 ## Running per model
 
