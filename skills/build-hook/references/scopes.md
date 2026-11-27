@@ -43,5 +43,5 @@ User:    <absolute home path>/.claude/hooks/<e>.mjs
 Run this re-check before the step 9 implement-spec call.
 
 1. The path equals the table row for the recorded scope and stays inside the plugin dir, repo root, or `~/.claude/`.
-2. The config parses as JSON (invalid → stop and ask); a missing file is created with only the `hooks` key.
+2. The config parses as JSON (invalid → stop and ask; `--yes` → `Result: stopped`, `Stopped: 8: invalid config`); a missing file is created with only the `hooks` key.
 3. An identical handler already present → skip it; nothing existing is removed or reordered.
