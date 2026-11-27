@@ -4,6 +4,7 @@ description: Fixes a bug with GitHub Spec Kit's bug extension (assess, fix, test
 compatibility: Claude Code only. Uses argument-hint, CLAUDE_SKILL_DIR, and disable-model-invocation; claude.ai and API uploads reject unknown frontmatter keys.
 disable-model-invocation: true
 argument-hint: '[--yes] <stack trace | error | URL | bug report>'
+allowed-tools: Read Glob AskUserQuestion
 ---
 
 # Fix Spec Kit Bug

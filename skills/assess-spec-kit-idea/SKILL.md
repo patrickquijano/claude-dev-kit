@@ -4,6 +4,7 @@ description: Vets an idea with Spec Kit's assess extension, returning go, needs-
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 disable-model-invocation: true
 argument-hint: '[--yes] <idea text | URL | ticket | codebase pointer>'
+allowed-tools: Read Glob AskUserQuestion
 ---
 
 # Assess Spec Kit Idea

@@ -4,6 +4,7 @@ description: Runs the full GitHub Spec Kit cycle from one feature brief through 
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] <feature brief>'
 disable-model-invocation: true
+allowed-tools: Read Glob Grep AskUserQuestion
 ---
 
 # Run Spec Kit
