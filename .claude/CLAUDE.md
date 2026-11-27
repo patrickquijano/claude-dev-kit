@@ -58,6 +58,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - [ ] `npm test` passes; new or changed behavior has a test.
 - [ ] `npm run audit` passes.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
+- [ ] Before claiming done, run each check above once, after the last change to the files it covers; skip one that already passed with no change since, and re-run a failed check after its fix.
 
 ## Maintenance
 
