@@ -49,7 +49,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Run `glab <command> --help` before its first use.
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only when `get_project` on the project path succeeds and its `web_url` host equals the remote host; otherwise use `glab`. Call the row's MCP tool first; error or `—` → run the Command unchanged.
 - Never print tokens; never use `--show-token`.
-- A username (the MR author or Self) goes in a shell argument only when it matches `[A-Za-z0-9._-]+`; any other value skips that command, and its rules are applied by hand. `filter-threads.mjs` enforces the same for `--author` (`[A-Za-z0-9_][A-Za-z0-9._-]{0,254}`) and exits 2 on any other value.
+- A username (the MR author or Self) goes in a shell argument only when it matches `[A-Za-z0-9._-]+`; any other value skips that command, and its rules are applied by hand. `filter-threads.mjs` enforces a stricter form for `--author` and `--self` (`[A-Za-z0-9_][A-Za-z0-9._-]{0,254}`: no leading `-` or `.`, at most 255 characters) and exits 2 on any other value.
 - Caps: head-SHA-change redo 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
 ## Workflow

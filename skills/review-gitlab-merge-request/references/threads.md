@@ -32,7 +32,7 @@ Each judged discussion gets exactly one state:
 - **Obsolete:** the commented code is deleted or refactored at the head so the comment no longer applies.
 - **Open:** the change is missing or incomplete, or the judge is uncertain.
 
-Before step 8, the parent re-reads each Fixed or Obsolete discussion's and carried item's cited `path:line` in `<Scratch>/head/`; one the code does not show becomes Open. A `none`-path carried item has no line: the re-read repeats its evidence search across the changed head files, and it becomes Open only when the evidence is found. Fixed and Obsolete discussions are resolved in step 8 with no reply. An Open discussion is left open and gets nothing added. An Open discussion with `authorLast` true is **disputed**: list it under `Open:` for the user, never resolve it.
+Before step 8, the parent re-reads each Fixed or Obsolete discussion's and carried item's cited `path:line` in `<Scratch>/head/`; one the code does not show becomes Open. A `none`-path carried item has no line: the re-read repeats its evidence search across the changed head files, and it becomes Open only when the evidence is found. Fixed and Obsolete discussions are resolved in step 8 with no reply. An Open discussion is left open and gets nothing added. An Open discussion with `authorLast` true is **disputed**: list it under `Open:` for the user, never resolve it. An Accepted discussion is never disputed; disputed applies only to Open.
 
 ## Gating check
 

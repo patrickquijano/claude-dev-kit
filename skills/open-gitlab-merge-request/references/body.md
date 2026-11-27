@@ -17,7 +17,7 @@
 - Never invent issue numbers, test results, or ticked boxes: tick a box only when the diff or a command you ran proves it; a section with nothing to say gets `N/A`.
 - Issues come only from commit messages, the branch name, or the user's input (`Closes #n`).
 - Write plain prose about the change; no attribution, no mention of AI or tools, no secrets.
-- No line of the body starts with `/`, a code fence and kept human text included: GitLab runs such a line as a quick action. Reword it or indent it with one leading space.
+- No line of the body starts with `/`, a code fence and kept human text included: GitLab runs such a line as a quick action. Reword it.
 
 ## Update merge
 

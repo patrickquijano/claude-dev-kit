@@ -1,6 +1,6 @@
 # Commands
 
-`<owner>`, `<repo>`, `<n>`, `<sha>`, `<path>`, `<file>` are literal values from Pre-flight and Resolve; text bodies go to scratch files, never inline in a shell argument; `<path>` is validated and single-quoted per the Rules in `SKILL.md`; `<last sha>` must match `^[0-9a-f]{40}$` and is single-quoted, any other value is rejected. The `gh-get.mjs` rows take exactly one endpoint (or the fixed `graphql <query-name> <owner> <repo> <n>` form), add their own Accept header and `--paginate`, and exit 2 for any other argument; the write rows are not granted and prompt.
+`<owner>`, `<repo>`, `<n>`, `<sha>`, `<path>`, `<file>` are literal values from Pre-flight and Resolve; text bodies go to scratch files, never inline in a shell argument; `<path>` is validated and single-quoted per the Rules in `SKILL.md`; `<last sha>` must match `^[0-9a-f]{40}$` and is single-quoted, any other value is rejected. The `gh-get.mjs` rows take exactly one endpoint (or the fixed `graphql <query-name> <owner> <repo> <n>` form), each shape adds its own fixed flags (`user`: none; `issue-comments`: `--paginate`; `file-at-sha`: `-H 'Accept: application/vnd.github.raw'`; `compare-diff`: `-H 'Accept: application/vnd.github.diff'`; `review-threads`: the fixed `graphql` arguments), and exit 2 for any other argument; the write rows are not granted and prompt.
 
 | Name | Command | Purpose | MCP tool |
 | --- | --- | --- | --- |
