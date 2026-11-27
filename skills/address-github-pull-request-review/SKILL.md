@@ -76,7 +76,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 8. **Push.** `## Push`.
    - 8a. Rebase on the remote head.
    - 8b. Make one normal push.
-9. **Reply.** After the push, reply per the plan; never resolve. `## Reply`.
+9. **Reply.** After the push, or with no commit as `## Commit` says; never resolve. `## Reply`.
    - 9a. Reply on each addressed thread.
    - 9b. Post one PR comment for review-body items.
 10. **Verify delivery.** A mismatch → `Result: stopped`. `## Delivery`.
