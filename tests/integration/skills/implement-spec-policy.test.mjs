@@ -1232,11 +1232,11 @@ describe('implement-spec policy', () => {
         skill
       );
     const brief =
-      /^- Leftover search: .*Brief for `leftovers`: kind `leftovers`, root, the changed file paths, the old identifiers \(old API names, stale keys, deprecated options\)\. Return: `Leftovers:` as `- <path>:<line> — <old identifier>`, `Result: <n found \| none>`\. List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items\. A malformed block → respawn once, then `Leftovers: unchecked` under `Open:`\. Unavailable → Grep the old identifiers inline, same Return\./m.test(
+      /^- Leftover search: .*Brief for `leftovers`: kind `leftovers`, root, the changed file paths, the old identifiers \(old API names, stale keys, deprecated options\)\. Return: `Leftovers:` as `- <path>:<line> — <old identifier>`, `Result: <n found \| none>`\. List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items; it never enters a step 8 re-plan\. A malformed block → respawn once, then `Leftovers: unchecked` under `Open:`\. Unavailable → Grep the old identifiers inline, same Return\./m.test(
         validate
       );
     const detail =
-      /^- Leftover search: when the change renamed or removed identifiers .*List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items\./m.test(
+      /^- Leftover search: when the change renamed or removed identifiers .*List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items; it never enters a step 8 re-plan\./m.test(
         validate
       );
     const pointer = /^- \*\*Explorer\*\* .*Brief and Return for `leftovers`: `validate\.md` Leftover search\.$/m.test(
@@ -1253,6 +1253,18 @@ describe('implement-spec policy', () => {
     assert.ok(pointer, 'Explorer bullet does not point to validate.md Leftover search');
     assert.ok(detail, 'validate.md leftover search rule missing');
     assert.equal(edits, false, 'Explorer bullet routes a leftover to a fix');
+  });
+
+  test('a leftover never enters a step 8 re-plan', () => {
+    // Arrange
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const clause =
+      /^- Leftover search: .*the step 7e fixable items; it never enters a step 8 re-plan\. A malformed block/m.test(
+        validate
+      );
+    // Assert
+    assert.ok(clause, 'leftover search rule does not keep a leftover out of a step 8 re-plan');
   });
 
   test('SKILL.md points the Explorer and Verifier bullets and the Files list at spawns.md', () => {
