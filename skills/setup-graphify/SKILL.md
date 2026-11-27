@@ -36,7 +36,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and the `.gitignore` write in step 7; the `.prettierignore` and other line-based ignore entries still apply. Then print the plan per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan`.
+1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and creating `.gitignore` in step 7 (step 7 still adds to an existing one); the `.prettierignore` and other line-based ignore entries still apply. Then print the plan per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan`.
 2. **CLI.** Install `graphifyy` unless `has-graphify` succeeds; record `version`. Flow and failures: `${CLAUDE_SKILL_DIR}/references/details.md`.
 3. **Skill.** Run `state` once (the run for the plan is only a pre-check); steps 4-9 read this JSON. `skill` is `project` or `user` → skip. Else run `install-skill` (also does the Claude half of step 4).
 4. **Hooks.**

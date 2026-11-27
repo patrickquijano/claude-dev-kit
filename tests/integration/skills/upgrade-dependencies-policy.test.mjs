@@ -77,12 +77,24 @@ describe('upgrade-dependencies policy', () => {
     // Assert
     assert.match(skill, rule);
     assert.ok(section, 'Safe names section missing');
-    const name = /^[A-Za-z0-9@][A-Za-z0-9._/@:+~!-]*$/;
+    const name = /^(?!.*(?:\.\.|:\/\/|\/\/))@?[A-Za-z0-9][A-Za-z0-9._/:~-]*$/;
     const version = /^[0-9A-Za-z][0-9A-Za-z._+~-]*$/;
     assert.equal(section[1], name.source);
     assert.equal(section[2], version.source);
-    assert.ok(['react', '@types/node', 'vendor/pkg', 'org.apache:commons'].every((n) => name.test(n)));
-    assert.ok(['x; rm -rf /', '--flag', 'a b', "a'b", '$(id)'].every((n) => !name.test(n)));
+    assert.ok(['react', '@types/node', 'vendor/pkg', 'org.apache:commons', 'phoenix_html'].every((n) => name.test(n)));
+    assert.ok(
+      [
+        'x; rm -rf /',
+        '--flag',
+        'a b',
+        "a'b",
+        '$(id)',
+        'react@1.0',
+        'https://evil.example/x.tgz',
+        'a/../b',
+        'vendor//pkg'
+      ].every((n) => !name.test(n))
+    );
     assert.ok(['1.2.3', '2.0.0-rc.1', '1.0.0+build'].every((v) => version.test(v)));
     assert.ok(['-1', '1;ls', '1 2'].every((v) => !version.test(v)));
   });

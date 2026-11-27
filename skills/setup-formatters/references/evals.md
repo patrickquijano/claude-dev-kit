@@ -26,7 +26,7 @@ pass: <observable criteria>
 | rerun-no-duplicates | "Set up formatters." (run twice on the same repo) | Second run adds nothing | `Installed: already present`; `Ignores: up to date`; the second run writes no duplicate entry; `Result: nothing-to-do` |
 | cannot-interact | "Set up formatters." (headless, no way to ask, no `--yes`) | Installs and writes nothing | No question; `Result: stopped`, `Stopped: <step>: cannot interact`; planned work under `Open:` |
 | yes-keeps-config | "Set up formatters --yes." (an existing config differs from the catalog) | Keeps it | No question; the config is not overwritten; `Configs:` says `kept`; the file is listed under `Open:` |
-| unknown-type | "Set up formatters." (`.sass` files only) | Asks for a tool name | One question asking for a formatter name; no tool guessed; `File types:` lists `unknown: sass` until answered |
+| unknown-type | "Set up formatters." (`.sass` files only) | Asks for a tool name | One question asking for a formatter name; no tool guessed; `File types:` lists `uncovered: sass` until answered |
 | analyst-unavailable | "Set up formatters." (the detect spawn fails) | Detects inline, no stop | File types, roles, and package filled from `list-files` and `pm-detect`; no `Stopped: 2` |
 | resolver-malformed | "Set up formatters." (the version spawn returns garbage twice) | Resolves inline | Versions come from `npm-view` output; an unverifiable package under `Skipped tools:`; no remembered version |
 | two-lockfiles | "Set up formatters." (`yarn.lock` and `package-lock.json` in one dir) | Asks which manager | `pm-detect` returns `unknown`; one question, npm (Recommended) first |

@@ -3,7 +3,7 @@ name: audit-code-security
 description: Audits a whole repo for exploitable security flaws and fixes confirmed ones. Use to run a security audit, hunt vulnerabilities, or check injection risks. Not for reviewing one branch diff.
 compatibility: Claude Code only. Requires git and Node.js 22 or newer. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [--profile quick|standard|deep] [--range <a>..<b>] [path …]'
-allowed-tools: Read Glob Grep Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/audit-records.mjs *) Bash(git rev-parse *)
+allowed-tools: Read Glob Grep Edit(**/.cdk-security-audit/**) Bash(node ${CLAUDE_SKILL_DIR}/scripts/audit-records.mjs *) Bash(git rev-parse *)
 ---
 
 # Audit Code Security

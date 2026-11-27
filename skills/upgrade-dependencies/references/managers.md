@@ -27,7 +27,7 @@ Format: manager — detect files — list outdated (read-only) — upgrade one p
 
 ## Safe names
 
-A package, crate, gem, module, or artifact name must match `^[A-Za-z0-9@][A-Za-z0-9._/@:+~!-]*$` and hold no `..` segment; a version must match `^[0-9A-Za-z][0-9A-Za-z._+~-]*$`. Test them before the first command row or URL that holds them, and put each accepted value in single quotes. A name that fails is never passed to a shell, so a leading `-`, a space, a quote, `;`, `|`, `&`, `$`, a backtick, or a newline can never become a flag or a second command.
+A package, crate, gem, module, or artifact name must match `^(?!.*(?:\.\.|:\/\/|\/\/))@?[A-Za-z0-9][A-Za-z0-9._/:~-]*$`, so it holds no `..`, `//`, or `://` and an `@` only as its first character; a version must match `^[0-9A-Za-z][0-9A-Za-z._+~-]*$`. Test them before the first command row or URL that holds them, and put each accepted value in single quotes. A name that fails is never passed to a shell, so a leading `-`, a space, a quote, `;`, `|`, `&`, `$`, a backtick, or a newline can never become a flag or a second command.
 
 ## Keep the existing specifier prefix
 

@@ -23,7 +23,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Pin every `image:` to a resolved stable tag per `${CLAUDE_SKILL_DIR}/references/image-resolution.md`; never `latest`, never a recalled tag.
 - Update mode: read every pipeline file first; make a minimal diff; keep includes, variables, job names, and behavior.
 - Questions: at most 3 per batch (AskUserQuestion), each with 2–4 options, percent weights summing to 100, Recommended on the highest, and a justification plus trade-offs for every option; thin evidence → close weights.
-- AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless, such as a subagent) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option. With `--yes`: ask nothing, take recommended options, write, and record assumptions under `Open:`.
+- AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless, such as a subagent) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 
 ## Workflow
 

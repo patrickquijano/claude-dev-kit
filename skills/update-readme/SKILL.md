@@ -112,11 +112,11 @@ README: <path> (created | updated | scored)
 Location: <path>
 Host: <github | gitlab | bitbucket | gitea | generic>
 Template: <type> → <archetype>
-Max lines: <n>
+Max lines: <n> | n/a (score-only)
 Layout: <single | landing+docs | diataxis | per-package>
 Split files: <paths | none>
 Converted: <syntax conversions | none>
-Verify: lines <pass | fail>; links <resolved>/<total>
+Verify: lines <pass | fail>; links <resolved>/<total> | n/a (score-only)
 Score: <n>/100 (pass | below 95) | n/a
 Rounds: <improve rounds>
 Omitted: <items the user chose to omit | none>
@@ -135,7 +135,7 @@ README: README.md (scored)
 Location: README.md
 Host: github
 Template: library → library
-Max lines: n/a
+Max lines: n/a (score-only)
 Layout: single
 Split files: none
 Converted: none

@@ -21,7 +21,8 @@ pass: <observable criteria, one per line>
 | graph-skill-missing | "Set up graphify." (the third-party graph-building skill is unavailable) | Reports the graph as pending | Tells the user to run the third-party skill after a restart; `Graph: pending`; later steps still run |
 | existing-ignore-line | "Set up graphify --yes." (`.gitignore` already has a `graphify-out/` line) | Keeps the line; graph stays local | The `graphify-out/` line is not deleted or edited; `Git ignore: kept local only`; the line is listed under `Open:` with the fix; no question asked |
 | rules-differ | "Set up graphify." (the rules file exists and differs) | Keeps the user's file | File untouched; `Rules: ... kept (differs)` |
-| not-a-repo | "Set up graphify here." (not a git repository) | Skips the git steps | Works from the current directory; `Git hooks: skipped (not a git repo)`; no `.gitignore` write, but an existing `.prettierignore` still gets `graphify-out/` |
+| not-a-repo | "Set up graphify here." (not a git repository) | Skips the git steps | Works from the current directory; `Git hooks: skipped (not a git repo)`; no `.gitignore` is created (an existing one still gets the block), and an existing `.prettierignore` still gets `graphify-out/` |
+| headless-no-ask | "Set up graphify." (run headless, no one to reply, no `--yes`) | Runs end to end: the skill asks nothing itself, so the no-ask stop never applies | No `Stopped: <step>: cannot interact`; the plan is printed and applied with no wait; the third-party graphify skill's folder prompt in step 5 is not this skill's ask and does not stop the run |
 | no-approval-step | "Set up graphify in this repo." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 
 ## Running per model

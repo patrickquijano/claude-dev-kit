@@ -38,11 +38,14 @@ describe('skill policy', () => {
       });
     }
 
-    test(`${name} allowed-tools has no entry that starts its argument with a wildcard`, () => {
+    test(`${name} allowed-tools has no leading-wildcard entry except a scoped Edit(**/<name-or-glob>) or Edit(//...)`, () => {
       // Arrange
       const entries = tools.match(/(?:^|\s)[A-Za-z_]+\(\*[^)\s]*\)?/g) ?? [];
+      const scopedEdit = /^Edit\(\*\*\/(?!\*\*|\*?\)|\/)[^)]+\)$/;
       // Act
-      const leading = entries.map((entry) => entry.trim()).filter((entry) => /^[A-Za-z_]+\(\*/.test(entry));
+      const leading = entries
+        .map((entry) => entry.trim())
+        .filter((entry) => /^[A-Za-z_]+\(\*/.test(entry) && !scopedEdit.test(entry));
       // Assert
       assert.deepEqual(leading, []);
     });
@@ -81,7 +84,9 @@ describe('skill policy', () => {
     'review-github-pull-request',
     'address-github-pull-request-review',
     'create-github-issue',
-    'create-github-release'
+    'create-github-release',
+    'merge-github-pull-request',
+    'open-github-pull-request'
   ]) {
     test(`${skill} grants no gh api and only the gh-get wrapper`, () => {
       // Arrange
@@ -369,14 +374,14 @@ describe('skill policy', () => {
       assert.deepEqual(result, []);
     });
 
-    for (const name of names) {
+    for (const name of checked) {
       test(`${name} carries the cannot-interact stop when it asks`, () => {
         // Arrange
-        const needs = checked.includes(name);
+        const texts = stopFiles(name);
         // Act
-        const stop = stopFiles(name).some((text) => /Stopped: (\d+|<step>): cannot interact/.test(text));
+        const stop = texts.some((text) => /Stopped: (\d+|<step>): cannot interact/.test(text));
         // Assert
-        assert.ok(!needs || stop);
+        assert.equal(stop, true);
       });
     }
 

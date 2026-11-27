@@ -2,7 +2,7 @@
 name: update-changelog
 description: Creates or updates CHANGELOG.md release notes per Keep a Changelog from commits and local changes, or cuts a dated `release`. Use when asked to update the changelog. Not for README.md or other docs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-argument-hint: '[--yes] [release <version> [YYYY-MM-DD]] [base <branch>]'
+argument-hint: '[--yes] [release [<version> [YYYY-MM-DD]]] [base <branch>]'
 allowed-tools: Bash(git rev-parse *) Bash(git status *) Bash(git remote get-url *) Bash(git fetch --prune origin) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git merge-base *) Bash(git log *) Bash(git diff *) Bash(git tag --list *) Bash(git show *) Bash(date +%F) Bash(node ${CLAUDE_SKILL_DIR}/scripts/release-candidates.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-changelog.mjs *) Bash(gh pr list *) Bash(glab mr list *) mcp__plugin_github_github__list_pull_requests mcp__plugin_gitlab_gitlab__list_merge_requests
 ---
 
@@ -33,7 +33,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop. Read `format.md`. Input `release <version> [date]` → release mode; `base <branch>` → base override; anything else → ask (`--yes`: `Result: stopped`, `Stopped: 1: unrecognized input`; headless: write nothing, `Result: stopped`, `Stopped: 1: cannot interact`). Find `CHANGELOG.md` at root, case-insensitive (absent → create from the template). Existing file without `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop; `--yes` → `Stopped: 1: changelog not Keep a Changelog shaped`. Then run `fetch` (`flow.md` `## Base`).
+1. **Pre-flight.** Root = Context → Repo root; `<none>` → stop. Read `format.md`. Input `release [<version> [date]]` → release mode; `base <branch>` → base override; anything else → ask (`--yes`: `Result: stopped`, `Stopped: 1: unrecognized input`; headless: write nothing, `Result: stopped`, `Stopped: 1: cannot interact`). Find `CHANGELOG.md` at root, case-insensitive (absent → create from the template). Existing file without `[Unreleased]`, or not Keep a Changelog shaped → AskUserQuestion: Restructure, keeping all existing content (Recommended) | Stop; `--yes` → `Stopped: 1: changelog not Keep a Changelog shaped`. Then run `fetch` (`flow.md` `## Base`).
 2. **Base.** Run `merge-base` (`fetch` ran in step 1) and read `base-changelog`, per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Base`. Format drift in released sections → ask per `flow.md` `## Format drift`.
 3. **Collect.** Run `commits`, `committed-names`, `committed-stat`, `status`, `staged-names`, `unstaged-names`; read untracked text files. Read diffs only for candidate user-facing paths (skip generated, lock, binary). Nothing changed, not release mode, and no format drift → `Result: nothing-to-do`; a release run still cuts the Unreleased section.
 4. **Classify.** Map each change to Added, Changed, Deprecated, Removed, Fixed, Security, or an exclusion with its reason; one entry per user-visible effect; mark breaking changes.

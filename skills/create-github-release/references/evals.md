@@ -25,6 +25,8 @@ pass: <observable criteria>
 | no-commits-offers-stop | "Cut a release." (no commits since the latest release) | Says so and includes Stop | A `Stop` option is listed; no write |
 | gh-flag-missing-fallback | "Cut a release." (`gh release edit --help` lacks `--notes-file`) | Uses the `gh api` PATCH | `Tool: gh api`; body sent with `-F body=@<file>`, never inline |
 | unattended-stops | "Cut a release." (run with no one to ask) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; nothing written or created |
+| bad-markers | "Update release v0.6.0." (the body has a changelog start marker without an end marker) | Stops before any edit | `Result: stopped`; `Stopped: 9: bad-markers`; `Next: fix the markers in the release body`; no `edit` call |
+| print-before-create | "Create release v0.6.0." (section `## [0.6.0]` exists, no release yet) | Prints before it writes | The `create` command, the title, the state, and the notes are printed before `create` runs |
 | auto-invoke | "Can you publish a GitHub release for the new version?" (no `/cdk:` command) | Claude loads the skill on its own | The skill runs; the release is created or updated after the decision questions |
 | no-approval-step | "Cut a release." | Runs end to end; every write follows the last decision answer directly | Only the tag and draft-or-published questions are asked; `create` runs right after them with no confirm question; `Result: done` |
 

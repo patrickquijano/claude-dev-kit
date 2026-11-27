@@ -7,6 +7,7 @@
 ## Scaffold
 
 - `scratch`, `create` into it (no scripts run, so no `.env` or app key is written), then move files into the repo root; a `.env` that appears in the scratch dir anyway is never moved and is listed under `Open:`.
+- No app key is set, so list under `Open:` that the user runs `php artisan key:generate`, which writes `.env`; this skill never writes `.env` because it holds secrets.
 - API-only per research (`artisan` `install:api`). Removing the frontend is a plan entry only (L4).
 - Accept: `composer.json` requires the resolved framework version; `routes/api.php` exists.
 

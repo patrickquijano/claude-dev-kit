@@ -40,7 +40,7 @@ Skip questions the input or an existing compose file already answers. Question c
 
 Update mode asks the backing-service and per-service deploy groups only when the input asks for them.
 
-`--yes` takes each Recommended answer and lists it under `Open:`; otherwise write only stated values and list each unanswered choice under `Open:`. Under `--yes` the Recommended answer for backing services is `None`; for published ports and secrets it is the least exposed one (no published data-store port, secrets over env vars).
+`--yes` takes each Recommended answer and lists it under `Open:`; interactive without `--yes` writes only stated values and lists each unanswered choice under `Open:` (headless without `--yes` writes nothing, per the no-ask rule). Under `--yes` the Recommended answer for backing services is `None`; for published ports and secrets it is the least exposed one (no published data-store port, secrets over env vars).
 
 ## Draft
 

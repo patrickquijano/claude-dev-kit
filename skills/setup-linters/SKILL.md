@@ -69,7 +69,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Output
 
 ```text
-File types: <type (count)>, … | unknown: <types>
+File types: <type (count)>, … | uncovered: <types>
 Package manager: <pm> (<packageManager | lockfile | default | chosen>), package dir <pkg> | n/a
 Formatter: <tool> (<only one | chosen>) | none
 Linters: <type>: <linter>[, <linter>] (<kept | chosen | only option>), …

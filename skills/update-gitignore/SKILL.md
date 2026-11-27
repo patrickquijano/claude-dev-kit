@@ -19,7 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask what the input and repo cannot answer (`--yes`: record it instead). AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (step 2 or 4, whichever asks). Only `--yes` takes the Recommended option.
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Skipped:` (the unattended rules below apply). Only a flag the user passed counts; never add one.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Skipped:` (the `--yes` rules below apply). Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Evidence only: every candidate cites a file on disk, a manifest, or a tool config that produces it; never add a path from the stack name alone.
 - Never read the contents of `.env*`, key, or credential files; their names are enough.
@@ -28,7 +28,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - `check-ignore` paths are repo-relative to the root (no leading `/`, no absolute path), run from the root.
 - Write only the root `.gitignore`, after the step 4 choice; `--yes` writes only `high`-confidence candidates.
 - Caps: the analyst reads at most 40 files and is re-spawned at most once; one choose round.
-- Decision questions: at most 4 per call, the Recommended first, a Stop option on every call (Stop → `Result: cancelled`). Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
+- Decision questions: at most 4 per call, the Recommended first, a Stop option on every call (Stop → `Result: cancelled`). Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → the first Rules bullet). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 
 ## Workflow
 
