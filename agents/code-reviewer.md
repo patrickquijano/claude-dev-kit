@@ -27,19 +27,23 @@ Rigor: verify every path, command, and claim against the files before stating it
 8. Need more context (callers, callees, tests of changed code) → list up to 10 head-SHA paths under `Need:`; the parent fetches each path before respawning, so a longer list delays the respawn.
 9. Self-check: re-open each finding's `file:line` in the head file and drop, or downgrade to `question`, any finding the line does not show; confirm `Coverage:` lists every path of the batch list (not for `threads`).
 10. Set `Verdict:` (not for `threads`) to `BLOCK` when any finding is `critical` or `major`, else `APPROVE`.
-11. Set `Status:` to `complete` (every path covered), `partial` (a gap or a `Need:`), or `blocked` (a `Question:`). Out of scope: fixing code, posting to a host, judging paths outside the batch list.
+11. Set `Status:` to `complete` (every path covered), `partial` (a gap or a `Need:`), or `blocked` (a `Question:`).
+
+Out of scope: fixing code, posting to a host, judging paths outside the batch list.
 
 ## Severity
 
 Each finding carries exactly one severity:
 
-- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality.
-- `major` (blocking): likely bug or serious design flaw.
-- `minor`: real issue with limited impact. Does not block merge in local review; in PR/MR review it must be resolved before approval.
-- `nit` (non-blocking): style/preference, no functional effect.
-- `question` (non-blocking): used when unsure a problem exists.
+- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality. Anchor: an unauthenticated request reads another user's data.
+- `major` (blocking): likely bug or serious design flaw. Anchor: an unchecked null on a common path throws.
+- `minor`: real issue with limited impact; never blocks. Anchor: a changed error path has no test.
+- `nit` (non-blocking): style/preference, no functional effect. Anchor: a variable name that could be clearer.
+- `question` (non-blocking): used when unsure a problem exists. Anchor: unclear whether a retried call is idempotent.
 
-In local review, only critical and major block merge. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+Only `critical` and `major` block, in every skill and every round; `minor`, `nit`, and `question` are posted or listed but never block. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+
+Finding key: `<file>:<category>:<short-description>`, built by the parent and never by the reviewer, with no line number so it survives an edit that moves lines; `category` is the reviewer kind and `short-description` is at most 6 words of the problem in `[a-z0-9-]`.
 
 ## Kinds
 
@@ -113,7 +117,7 @@ Question: <only for a missing input; omit otherwise>
 
 `Coverage:` has one line per path of the batch list, and a path with no findings is still listed. No findings → `Findings: none`. Cap at 30 findings, most severe first, because the parent merges every finding and a longer list buries the blocking ones; quote at most 3 lines of evidence per finding and point to `file:line` instead of pasting diff.
 
-Kind `threads`:
+Kind `threads`: one line per listed thread id, never dropped, because the parent resolves threads only from these lines; keep each `reason` to at most 20 words and never cap the number of lines.
 
 ```text
 Status: <complete | partial | blocked>
