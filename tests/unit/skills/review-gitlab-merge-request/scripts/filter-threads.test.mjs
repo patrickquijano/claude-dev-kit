@@ -170,14 +170,23 @@ describe('classifyThreads', () => {
 
   test('carries the severity and whether the author spoke last', () => {
     // Arrange
-    const nodes = [thread({ last: 'dev', body: `[minor] x\n\n${MARKER}` })];
+    const nodes = [thread({ last: 'dev', body: `[major] x\n\n${MARKER}` })];
     // Act
     const res = classifyThreads({ nodes, ...base });
     // Assert
     assert.deepEqual(
       res.judged.map((t) => [t.severity, t.authorLast]),
-      [['minor', true]]
+      [['major', true]]
     );
+  });
+
+  test('lists an own minor discussion as non-gating', () => {
+    // Arrange
+    const nodes = [thread({ id: 'm', last: 'dev', body: `[minor] x\n\n${MARKER}` })];
+    // Act
+    const res = classifyThreads({ nodes, ...base });
+    // Assert
+    assert.deepEqual([res.nongating, res.judged], [['m'], []]);
   });
 
   test('ignores threads that are not own or lack a valid severity prefix', () => {

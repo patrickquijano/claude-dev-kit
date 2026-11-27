@@ -24,7 +24,7 @@ const AUTHOR = /^[A-Za-z0-9_][A-Za-z0-9._-]{0,254}$/;
 const same = (a, b) => Boolean(a) && Boolean(b) && String(a).toLowerCase() === String(b).toLowerCase();
 const list = (v) => (Array.isArray(v) ? v : (v?.nodes ?? []));
 
-const GATING = new Set(['critical', 'major', 'minor']);
+const GATING = new Set(['critical', 'major']);
 const SEVERITY = /^\s*\[(critical|major|minor|nit|question)\]/;
 
 // The severity a note body starts with, or null when it has no valid prefix.

@@ -20,7 +20,7 @@ Right after the head check: `thread-resolve` for each own gating discussion judg
 
 ## Summary note
 
-Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating discussions with URLs, summary-level findings, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution, and no line starting with `/`. When the verdict is `REQUEST_CHANGES`, it states that changes are requested through the unresolved discussions, because GitLab has no request-changes review. When the verdict is `APPROVE` and the author is Self, it states that approval is not possible.
+Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating discussions with URLs, summary-level findings, the re-review `Dropped:` items, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution, and no line starting with `/`. When the verdict is `REQUEST_CHANGES`, it states that changes are requested through the unresolved discussions, because GitLab has no request-changes review. When the verdict is `APPROVE` and the author is Self, it states that approval is not possible.
 
 - First review: `summary-post` once, after the new discussions are posted (see below).
 - Re-review: `summary-update` on the own summary note's id (counts, verdict, last reviewed SHA). Never `summary-post`. No `glab`, or an update that fails → `Result: stopped`, `Stopped: post: cannot edit summary` with the exact error; post nothing further.
@@ -30,7 +30,7 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 The state is the discussions plus the approval:
 
 1. Run `approvals`. `REQUEST_CHANGES` with an own approval present → `unapprove`. `COMMENT` (a hold) with an own approval present → `unapprove` too; with none, no approval write. The revoke runs before any other write, so a later stop never leaves a stale approval on an MR with new gating discussions.
-2. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical`, `major`, and `minor` findings plus at most 5 inline `nit` or `question` findings (highest risk first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical` and `major` discussions; `APPROVE` carries no gating findings, only the non-gating `nit` and `question` discussions.
+2. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical` and `major` discussions; `APPROVE` carries no gating findings, only the non-gating `minor`, `nit`, and `question` discussions of a first review.
 3. Post or edit the summary (above), then run `head-sha` once more; a head that differs from the posted SHA is reported under `Errors:`.
 4. Last, `APPROVE` → `approve` with the full head SHA (a refusal follows `## Own MR`), then verify the approval through `approvals`; a missing approval is reported under `Errors:`.
 

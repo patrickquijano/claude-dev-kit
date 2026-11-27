@@ -1,6 +1,6 @@
 ---
 name: review-gitlab-merge-request
-description: 'Reviews one GitLab MR in full: resolves its own addressed threads, then posts severity-labeled threads and approves when none is left unresolved. Use when asked to review a GitLab MR. Not for addressing MR feedback or GitHub PRs.'
+description: 'Reviews one GitLab MR: resolves its own addressed threads, posts severity-labeled threads, and approves when none is unresolved. Use when asked to review a GitLab MR. Not for addressing MR feedback or GitHub PRs.'
 when_to_use: Use when asked to review, re-review, or approve a GitLab MR by URL, IID, or the current branch.
 compatibility: Claude Code only. Requires node and git; glab for commands with no MCP tool (compare-diff, approvals, summary-update) and as the fallback when the MCP host check fails. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [mr-url | iid]'
@@ -22,13 +22,15 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 Each finding carries exactly one severity:
 
-- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality.
-- `major` (blocking): likely bug or serious design flaw.
-- `minor`: real issue with limited impact. Does not block merge in local review; in PR/MR review it must be resolved before approval.
-- `nit` (non-blocking): style/preference, no functional effect.
-- `question` (non-blocking): used when unsure a problem exists.
+- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality. Anchor: an unauthenticated request reads another user's data.
+- `major` (blocking): likely bug or serious design flaw. Anchor: an unchecked null on a common path throws.
+- `minor`: real issue with limited impact; never blocks. Anchor: a changed error path has no test.
+- `nit` (non-blocking): style/preference, no functional effect. Anchor: a variable name that could be clearer.
+- `question` (non-blocking): used when unsure a problem exists. Anchor: unclear whether a retried call is idempotent.
 
-In local review, only critical and major block merge. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+Only `critical` and `major` block, in every skill and every round; `minor`, `nit`, and `question` are posted or listed but never block. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+
+Finding key: `<file>:<category>:<short-description>`, built by the parent and never by the reviewer, with no line number so it survives an edit that moves lines; `category` is the reviewer kind and `short-description` is at most 6 words of the problem in `[a-z0-9-]`.
 
 Marker (review and address skills only): `<!-- cdk-review -->`
 
@@ -40,7 +42,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Never check out, build, run, push, merge, edit the MR, or modify repo files; the only local writes are scratch files.
 - Comment format: every posted comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label and no line starting with `/` (GitLab reads it as a quick action), then a blank line and the marker. The summary note carries the marker too.
 - Own = authored by Self AND carrying the marker; both are required. Never reply to, edit, resolve, or approve based on a discussion or note that is not own; ignore other reviewers' discussions entirely.
-- Gating discussions are the own `[critical]`, `[major]`, and `[minor]` discussions, cleared only when resolved. `[nit]` and `[question]` discussions never gate; this skill neither requires nor resolves them.
+- Gating discussions are the own `[critical]` and `[major]` discussions, cleared only when resolved. `[minor]`, `[nit]`, and `[question]` discussions never gate (an own `[minor]` discussion from an earlier run is non-gating too); this skill neither requires nor resolves them.
 - The only GitLab writes, all in step 8: resolves of own discussions, one summary note (created once, then edited in place), the inline comments of a first review or of new `critical` and `major` findings, and the approval or its removal. GitLab's MCP has no request-changes method, so changes requested are expressed by the unresolved discussions plus the summary note alone. A missing MR, authentication, or permission (403, 404) → stop with the exact error and the fix from `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - Cannot resolve an own discussion or edit the summary (editing needs the `glab` fallback; MCP alone cannot) → stop and tell the user; never work around it by posting another note or summary.
 - One pass per invocation: never poll, re-trigger this skill, or invoke the address skills.
@@ -61,7 +63,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 2. **Resolve** (per `${CLAUDE_SKILL_DIR}/references/resolve.md`):
    - 2a. Match a URL, IID, or the branch's open MR; no match → `Result: nothing-to-do`.
    - 2b. Closed, merged, or locked stops; draft blocks `APPROVE`.
-   - 2c. Pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review, or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
+   - 2c. Pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review (also the first run after an approval, which reviews only the changes since the approved SHA), or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
 3. **Threads** (per `${CLAUDE_SKILL_DIR}/references/threads.md`):
    - 3a. Digest the own open discussions (Self + marker; all others ignored) and judge each as fixed, accepted, obsolete, or still open.
    - 3b. Run the script.
