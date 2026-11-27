@@ -121,6 +121,64 @@ describe('main', () => {
     );
   });
 
+  test('exits 2 on a relative or ..-segment --file path without reading it', () => {
+    // Arrange
+    const reads = [];
+    const read = (argv) => {
+      const out = { logs: [], errors: [] };
+      const code = main(argv, {
+        readFile: (p) => reads.push(p),
+        log: (t) => out.logs.push(t),
+        error: (t) => out.errors.push(t)
+      });
+      return { code, ...out };
+    };
+    // Act
+    const results = [read(['--file', 'draft.txt']), read(['--file', '/s/../etc/passwd'])];
+    // Assert
+    assert.deepEqual(
+      results.map((r) => r.code),
+      [2, 2]
+    );
+    assert.deepEqual(reads, []);
+    assert.deepEqual(
+      results.map((r) => r.errors.length),
+      [1, 1]
+    );
+  });
+
+  test('exits 2 on a --file path with a space without reading it', () => {
+    // Arrange
+    const reads = [];
+    const out = { logs: [], errors: [] };
+    // Act
+    const code = main(['--file', '/s/a b.txt'], {
+      readFile: (p) => reads.push(p),
+      log: (t) => out.logs.push(t),
+      error: (t) => out.errors.push(t)
+    });
+    // Assert
+    assert.equal(code, 2);
+    assert.deepEqual(reads, []);
+    assert.equal(out.errors.length, 1);
+  });
+
+  test('exits 2 on a --file path with shell metacharacters without reading it', () => {
+    // Arrange
+    const reads = [];
+    const out = { logs: [], errors: [] };
+    // Act
+    const code = main(['--file', '/s/$(id).txt'], {
+      readFile: (p) => reads.push(p),
+      log: (t) => out.logs.push(t),
+      error: (t) => out.errors.push(t)
+    });
+    // Assert
+    assert.equal(code, 2);
+    assert.deepEqual(reads, []);
+    assert.equal(out.errors.length, 1);
+  });
+
   test('exits 2 on a missing limit value', () => {
     // Arrange
     const argv = ['--limit'];

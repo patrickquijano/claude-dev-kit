@@ -20,6 +20,13 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const DEFAULT_LIMIT = 250;
+const PATH_OK = /^[A-Za-z0-9._/-]+$/;
+
+// True for an absolute path of safe characters with no `..` segment.
+// No project containment on purpose: the session scratchpad that holds the draft is outside the project.
+function isSafePath(path) {
+  return path.startsWith('/') && PATH_OK.test(path) && !path.split('/').includes('..');
+}
 
 // Counts whitespace-separated words, skipping lines that only open or close a code fence.
 export function countWords(text) {
@@ -46,7 +53,7 @@ export function main(argv, deps = {}) {
   const limit = i < 0 ? DEFAULT_LIMIT : Number(argv[i + 1]);
   const f = argv.indexOf('--file');
   const file = f < 0 ? null : argv[f + 1];
-  if (!Number.isInteger(limit) || limit < 1 || (f >= 0 && (!file || file.startsWith('-')))) {
+  if (!Number.isInteger(limit) || limit < 1 || (f >= 0 && (!file || !isSafePath(file)))) {
     d.error('usage: word-count.mjs [--limit <positive integer>] [--file <path>] [< prompt.txt]');
     return 2;
   }
