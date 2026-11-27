@@ -26,7 +26,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Tooling.** Run `gh-version`, `auth`, `help-create`, `help-edit` from `${CLAUDE_SKILL_DIR}/references/commands.md` and confirm each needed flag exists. A missing `gh` or flag → that operation goes through the fallback; neither works → `Stopped: 1: no gh and no gh api`, saying how to install `gh` and run `gh auth login`.
 2. **Target.** A release URL → owner, repo, tag. A numeric ID → `release-view` through the fallback `Get by ID`. A tag or no input → owner and repo from `origin` (none or several remotes → ask). A release for the tag exists → update path, else create path.
-3. **Context.** Run `tags`, `releases`, `repo-view` (`viewerPermission` below `WRITE` → stop and name what is missing), `compare` (from the latest release tag to `<default>`), `prs`, `changelog-file` at `<default>` then `versions`, `workflows`, `immutable`, and the asset count from `release-view`. No `CHANGELOG.md` → `Stopped: 3: no CHANGELOG.md`. Write `tag-input.json` and run `tag-plan`.
+3. **Context.** Run `tags`, `releases`, `repo-view` (`viewerPermission` below `WRITE` → `Stopped: 3: viewerPermission <permission> below WRITE`), `compare` (from the latest release tag to `<default>`), `prs`, `changelog-file` at `<default>` then `versions`, `workflows`, `immutable`, and the asset count from `release-view`. No `CHANGELOG.md` → `Stopped: 3: no CHANGELOG.md`. Write `tag-input.json` and run `tag-plan`.
 4. **Tag** (create path; skipped for a user-supplied existing tag). Read `${CLAUDE_SKILL_DIR}/references/weighting.md`. No commits since the latest release → say so and include a `Stop` option. Ask 2–4 candidates with weights, each with its evidence (including whether a `## [x.y.z]` section exists) and trade-off. A chosen tag that already has a release → update path.
 5. **Notes.** The title is the tag. Fetch `CHANGELOG.md` at the tag (existing) or `<default>` (new), run `notes-section` for the version, and write `notes` to the scratch notes file. No section → `Result: stopped`, `Stopped: 5: no CHANGELOG.md section for <version>`, `Next: add the section`.
 6. **State.** Ask published or draft with weights per `weighting.md` (tag exists, immutable, assets pending, pre-release suffix, workflow triggers, notes need review). Update path: add `Keep current`.
@@ -59,7 +59,7 @@ Tool: gh | gh api
 Notes: <final body>
 Open: <item: reason> | none
 Next: <follow-up in plain words> | none
-Result: done | nothing-to-do | stopped
+Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
