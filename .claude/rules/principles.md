@@ -19,4 +19,6 @@
 - Workflow: state assumptions and ask when the request is unclear; show the possible readings; name a simpler way and push back; plan multi-step work with a check per step via `npm test` or `claude plugin validate --strict .`.
 - Maintainability: tidy only lines the change already edits; record larger cleanups as tech debt in an issue instead of fixing them in the same change.
 - Add a pattern only for a problem the code shows now, named in the change; avoid overengineering, forced patterns, indirection, hidden dependencies, duplicated rules, premature optimization, and unneeded dependencies (check Node stdlib and installed deps first).
+- Delegation: spawn a subagent per step or task when feasible; spawn several in parallel when the tasks are independent.
+- Checks: run the cheapest effective scope first (a single-suite command), and the full set once at the end.
 - Verify: review the diff against this file before commit; then the Definition of done in `.claude/CLAUDE.md`.
