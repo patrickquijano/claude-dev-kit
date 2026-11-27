@@ -108,13 +108,17 @@ const inside = (root, target) => {
 
 const SKIP_DIRS = new Set(['.git', 'node_modules']);
 
-// Tracked files of a git work tree; `null` when `root` is not inside one (git exits 128), any other failure rethrows.
+// Tracked files of a git work tree; `null` when `root` is not inside one (git exits 128 with "not a git repository"), any other failure rethrows.
 export function gitTracked(root, run = execFileSync) {
   try {
-    const out = run('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', timeout: 30000 });
+    const out = run('git', ['-C', root, 'ls-files', '-z'], {
+      encoding: 'utf8',
+      timeout: 30000,
+      env: { ...process.env, LC_ALL: 'C' }
+    });
     return out.split('\0').filter(Boolean);
   } catch (err) {
-    if (err?.status === 128) return null;
+    if (err?.status === 128 && String(err.stderr ?? '').includes('not a git repository')) return null;
     throw err;
   }
 }

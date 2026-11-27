@@ -344,15 +344,45 @@ describe('gitTracked', () => {
     assert.deepEqual(calls, [['git', '-C', ROOT, 'ls-files', '-z']]);
   });
 
+  test('runs git with the C locale so the not-a-repository message stays English', () => {
+    // Arrange
+    const options = [];
+    const run = (cmd, args, opts) => {
+      options.push(opts);
+      return '';
+    };
+    // Act
+    gitTracked(ROOT, run);
+    // Assert
+    assert.equal(options[0].env.LC_ALL, 'C');
+  });
+
   test('returns null when git reports that the root is not a repository', () => {
     // Arrange
     const run = () => {
-      throw Object.assign(new Error('fatal: not a git repository'), { status: 128 });
+      throw Object.assign(new Error('Command failed: git'), {
+        status: 128,
+        stderr: 'fatal: not a git repository'
+      });
     };
     // Act
     const result = gitTracked(ROOT, run);
     // Assert
     assert.equal(result, null);
+  });
+
+  test('rethrows a 128 exit that is not a missing repository', () => {
+    // Arrange
+    const run = () => {
+      throw Object.assign(new Error('Command failed: git'), {
+        status: 128,
+        stderr: 'fatal: bad object'
+      });
+    };
+    // Act
+    const act = () => gitTracked(ROOT, run);
+    // Assert
+    assert.throws(act, /Command failed: git/);
   });
 
   test('rethrows any other failure', () => {
