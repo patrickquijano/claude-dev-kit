@@ -24,13 +24,13 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Tooling.** Find the MCP tools for create, update, read, list, and file contents; none → run `auth`. Neither works → `Stopped: 1: no GitHub MCP and no gh auth`.
+1. **Tooling.** `origin` must be `github.com`; else `Stopped: 1: no GitHub remote`. Find the MCP tools for create, update, read, list, and file contents; none → run `auth`. Neither works → `Stopped: 1: no GitHub MCP and no gh auth`.
 2. **Target.** A URL → owner, repo, number. A number → repo from `origin`. None → create, but an open PR from `pr-for-branch` → update that PR. Closed or merged → stop.
 3. **State** (create only). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
 4. **Diff.** Create: `diff` and `commits` against `<default>`. Update: `pr-diff` and `pr-files`. Empty → `Result: nothing-to-do`.
 5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds).
 6. **Body.** Pick and fill the template per `${CLAUDE_SKILL_DIR}/references/body.md`; update → merge with the existing body.
-7. **Submit.** Print the title, the body, and the action (create or update) first. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report the URL.
+7. **Submit.** Print the title, the body, and the action (create or update) first, without waiting. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report the URL.
 
 ## Files
 

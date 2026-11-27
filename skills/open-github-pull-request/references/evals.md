@@ -21,6 +21,7 @@ pass: <observable criteria>
 | no-template-uses-bundled | "Open a PR." (`feat` branch, no template in repo) | Uses the bundled feature template | `Template: bundled:feature`; every section filled or `N/A` |
 | mcp-down-gh-fallback | "Open a PR." (GitHub MCP not connected, `gh` authed) | Runs the `gh` commands | `Tool: gh`; body passed with `--body-file`, never inline |
 | neither-tool-stops | "Open a PR." (no MCP, no `gh` auth) | Stops before any write | `Result: stopped`; `Stopped: 1` |
+| non-github-remote-stops | "Open a PR." (`origin` is a GitLab or other non-`github.com` remote) | Stops before any write | `Result: stopped`; `Stopped: 1: no GitHub remote`; no push, no PR written |
 | title-too-long-fixed | "Open a PR." (diff whose first title draft is over 72 chars) | Shortens until `check-title` passes | Final title `{"ok":true}`; at most 3 `check-title` runs |
 | unpushed-pushes | "Open a PR." (branch not on the remote) | Pushes the branch, then creates | `Pushed: yes`; no push question |
 | empty-diff | "Open a PR." (branch equals the default branch) | Reports nothing to do | `Result: nothing-to-do`; no write |
