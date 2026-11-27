@@ -1,5 +1,5 @@
 // Read-only GitLab GET for address-gitlab-merge-request-review: checks the host and endpoint against fixed shapes, then runs `glab api --hostname <host> <endpoint>`.
-// CLI: `glab-get.mjs <host> <endpoint>` prints the response body (for /diffs only a JSON array of `new_path`); exit 0 = ok, 1 = glab failed or a bad /diffs body, 2 = bad arguments.
+// CLI: `glab-get.mjs <host> <endpoint>` prints the response body (for /diffs only a JSON array of `new_path`, for the project only `{"default_branch":<name>}`); exit 0 = ok, 1 = glab failed or a bad /diffs or project body, 2 = bad arguments.
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -22,8 +22,9 @@ async function runIfMain(metaUrl, fn, label) {
 
 const HOST = /^[A-Za-z0-9.:-]+$/;
 const DIFFS = /^projects\/[\w.~%-]+\/merge_requests\/\d+\/diffs\?per_page=\d+&page=\d+$/;
+const PROJECT = /^projects\/[\w.~%-]+$/;
 const ENDPOINTS = [
-  /^projects\/[\w.~%-]+$/,
+  PROJECT,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+$/,
   /^projects\/[\w.~%-]+\/merge_requests\/\d+\/discussions\?per_page=\d+&page=\d+$/,
   DIFFS,
@@ -69,6 +70,18 @@ function newPaths(body) {
   return entries.map((e) => e.new_path);
 }
 
+// The `default_branch` of a project body, or null when the body is not a JSON object carrying one.
+function defaultBranch(body) {
+  let project;
+  try {
+    project = JSON.parse(body);
+  } catch (err) {
+    if (err instanceof SyntaxError) return null;
+    throw err;
+  }
+  return typeof project?.default_branch === 'string' && project.default_branch ? project.default_branch : null;
+}
+
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
@@ -88,6 +101,15 @@ export function main(argv, deps = {}) {
       return 1;
     }
     d.write(JSON.stringify(paths));
+    return 0;
+  }
+  if (PROJECT.test(argv[1])) {
+    const branch = defaultBranch(res.stdout);
+    if (!branch) {
+      d.error('project response has no default_branch');
+      return 1;
+    }
+    d.write(JSON.stringify({ default_branch: branch }));
     return 0;
   }
   d.write(res.stdout);

@@ -9,7 +9,6 @@ const OK = [
   'projects/g%2Fp/repository/files/a%2Fb.js/raw?ref=abc123',
   'projects/g%2Fp/merge_requests/5/approvals',
   `projects/g%2Fp/repository/compare?from=${SHA_A}&to=${SHA_B}`,
-  'projects/g%2Fp/merge_requests/5/discussions?per_page=100',
   'projects/g%2Fp/merge_requests/5/discussions?per_page=100&page=2'
 ];
 const BAD = [
@@ -17,6 +16,7 @@ const BAD = [
   'projects/7/merge_requests/5/discussions',
   'projects/7/merge_requests/5/discussions?per_page=100&page=2&x=1',
   'projects/7/merge_requests/5/discussions?page=2',
+  'projects/7/merge_requests/5/discussions?per_page=100',
   'projects/7/merge_requests/5/discussions/abc?per_page=100',
   'projects/7/merge_requests/5/approvals/extra',
   'projects/7/merge_requests/5/approval_state',

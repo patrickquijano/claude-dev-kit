@@ -169,6 +169,39 @@ describe('main', () => {
     assert.deepEqual(out.writes, []);
   });
 
+  test('prints only the default_branch for the project endpoint', () => {
+    // Arrange
+    const body = '{"id":7,"default_branch":"main","description":"secret text"}';
+    const { out, deps } = harness({ status: 0, stdout: body, stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[5]], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.deepEqual(out.writes, ['{"default_branch":"main"}']);
+  });
+
+  test('exits 1 with one error for a project body without a default_branch', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '{"id":7}', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[5]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.equal(out.errors.length, 1);
+    assert.deepEqual(out.writes, []);
+  });
+
+  test('exits 1 without output for a cut-off project body', () => {
+    // Arrange
+    const { out, deps } = harness({ status: 0, stdout: '{"default_branch":"ma', stderr: '' });
+    // Act
+    const code = main(['gitlab.example.com', OK[5]], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.equal(out.errors.length, 1);
+    assert.deepEqual(out.writes, []);
+  });
+
   test('exits 1 with the first stderr line when glab fails', () => {
     // Arrange
     const { out, deps } = harness({ status: 1, stdout: '', stderr: '\n403 Forbidden\nmore' });
