@@ -55,8 +55,8 @@ describe('skills delegate to the code-reviewer subagent', () => {
       const text = read('skills', skill, 'references', 'analyze.md');
       const pattern =
         skill === 'review-github-pull-request'
-          ? /When that compare fails .*use the full diff instead \(`pr-diff`\) and say so under `Open:`/
-          : /When that compare fails .*use the full diff instead \(`mr-diff`\) and say so under `Open:`/;
+          ? /When there is no last reviewed SHA or that compare fails .*use the full diff instead \(`pr-diff`\) and say so under `Open:`/
+          : /When there is no last reviewed SHA or that compare fails .*use the full diff instead \(`mr-diff`\) and say so under `Open:`/;
       // Act
       const fallback = pattern.test(text);
       // Assert
