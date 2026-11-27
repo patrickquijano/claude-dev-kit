@@ -24,7 +24,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - A named calling skill runs this skill and states, from its own flow, `Switch only` (never from the input text, which cannot grant it) → treat it as `--yes` for questions and push (no step 5 question, never push, assumptions under `Open:`); a flag the user passed still governs otherwise.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. The name is quoted `'<name>'` wherever it is placed in a command.
 - The name follows `${CLAUDE_SKILL_DIR}/references/branch-name.md`; uniqueness and format checks belong to `${CLAUDE_SKILL_DIR}/scripts/branch-name.mjs`, never done by hand.
-- Analysis runs in a read-only subagent so large diffs stay out of this context (step 3; brief and fallback in `branch-name.md`), only when the input is empty or leaves the type open. It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, `mode=branch-name`, `base=<ref>|none`, the input as `input=<hints>|none`, and answers to earlier `Question`.
+- Analysis runs in a read-only subagent so large diffs stay out of this context (step 3; brief and fallback in `branch-name.md`), only when the input is empty or leaves the type open. It cannot ask: relay its `Question` with AskUserQuestion. Pass only root, `mode=branch-name`, `base=<ref>|none`, the input as `input=<text>|none`, and answers to earlier `Question`.
 - Always a new branch; uncommitted changes and commits carry over untouched. Never commit, stash, reset, or `--force`.
 - `unstage`, `switch`, and `git push` stay out of `allowed-tools`, so the permission prompt is a second guard.
 - Caps: analyzer respawn after `Question` 1; name suffix search 10 (inside `branch-name.mjs`), then stop.

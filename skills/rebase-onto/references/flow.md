@@ -6,7 +6,7 @@
 
 ## Pre-flight
 
-- Protected branch → stop (`Stopped: 1: protected branch`), since the rebase would rewrite it: the current branch is `main`, `master`, `develop`, `release/*`, or the `default-branch` (unset → only the named ones). Never a question or a bypass, `--yes` included.
+- Protected branch → stop (`Stopped: 1: protected branch`), since the rebase would rewrite it: the current branch is `main`, `master`, `develop`, `release/*`, or the `default-branch`'s local name (the part after `origin/`; unset → only the named ones). Never a question or a bypass, `--yes` included.
 - Detached `HEAD` → stop. `status` shows "rebase in progress" → stop; tell the user to finish it or `rebase-abort`. `dirty-tracked` non-empty → stop; tell the user to commit the changes first.
 - Signing: run `check-signing` with `--root <root>` (Context). Exit 1 → stop and say each error's `fix`. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
 
@@ -23,7 +23,7 @@ No question. Input names a branch → try `origin/<input>` first (listed or `ver
 ## Conflict loop
 
 - Files: `conflicted-files`; commit: `replayed-commit`; ancestor: `merge-base`.
-- Analysis: one read-only subagent per file (`## Conflict analysis`, ≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block.
+- Analysis: one read-only subagent per file (`## Conflict analysis`, ≤4 per message); keep each `Conflict:`, `Hunks:`, and `Recommendation:` block. Hunks beyond the 15 the analyzer listed (`+<n> more hunks`) are resolved by hand with the user.
 - Decision question per file (≤4 per batch), options scored from the analysis; Recommended only on the highest total, none on a close call. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use the structured-question tool (discover its name and limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer). A fact-dependent question gets one web search per topic, official docs preferred, URLs cited; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `grill.md`:
   - Merge both: combine the hunks (analyzer `combined` text or by hand); show the proposed hunk in the question; choosing it writes it and continues to `stage-file`. A Revise option (max 5 rounds) lets the user edit it, then re-asks.
   - Keep target: `keep-target`; discards all your changes to the file from this commit.
@@ -45,7 +45,7 @@ Spawn, per conflicted file, the `cdk:conflict-analyzer` subagent (fallback: a re
 ## Push
 
 - `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
-- Upstream = `origin/<current>` → print the exact `push-lease` command, then run it with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`; see `.claude/rules/git.md` Push).
+- Upstream = `origin/<current>` → print the exact `push-lease` command, then run it with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`).
 - Any other upstream, or none → stop with no push: `Pushed: no`, and `Open:` names the push the user must run.
 - Failure → report the exact error line, stop.
 

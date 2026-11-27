@@ -33,7 +33,7 @@ pass: <observable criteria, one per line>
 | no-approval-step | "Commit my changes." (two edited files under `src/`, signing set) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 | push-not-commit | "Push my branch." (nothing uncommitted) | The skill does not load | No `classify` run; nothing staged; no commit |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; no approval step precedes any write |
-| cannot-interact | "Commit my changes." (a grouping question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; nothing staged or committed |
+| cannot-interact | "Commit my changes." (a grouping question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: 6: cannot interact`; nothing staged or committed |
 
 ## Running per model
 

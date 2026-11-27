@@ -1,7 +1,7 @@
 ---
 name: commit-changes
 description: Groups uncommitted changes into atomic, signed Conventional Commits, moving off a protected branch first. Use when asked to commit. Not for pushing, amending, or opening a PR.
-when_to_use: 'Also for "commit my changes", "split this into commits", or committing only some paths. Not for pushing, amending, or opening a PR.'
+when_to_use: 'Also for "commit my changes", "split this into commits", or committing only some paths.'
 compatibility: Claude Code only, needs git and Node.js on PATH. Uses argument-hint, when_to_use, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [optional grouping hints] [paths: <file> ...]'
 allowed-tools: Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs) Bash(node ${CLAUDE_SKILL_DIR}/scripts/classify-changes.mjs *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(git remote get-url *) Bash(mktemp *) Bash(git add *) Bash(git apply --cached *) Bash(glab api --paginate projects/:id/protected_branches) Bash(gh api repos/{owner}/{repo}/branches/{branch} --jq .protected)
