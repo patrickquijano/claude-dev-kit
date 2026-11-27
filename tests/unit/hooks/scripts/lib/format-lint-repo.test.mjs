@@ -16,7 +16,7 @@ const out = (text = '', status = 0) => ({ status, stdout: Buffer.from(text), std
 // Fake git: `diff` text, untracked files (`ls-files -o`), tracked+untracked files (`ls-files -co`), and `status` (dirty when diff or untracked exist).
 const fakeGit =
   ({ diff = '', untracked = [], all = [], status = 0 } = {}) =>
-  (cwd, args) => {
+  (_cwd, args) => {
     if (args[0] === 'status') return out(diff || untracked.length ? ' M x\0' : '', status);
     if (args[0] === 'diff') return out(diff, status);
     if (args[0] === 'ls-files') return out((args[1] === '-o' ? untracked : all).map((f) => `${f}\0`).join(''), status);
@@ -368,7 +368,7 @@ test('formatLintRepo: stays silent but records state when passing steps change n
   const deps = baseDeps({
     git: fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }),
     available: (step) => step.cmd === 'yamllint',
-    writeFile: (f, d) => writes.push(JSON.parse(d))
+    writeFile: (_f, d) => writes.push(JSON.parse(d))
   });
   // Act
   const result = formatLintRepo({}, deps);
@@ -572,7 +572,7 @@ test('formatLintRepo: still runs the loop on a clean tree with a saved non-empty
   const deps = baseDeps({
     git: recordGit(fakeGit(), calls),
     readFile,
-    writeFile: (f, d) => writes.push(JSON.parse(d))
+    writeFile: (_f, d) => writes.push(JSON.parse(d))
   });
   // Act
   formatLintRepo({}, deps);

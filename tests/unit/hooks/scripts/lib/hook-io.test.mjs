@@ -112,11 +112,16 @@ test('runIfMain: reports a realpath error that is not ENOENT at the boundary and
 
 test('runIfMain: failCode 0 prints a realpath error as a systemMessage and sets no exit code', async () => {
   // Arrange
-  const seen = { out: [], exit: [] };
+  const seen = { out: [], err: [], exit: [] };
   const realpath = () => {
     throw Object.assign(new Error('denied'), { code: 'EACCES' });
   };
-  const io = { realpath, stdout: (t) => seen.out.push(t), setExit: (c) => seen.exit.push(c) };
+  const io = {
+    realpath,
+    stdout: (t) => seen.out.push(t),
+    stderr: (t) => seen.err.push(t),
+    setExit: (c) => seen.exit.push(c)
+  };
   // Act
   await runIfMain(
     pathToFileURL('/tmp/entry.mjs').href,
@@ -127,6 +132,7 @@ test('runIfMain: failCode 0 prints a realpath error as a systemMessage and sets 
   );
   // Assert
   assert.deepEqual(seen.out, ['{"systemMessage":"cdk stop: denied"}\n']);
+  assert.deepEqual(seen.err, []);
   assert.deepEqual(seen.exit, []);
 });
 
