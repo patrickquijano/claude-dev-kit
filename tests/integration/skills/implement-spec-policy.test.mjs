@@ -1197,7 +1197,7 @@ describe('implement-spec policy', () => {
     const spawns = spawnsMd();
     // Act
     const bullet =
-      /^- \*\*Explorer\*\* \(step 2 kind `locate`; step 6b kind `leftovers`\): spawn the `cdk:codebase-explorer` subagent \(fallback: a read-only subagent that locates the affected code with Read, Glob, Grep; run no command\)/m.test(
+      /^- \*\*Explorer\*\* \(step 2 kind `locate`; step 6b kind `leftovers`\): spawn the `cdk:codebase-explorer` subagent \(fallback: inline with Read, Glob, Grep; run no command\)/m.test(
         skill
       );
     const ret =
