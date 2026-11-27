@@ -59,7 +59,7 @@ Type: <type | none>
 Tool: mcp | glab | mcp+glab:<ops on glab>
 Open: <item: reason> | none
 Next: none
-Result: done | nothing-to-do | stopped
+Result: done | stopped
 Stopped: <step>: <reason> | none
 ```
 
