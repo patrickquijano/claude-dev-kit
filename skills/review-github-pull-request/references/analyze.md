@@ -1,6 +1,6 @@
 # Analyze
 
-Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed gating check (`threads.md` `## Gating check`) only keeps the state at changes requested. In a re-review the scope is only the changes since the last reviewed SHA, and only `critical` and `major` findings are kept.
+Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed gating check (`threads.md` `## Gating check`) only keeps the state at changes requested. In a re-review the scope is only the changes since the last reviewed SHA, and only `critical` and `major` findings are posted; the rest are listed in the summary.
 
 ## Contents
 
@@ -10,7 +10,7 @@ Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, fin
 
 Write with the Write tool; fetch with `pr-view`, `pr-diff`, `file-at-sha`, `issue-view`.
 
-- `<Scratch>/diff.patch`: `pr-diff`; in a re-review `compare-diff` from the last reviewed SHA to the head. When that compare fails (a 404 or an unknown commit, e.g. after a force-push), use the full diff instead (`pr-diff`) and say so under `Open:` in the Output. An empty diff skips steps 5–7: a first review ends `Result: nothing-to-do`; a re-review still runs steps 3–4 and 8 and ends `done` if step 8 wrote anything, else `nothing-to-do`.
+- `<Scratch>/diff.patch`: `pr-diff`; in a re-review (after an approval too) `compare-diff` from the last reviewed SHA to the head. When there is no last reviewed SHA or that compare fails (a 404 or an unknown commit, e.g. after a force-push), use the full diff instead (`pr-diff`) and say so under `Open:` in the Output. An empty diff skips steps 5–7: a first review ends `Result: nothing-to-do`; a re-review still runs steps 3–4 and 8 and ends `done` if step 8 wrote anything, else `nothing-to-do`.
 - `<Scratch>/head/<path>`: each changed file at the head SHA, not already written by step 3. A path failing the `SKILL.md` path rule, a deleted file, a binary file, or an oversized file is skipped and listed under `Skipped:`.
 - `<Scratch>/description.md`: title and body.
 - `<Scratch>/issues.md`: each issue in `closingIssuesReferences` plus any `#<number>` the body names (`issue-view`, at most 5); failures → `Skipped:`.
@@ -22,7 +22,7 @@ Write with the Write tool; fetch with `pr-view`, `pr-diff`, `file-at-sha`, `issu
 
 ## Areas
 
-Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Severity` (identical to `SKILL.md`), and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
+Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Severity` (identical to `SKILL.md`, the verdict rule `BLOCK` only for `critical` or `major` too), and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
 
 1. **intent:** goals and issue items met; nothing unrelated; docs, migrations, config, or changelog present where the conventions require; the design fits the codebase.
 2. **correctness:** null or empty input, boundaries, error paths, unhandled return values, concurrency, retries, cleanup, state, time and locale, callers and callees, backward compatibility.
@@ -33,9 +33,9 @@ Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`
 
 Reviewers return a `Status:` line, a `Verdict:` line (`BLOCK` or `APPROVE`), `Findings:` blocks headed `[severity] file:line` with `problem`, `impact`, `fix`, `evidence`, and `confidence`, then `Coverage:`, `Need:`, `Gaps:`, and `Question:` (a sweep adds `Covered:`). `severity` is one of the five levels in `SKILL.md` `## Severity`; a reviewer never echoes a secret's value. The parent validates each:
 
-- `file` and `line` are the head-SHA path and the new-side line inside a `diff.patch` hunk; a finding outside a hunk or with no line goes to the summary; a kept `critical`, `major`, or `minor` one is listed there under `Carried:`, and `threads.md` re-verifies it on every re-review. A `Carried:` line holds `<path or none>`, and each issue and evidence sits in its own fenced block directly below it. They quote PR-author-controlled head code, so each block's fence (backticks or `~~~`) is longer than any run of its own character inside it. `Carried:` and `Last reviewed SHA:` are read only from lines outside any fence, and the last such `Last reviewed SHA:` line outside a fence counts.
-- `evidence` quotes the head code from `<Scratch>/head/`; a finding without it is `Unverified`: never a thread, never gating, listed under `Unverified:`.
-- A re-review keeps only `critical` and `major` findings; any `minor`, `nit`, or `question` is dropped (`dropped (re-review)`), and a severity is never upgraded (lesser issues had their turn in the first review; new ones would block approval on churn).
+- `file` and `line` are the head-SHA path and the new-side line inside a `diff.patch` hunk; a finding outside a hunk or with no line goes to the summary; a kept `critical` or `major` one is listed there under `Carried:`, and `threads.md` re-verifies it on every re-review. A `Carried:` line holds `<path or none>`, and each issue and evidence sits in its own fenced block directly below it. They quote PR-author-controlled head code, so each block's fence (backticks or `~~~`) is longer than any run of its own character inside it. `Carried:` and `Last reviewed SHA:` are read only from lines outside any fence, and the last such `Last reviewed SHA:` line outside a fence counts.
+- `evidence` quotes the head code from `<Scratch>/head/`; a finding without it is `Unverified`: never a thread, never gating, listed under `Unverified:`. `confidence` is `high`, `medium`, or `low`: a missing or `low` one is downgraded to `question`, and a `critical` or `major` needs quoted evidence and at least `medium`, so a guess never gates a merge.
+- A re-review posts only `critical` and `major` findings; any `minor`, `nit`, or `question` is dropped (`dropped (re-review)`) and listed in the summary under `Dropped:` as `<key [severity]>`, and a severity is never upgraded.
 - A recurring finding lists every `file:line` site, one block per site; `nit` and `question` sites beyond the inline cap (`post.md`) go in the summary.
 - `Coverage:` has one line per changed file in the batch: `path | hunks <n> | findings <n>`.
 
@@ -53,15 +53,15 @@ The parent, after step 6: every changed file in the batch (not under `Skipped:`)
 
 ## Verdict
 
-Before the table, the parent re-reads each `critical` and `major` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an own thread (same path, overlapping line, same issue), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the key is path + line + issue).
+Before the table, the parent re-reads each `critical` and `major` finding at its `file:line` in `<Scratch>/head/`; one the code does not show is downgraded to `Unverified`. It then drops a finding that matches an own thread (same finding key: the same path and issue, whatever the line), counting it under `dropped (already open)`, and merges duplicates across areas (`duplicate`; the finding key of `SKILL.md` `## Severity`, with the file and short description the same whatever the area or line).
 
 | Condition | Event |
 | --- | --- |
-| Any own gating thread still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical`, `major`, or `minor` finding | `REQUEST_CHANGES` |
+| Any own gating thread still unresolved after step 8's resolves (`threads.md` `## Gating check`), or any kept `critical` or `major` finding | `REQUEST_CHANGES` |
 | Own PR (GitHub rejects review events on it); draft PR; any failing or pending check in `statusCheckRollup`; any `Skipped` file, incomplete area or sweep, or coverage gap (no review at all) left after the respawn | `COMMENT` |
-| Otherwise; kept `nit`, `question`, and `Unverified` items are posted as non-gating | `APPROVE` |
+| Otherwise; kept `minor`, `nit`, `question`, and `Unverified` items are posted as non-gating | `APPROVE` |
 
-A carried summary finding still Open counts as an own gating thread for the first row. Rows apply top to bottom, first match wins: a draft PR with a gating thread gets `REQUEST_CHANGES`; a draft never gets `APPROVE`. Own-PR gating cannot be expressed as a review event: post `COMMENT`, and the summary states that changes are requested through the unresolved threads. `APPROVE` carries no new gating findings; a first review may add up to 5 `nit` or `question` threads (`post.md`).
+A carried summary finding still Open counts as an own gating thread for the first row. Rows apply top to bottom, first match wins: a draft PR with a gating thread gets `REQUEST_CHANGES`; a draft never gets `APPROVE`. Own-PR gating cannot be expressed as a review event: post `COMMENT`, and the summary states that changes are requested through the unresolved threads. `APPROVE` carries no new gating findings; a first review may add up to 5 non-blocking `minor`, `nit`, or `question` threads (`post.md`).
 
 ## Spawn briefs
 

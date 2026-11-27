@@ -34,13 +34,17 @@ pass: <observable criteria>
 | foreign-thread-ignored | "Review PR 9." (an open thread by another reviewer, or by Self without the marker) | Ignores it entirely | Not judged, replied to, or resolved; counted under `ignored` |
 | closed-pr | "Review PR 9." (merged) | Stops | `Result: stopped`; `Stopped: resolve: PR is MERGED` |
 | odd-path | "Review PR 9." (a changed file named `-x;rm`) | Skips the file | Listed under `Skipped:`; never in a shell argument |
-| unjudged-gating | "Review PR 9." (own `[minor]` thread, no change since) | Keeps changes requested | `Verdict: REQUEST_CHANGES`; thread untouched |
+| unjudged-gating | "Review PR 9." (own `[major]` thread, no change since) | Keeps changes requested | `Verdict: REQUEST_CHANGES`; thread untouched |
 | no-approval-step | "Review PR 9." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly |
 | reviewer-agent-kind | "Review PR 9." (any diff) | Spawns the dedicated reviewer once per area | Four `cdk:code-reviewer` spawns, one per area kind; no other subagent type |
 | re-review-resolves | "Review PR 9." (re-review; an own `[major]` thread now fixed at the head) | Resolves it with no reply, edits the summary in place | `thread-resolve` ran; `summary-update` ran; no `summary-post`; approves when no gating thread is left |
-| re-review-new-findings | "Review PR 9." (re-review; the delta has one minor and one critical issue) | Adds only the critical thread | Only the `[critical]` thread is posted; the minor is dropped as `re-review` |
+| re-review-new-findings | "Review PR 9." (re-review; the delta has one minor and one critical issue) | Adds only the critical thread | Only the `[critical]` thread is posted; the minor is dropped as `re-review` and listed under `Dropped:` in the summary |
 | already-approved | "Review PR 9." (own approval, no commits since the last reviewed SHA) | Stops | `already approved`; `Result: nothing-to-do`; nothing posted |
-| approved-new-commits | "Review PR 9." (own approval, new commits since) | Runs a first review | Mode `first review`; a new marked summary comment |
+| approved-new-commits | "Review PR 9." (own approval, new commits since) | Reviews only the delta since the approved SHA | Mode `re-review (last reviewed <short SHA>)`; the scratch diff comes from `compare-diff` from the approved SHA; the existing summary is edited in place, no new one |
+| approved-force-push | "Review PR 9." (own approval, the approved SHA is gone after a force-push, or the summary has no `Last reviewed SHA:`) | Falls back to the full diff | The full diff is reviewed; the fallback is noted under `Open:` |
+| minor-never-gates | "Review PR 9." (first review; one `minor` finding, checks green, complete) | Posts it as non-gating and approves | `Verdict: APPROVE`; the `[minor]` thread is posted within the 5 non-blocking inline cap; it is never counted as gating |
+| legacy-minor-thread | "Review PR 9." (re-review; an own `[minor]` thread from an earlier run is still open) | Treats it as non-gating | Counted under `ignored (not own or non-gating)`; not judged or resolved; `Verdict: APPROVE` when nothing else gates |
+| low-confidence-never-gates | "Review PR 9." (a reviewer returns a `major` with `low` confidence or no quoted evidence) | Downgrades it | Posted as `[question]` or listed under `Unverified:`; never gating; `Verdict` is not `REQUEST_CHANGES` because of it |
 | author-dispute | "Review PR 9." (the author replied disputing an own thread) | Does not resolve | Listed under `Open:` as disputed; thread stays open |
 | cannot-edit-summary | "Review PR 9." (re-review; `summary-update` fails) | Stops | `Stopped: post: cannot edit summary`; no new summary comment |
 | own-pr | "Review PR 9." (the PR is Self's) | Posts COMMENT | State review `COMMENT`; summary says changes are requested through unresolved threads |

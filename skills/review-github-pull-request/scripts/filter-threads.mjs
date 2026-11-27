@@ -44,7 +44,7 @@ export function threadNodes(json) {
   return nodes;
 }
 
-const GATING = new Set(['critical', 'major', 'minor']);
+const GATING = new Set(['critical', 'major']);
 const SEVERITY = /^\s*\[(critical|major|minor|nit|question)\]/;
 
 // The severity a comment body starts with, or null when it has no valid prefix.

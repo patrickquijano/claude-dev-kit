@@ -11,9 +11,9 @@ Steps 2–4 of `SKILL.md`. Judging writes nothing to GitHub; resolves are posted
 Run `issue-comments` and use `pr-view` `reviews`. The own summary is the newest conversation comment authored by Self whose body carries the marker; its last `Last reviewed SHA:` line outside any fenced block holds the last reviewed head. Own approval = Self's latest review among those in state `APPROVED`, `CHANGES_REQUESTED`, or `DISMISSED` is `APPROVED`.
 
 - No own summary → **first review**.
-- Own summary and no own approval → **re-review**: no new summary; the existing one is edited in place.
+- Own summary and no own approval → **re-review**: scope as above; no new summary; the existing one is edited in place.
 - Own approval and the head SHA equals the last reviewed SHA → **already approved**: print `already approved` under `Open:`, `Result: nothing-to-do`, and stop; nothing is posted.
-- Own approval and the head SHA differs → **first review** (a new summary; later runs use the newest).
+- Own approval and the head SHA differs → **re-review**: only the first review covers the whole PR, so the scope is the changes since the approved SHA (the summary's last reviewed SHA, which an approval always records), and the existing summary is edited in place. No such SHA, or a compare that fails (`analyze.md` `## Scratch`), → the full diff, noted under `Open:`.
 
 ## Digest
 

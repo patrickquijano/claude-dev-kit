@@ -22,13 +22,15 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 Each finding carries exactly one severity:
 
-- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality.
-- `major` (blocking): likely bug or serious design flaw.
-- `minor`: real issue with limited impact. Does not block merge in local review; in PR/MR review it must be resolved before approval.
-- `nit` (non-blocking): style/preference, no functional effect.
-- `question` (non-blocking): used when unsure a problem exists.
+- `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality. Anchor: an unauthenticated request reads another user's data.
+- `major` (blocking): likely bug or serious design flaw. Anchor: an unchecked null on a common path throws.
+- `minor`: real issue with limited impact; never blocks. Anchor: a changed error path has no test.
+- `nit` (non-blocking): style/preference, no functional effect. Anchor: a variable name that could be clearer.
+- `question` (non-blocking): used when unsure a problem exists. Anchor: unclear whether a retried call is idempotent.
 
-In local review, only critical and major block merge. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+Only `critical` and `major` block, in every skill and every round; `minor`, `nit`, and `question` are posted or listed but never block. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+
+Finding key: `<file>:<category>:<short-description>`, built by the parent and never by the reviewer, with no line number so it survives an edit that moves lines; `category` is the reviewer kind and `short-description` is at most 6 words of the problem in `[a-z0-9-]`.
 
 Marker (review and address skills only): `<!-- cdk-review -->`
 
@@ -40,7 +42,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Never check out, build, run, push, merge, edit the PR, or modify repo files; the only local writes are scratch files.
 - Comment format: every posted comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label, then a blank line and the marker. The summary comment carries the marker too. Never post a style issue that automated tooling already enforces.
 - Own = authored by Self AND carrying the marker; both are required. Never reply to, edit, resolve, or approve based on a thread or comment that is not own; ignore other reviewers' threads entirely.
-- Gating threads are the own `[critical]`, `[major]`, and `[minor]` threads, cleared only when resolved. `[nit]` and `[question]` threads never gate; this skill neither requires nor resolves them.
+- Gating threads are the own `[critical]` and `[major]` threads, cleared only when resolved. `[minor]`, `[nit]`, and `[question]` threads never gate (an own `[minor]` thread from an earlier run is non-gating too); this skill neither requires nor resolves them.
 - The only GitHub writes, all in step 8: resolves of own threads, one summary conversation comment (created once, then edited in place), and one state review (`REQUEST_CHANGES`, `COMMENT`, or `APPROVE`) pinned to the head SHA. A missing PR, authentication, or permission → stop with the exact error.
 - Cannot resolve an own thread or edit the summary → stop and tell the user; never work around it by posting another comment or summary.
 - One pass per invocation: never poll, re-trigger this skill, or invoke the address skills.
@@ -53,7 +55,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 ## Workflow
 
 1. **Pre-flight.** Check `auth-status`, `origin` is `github.com`, then `repo-view`; failure → stop. Per `${CLAUDE_SKILL_DIR}/references/resolve.md`.
-2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`. Then pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review, or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
+2. **Resolve.** Match a URL, number, or the branch's open PR; no match → `Result: nothing-to-do`. Closed or merged stops; draft blocks `APPROVE`. Then pick the mode per `${CLAUDE_SKILL_DIR}/references/threads.md` `## Mode`: first review, re-review (also the first run after an approval, which reviews only the changes since the approved SHA), or already approved (report `already approved`, `Result: nothing-to-do`, and stop).
 3. **Threads** per `${CLAUDE_SKILL_DIR}/references/threads.md`:
 
    3a. Digest the own open threads (Self + marker; all others ignored).

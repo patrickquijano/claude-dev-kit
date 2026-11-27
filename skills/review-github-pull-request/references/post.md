@@ -20,7 +20,7 @@ Right after the head check: `thread-resolve` for each own gating thread judged F
 
 ## Summary comment
 
-Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating threads with URLs, summary-level findings, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution.
+Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating threads with URLs, summary-level findings, the re-review `Dropped:` items, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution.
 
 - First review: `summary-post` once, after the new threads are queued (see below) and before the state review is submitted.
 - Re-review: `summary-update` on the own summary's comment id (counts, verdict, last reviewed SHA). Never `summary-post`. An update that fails → `Result: stopped`, `Stopped: post: cannot edit summary` with the exact error; submit nothing further.
@@ -29,7 +29,7 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 
 The review is the state: `REQUEST_CHANGES` while any gating thread is unresolved, `APPROVE` when none is and no hold applies, `COMMENT` for a hold (`analyze.md` `## Verdict`). Its body is only the marker; the summary comment is the report.
 
-1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical`, `major`, and `minor` findings plus at most 5 inline `nit` or `question` findings (highest risk first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
+1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
 2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical` or `major` threads (a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
 3. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
 
