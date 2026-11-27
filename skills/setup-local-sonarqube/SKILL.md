@@ -15,7 +15,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 - Repo root: !`git rev-parse --show-toplevel 2>/dev/null || echo '<none>'`
 
-A Context value of `<none>` means that read failed. A missing value or `[shell command execution disabled by policy]` means run that command's `commands.md` row instead.
+`<none>` = that read failed. A missing value or `[shell command execution disabled by policy]` = run the `commands.md` row.
 
 ## Rules
 
