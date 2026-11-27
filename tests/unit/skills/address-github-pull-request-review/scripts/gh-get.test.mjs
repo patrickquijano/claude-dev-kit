@@ -142,6 +142,26 @@ describe('graphql mode', () => {
     ]);
   });
 
+  test('accepts an owner with an underscore after the first character', () => {
+    // Arrange
+    const { out, deps } = harness();
+    // Act
+    const code = main(['graphql', 'pr-files', 'acme_corp', 'app', '7'], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.ok(out.calls[0].includes('o=acme_corp'));
+  });
+
+  test('rejects an owner that starts with an underscore with no run', () => {
+    // Arrange
+    const { out, deps } = harness();
+    // Act
+    const code = main(['graphql', 'pr-files', '_o', 'app', '7'], deps);
+    // Assert
+    assert.equal(code, 2);
+    assert.deepEqual(out.calls, []);
+  });
+
   test('adds the cursor as -f c= for pr-files', () => {
     // Arrange
     const { out, deps } = harness();

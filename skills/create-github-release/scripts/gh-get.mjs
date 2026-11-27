@@ -21,15 +21,12 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const SHAPES = [
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/compare\/\w[\w/.-]*\.\.\.\w[\w/.-]*$/, flags: [] },
-  {
-    re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/contents\/[\w@+./-]+\?ref=\w[\w/.-]*$/,
-    flags: []
-  },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/immutable-releases$/, flags: [] },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/releases\/tags\/\w[\w/.-]*$/, flags: [] },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/releases\/\d+$/, flags: [] },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/releases\?per_page=\d+$/, flags: [] }
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/compare\/\w[\w/.+-]*\.\.\.\w[\w/.+-]*$/ },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/contents\/[\w@+./-]+\?ref=\w[\w/.-]*$/ },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/immutable-releases$/ },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/releases\/tags\/\w[\w/.+-]*$/ },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/releases\/\d+$/ },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/releases\?per_page=\d+$/ }
 ];
 
 // The shape matching `endpoint`, or undefined; a `..` (outside the one `...` of compare), a `.` segment, or an encoded dot is rejected.
@@ -64,7 +61,7 @@ export function main(argv, deps = {}) {
     d.error('usage: gh-get.mjs <endpoint> (one read-only endpoint this skill uses)');
     return 2;
   }
-  const res = d.run(['api', argv[0], ...shape.flags]);
+  const res = d.run(['api', argv[0]]);
   if (res.status !== 0) {
     d.error((res.stderr.split('\n').find((l) => l.trim()) ?? `gh exited ${res.status}`).trim().slice(0, 300));
     return 1;

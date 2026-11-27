@@ -55,6 +55,38 @@ describe('isAllowed', () => {
     assert.deepEqual(results, [true, true]);
   });
 
+  test('accepts a tag or ref with a plus and an owner with an underscore', () => {
+    // Arrange
+    const endpoints = [
+      'repos/acme/app/releases/tags/v1.0.0+build.5',
+      'repos/acme/app/compare/v1.0.0+1...main',
+      'repos/acme/app/contents/a+b.md?ref=main',
+      'repos/acme_corp/app/immutable-releases'
+    ];
+    // Act
+    const results = endpoints.map((e) => isAllowed(e));
+    // Assert
+    assert.deepEqual(results, [true, true, true, true]);
+  });
+
+  test('rejects a plus in the contents ref value', () => {
+    // Arrange
+    const endpoints = ['repos/acme/app/contents/a.md?ref=v1+2', 'repos/acme/app/contents/a.md?ref=main+x'];
+    // Act
+    const results = endpoints.map((e) => isAllowed(e));
+    // Assert
+    assert.deepEqual(results, [false, false]);
+  });
+
+  test('rejects an owner that starts with an underscore', () => {
+    // Arrange
+    const endpoints = ['repos/_acme/app/immutable-releases', 'repos/_/app/releases/12345'];
+    // Act
+    const results = endpoints.map((e) => isAllowed(e));
+    // Assert
+    assert.deepEqual(results, [false, false]);
+  });
+
   test('rejects endpoints outside the allowed shapes, traversal, encoded dots, and a bad owner', () => {
     // Arrange
     const endpoints = BAD;

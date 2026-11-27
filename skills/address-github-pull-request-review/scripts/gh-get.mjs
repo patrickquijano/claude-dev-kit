@@ -41,7 +41,7 @@ export const QUERIES = Object.freeze({
     'query($o:String!,$r:String!,$n:Int!,$c:String){repository(owner:$o,name:$r){pullRequest(number:$n){reviewThreads(first:100,after:$c){pageInfo{hasNextPage endCursor} nodes{id isResolved isOutdated path line comments(first:20){nodes{databaseId author{login} authorAssociation body url createdAt}}}}}}}'
 });
 
-const OWNER_RE = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+const OWNER_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 const REPO_RE = /^[\w.-]+$/;
 const NUMBER_RE = /^[1-9]\d{0,9}$/;
 const CURSOR_RE = /^[A-Za-z0-9+/=_-]{1,200}$/;

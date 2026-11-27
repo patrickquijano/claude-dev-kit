@@ -44,6 +44,24 @@ describe('isAllowed', () => {
     );
   });
 
+  test('accepts an owner with an underscore after the first character', () => {
+    // Arrange
+    const endpoint = 'repos/jane_acme/app/issues/1/comments';
+    // Act
+    const result = isAllowed(endpoint);
+    // Assert
+    assert.equal(result, true);
+  });
+
+  test('rejects an owner that starts with an underscore', () => {
+    // Arrange
+    const endpoint = 'repos/_acme/app/issues/1/comments';
+    // Act
+    const result = isAllowed(endpoint);
+    // Assert
+    assert.equal(result, false);
+  });
+
   test('accepts a repo name that starts with a dot', () => {
     // Arrange
     const endpoint = 'repos/acme/.github/issues/1/comments';
@@ -177,6 +195,16 @@ describe('main graphql', () => {
     const { out, deps } = harness();
     // Act
     const code = main(['graphql', 'review-threads', 'my-org', '.github', '1234567890'], deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(out.calls.length, 1);
+  });
+
+  test('accepts a graphql owner with an underscore after the first character', () => {
+    // Arrange
+    const { out, deps } = harness();
+    // Act
+    const code = main(['graphql', 'review-threads', 'jane_acme', 'app', '7'], deps);
     // Assert
     assert.equal(code, 0);
     assert.equal(out.calls.length, 1);

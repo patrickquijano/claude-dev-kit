@@ -28,9 +28,8 @@ const run = (dir, args) =>
 describe('gh-get.mjs graphql', () => {
   test('exits 0, prints the body, and passes the fixed argv to gh', () => {
     // Arrange
-    const dir = setup('true');
+    const dir = setup(`printf '%s\\n' "$@" > "$(dirname "$0")/../argv.txt"\necho '{"data":{}}'`);
     const capture = join(dir, 'argv.txt');
-    writeFileSync(join(dir, 'bin/gh'), `#!/bin/sh\nprintf '%s\\n' "$@" > "${capture}"\necho '{"data":{}}'\n`);
     // Act
     const res = run(dir, ['graphql', 'review-threads', 'acme', 'app', '5', 'abc123==']);
     // Assert
@@ -44,9 +43,8 @@ describe('gh-get.mjs graphql', () => {
 
   test('exits 2 and never runs gh for a bad owner', () => {
     // Arrange
-    const dir = setup('true');
+    const dir = setup('touch "$(dirname "$0")/../ran"');
     const capture = join(dir, 'ran');
-    writeFileSync(join(dir, 'bin/gh'), `#!/bin/sh\ntouch "${capture}"\n`);
     // Act
     const res = run(dir, ['graphql', 'pr-files', '-bad', 'app', '5']);
     // Assert

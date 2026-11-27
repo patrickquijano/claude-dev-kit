@@ -20,10 +20,7 @@ async function runIfMain(metaUrl, fn, label) {
   }
 }
 
-const SHAPES = [
-  { re: /^user$/, flags: [] },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/contents\/[\w@+./-]+$/, flags: [] }
-];
+const SHAPES = [{ re: /^user$/ }, { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/contents\/[\w@+./-]+$/ }];
 
 // The shape matching `endpoint`, or undefined; a `..`, a `.` segment, or an encoded dot is rejected.
 function shapeOf(endpoint) {
@@ -56,7 +53,7 @@ export function main(argv, deps = {}) {
     d.error('usage: gh-get.mjs <endpoint> (one read-only endpoint this skill uses)');
     return 2;
   }
-  const res = d.run(['api', argv[0], ...shape.flags]);
+  const res = d.run(['api', argv[0]]);
   if (res.status !== 0) {
     d.error((res.stderr.split('\n').find((l) => l.trim()) ?? `gh exited ${res.status}`).trim().slice(0, 300));
     return 1;

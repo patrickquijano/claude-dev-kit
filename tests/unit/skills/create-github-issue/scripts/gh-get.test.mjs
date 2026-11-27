@@ -37,6 +37,15 @@ describe('isAllowed', () => {
     );
   });
 
+  test('accepts an owner with an underscore after the first character', () => {
+    // Arrange
+    const endpoint = 'repos/acme_corp/app/contents/a.md';
+    // Act
+    const result = isAllowed(endpoint);
+    // Assert
+    assert.equal(result, true);
+  });
+
   test('rejects endpoints outside the allowed shapes, traversal, encoded dots, and a bad owner', () => {
     // Arrange
     const endpoints = BAD;
@@ -47,6 +56,15 @@ describe('isAllowed', () => {
       results,
       endpoints.map(() => false)
     );
+  });
+
+  test('rejects an owner that starts with an underscore', () => {
+    // Arrange
+    const endpoint = 'repos/_o/app/contents/a.md';
+    // Act
+    const result = isAllowed(endpoint);
+    // Assert
+    assert.equal(result, false);
   });
 
   test('rejects a non-string endpoint', () => {

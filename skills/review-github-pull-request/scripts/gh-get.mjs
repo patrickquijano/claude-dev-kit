@@ -22,13 +22,13 @@ async function runIfMain(metaUrl, fn, label) {
 
 const SHAPES = [
   { re: /^user$/, flags: [] },
-  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/issues\/\d+\/comments$/, flags: ['--paginate'] },
+  { re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/issues\/\d+\/comments$/, flags: ['--paginate'] },
   {
-    re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/contents\/[\w@+./-]+\?ref=[0-9a-f]{40}$/,
+    re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/contents\/[\w@+./-]+\?ref=[0-9a-f]{40}$/,
     flags: ['-H', 'Accept: application/vnd.github.raw']
   },
   {
-    re: /^repos\/[A-Za-z0-9][A-Za-z0-9-]*\/[\w.-]+\/compare\/[0-9a-f]{40}\.\.\.[0-9a-f]{40}$/,
+    re: /^repos\/[A-Za-z0-9][A-Za-z0-9_-]*\/[\w.-]+\/compare\/[0-9a-f]{40}\.\.\.[0-9a-f]{40}$/,
     flags: ['-H', 'Accept: application/vnd.github.diff']
   }
 ];
@@ -59,7 +59,7 @@ function graphqlArgs(argv) {
   const [name, owner, repo, n] = argv;
   if (typeof name !== 'string' || !Object.hasOwn(QUERIES, name)) return;
   if (
-    !/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(owner) ||
+    !/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(owner) ||
     !/^[\w.-]+$/.test(repo) ||
     repo === '.' ||
     repo === '..' ||
