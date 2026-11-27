@@ -177,11 +177,12 @@ describe('main', () => {
 
   test('rethrows a realpath failure that is not ENOENT', () => {
     // Arrange
-    const denied = () => {
-      throw Object.assign(new Error('EACCES'), { code: 'EACCES' });
+    const realpath = (p) => {
+      if (p === '/a/b.json') throw Object.assign(new Error('EACCES'), { code: 'EACCES' });
+      return p;
     };
     // Act
-    const call = () => run(['/a/b.json'], undefined, { realpath: denied });
+    const call = () => run(['/a/b.json'], undefined, { realpath });
     // Assert
     assert.throws(call, /EACCES/);
   });

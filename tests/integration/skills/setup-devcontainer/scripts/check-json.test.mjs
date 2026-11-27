@@ -34,24 +34,30 @@ describe('check-json CLI', () => {
   after(() => rmSync(dir, { recursive: true, force: true }));
 
   test('exits 0 with no output for a valid file inside the project', () => {
+    // Arrange
+    const file = join(project, 'valid.json');
     // Act
-    const res = run(join(project, 'valid.json'));
+    const res = run(file);
     // Assert
     assert.equal(res.status, 0);
     assert.equal(res.stderr, '');
   });
 
   test('exits 1 for invalid JSON without printing its contents', () => {
+    // Arrange
+    const file = join(project, 'invalid.json');
     // Act
-    const res = run(join(project, 'invalid.json'));
+    const res = run(file);
     // Assert
     assert.equal(res.status, 1);
     assert.ok(!res.stderr.includes('secret'));
   });
 
   test('exits 1 for a missing file inside the project', () => {
+    // Arrange
+    const file = join(project, 'missing.json');
     // Act
-    const res = run(join(project, 'missing.json'));
+    const res = run(file);
     // Assert
     assert.equal(res.status, 1);
   });
@@ -71,11 +77,13 @@ describe('check-json CLI', () => {
   });
 
   test('exits 2 when CLAUDE_PROJECT_DIR does not exist', () => {
+    // Arrange
+    const gone = join(dir, 'gone');
     // Act
-    const res = spawnSync('node', [SCRIPT, join(dir, 'gone', 'x.json')], {
+    const res = spawnSync('node', [SCRIPT, join(gone, 'x.json')], {
       encoding: 'utf8',
       timeout: 15_000,
-      env: { ...process.env, CLAUDE_PROJECT_DIR: join(dir, 'gone') }
+      env: { ...process.env, CLAUDE_PROJECT_DIR: gone }
     });
     // Assert
     assert.equal(res.status, 2);
@@ -83,24 +91,30 @@ describe('check-json CLI', () => {
   });
 
   test('exits 2 for a relative path', () => {
+    // Arrange
+    const file = 'valid.json';
     // Act
-    const res = run('valid.json');
+    const res = run(file);
     // Assert
     assert.equal(res.status, 2);
     assert.match(res.stderr, /usage/);
   });
 
   test('exits 2 for a path outside the project', () => {
+    // Arrange
+    const file = join(outside, 'valid.json');
     // Act
-    const res = run(join(outside, 'valid.json'));
+    const res = run(file);
     // Assert
     assert.equal(res.status, 2);
     assert.match(res.stderr, /outside the project/);
   });
 
   test('exits 2 for a symlink that escapes the project', () => {
+    // Arrange
+    const file = join(project, 'link.json');
     // Act
-    const res = run(join(project, 'link.json'));
+    const res = run(file);
     // Assert
     assert.equal(res.status, 2);
     assert.match(res.stderr, /outside the project/);

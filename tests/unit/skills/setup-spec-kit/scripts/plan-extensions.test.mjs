@@ -250,6 +250,18 @@ describe('main', () => {
     assert.equal(JSON.parse(failing.out.logs[0]).error, 'Command failed: specify');
   });
 
+  test('reports a timed-out specify command as ok:false', () => {
+    // Arrange
+    const { deps, out } = stubs({
+      runError: Object.assign(new Error('spawnSync specify ETIMEDOUT'), { code: 'ETIMEDOUT' })
+    });
+    // Act
+    const code = main([], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.deepEqual(JSON.parse(out.logs[0]), { ok: false, error: 'spawnSync specify ETIMEDOUT' });
+  });
+
   test('rethrows an error that is not a command failure', () => {
     // Arrange
     const { deps } = stubs({ runError: new TypeError('boom') });
@@ -381,6 +393,18 @@ describe('main --latest-tag', () => {
     assert.equal(code, 1);
     assert.equal(JSON.parse(failing.out.logs[0]).ok, false);
     assert.throws(act, /boom/);
+  });
+
+  test('reports a timed-out git ls-remote as ok:false', () => {
+    // Arrange
+    const { deps, out } = stubs({
+      runError: Object.assign(new Error('spawnSync git ETIMEDOUT'), { code: 'ETIMEDOUT' })
+    });
+    // Act
+    const code = main(['--latest-tag'], deps);
+    // Assert
+    assert.equal(code, 1);
+    assert.deepEqual(JSON.parse(out.logs[0]), { ok: false, error: 'spawnSync git ETIMEDOUT' });
   });
 
   test('rejects --latest-tag combined with another flag', () => {
