@@ -1,8 +1,13 @@
 {
   "name": "cdk",
+  "displayName": "Claude Dev Kit",
   "description": "Claude Dev Kit: framework- and language-agnostic development kit of skills, custom agents, and hooks for Claude Code.",
+  "homepage": "https://github.com/patrickquijano/claude-dev-kit#readme",
+  "repository": "https://github.com/patrickquijano/claude-dev-kit",
   "version": "0.10.0",
+  "license": "MIT",
   "author": {
-    "name": "Patrick Quijano"
+    "name": "Patrick Quijano",
+    "url": "https://github.com/patrickquijano"
   }
 }
