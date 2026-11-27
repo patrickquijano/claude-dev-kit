@@ -6,7 +6,8 @@
 | --- | --- | --- |
 | `root` | `git rev-parse --show-toplevel` | Repo root (preloaded in Context) |
 | `status` | `git status --porcelain=v1` | Changed paths (preloaded in Context) |
-| `scope` | `node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs scope --root <root>` | First-review manifest JSON and scratch files |
+| `scope` | `node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs scope --root <root> [--since <commit>]` | Manifest JSON and scratch files; `--since` (a full commit sha from valid review state) diffs against that commit when it is an ancestor of HEAD |
+| `branch` | `git branch --show-current` | Current branch for the review state; empty on a detached HEAD |
 | `verify` | `node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs verify --root <root> --scratch <scratch> --paths <paths>` | Edit-scope check: `ok` false → safety stop |
 | `snapshot` | `node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs snapshot --root <root> --scratch <scratch> --paths <paths>` | Copy the planned files before a fix |
 | `commits` | `git log --format=%B --no-merges -n 50 <base>..HEAD` | Commit messages for the intent source; `<base>` is the `base` that `scope` prints |

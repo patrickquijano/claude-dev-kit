@@ -1,5 +1,5 @@
 // Deterministic diff manifest for review-code-changes: scope, snapshot, delta, and verify over local git changes.
-// CLI: `scope --root <dir> [--scratch <dir>]`, `snapshot --root <dir> --scratch <dir> --paths <file>`,
+// CLI: `scope --root <dir> [--scratch <dir>] [--since <sha>]`, `snapshot --root <dir> --scratch <dir> --paths <file>`,
 // `delta --root <dir> --scratch <dir> --paths <file> --round <n>`, `verify --root <dir> --scratch <dir> --paths <file>`.
 import {
   copyFileSync,
@@ -298,13 +298,27 @@ function untrackedSkip(d, root, path) {
   }
 }
 
-// scope: the round-1 manifest of everything since the base plus staged, unstaged, and untracked files.
+// A previous review commit usable as the diff base: a full sha that exists and is an ancestor of HEAD; otherwise the reason it is ignored.
+export function resolveSince(git, since) {
+  if (since === undefined) return { since: null, sinceStatus: 'none' };
+  if (!/^[0-9a-f]{40}$/.test(since)) return { since: null, sinceStatus: 'ignored: not a full sha' };
+  if (git(['cat-file', '-e', `${since}^{commit}`], { okStatuses: [0, 1, 128] }).status !== 0)
+    return { since: null, sinceStatus: 'ignored: unknown commit' };
+  if (git(['merge-base', '--is-ancestor', since, 'HEAD'], { okStatuses: [0, 1] }).status !== 0)
+    return { since: null, sinceStatus: 'ignored: not an ancestor of HEAD' };
+  return { since, sinceStatus: 'used' };
+}
+
+// scope: the round-1 manifest of everything since the base (or the usable `--since` commit) plus staged, unstaged, and untracked files.
 export function scope(argv, d) {
   const rootArg = arg(argv, '--root');
-  if (!rootArg) throw new Error('usage: scope --root <dir> [--scratch <dir>]');
+  if (!rootArg) throw new Error('usage: scope --root <dir> [--scratch <dir>] [--since <sha>]');
   const root = resolve(rootArg);
   const git = makeGit(d, root);
-  const { head, base, defaultBranch } = resolveBase(git);
+  const resolved = resolveBase(git);
+  const { head, defaultBranch } = resolved;
+  const { since, sinceStatus } = resolveSince(git, arg(argv, '--since'));
+  const base = since ?? resolved.base;
   const scratchArg = arg(argv, '--scratch');
   const scratch = resolve(scratchArg ?? d.makeScratch());
   if (scratchArg) assertScratch(root, scratch);
@@ -369,6 +383,8 @@ export function scope(argv, d) {
     head,
     base,
     defaultBranch,
+    mode: since ? 'delta' : 'full',
+    sinceStatus,
     scratch,
     sha256: sha256(patch),
     files: files.map((f) => ({ path: f.path, hunks: f.hunks })),

@@ -8,6 +8,7 @@ import {
   makeBatches,
   parseDiff,
   resolveBase,
+  resolveSince,
   scope,
   snapshot,
   verify
@@ -422,7 +423,78 @@ describe('assertScratch', () => {
   });
 });
 
+describe('resolveSince', () => {
+  const SHA = 'a'.repeat(40);
+  const run = (since, table = {}) => resolveSince((args, opts) => gitStub(table)('git', args, opts), since);
+
+  test('uses a full sha that exists and is an ancestor of HEAD', () => {
+    // Arrange
+    const table = {};
+    // Act
+    const out = run(SHA, table);
+    // Assert
+    assert.deepEqual(out, { since: SHA, sinceStatus: 'used' });
+  });
+
+  test('reports none when no commit is passed', () => {
+    // Arrange
+    const since = undefined;
+    // Act
+    const out = run(since);
+    // Assert
+    assert.deepEqual(out, { since: null, sinceStatus: 'none' });
+  });
+
+  test('ignores a value that is not a full sha', () => {
+    // Arrange
+    const since = '--output=x';
+    // Act
+    const out = run(since);
+    // Assert
+    assert.deepEqual(out, { since: null, sinceStatus: 'ignored: not a full sha' });
+  });
+
+  test('ignores an unknown commit', () => {
+    // Arrange
+    const table = { 'cat-file': { status: 128, stdout: '' } };
+    // Act
+    const out = run(SHA, table);
+    // Assert
+    assert.deepEqual(out, { since: null, sinceStatus: 'ignored: unknown commit' });
+  });
+
+  test('ignores a commit that is not an ancestor of HEAD', () => {
+    // Arrange
+    const table = { 'merge-base': { status: 1, stdout: '' } };
+    // Act
+    const out = run(SHA, table);
+    // Assert
+    assert.deepEqual(out, { since: null, sinceStatus: 'ignored: not an ancestor of HEAD' });
+  });
+});
+
 describe('scope', () => {
+  test('diffs against a usable --since commit and reports delta mode', () => {
+    // Arrange
+    const since = 'b'.repeat(40);
+    const git = scopeGit();
+    const d = { ...fsStub(), ...git };
+    // Act
+    const out = scope(['--root', '/r', '--since', since], d);
+    // Assert
+    assert.deepEqual([out.base, out.mode, out.sinceStatus], [since, 'delta', 'used']);
+  });
+
+  test('falls back to the merge base when --since is not an ancestor', () => {
+    // Arrange
+    const table = { ...scopeTable, 'merge-base': { status: 1, stdout: '' } };
+    const d = { ...fsStub(), spawnSync: gitStub(table) };
+    // Act
+    const out = scope(['--root', '/r', '--since', 'b'.repeat(40)], d);
+    // Assert
+    assert.deepEqual([out.base, out.mode, out.sinceStatus], ['abc', 'full', 'ignored: not an ancestor of HEAD']);
+  });
+
   test('returns the manifest with hunks and one batch', () => {
     // Arrange
     const d = { ...fsStub(), spawnSync: gitStub(scopeTable) };

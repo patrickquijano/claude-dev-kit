@@ -103,6 +103,25 @@ describe('diff-manifest scope', () => {
     assert.equal(out.base, out.head);
   });
 
+  test('diffs against a previous review commit that is an ancestor of HEAD', () => {
+    // Arrange
+    const scratch = makeScratchDir(root, 's-since');
+    const since = git(root, 'rev-parse', 'HEAD').trim();
+    // Act
+    const out = run('scope', '--root', root, '--scratch', scratch, '--since', since);
+    // Assert
+    assert.deepEqual([out.mode, out.sinceStatus, out.base], ['delta', 'used', since]);
+  });
+
+  test('falls back to the full scope for a commit that does not exist', () => {
+    // Arrange
+    const scratch = makeScratchDir(root, 's-nosince');
+    // Act
+    const out = run('scope', '--root', root, '--scratch', scratch, '--since', 'c'.repeat(40));
+    // Assert
+    assert.deepEqual([out.mode, out.sinceStatus], ['full', 'ignored: unknown commit']);
+  });
+
   test('skips an untracked .env and never copies it into scratch', () => {
     // Arrange
     const repo = makeRepo();

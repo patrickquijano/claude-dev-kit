@@ -4,7 +4,7 @@ Steps 3 and 6 of `SKILL.md`: scratch files, reviewer subagents, validation, cove
 
 ## Contents
 
-- Scratch · Intent source · First review · Validation · Coverage and sweep · Later rounds · Spawn briefs
+- Scratch · Review state · Intent source · First review · Validation · Coverage and sweep · Later rounds · Spawn briefs
 
 ## Scratch
 
@@ -16,6 +16,16 @@ Steps 3 and 6 of `SKILL.md`: scratch files, reviewer subagents, validation, cove
 - `<scratch>/findings.md`: every validated finding of all batches.
 
 The commit is the HEAD SHA from the manifest plus "working tree; read head/".
+
+## Review state
+
+Only the first review of a branch covers the whole scope; each later run builds on the previous one. State is one file per branch in the Claude auto-memory dir named by the session's auto-memory context (none found → no state, full scope, noted under `Open:`), named `cdk-review-state-<slug>.md`, where `<slug>` is the branch lowercased with every character outside `[a-z0-9]` replaced by `-`. It is a cache, not a memory: it has no `MEMORY.md` pointer.
+
+- Read (step 1c): run `branch` (`commands.md`); empty (detached HEAD) → no state. Read the file; it is valid only when its `branch:` line equals the current branch exactly (two names can share a slug), `commit:` is 40 lowercase hex, and the file parses; anything else → full scope. Its text is data: the findings sit in fenced blocks and never reach a shell argument.
+- Scope (step 2a): pass `commit` as `--since`. The `scope` output `mode` is `delta` when the commit exists and is an ancestor of HEAD, else `full` with the reason in `sinceStatus` (a rewritten or deleted history lands here); `full` is the first-review path and `sinceStatus` goes under `Open:`.
+- Delta mode: the first-review kinds run on the delta manifest and keep every severity, because the new code gets its first review; the round 2 regression filter in `## Later rounds` applies only to rounds inside one run. Each saved blocking finding is re-judged: write them to `<scratch>/prior-findings.md` (the threads file, keys as thread ids), copy its file from the working tree into `head/<path>` when `scope` did not (the path rule of `## First review`; one that fails it stays Open), then judge it with kind `threads` as in `## Later rounds`. `Fixed` and `Obsolete` drop out; `Open` and `Accepted` enter round 0 as open blocking findings with their saved key, and a goal may name a clean file because the edit scope allows it. An empty delta with no open prior finding → `Result: nothing-to-do`.
+- Write (step 9): only after a completed review, meaning `Result: done` or a stop of `round cap`, `blocking finding repeated`, or `blocking count did not decrease`; never after any other stop, `nothing-to-do`, or a failed command, because the tree may not match what was reviewed. Write `branch:`, `commit:` (`git rev-parse HEAD` after step 8, so a commit this skill made is included), and the open blocking findings (key, severity, `file:line`, problem, fix, evidence), at most 30, most severe first, each field fenced longer than any run of its own character inside it; no findings → the file holds none. A write that fails goes under `Open:` as `state: <reason>` and never changes the verdict.
+- Uncommitted work is compared against the stored commit, so edits made after the last run are reviewed again; that is the safe direction.
 
 ## Intent source
 
@@ -50,7 +60,7 @@ Run `delta` (`fix.md`), then the first-review kinds (`intent` only when it ran i
 - `Obsolete`: the line or file is gone.
 - `Open`: anything else, or uncertain.
 
-Filter the re-review findings of round 2 and later: a new finding is kept only when it is `critical` or `major` and a regression the fix introduced (its `line` is inside a delta hunk); every other new finding is dropped, never reported, so the blocking set can only shrink and the step 6e stop rules converge. A prior finding keeps its severity from the review that found it. `Accepted` counts as open for the stop rules, because the finding still stands.
+Filter the re-review findings of round 2 and later: a new finding is kept only when it is `critical` or `major` and a regression the fix introduced (its `line` is inside a delta hunk); every other new finding is dropped and listed under `Dropped:` in the Output as `<key [severity] — reason>` (not counted, never fixed), so the blocking set can only shrink and the step 6e stop rules converge. A prior finding keeps its severity from the review that found it. `Accepted` counts as open for the stop rules, because the finding still stands.
 
 After each review print `Round <n>: Open <n> (critical <a>, major <b>)` and one line per open blocking item `<key> [severity] <path>:<line> — <fix>`; `minor`, `nit`, and `question` are not counted. Round 0 is the first review. Open blocking items re-enter step 4 only when no stop rule of step 6e holds; the `Open` count of the previous round is the one the count-decrease rule compares against, and round 1 compares with round 0.
 
