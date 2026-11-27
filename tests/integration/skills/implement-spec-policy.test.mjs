@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const skillFile = (...parts) => readFileSync(join(root, 'skills', 'implement-spec', ...parts), 'utf8');
 const skillMd = () => skillFile('SKILL.md');
+const spawnsMd = () => skillFile('references', 'spawns.md');
 const verifierMd = () => readFileSync(join(root, 'agents', 'change-verifier.md'), 'utf8');
 
 describe('implement-spec policy', () => {
@@ -264,13 +265,14 @@ describe('implement-spec policy', () => {
     // Arrange
     const agent = verifierMd();
     const skill = skillMd();
+    const spawns = spawnsMd();
     // Act
     const step = /^3\. Run, in order: .*format check and lint \(kind `checks` only; kind `goals` skips both/m.test(
       agent
     );
     const brief =
       /^- \*\*Verifier\*\* .*\(kind `goals` skips the format check and lint, which repo hooks and CI own; never a formatter or linter\)/m.test(
-        skill
+        spawns
       );
     const forbidden = /^- Run no formatter or linter, check mode included; repo hooks and CI own that\./m.test(skill);
     const goalsKind = /^### goals$/m.test(agent);
@@ -287,7 +289,7 @@ describe('implement-spec policy', () => {
     const text = skillMd();
     // Act
     const lint = /then format check, lint/.test(text);
-    const never = text.includes('never a formatter or linter');
+    const never = spawnsMd().includes('never a formatter or linter');
     // Assert
     assert.equal(lint, false);
     assert.ok(never, 'never-formatter-or-linter statement missing');
@@ -462,14 +464,14 @@ describe('implement-spec policy', () => {
 
   test('counts a timeout as skipped and runs tests non-interactively', () => {
     // Arrange
-    const skill = skillMd();
+    const spawns = spawnsMd();
     const validate = skillFile('references', 'validate.md');
     // Act
     const brief =
       /^- \*\*Verifier\*\* .*non-interactively \(`CI=true`, never watch mode\), and a command that hits the 10-minute cap is `skipped \(timeout\)` and is not re-run for the rest of the run/m.test(
-        skill
+        spawns
       );
-    const baseline = /^- \*\*Verifier\*\* .*in baseline mode .*it reports `Checks:` only/m.test(skill);
+    const baseline = /^- \*\*Verifier\*\* .*in baseline mode .*it reports `Checks:` only/m.test(spawns);
     const open = /`skipped \(timeout\)`\), minor findings, pre-existing failures/.test(validate);
     // Assert
     assert.ok(brief, 'verifier timeout and non-interactive wording missing');
@@ -525,7 +527,7 @@ describe('implement-spec policy', () => {
 
   test('compares red-baseline checks by failing test IDs with a first-lines fallback', () => {
     // Arrange
-    const skill = skillMd();
+    const spawns = spawnsMd();
     const validate = skillFile('references', 'validate.md');
     const agent = verifierMd();
     // Act
@@ -539,7 +541,7 @@ describe('implement-spec policy', () => {
     const fallback =
       /^- No IDs reported .*compare the first failing lines instead.*note the fallback under `Open:`\./m.test(validate);
     const brief =
-      /^- \*\*Verifier\*\* .*`Failing tests:` \(every failing test ID, or `none reported`\) for a fail/m.test(skill);
+      /^- \*\*Verifier\*\* .*`Failing tests:` \(every failing test ID, or `none reported`\) for a fail/m.test(spawns);
     const ret = /^ {2}Failing tests: <ids, full list \| none reported> \(fail only\)$/m.test(agent);
     const uncapped = /^- Step 4 line cap: the first-failing-lines cap of 20 does not apply to `Failing tests:`/m.test(
       agent
@@ -599,6 +601,7 @@ describe('implement-spec policy', () => {
   test('briefs pass Steps and Risks to the implementer and the requirement to the verifier', () => {
     // Arrange
     const skill = skillMd();
+    const spawns = spawnsMd();
     const agent = verifierMd();
     // Act
     const implementer =
@@ -606,8 +609,8 @@ describe('implement-spec policy', () => {
         skill
       );
     const verifier =
-      /^- \*\*Verifier\*\* .*Brief: kind `goals`, root, restated requirement, goals with acceptance criteria/m.test(
-        skill
+      /^- \*\*Verifier\*\* .*brief: kind `goals`, root, restated requirement, goals with acceptance criteria/m.test(
+        spawns
       );
     const uncovered =
       /^- Required inputs: root, goals with acceptance criteria, changed file paths\. Optional inputs: the restated requirement \(a requirement statement that no goal covers is a `major` finding\), `Edges` per goal/m.test(
@@ -661,6 +664,7 @@ describe('implement-spec policy', () => {
   test('briefs carry non-goals, edges, and the planned files, and the verifier flags scope creep', () => {
     // Arrange
     const skill = skillMd();
+    const spawns = spawnsMd();
     const agent = verifierMd();
     // Act
     const implementer =
@@ -669,11 +673,11 @@ describe('implement-spec policy', () => {
       /^- \*\*Implementer\*\* .*for each listed edge, makes no edit that serves only a non-goal/m.test(skill);
     const verifier =
       /^- \*\*Verifier\*\* .*`Edges`, non-goals, the chosen approach, the planned file list \(union across rounds/m.test(
-        skill
+        spawns
       );
     const verifierRule =
       /^- \*\*Verifier\*\* .*a change that serves a non-goal or a path outside the planned list is `major`/m.test(
-        skill
+        spawns
       );
     const inputs =
       /^- Required inputs: .*Optional inputs: .*`Edges` per goal, non-goals, the chosen approach, and the planned file list\./m.test(
@@ -695,7 +699,7 @@ describe('implement-spec policy', () => {
   test('requires a passing test for a behavioral goal to be met and routes a missing test to the fix list', () => {
     // Arrange
     const agent = verifierMd();
-    const skill = skillMd();
+    const spawns = spawnsMd();
     const validate = skillFile('references', 'validate.md');
     const plan = skillFile('references', 'plan.md');
     // Act
@@ -705,7 +709,7 @@ describe('implement-spec policy', () => {
       );
     const noTest = /code reading alone for a behavioral goal is `unverified — no test`/.test(agent);
     const brief =
-      /^- \*\*Verifier\*\* .*`unverified — no test` when only code reading supports a behavioral goal/m.test(skill);
+      /^- \*\*Verifier\*\* .*`unverified — no test` when only code reading supports a behavioral goal/m.test(spawns);
     const fix =
       /An `unverified — no test` goal \(code reading only, no test\) goes to the fix list as a missing-test item\./.test(
         validate
@@ -727,7 +731,7 @@ describe('implement-spec policy', () => {
   test('judges test relevance from the diff without an executed revert', () => {
     // Arrange
     const agent = verifierMd();
-    const skill = skillMd();
+    const spawns = spawnsMd();
     // Act
     const rule =
       /^- Test relevance: for each new or changed test assertion, judge from the diff whether it would fail if the change were reverted\./m.test(
@@ -742,7 +746,7 @@ describe('implement-spec policy', () => {
     );
     const brief =
       /^- \*\*Verifier\*\* .*would still pass with the change reverted \(a judgment from the diff, never an executed revert; each is a `major` finding with `path:line`\)/m.test(
-        skill
+        spawns
       );
     // Assert
     assert.ok(rule, 'test relevance rule missing');
@@ -769,7 +773,7 @@ describe('implement-spec policy', () => {
       planner
     );
     const inline = /^2\. \*\*Analyze\.\*\* .*`Goals` \(with `Edges`\)/m.test(skill);
-    const missing = /an edge with no test/.test(skill);
+    const missing = /an edge with no test/.test(spawnsMd());
     // Assert
     assert.ok(format, 'plan.md Edges line missing');
     assert.ok(rule, 'plan.md Edges rule missing');
@@ -936,7 +940,7 @@ describe('implement-spec policy', () => {
       /^- For the review items, pass, limits, fix-list grounding, and open-item lists \(steps 5d, 6c, 7b, and 7e\), see `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md`\.$/m.test(
         skill
       );
-    const references = ['plan.md', 'validate.md', 'review.md', 'commands.md', 'evals.md', 'grill.md'];
+    const references = ['plan.md', 'validate.md', 'review.md', 'spawns.md', 'commands.md', 'evals.md', 'grill.md'];
     const all = [skill, ...references.map((name) => skillFile('references', name))].join('\n');
     const named = /`cdk:(implementation-planner|plan-implementer|change-verifier)`/.test(all);
     const bare = /(^|[^:`\w-])(implementation-planner|plan-implementer|change-verifier)\b/m.test(all);
@@ -1190,6 +1194,7 @@ describe('implement-spec policy', () => {
   test('the Explorer brief names its fallback, Return, Question handling, and malformed-block rule', () => {
     // Arrange
     const skill = skillMd();
+    const spawns = spawnsMd();
     // Act
     const bullet =
       /^- \*\*Explorer\*\* \(step 2 kind `locate`; step 6b kind `leftovers`\): spawn the `cdk:codebase-explorer` subagent \(fallback: a read-only subagent that locates the affected code with Read, Glob, Grep; run no command\)/m.test(
@@ -1197,11 +1202,11 @@ describe('implement-spec policy', () => {
       );
     const ret =
       /^- \*\*Explorer\*\* .*Return: `Target:`, `Refs:` \(`- <path>:<line> — <what it shows>`\), `Question:` only when needed\./m.test(
-        skill
+        spawns
       );
     const question =
-      /^- \*\*Explorer\*\* .*A `Question:` return → ask the user and re-spawn with the answer \(counts toward the `Question:` or `blocked` cap; `--yes`: the needs-input rule in Flags\)\. A malformed block → respawn once, then the inline fallback/m.test(
-        skill
+      /^- \*\*Explorer\*\* .*A `Question:` return → ask the user and re-spawn with the answer \(counts toward the `Question:` or `blocked` cap; `--yes`: the needs-input rule in `SKILL\.md` Flags\)\. A malformed block → respawn once, then the inline fallback/m.test(
+        spawns
       );
     const refs = /^- \*\*Planner\*\* .*the explorer's `Refs` as evidence \(data\) when step 2 ran it/m.test(skill);
     const caps =
@@ -1219,6 +1224,7 @@ describe('implement-spec policy', () => {
   test('step 6b runs a leftovers search that lists leftovers under Open and never edits them', () => {
     // Arrange
     const skill = skillMd();
+    const spawns = spawnsMd();
     const validate = skillFile('references', 'validate.md');
     // Act
     const step =
@@ -1233,11 +1239,12 @@ describe('implement-spec policy', () => {
       /^- Leftover search: when the change renamed or removed identifiers .*List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items\./m.test(
         validate
       );
-    const pointer =
-      /^- \*\*Explorer\*\* .*Brief and Return for `leftovers`: `\$\{CLAUDE_SKILL_DIR\}\/references\/validate\.md` Leftover search\.$/m.test(
-        skill
-      );
-    const explorerLine = skill.split('\n').find((l) => l.startsWith('- **Explorer**')) ?? '';
+    const pointer = /^- \*\*Explorer\*\* .*Brief and Return for `leftovers`: `validate\.md` Leftover search\.$/m.test(
+      spawns
+    );
+    const explorerLine = [skill, spawns]
+      .map((text) => text.split('\n').find((l) => l.startsWith('- **Explorer**')) ?? '')
+      .join('\n');
     const edits = /leftover[^\n]*(fix list|apply it)/i.test(explorerLine);
     // Assert
     assert.ok(explorerLine.length > 0, 'Explorer bullet missing');
@@ -1246,6 +1253,36 @@ describe('implement-spec policy', () => {
     assert.ok(pointer, 'Explorer bullet does not point to validate.md Leftover search');
     assert.ok(detail, 'validate.md leftover search rule missing');
     assert.equal(edits, false, 'Explorer bullet routes a leftover to a fix');
+  });
+
+  test('SKILL.md points the Explorer and Verifier bullets and the Files list at spawns.md', () => {
+    // Arrange
+    const skill = skillMd();
+    const spawns = spawnsMd();
+    // Act
+    const explorer =
+      /^- \*\*Explorer\*\* .*\(read-only: Read, Glob, Grep\)\. Brief, Return, and fallback: `\$\{CLAUDE_SKILL_DIR\}\/references\/spawns\.md` Explorer\.$/m.test(
+        skill
+      );
+    const verifier =
+      /^- \*\*Verifier\*\* .*spawn the `cdk:change-verifier` subagent \(fallback: a read-only subagent that verifies the change against the goals\) \(Read, Grep, Glob, Bash\)\. Brief, Return, and fallback: `\$\{CLAUDE_SKILL_DIR\}\/references\/spawns\.md` Verifier\.$/m.test(
+        skill
+      );
+    const files =
+      /^- For the Explorer and Verifier briefs, return blocks, and inline fallbacks \(steps 2, 5c, 6b, and 7\), see `\$\{CLAUDE_SKILL_DIR\}\/references\/spawns\.md`\.$/m.test(
+        skill
+      );
+    const heading = /^# Spawn briefs$/m.test(spawns);
+    const shared =
+      /^The shared rules \(Question, 60-line cap, malformed block, fallback\) are in `SKILL\.md` `## Spawn briefs`\.$/m.test(
+        spawns
+      );
+    // Assert
+    assert.ok(explorer, 'Explorer pointer to spawns.md missing');
+    assert.ok(verifier, 'Verifier pointer to spawns.md missing');
+    assert.ok(files, 'Files bullet for spawns.md missing');
+    assert.ok(heading && shared, 'spawns.md heading or shared-rules line missing');
+    assert.equal(spawns.includes('${CLAUDE_SKILL_DIR}'), false, 'spawns.md uses a nested reference path');
   });
 
   test('evals.md has the explorer-locate and explorer-leftovers cases', () => {

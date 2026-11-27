@@ -1,6 +1,6 @@
 # Review
 
-Detail for steps 5d (plan review), 6c (changed-file review), 7e (open items), and the step 7b fix list. Spawn briefs and caps are in `SKILL.md`.
+Detail for steps 5d (plan review), 6c (changed-file review), 7e (open items), and the step 7b fix list. Spawn briefs and caps are in `SKILL.md` and `spawns.md`.
 
 ## Contents
 

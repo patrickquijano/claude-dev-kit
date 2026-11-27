@@ -1,6 +1,6 @@
 # Validate
 
-Detail for steps 6–8 (the reviews of steps 6c and 7e are in `review.md`): the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md`.
+Detail for steps 6–8 (the reviews of steps 6c and 7e are in `review.md`): the change-set check, the verifier, the implementer's fix loop, and the iteration. Spawn briefs are in `SKILL.md` and `spawns.md`.
 
 ## Verify
 
