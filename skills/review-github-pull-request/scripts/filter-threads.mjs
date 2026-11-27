@@ -20,9 +20,21 @@ async function runIfMain(metaUrl, fn, label) {
 }
 
 const PAGE = 100;
-// A GitHub login: alphanumerics and hyphens, with an optional `[bot]` suffix.
-const LOGIN = /^[A-Za-z0-9][A-Za-z0-9-]{0,38}(\[bot\])?$/;
-const same = (a, b) => Boolean(a) && Boolean(b) && String(a).toLowerCase() === String(b).toLowerCase();
+// A GitHub login: alphanumerics, hyphens, and underscores (EMU), with an optional `[bot]` suffix.
+const LOGIN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,38}(\[bot\])?$/;
+// `gh` reports a bot as `app/<name>`; GraphQL may report `<name>[bot]` or the bare `<name>`.
+const toLogin = (value) => value.replace(/^app\/(.+)$/, '$1[bot]');
+const bare = (login) =>
+  String(login)
+    .toLowerCase()
+    .replace(/^app\//, '')
+    .replace(/\[bot\]$/, '');
+const isBot = (login) => /^app\/|\[bot\]$/i.test(String(login));
+// `login` is a GraphQL login, `expected` a given one: a plain `expected` matches only itself; a bot-form one also matches the bare and `[bot]` forms.
+const same = (login, expected) =>
+  Boolean(login) &&
+  Boolean(expected) &&
+  (isBot(expected) ? bare(login) === bare(expected) : String(login).toLowerCase() === String(expected).toLowerCase());
 
 // Accepts the raw GraphQL response or a bare `nodes` array.
 export function threadNodes(json) {
@@ -68,7 +80,7 @@ export function classifyThreads({ nodes, author, self, head, marker }) {
     const last = t.lastComment?.nodes?.[0] ?? comments[comments.length - 1];
     const lastLogin = last?.author?.login;
     const authorRepliedBefore = comments.slice(1, -1).some((c) => same(c.author?.login, author));
-    const authorLast = !same(self, author) && same(lastLogin, author);
+    const authorLast = !same(author, self) && same(lastLogin, author);
     const isJudged =
       resolved ||
       authorLast ||
@@ -99,15 +111,16 @@ const realDeps = {
 // CLI body; returns the exit code.
 export function main(argv, deps = {}) {
   const d = { ...realDeps, ...deps };
-  const [file, author, self, head, marker] = ['--file', '--author', '--self', '--head', '--marker'].map((n) =>
+  const [file, rawAuthor, rawSelf, head, marker] = ['--file', '--author', '--self', '--head', '--marker'].map((n) =>
     arg(argv, n)
   );
-  if (argv[0] !== 'filter' || !file || !author || !self || !head || !marker) {
+  if (argv[0] !== 'filter' || !file || !rawAuthor || !rawSelf || !head || !marker) {
     d.error(
       'usage: filter-threads.mjs filter --file <json> --author <login> --self <login> --head <sha> --marker <text>'
     );
     return 2;
   }
+  const [author, self] = [rawAuthor, rawSelf].map(toLogin);
   if (![author, self].every((login) => LOGIN.test(login))) {
     d.error('filter-threads: --author and --self must be GitHub logins');
     return 2;

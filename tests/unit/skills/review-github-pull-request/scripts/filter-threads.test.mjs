@@ -314,6 +314,104 @@ describe('main', () => {
     assert.deepEqual([code, err.length], [2, 1]);
   });
 
+  test('accepts an EMU login with an underscore', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'jane_acme', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('maps an app/<name> author to <name>[bot] for the author comparison', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'app/dependabot', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([thread({ last: 'dependabot[bot]' })]));
+    // Assert
+    assert.deepEqual([code, JSON.parse(out[0]).judged.map((t) => t.authorLast)], [0, [true]]);
+  });
+
+  test('matches a bare or [bot] last commenter against an app/<name> author', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'app/dependabot', '--self', 'me', '--head', HEAD];
+    // Act
+    const codes = ['dependabot', 'dependabot[bot]'].map((last) => {
+      out = [];
+      const code = main([...argv, '--marker', MARKER], deps([thread({ last })]));
+      return [code, JSON.parse(out[0]).judged.map((t) => t.authorLast)];
+    });
+    // Assert
+    assert.deepEqual(codes, [
+      [0, [true]],
+      [0, [true]]
+    ]);
+  });
+
+  test('does not match a different bot name against an app/<name> author', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'app/dependabot', '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([thread({ last: 'renovate[bot]' })]));
+    // Assert
+    assert.deepEqual([code, JSON.parse(out[0]).judged], [0, []]);
+  });
+
+  test('does not match a plain self login against a [bot] thread opener', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', 'dependabot', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([thread({ opener: 'dependabot[bot]', last: 'dev' })]));
+    // Assert
+    const result = JSON.parse(out[0]);
+    assert.deepEqual([code, result.judged, result.ignored], [0, [], 1]);
+  });
+
+  test('accepts a 39-character login with an underscore', () => {
+    // Arrange
+    out = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'a_' + 'b'.repeat(37), '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('rejects a login of 40 characters and exits 2', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'a'.repeat(40), '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.deepEqual([code, err.length], [2, 1]);
+  });
+
+  test('rejects an author with a space or quote and exits 2', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', "de v'", '--self', 'me', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.deepEqual([code, err.length], [2, 1]);
+  });
+
+  test('rejects an app/ value that maps to an invalid login and exits 2', () => {
+    // Arrange
+    err = [];
+    const argv = ['filter', '--file', 'f.json', '--author', 'dev', '--self', 'app/-bad', '--head', HEAD];
+    // Act
+    const code = main([...argv, '--marker', MARKER], deps([]));
+    // Assert
+    assert.deepEqual([code, err.length], [2, 1]);
+  });
+
   test('reports usage and exits 2 on an unknown command', () => {
     // Arrange
     err = [];

@@ -131,6 +131,10 @@ export function main(argv, deps = {}) {
     d.error('--author must be a GitLab username: [A-Za-z0-9_][A-Za-z0-9._-]{0,254}');
     return 2;
   }
+  if (!AUTHOR.test(self)) {
+    d.error('--self must be a GitLab username: [A-Za-z0-9_][A-Za-z0-9._-]{0,254}');
+    return 2;
+  }
   const nodes = discussionNodes(JSON.parse(d.readFileSync(file, 'utf8')));
   d.log(JSON.stringify({ ok: true, ...classifyThreads({ nodes, author, self, head, marker }) }));
   return 0;
