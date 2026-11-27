@@ -24,7 +24,7 @@
 | not-checked-informational | A subagent with no `model`, `effort`, or `color` | Marks conditional checks Not checked | F9 is Not checked with a reason, and F8 is a Fail (house rule: always set); E1–E2 Not checked; a Not checked is neither a Pass nor a Fail |
 | plugin-scope-fields | A plugin agent that sets `hooks` or `permissionMode` | Fails T4 | T4 Fail with the exact `file:line` and a fix that removes the field |
 | version-gated-unverified | A subagent that sets `omitClaudeMd`, Claude Code version unknown | Never passes the gated field | F10 is Not checked with `Unverified: Claude Code version unknown` |
-| scorer-missing | `cdk:rubric-scorer` is unavailable | Skips the score | `Not scored: definition not found`; the audit and the fixes go on |
+| scorer-missing | `cdk:rubric-scorer` is unavailable | Skips the score | `Not scored: scorer unavailable`; the audit and the fixes go on |
 | scorer-mismatch | A scorer return whose Fail count differs from the report | Respawns once | One respawn; still wrong → `Not scored: <reason>` |
 | plugin-batch | `/cdk:audit-subagent <plugin dir>` with one failing subagent | Audits every subagent | One combined report; the Fail never stops another subagent; a score table per subagent |
 | approval-per-subagent | A plugin batch with Fails in two subagents | Asks once per subagent | One multi-select question per subagent, at most 4 options per question and 4 questions per call |

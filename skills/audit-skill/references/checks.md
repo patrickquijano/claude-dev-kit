@@ -11,7 +11,7 @@
 - Fail only for a defect that changes what the skill does, when it triggers, a safety stop, whether its result can be verified, or its token cost. Wording, voice, and style are Pass.
 - Judgment rows (Q1, Q4, Q8) are Fail only when you can name the concrete wrong action a model would take; two contradicting lines need both quoted with `file:line`.
 - Never check, propose, or fix `disable-model-invocation` or `user-invocable`.
-- Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand; it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text. Its JSON gives `lines`, `chars`, `words`, and the same counts below the frontmatter (`bodyLines`, `bodyChars`). Skip `*.bak` files.
+- Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand; it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text. Its JSON gives `lines`, `chars`, `words`, and the same counts below the frontmatter (`bodyLines`, `bodyChars`), plus `descriptionChars` and `whenToUseChars` for the frontmatter `description:` and `when_to_use:` values (0 when absent; single-line values and `>`/`|` block scalars only; a multi-line plain or quoted value counts its first line only). Skip `*.bak` files.
 
 ## Frontmatter
 

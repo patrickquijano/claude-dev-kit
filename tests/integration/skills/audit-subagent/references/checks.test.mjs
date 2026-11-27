@@ -50,7 +50,13 @@ describe('audit-subagent checks.md copied facts', () => {
 
   test('a drifted colour list or gate row is detected', () => {
     // Arrange
-    const drifted = checks.replace('v2.1.302', 'v2.1.303').replace('`pink`, ', '');
+    const gateRow = gateRows(checks)[0];
+    const version = /^\| (v\d+\.\d+\.\d+) /.exec(gateRow)[1];
+    const f9Original = checks.split('\n').find((line) => line.startsWith('| F9 '));
+    const colour = ticked(f9Original.split('|')[4])[0];
+    const drifted = checks
+      .replace(gateRow, gateRow.replace(version, `${version}9`))
+      .replace(f9Original, f9Original.replace(`\`${colour}\`, `, ''));
     // Act
     const gatesMatch = gateRows(drifted).join('\n') === gateRows(snapshot).join('\n');
     const f9Row = drifted.split('\n').find((line) => line.startsWith('| F9 '));

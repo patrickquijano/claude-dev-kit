@@ -21,7 +21,7 @@ describe('audit-subagent follows the checklist model', () => {
     'names the report-only flag in the hint':
       /^argument-hint: '\[--yes\] \[--report-only\] \[subagent file or plugin directory path\]'$/m,
     'allows only the audit tools and backup writes':
-      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(claude plugin validate \*\)$/m,
+      /^allowed-tools: Read Glob Grep Edit\(\*\*\/\*\.bak\) AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(claude plugin validate \*\)$/m,
     'has the cannot-interact path':
       /^- Ask with AskUserQuestion\. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`\. Only `--yes` takes the Recommended option\./m,
     'names the neighbour exclusions in the description':
@@ -66,7 +66,7 @@ describe('audit-subagent follows the checklist model', () => {
     'runs plugin validate only for a plugin directory':
       /^ {3}- Run `claude plugin validate <plugin dir>` for O1 only on a plugin directory; if it cannot run, O1 is Not checked\./m,
     'reads the scorer definition once and reports not scored':
-      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5\.$/m,
+      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5\.$/m,
     'spawns the scorer per subagent in parallel with kind subagent-checklist':
       /^ {3}- Spawn one `cdk:rubric-scorer` per subagent in parallel in one message, kind `subagent-checklist`/m,
     'respawns once on a scorer mismatch':
@@ -504,7 +504,7 @@ describe('audit-subagent evals cover routing and behavior', () => {
       /^\| backups-beside-file \|[^\n]*`<file>\.bak` beside the subagent file, never `\.md`/m,
       /^\| implement-conflict-stops \|[^\n]*`Stopped: 6: implement-spec conflict`/m,
       /^\| reaudit-still-fail \|[^\n]*`Stopped: 7: still failing`/m,
-      /^\| scorer-missing \|[^\n]*`Not scored: definition not found`/m,
+      /^\| scorer-missing \|[^\n]*`Not scored: scorer unavailable`/m,
       /^\| default-flow \|[^\n]*kind `subagent-checklist`/m
     ];
     // Assert

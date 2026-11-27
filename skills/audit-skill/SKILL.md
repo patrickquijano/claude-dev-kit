@@ -3,7 +3,7 @@ name: audit-skill
 description: Audits a skill or plugin against a Pass / Fail / Not checked checklist, fixes approved Fails. Use when asked to audit, review, check, or score a skill. Not for building skills or auditing subagents.
 argument-hint: '[--yes] [--report-only] [skill or plugin directory path]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep Write AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(command -v skills-ref) Bash(skills-ref validate *)
+allowed-tools: Read Glob Grep AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(command -v skills-ref) Bash(skills-ref validate *)
 ---
 
 # Audit Skill
@@ -38,7 +38,7 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
    - Run `skills-ref validate <dir>` only when `command -v skills-ref` succeeds (O1); otherwise O1 is Not checked.
 3. **Report.** Print the report per `checks.md`: first line the totals, then one row per check. A Fail never stops another skill; a plugin run prints one combined report.
 4. **Score.** Default mode only.
-   - `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5.
+   - `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5.
    - Spawn one `cdk:rubric-scorer` per skill in parallel in one message, kind `skill-checklist`, with the Scorer brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
    - Re-check each category's Fail count against the report and the overall average with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs --mean <score> …`; a missing, failed, or mismatching return → respawn once, then `Not scored: <reason>`.
 5. **Approve.** Default mode, at least one Fail.

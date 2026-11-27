@@ -13,7 +13,7 @@ describe('audit-skill follows the checklist model', () => {
     'names the report-only flag in the hint':
       /^argument-hint: '\[--yes\] \[--report-only\] \[skill or plugin directory path\]'$/m,
     'allows only the audit tools and scratchpad writes':
-      /^allowed-tools: Read Glob Grep Write AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(command -v skills-ref\) Bash\(skills-ref validate \*\)$/m,
+      /^allowed-tools: Read Glob Grep AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(command -v skills-ref\) Bash\(skills-ref validate \*\)$/m,
     'has the cannot-interact path':
       /^- Ask with AskUserQuestion\. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`\. Only `--yes` takes the Recommended option\./m,
     'does not ask to approve the implement-spec plan':
@@ -56,7 +56,7 @@ describe('audit-skill follows the checklist model', () => {
     'runs skills-ref only when present':
       /^ {3}- Run `skills-ref validate <dir>` only when `command -v skills-ref` succeeds \(O1\)/m,
     'reads the scorer definition once and reports not scored':
-      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5\.$/m,
+      /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5\.$/m,
     'spawns the scorer per skill in parallel with kind skill-checklist':
       /^ {3}- Spawn one `cdk:rubric-scorer` per skill in parallel in one message, kind `skill-checklist`/m,
     'respawns once on a scorer mismatch':
@@ -346,7 +346,7 @@ describe('audit-skill evals cover routing and behavior', () => {
       /^\| backups-scratchpad \|[^\n]*`<scratchpad>\/audit-skill-backups\/<skill>\/`, never beside the file/m,
       /^\| implement-conflict-stops \|[^\n]*`Stopped: 6: implement-spec conflict`/m,
       /^\| reaudit-still-fail \|[^\n]*`Stopped: 7: still failing`/m,
-      /^\| scorer-missing \|[^\n]*`Not scored: definition not found`/m
+      /^\| scorer-missing \|[^\n]*`Not scored: scorer unavailable`/m
     ];
     // Assert
     for (const pattern of found) assert.match(text, pattern);

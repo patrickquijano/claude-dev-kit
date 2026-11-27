@@ -3,7 +3,7 @@ name: audit-subagent
 description: Audits one subagent or every subagent in a plugin against a Pass / Fail / Not checked checklist, scores it 1–5 per category, and fixes approved Fails. Use when asked to audit, review, check, or score a subagent. Not for building a subagent or auditing skills.
 argument-hint: '[--yes] [--report-only] [subagent file or plugin directory path]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep Write AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(claude plugin validate *)
+allowed-tools: Read Glob Grep Edit(**/*.bak) AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(claude plugin validate *)
 ---
 
 # Audit Subagent
@@ -39,7 +39,7 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
    - Run `claude plugin validate <plugin dir>` for O1 only on a plugin directory; if it cannot run, O1 is Not checked.
 3. **Report.** Print the report per `checks.md`: first line the totals, then one row per check. A Fail never stops another subagent; a plugin run prints one combined report.
 4. **Score.** Default mode only.
-   - `cdk:rubric-scorer` unavailable → `Not scored: definition not found`, go to step 5.
+   - `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5.
    - Spawn one `cdk:rubric-scorer` per subagent in parallel in one message, kind `subagent-checklist`, with the Scorer brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`.
    - Re-check each category's Fail count against the report and the overall average with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs --mean <score> …`; a missing, failed, or mismatching return → respawn once, then `Not scored: <reason>`.
 5. **Approve.** Default mode, at least one Fail.
