@@ -50,6 +50,84 @@ test('runIfMain: skips fn when another script is the entry', async () => {
   assert.equal(calls.length, 0);
 });
 
+test('runIfMain: runs fn when a symlinked entry path resolves to the module', async () => {
+  // Arrange
+  const calls = [];
+  const argv = ['node', '/link/entry.mjs'];
+  const realpath = (p) => (p === '/link/entry.mjs' ? '/tmp/entry.mjs' : p);
+  // Act
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, argv, { realpath });
+  // Assert
+  assert.equal(calls.length, 1);
+});
+
+test('runIfMain: skips fn when a symlinked entry path resolves to another script', async () => {
+  // Arrange
+  const calls = [];
+  const argv = ['node', '/link/entry.mjs'];
+  const realpath = () => '/tmp/other.mjs';
+  // Act
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, argv, { realpath });
+  // Assert
+  assert.equal(calls.length, 0);
+});
+
+test('runIfMain: skips fn when the entry path does not exist', async () => {
+  // Arrange
+  const calls = [];
+  const realpath = () => {
+    throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+  };
+  // Act
+  await runIfMain(pathToFileURL('/tmp/entry.mjs').href, () => void calls.push(1), {}, ['node', '/tmp/other.mjs'], {
+    realpath
+  });
+  // Assert
+  assert.equal(calls.length, 0);
+});
+
+test('runIfMain: reports a realpath error that is not ENOENT at the boundary and skips fn', async () => {
+  // Arrange
+  const calls = [];
+  const seen = { err: [], exit: [] };
+  const realpath = () => {
+    throw Object.assign(new Error('denied'), { code: 'EACCES' });
+  };
+  const io = { realpath, stderr: (t) => seen.err.push(t), setExit: (c) => seen.exit.push(c) };
+  // Act
+  await runIfMain(
+    pathToFileURL('/tmp/entry.mjs').href,
+    () => void calls.push(1),
+    { label: 'gate', failCode: 2 },
+    ['node', '/tmp/entry.mjs'],
+    io
+  );
+  // Assert
+  assert.deepEqual(seen.err, ['cdk gate: denied\n']);
+  assert.deepEqual(seen.exit, [2]);
+  assert.equal(calls.length, 0);
+});
+
+test('runIfMain: failCode 0 prints a realpath error as a systemMessage and sets no exit code', async () => {
+  // Arrange
+  const seen = { out: [], exit: [] };
+  const realpath = () => {
+    throw Object.assign(new Error('denied'), { code: 'EACCES' });
+  };
+  const io = { realpath, stdout: (t) => seen.out.push(t), setExit: (c) => seen.exit.push(c) };
+  // Act
+  await runIfMain(
+    pathToFileURL('/tmp/entry.mjs').href,
+    () => undefined,
+    { label: 'stop', failCode: 0 },
+    ['node', '/tmp/entry.mjs'],
+    io
+  );
+  // Assert
+  assert.deepEqual(seen.out, ['{"systemMessage":"cdk stop: denied"}\n']);
+  assert.deepEqual(seen.exit, []);
+});
+
 test('runIfMain: skips fn when there is no entry script', async () => {
   // Arrange
   const calls = [];

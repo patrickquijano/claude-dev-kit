@@ -13,16 +13,27 @@ const oneLine = (err) =>
     .split('\n')[0]
     .slice(0, 300);
 
+// Real path of the entry script, so a symlinked path matches the real `import.meta.url`; a missing file keeps its path (it cannot be the running module).
+const entryPath = (path, realpath) => {
+  try {
+    return realpath(path);
+  } catch (err) {
+    if (!expected(err, 'ENOENT')) throw err;
+    return path;
+  }
+};
+
 // Entry-script error boundary: runs `fn` only when the module is the process entry, and a number it returns becomes the exit code.
 // On a throw it prints `cdk <label>: <message>` to stderr and exits `failCode` (default 1); `failCode: 0` is not a silent exit: it prints a stdout `systemMessage` JSON and sets no exit code (Stop hooks).
 export async function runIfMain(metaUrl, fn, { label = 'hook', failCode = 1 } = {}, argv = process.argv, io = {}) {
-  if (!argv[1] || metaUrl !== pathToFileURL(argv[1]).href) return;
   const {
     stderr = (text) => process.stderr.write(text),
     stdout = (text) => process.stdout.write(text),
-    setExit = (code) => (process.exitCode = code)
+    setExit = (code) => (process.exitCode = code),
+    realpath = realpathSync
   } = io;
   try {
+    if (!argv[1] || metaUrl !== pathToFileURL(entryPath(argv[1], realpath)).href) return;
     const code = await fn();
     if (typeof code === 'number') setExit(code);
   } catch (err) {
