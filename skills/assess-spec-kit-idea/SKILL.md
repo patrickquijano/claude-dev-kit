@@ -63,5 +63,5 @@ Brief: none
 Next: answer the blocking questions
 Open: Which roles may export more than 10,000 rows: the product owner decides; recommend admins only
 Result: stopped
-Stopped: Clarify: 2 re-runs, blocking questions open
+Stopped: 7: 2 re-runs, blocking questions open
 ```

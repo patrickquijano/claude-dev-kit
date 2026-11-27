@@ -14,7 +14,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask what the input and repo cannot answer (`--yes`: record it instead).
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:` (the unattended rules below apply). Only a flag the user passed counts; never add one.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:` (the `--yes` rules below apply). Only a flag the user passed counts; never add one.
 - The only spawn is the open-items classifier of step 10, the `cdk:speckit-open-items-analyzer` subagent (fallback: a read-only subagent that classifies open items).
 - Invoke each speckit skill (a third-party skill installed by `specify init`) with the Skill tool as `speckit-<command>`, in this main thread, never via the Agent tool (a subagent has no AskUserQuestion). One at a time, in the order below; wait for each to finish.
 - Relay every question a speckit skill asks to the user with AskUserQuestion. Pre-approved exceptions: accept the analyze remediation offer for non-CRITICAL findings only (step 9), and answer yes to the implement checklist prompt in every round (step 10); open checklist items are addressed after converge instead.
@@ -28,7 +28,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to install Spec Kit (`specify init`, or `specify integration install claude`; row `install-claude` in `commands.md`, never run here), `Result: stopped`, `Stopped: pre-flight: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the feature brief; `--yes` → `Result: stopped`, `Stopped: pre-flight: feature brief missing`, stop.
+1. **Pre-flight.** `.specify/` missing, or any dir in `${CLAUDE_SKILL_DIR}/references/required-skills.md` missing under `.claude/skills/` → name what is missing, tell the user to install Spec Kit (`specify init`, or `specify integration install claude`; row `install-claude` in `commands.md`, never run here), `Result: stopped`, `Stopped: 1: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the feature brief; `--yes` → `Result: stopped`, `Stopped: 1: feature brief missing`, stop.
 2. **Extract** three parts from the input: guiding principles, what and why (user-facing behavior and goals), implementation detail (tech stack, architecture, technical constraints). What and why missing → AskUserQuestion; third-party `speckit-specify` needs it. Implementation detail missing → plan infers it from the repo, no ask. No what and why or a cancelled question → `Result: cancelled`, `Stopped: <step>: user cancelled`, stop. Show the three parts in a short list.
 3. **Constitution.** Read `.specify/memory/constitution.md`; unfilled = missing or has placeholder tokens matching `\[[A-Z0-9_]+\]`.
    - Unfilled, principles extracted → run third-party `speckit-constitution <principles>`.

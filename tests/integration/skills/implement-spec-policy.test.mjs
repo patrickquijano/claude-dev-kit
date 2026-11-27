@@ -1160,7 +1160,6 @@ describe('implement-spec policy', () => {
       )
       .filter((file) => file.endsWith('.md') && !file.endsWith('evals.md'))
       .filter((file) => readFileSync(join(root, file), 'utf8').includes('`needs input`, `no input`'));
-    assert.ok(files.length >= 15, 'caller discovery found too few files');
     // Act
     const missing = files.filter(
       (file) =>
@@ -1169,6 +1168,7 @@ describe('implement-spec policy', () => {
         )
     );
     // Assert
+    assert.ok(files.length >= 15, 'caller discovery found too few files');
     assert.deepEqual(missing, [], 'caller does not list cannot interact as an input stop');
   });
 
@@ -1244,7 +1244,7 @@ describe('implement-spec policy', () => {
         skill
       );
     const brief =
-      /^- Leftover search: .*Brief for `leftovers`: kind `leftovers`, root, the changed file paths, the old identifiers \(old API names, stale keys, deprecated options\)\. Return: `Leftovers:` as `- <path>:<line> — <old identifier>`, `Result: <n found \| none>`\. List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items; it never enters a step 8 re-plan\. A malformed block → respawn once, then `Leftovers: unchecked` under `Open:`\. Unavailable → Grep the old identifiers inline, same Return\./m.test(
+      /^- Leftover search: .*Brief for `leftovers`: kind `leftovers`, root, the changed file paths, the old identifiers \(old API names, stale keys, deprecated options\)\. Return: `Leftovers:` as `- <path>:<line> — <old identifier>`, `Result: <n found \| none>`\. List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items; it never enters a step 8 re-plan\. A malformed block → respawn once; a malformed respawn → Grep the old identifiers inline, same Return; if that cannot run, `Leftovers: unchecked` under `Open:`\. Unavailable → Grep the old identifiers inline, same Return\./m.test(
         validate
       );
     const detail =
@@ -1285,7 +1285,7 @@ describe('implement-spec policy', () => {
     const spawns = spawnsMd();
     // Act
     const explorer =
-      /^- \*\*Explorer\*\* .*\(read-only: Read, Glob, Grep\)\. Brief, Return, and fallback: `\$\{CLAUDE_SKILL_DIR\}\/references\/spawns\.md` Explorer\.$/m.test(
+      /^- \*\*Explorer\*\* .*\(read-only: Read, Glob, Grep, read-only `git`\)\. Brief, Return, and fallback: `\$\{CLAUDE_SKILL_DIR\}\/references\/spawns\.md` Explorer\.$/m.test(
         skill
       );
     const verifier =
