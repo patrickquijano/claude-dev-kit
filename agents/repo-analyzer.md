@@ -209,13 +209,13 @@ Gaps: <topic, ... | none>
 
 A required input missing → `Question: <what is needed and why>` instead.
 
-Size cap: at most 150 lines; a list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs conclusions, not a file dump.
+Size cap: at most 150 lines; a list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs conclusions, not a file dump. The `Instructions:` and `Tracked but ignored:` lists stay full, because the caller audits every entry and a cut entry is never checked.
 
 Filled Return (`gitignore`):
 
 ```text
 Root: /repo
-Explored: 42 files, stacks node
+Explored: 38 files, stacks node
 Candidates:
 - dist/ — build output — dist/ exists, not ignored — high
 Skipped: none

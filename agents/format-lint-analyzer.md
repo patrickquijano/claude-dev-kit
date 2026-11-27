@@ -40,8 +40,8 @@ Config files (configured = any listed file exists, or a `package.json` key) and 
 - Ruff `ruff.toml` or `[tool.ruff]`: `ruff check .`. Black `[tool.black]`: `black --check .`. Flake8 `.flake8`: `flake8 .`.
 - Pint `pint.json`: `vendor/bin/pint --test`. PHP-CS-Fixer `.php-cs-fixer.dist.php`: `vendor/bin/php-cs-fixer fix --dry-run --diff`. PHPStan `phpstan.neon*`: `vendor/bin/phpstan analyse --no-progress`. PHP_CodeSniffer `phpcs.xml*`, `.phpcs.xml*`: `vendor/bin/phpcs`.
 - CSharpier `.csharpierrc*`: `dotnet csharpier check .`. `dotnet format` (`.editorconfig`): `dotnet format style --verify-no-changes`, `dotnet format analyzers --verify-no-changes`. gofmt: `gofmt -l .`; `go vet`: `go vet ./...`. xmllint: `xmllint --noout <XML files>`. xmlstarlet: no check.
-- Taplo `.taplo.toml`: `<x> taplo fmt --check` (formatter), `<x> taplo check` (linter). TFLint `.tflint.hcl`: `tflint --recursive`. `terraform fmt`: `terraform fmt -check -recursive`. rustfmt: `cargo fmt --all -- --check`. Clippy: `cargo clippy -- -D warnings`.
-- Tools with no config need none: ShellCheck, shfmt, Ruff, Black, Flake8, gofmt, `go vet`, xmllint, `dotnet format`, `terraform fmt`, rustfmt, Clippy count as configured only when installed (`command -v`, or listed in `dependencies`, `devDependencies`, `require-dev`, or `.config/dotnet-tools.json`).
+- Taplo `.taplo.toml`, `taplo.toml`: `<x> taplo fmt --check` (formatter), `<x> taplo check` (linter). TFLint `.tflint.hcl`: `tflint --recursive`. `terraform fmt`: `terraform fmt -check -recursive`. rustfmt: `cargo fmt --all -- --check`. Clippy: `cargo clippy -- -D warnings`.
+- Tools with no config need none: ShellCheck, shfmt, Ruff, Black, Flake8, gofmt, `go vet`, xmllint, `dotnet format`, `terraform fmt`, rustfmt, Clippy count as configured only when installed (`command -v <binary>`: `cargo-clippy` for Clippy, `go` for `go vet`, `dotnet` for `dotnet format`, `terraform` for `terraform fmt`, else the tool name; or listed in `dependencies`, `devDependencies`, `require-dev`, or `.config/dotnet-tools.json`).
 
 ## Package manager
 
@@ -77,7 +77,7 @@ Problems: <tool: first 3 problem lines>, … | none
 Gaps: <fact not derivable — why>, … | none
 ```
 
-Size cap: at most 40 lines; a path list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs counts and pointers, not file dumps.
+Size cap: at most 40 lines; a path list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs counts and pointers, not file dumps. The `Lists:` paths stay full, because the caller acts on every listed path and a cut path is silently skipped.
 
 Filled Return (`detect`):
 

@@ -35,7 +35,7 @@ Open items: <count> | none
    b) <approach> — <files> (code: yes | no)
 ```
 
-Size cap: at most 40 items; more → list the first 40 in the order of step 4 and end with `+<n> more items`, because the caller reads conclusions, not raw material.
+Size cap: none on the item list, which is never cut, because the caller chooses or applies a fix for every item and a dropped item is never addressed.
 
 Filled Return:
 

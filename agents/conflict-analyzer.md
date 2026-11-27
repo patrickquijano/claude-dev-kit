@@ -41,7 +41,7 @@ Hunks:
 Recommendation: ours | theirs | combined — <one sentence justification>
 ```
 
-Size cap: at most 12 lines per hunk and 15 hunks; more hunks → list the first 15 and end with `+<n> more hunks`, because the caller resolves one file at a time.
+Size cap: at most 12 lines per hunk and 15 hunks; more hunks → list the first 15 and end with `+<n> more hunks`, because the caller resolves one file at a time. The 12-line cap does not apply to `combined:`, which is never elided, because the caller writes that text into the file as is.
 
 Filled Return:
 
@@ -54,7 +54,7 @@ Hunks:
   theirs: adds a `timeout` argument to `load`
   recommend: combined
   why: both intents are independent
-  combined: export function read(path, timeout) { … }
-  risk: other callers of `load` need the rename
+  combined: export function read(path, timeout) { return load(path, { timeout }); }
+  risk: the rename of `load` to `read` is kept, so other callers of `load` need the rename
 Recommendation: combined — each side changes a different part of the call
 ```
