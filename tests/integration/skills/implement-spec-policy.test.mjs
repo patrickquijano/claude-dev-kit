@@ -1221,6 +1221,18 @@ describe('implement-spec policy', () => {
     assert.ok(caps, 'Caps line misses the explorer spawn');
   });
 
+  test('the Explorer subagent-unavailable fallback runs no command', () => {
+    // Arrange
+    const spawns = spawnsMd();
+    // Act
+    const clause =
+      /^- \*\*Explorer\*\* .*then the inline fallback: .*a subagent unavailable → the same inline fallback with Read, Glob, Grep; run no command, no failure\. Brief and Return for `leftovers`/m.test(
+        spawns
+      );
+    // Assert
+    assert.ok(clause, 'Explorer fallback misses run no command');
+  });
+
   test('step 6b runs a leftovers search that lists leftovers under Open and never edits them', () => {
     // Arrange
     const skill = skillMd();
