@@ -47,7 +47,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Required inputs: README path, rubric path, archetype, facts block, `Omitted:` list.
 - Criteria: S1 S2 S3 S4 P1 P2 P3 G1 G2 G3 U1 U2 U3 A1 A2 A3 F1 F2 L1 L2 C1 C2.
 - Spot checks:
-  - A1: each command in README exists in manifest scripts, Makefile targets, bins, facts `Commands`, or external tools (`command -v <tool>` only).
+  - A1: each command in README exists in manifest scripts, Makefile targets, bins, facts `Commands`, or external tools (`command -v <tool>` only, run only when the tool name matches `^[A-Za-z0-9._+][A-Za-z0-9._+-]*$`, otherwise A1 unverified).
   - A2: README component list vs facts `Components`; name each missing and extra; scripts inside a component directory belong to it, not extra units.
   - U3: score facts `Config` user items only; internal items are not units.
   - L1: each relative link target exists; anchors match a heading slug per facts `Host`.
@@ -59,7 +59,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Spot checks:
   - Z1: count non-blank lines of `CLAUDE.md`, its `@imports`, rules without `paths`, and ancestor `CLAUDE.md` files; evidence `<project n> + <ancestor n>`.
   - Z2: each `paths` glob matches ≥1 file in `git -C <root> ls-files` (not a git repo → Glob, or facts `Rule globs` counts).
-  - A1: each command exists in manifest scripts, Makefile targets, bins, CI jobs, hook scripts, facts `Commands`, or installed tools (`command -v <tool>` only; no other execution).
+  - A1: each command exists in manifest scripts, Makefile targets, bins, CI jobs, hook scripts, facts `Commands`, or installed tools (`command -v <tool>` only, same name pattern as the `readme` A1 check, otherwise unverified; no other execution).
   - A2: each referenced repo path exists.
   - P2: compare against facts `Conflicts` and re-check across all files.
   - E1: principles lines = unconditional rules and `CLAUDE.md`, incl. the Precedence trade-off order. Defaults come from the principles path's `## Trade-off order` and `## Default requirements`. Check each:
@@ -75,7 +75,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 ## Return
 
 ```text
-Score: <n>/100 (pass | below <the rubric's pass mark>)
+Score: <n>/100 (pass | below <pass mark>)
 | ID | Pts | Max | Evidence |
 | <ID> | 5 | 5 | <short, file:line> |
 ...
@@ -84,4 +84,4 @@ Deductions (largest first):
 Waived: <ID file:line — reason, … | none>
 ```
 
-`readme` and `project-instructions` use this format; `skill-checklist` and `subagent-checklist` use their own format under `## Kinds`. A required input missing → `Question: <what is needed and why>` instead.
+`<pass mark>` is the number after `Pass ≥` in the rubric (95 for both). `readme` and `project-instructions` use this format; `skill-checklist` and `subagent-checklist` use their own format under `## Kinds`. A required input missing → `Question: <what is needed and why>` instead.

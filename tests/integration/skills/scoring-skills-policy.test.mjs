@@ -454,12 +454,13 @@ describe('update-readme scorer runs command -v on a safe name only', () => {
     // Arrange
     const text = readRel('skills/update-readme/references/spawns.md');
     // Act
-    const spawn = /^Spawn the `cdk:rubric-scorer` subagent .*Bash for `command -v <tool>` only\)\./m;
+    const spawn =
+      /^Spawn the `cdk:rubric-scorer` subagent .*Bash for `command -v <tool>` and the `node -e` sum only\)\./m;
     const check =
       /^- A1: .*run only when the tool name matches `\^\[A-Za-z0-9\._\+\]\[A-Za-z0-9\._\+-\]\*\$`, otherwise mark A1 unverified\)\./m;
     const old = /\^\[A-Za-z0-9\._\+-\]\+\$/;
     // Assert
-    assert.match(text, spawn, 'spawn line should end at command -v only');
+    assert.match(text, spawn, 'spawn line should end at command -v and the node -e sum only');
     assert.match(text, check, 'name check on command -v missing at A1');
     assert.doesNotMatch(text, old, 'old name pattern still present');
   });
