@@ -27,7 +27,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Core and assess skill dirs must exist (`${CLAUDE_SKILL_DIR}/references/required-skills.md`); empty input → AskUserQuestion for the idea. Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
+1. **Pre-flight.** Core and assess skill dirs must exist (`${CLAUDE_SKILL_DIR}/references/required-skills.md`); empty input → AskUserQuestion for the idea (`--yes`: `Result: stopped`, `Stopped: 1: no idea`). Detail: `${CLAUDE_SKILL_DIR}/references/flow.md` `## Pre-flight`.
 2. **Extract.** Pull the idea, requester, URLs, tickets, paths; show it in 1-2 lines. None given or cancel → `Result: cancelled`.
 3. **Intake.** Run the third-party `speckit-assess-intake <idea>`; take the slug from its `Slug:` line.
 4. **Research, define, shape.** Run the third-party `speckit-assess-research`, `-define`, `-shape`, each with `slug=<slug>`.

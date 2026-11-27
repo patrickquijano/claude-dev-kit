@@ -2,7 +2,7 @@
 
 ## Pre-flight
 
-`.specify/` missing, or any dir in `required-skills.md` missing → name the missing ones, tell the user to install Spec Kit (`specify init`) and its Claude integration, `Result: stopped`, `Stopped: 1: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the idea.
+`.specify/` missing, or any dir in `required-skills.md` missing → name the missing ones, tell the user to install Spec Kit (`specify init`) and its Claude integration, `Result: stopped`, `Stopped: 1: Spec Kit not set up`, stop. Input empty → AskUserQuestion for the idea; with `--yes` → `Result: stopped`, `Stopped: 1: no idea`, print the Output, stop.
 
 ## Extract
 

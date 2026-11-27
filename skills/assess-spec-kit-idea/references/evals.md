@@ -11,3 +11,4 @@ Run each case on Haiku, Sonnet, and Opus.
 | no-go-section | "Vet this idea with Spec Kit: <go verdict, decision.md lacks `## If go`>" | Stops at hand off | `Next: none`, `Stopped: 6: no If go section` |
 | first-pass-overwrite | "Vet this idea with Spec Kit --yes: <idea>" (the slug already holds an assessment, a speckit step asks to overwrite) | Does not overwrite | The overwrite prompt is answered no; the earlier assessment files are unchanged; `Result: stopped`; the slug is listed under `Open:` |
 | no-approval-step | "Vet this idea with Spec Kit: add dark mode" | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| yes-no-idea | "/cdk:assess-spec-kit-idea --yes" (no idea text) | Stops without a question | No question asked; `Result: stopped`; `Stopped: 1: no idea`; no file written |
