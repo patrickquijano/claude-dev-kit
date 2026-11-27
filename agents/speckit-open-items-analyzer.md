@@ -13,7 +13,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from the prompt: feature dir, round `<n> of 5`, skip list, findings not yet fixed (passed in the prompt), converge's report (status and appended tasks), and paths to `spec.md`, `plan.md`, `tasks.md`, `checklists/*.md`. Converged = converge's report says converged and lists no appended tasks. Feature dir or a file not found → return `Question: <what is missing>` and stop.
+1. Inputs from the prompt: feature dir, round `<n> of <max>` (both numbers supplied by the caller), skip list, findings not yet fixed (passed in the prompt), converge's report (status and appended tasks), and paths to `spec.md`, `plan.md`, `tasks.md`, `checklists/*.md`. Converged = converge's report says converged and lists no appended tasks. Feature dir or a file not found → return `Question: <what is missing>` and stop.
 2. Collect open items, leaving out every item on the skip list:
    - Findings passed in the prompt; CRITICAL severity → `CRITICAL finding`, else `other finding`. Locate each in the file it names.
    - `unchecked checklist`: each `- [ ]` line in `checklists/*.md`.
@@ -27,7 +27,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ```text
 Question: <what is missing> | omit when no input is missing
-Round: <n> of 5
+Round: <n> of <max> (as supplied)
 Converged: yes | no (<k> tasks appended)
 Open items: <count> | none
 <i>. [<class>] <file>:<line> — <item text>
@@ -41,7 +41,7 @@ Filled Return:
 
 ```text
 Round: 2 of 5
-Converged: no (1 tasks appended)
+Converged: no (2 tasks appended)
 Open items: 1
 1. [CRITICAL finding] specs/001/spec.md:42 — FR-3 has no acceptance test
    a) Add a test task for FR-3 — specs/001/tasks.md (code: yes) (Recommended: the plan already covers FR-3)
