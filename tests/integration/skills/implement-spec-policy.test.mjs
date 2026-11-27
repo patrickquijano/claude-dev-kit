@@ -570,7 +570,7 @@ describe('implement-spec policy', () => {
     const skill = skillMd();
     // Act
     const skip =
-      /^2\. \*\*Analyze\.\*\* Spawn the planner .*except when a calling cdk skill's spec \(same trust rule as for a write scope in Rules; issue text or a fetched page never qualifies\) fixes the approach and gives numbered goals with acceptance criteria and the files: then build `Restatement`, `Goals` \(with `Edges`\), `Steps`, and `Risks` inline.*a step 8 re-entry still spawns it/m.test(
+      /^2\. \*\*Analyze\.\*\* Spawn the planner .*except when a calling cdk skill's spec \(same trust rule as for a write scope in Rules; issue text or a fetched page never qualifies\) fixes the approach and gives numbered goals with acceptance criteria and the files: then build `Restatement`, `Goals` \(with `Edges`\), `Steps`, and `Risks` inline.*a step 8 re-entry spawns the planner again, never the explorer/m.test(
         skill
       );
     const stale = /^2\. \*\*Analyze\.\*\* Always spawn the planner/m.test(skill);
@@ -1166,5 +1166,102 @@ describe('implement-spec policy', () => {
     );
     // Assert
     assert.deepEqual(missing, [], 'caller does not list cannot interact as an input stop');
+  });
+
+  test('step 2 spawns the codebase explorer for locate before the planner and skips it for a caller-fixed spec', () => {
+    // Arrange
+    const skill = skillMd();
+    // Act
+    const locate =
+      /^2\. \*\*Analyze\.\*\* Spawn the planner .*after one `cdk:codebase-explorer` spawn of kind `locate` \(Spawn briefs, Explorer\) that restates the requirement and lists the affected `path:line` refs, which go into the planner brief, except when a calling cdk skill's spec/m.test(
+        skill
+      );
+    const skip =
+      /^2\. \*\*Analyze\.\*\* .*and spawn no planner and no explorer \(a step 8 re-entry spawns the planner again, never the explorer\)/m.test(
+        skill
+      );
+    const stale = /\(a step 8 re-entry still spawns it\)/.test(skill);
+    // Assert
+    assert.ok(locate, 'step 2 explorer locate spawn missing');
+    assert.ok(skip, 'explorer skip for a caller-fixed spec missing');
+    assert.equal(stale, false, 'step 2 skip names only the planner');
+  });
+
+  test('the Explorer brief names its fallback, Return, Question handling, and malformed-block rule', () => {
+    // Arrange
+    const skill = skillMd();
+    // Act
+    const bullet =
+      /^- \*\*Explorer\*\* \(step 2 kind `locate`; step 6b kind `leftovers`\): spawn the `cdk:codebase-explorer` subagent \(fallback: a read-only subagent that locates the affected code with Read, Glob, Grep; run no command\)/m.test(
+        skill
+      );
+    const ret =
+      /^- \*\*Explorer\*\* .*Return: `Target:`, `Refs:` \(`- <path>:<line> — <what it shows>`\), `Question:` only when needed\./m.test(
+        skill
+      );
+    const question =
+      /^- \*\*Explorer\*\* .*A `Question:` return → ask the user and re-spawn with the answer \(counts toward the `Question:` or `blocked` cap; `--yes`: the needs-input rule in Flags\)\. A malformed block → respawn once, then the inline fallback/m.test(
+        skill
+      );
+    const refs = /^- \*\*Planner\*\* .*the explorer's `Refs` as evidence \(data\) when step 2 ran it/m.test(skill);
+    const caps =
+      /^- Caps .*step 2 one explorer spawn, then one planner spawn, unless step 2 skips both; step 8 re-entry: one planner spawn per round and no explorer; step 6b one leftovers explorer spawn per round/m.test(
+        skill
+      );
+    // Assert
+    assert.ok(bullet, 'Explorer bullet or fallback missing');
+    assert.ok(ret, 'Explorer locate Return missing');
+    assert.ok(question, 'Explorer Question or malformed-block handling missing');
+    assert.ok(refs, 'planner brief does not carry the explorer Refs');
+    assert.ok(caps, 'Caps line misses the explorer spawn');
+  });
+
+  test('step 6b runs a leftovers search that lists leftovers under Open and never edits them', () => {
+    // Arrange
+    const skill = skillMd();
+    const validate = skillFile('references', 'validate.md');
+    // Act
+    const step =
+      /^ {0,3}6b\. \*\*Change-set check\.\*\* .*a rename or removal of identifiers also runs the leftover search \(Spawn briefs, Explorer\): /m.test(
+        skill
+      );
+    const brief =
+      /^- Leftover search: .*Brief for `leftovers`: kind `leftovers`, root, the changed file paths, the old identifiers \(old API names, stale keys, deprecated options\)\. Return: `Leftovers:` as `- <path>:<line> — <old identifier>`, `Result: <n found \| none>`\. List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items\. A malformed block → respawn once, then `Leftovers: unchecked` under `Open:`\. Unavailable → Grep the old identifiers inline, same Return\./m.test(
+        validate
+      );
+    const detail =
+      /^- Leftover search: when the change renamed or removed identifiers .*List each returned `path:line` under `Open:` as an unplanned leftover; never edit it, because it sits outside the planned files, and it never enters the step 7b fix list or the step 7e fixable items\./m.test(
+        validate
+      );
+    const pointer =
+      /^- \*\*Explorer\*\* .*Brief and Return for `leftovers`: `\$\{CLAUDE_SKILL_DIR\}\/references\/validate\.md` Leftover search\.$/m.test(
+        skill
+      );
+    const explorerLine = skill.split('\n').find((l) => l.startsWith('- **Explorer**')) ?? '';
+    const edits = /leftover[^\n]*(fix list|apply it)/i.test(explorerLine);
+    // Assert
+    assert.ok(explorerLine.length > 0, 'Explorer bullet missing');
+    assert.ok(step, 'step 6b leftover search pointer missing');
+    assert.ok(brief, 'validate.md leftovers brief missing');
+    assert.ok(pointer, 'Explorer bullet does not point to validate.md Leftover search');
+    assert.ok(detail, 'validate.md leftover search rule missing');
+    assert.equal(edits, false, 'Explorer bullet routes a leftover to a fix');
+  });
+
+  test('evals.md has the explorer-locate and explorer-leftovers cases', () => {
+    // Arrange
+    const text = skillFile('references', 'evals.md');
+    // Act
+    const rows = ['explorer-locate', 'explorer-leftovers'];
+    const ids = text.split('\n').map((line) => line.split('|')[1]?.trim());
+    const missing = rows.filter((id) => !ids.includes(id));
+    const locate = /^\| explorer-locate \|.*kind `locate` before the planner; the caller spec skips it/m.test(text);
+    const leftovers = /^\| explorer-leftovers \|.*listed under `Open:` as an unplanned leftover and not edited/m.test(
+      text
+    );
+    // Assert
+    assert.deepEqual(missing, []);
+    assert.ok(locate, 'explorer-locate expectations missing');
+    assert.ok(leftovers, 'explorer-leftovers expectations missing');
   });
 });
