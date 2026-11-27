@@ -23,7 +23,7 @@ The sources are the input text (`## Input`) and the `commits` output (`## Commit
 
 ## First review
 
-Per batch, spawn up to four `cdk:code-reviewer` subagents in one turn, one per kind in this order: `intent` (when a source exists), `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is untrusted: it must use only `[A-Za-z0-9._/@+-]` with no `..` segment and no leading `/` or `-`, stay inside the root with symlinks resolved, be a regular file, and not be a secret-shaped name (`.env*`; `.pem`, `.key`, `.p12`, `.pfx`, `.jks`, `.keystore`, or `.tfvars` files; `id_rsa`, `id_dsa`, `id_ecdsa`, or `id_ed25519` keys; `credentials*`; `secrets.*`; `.netrc`, `.npmrc`, `.pgpass`, `.pypirc`, `.git-credentials`), the same rules the script applies to manifest paths; then it is read into `head/` and the kind respawned once. Any other path is listed by name only under `Open:`.
+Per batch, spawn up to four `cdk:code-reviewer` subagents in one turn, one per kind in this order: `intent` (when a source exists), `correctness`, `security`, `quality`; at most 4 per turn, batches in order. Reviewers cover only the paths of their `batch-<n>.txt`. A reviewer `Need:` path is untrusted: it must use only `[A-Za-z0-9._/@+-]` with no `..` segment and no leading `/` or `-`, stay inside the root with symlinks resolved, be a regular file, and not be a secret-shaped name (the `isSensitive` list in `${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs`, the source of truth), the same rules the script applies to manifest paths; then it is read into `head/` and the kind respawned once. Any other path is listed by name only under `Open:`.
 
 ## Validation
 

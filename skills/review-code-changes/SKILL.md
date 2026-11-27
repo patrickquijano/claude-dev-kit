@@ -3,7 +3,7 @@ name: review-code-changes
 description: Reviews uncommitted and branch changes, fixes critical, major, and minor findings, then commits. Use to review, self-review, or look over local changes. Not for GitHub PRs or GitLab MRs.
 compatibility: Claude Code only. Requires git and Node.js 22 or newer. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[intent text] [--yes]'
-allowed-tools: Read Grep Glob Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git log *)
+allowed-tools: Read Grep Glob Edit(//**/cdk-rcc-scratch-*/**) Bash(node ${CLAUDE_SKILL_DIR}/scripts/diff-manifest.mjs *) Bash(git rev-parse *) Bash(git status *) Bash(git log --format=%B --no-merges -n 50 *)
 ---
 
 # Review Code Changes

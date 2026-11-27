@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -133,6 +133,24 @@ describe('diff-manifest scope', () => {
     // Assert
     dirs.push(out.scratch);
     assert.deepEqual(out.files, []);
+  });
+
+  test('creates the default scratch under the cdk-rcc-scratch- prefix', () => {
+    // Arrange
+    const clean = mkdtempSync(join(tmpdir(), 'rcc-clean-'));
+    dirs.push(clean);
+    git(clean, 'init', '-q', '-b', 'main');
+    git(clean, 'config', 'user.email', 't@example.com');
+    git(clean, 'config', 'user.name', 't');
+    git(clean, 'config', 'commit.gpgsign', 'false');
+    writeFileSync(join(clean, 'a.txt'), 'x\n');
+    git(clean, 'add', '.');
+    git(clean, 'commit', '-q', '-m', 'init');
+    // Act
+    const out = run('scope', '--root', clean);
+    // Assert
+    dirs.push(out.scratch);
+    assert.ok(basename(out.scratch).startsWith('cdk-rcc-scratch-'), out.scratch);
   });
 });
 

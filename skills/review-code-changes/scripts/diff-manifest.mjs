@@ -143,7 +143,7 @@ const realDeps = {
   realpathSync,
   rmSync,
   writeFileSync,
-  makeScratch: () => mkdtempSync(join(tmpdir(), 'review-code-')),
+  makeScratch: () => mkdtempSync(join(tmpdir(), 'cdk-rcc-scratch-')),
   log: (text) => console.log(text),
   error: (text) => console.error(text)
 };
