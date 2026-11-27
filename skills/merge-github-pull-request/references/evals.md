@@ -29,6 +29,7 @@ pass: <observable criteria>
 | host-kept | "Merge PR 12." (repo `deleteBranchOnMerge` true, the branch still exists after the merge) | No Branch cleanup question; Keep tool; `Branch: kept` | `branch-exists` returns 200; `Branch: kept`; no `Open:` |
 | fork-setting-on | "Merge PR 12." (head in a fork, repo `deleteBranchOnMerge` true) | No Branch cleanup question; Keep behavior | `Branch: not offered (fork)`; question call asks Method only; no `--delete-branch` |
 | cannot-interact | "Merge PR 12." (no one to reply, no `--yes`) | Stops at the first question, merges nothing | `Result: stopped`; `Stopped: 5: cannot interact`; `Tool: none`; `Merge commit: not merged`; no merge command runs |
+| non-github-remote-stops | "Merge PR 12." (`origin` is a GitLab or other non-`github.com` remote) | Stops before any read or write | `Result: stopped`; `Stopped: 1: no GitHub remote`; no merge command runs |
 
 ## Running per model
 
