@@ -72,7 +72,7 @@ Example:
 ```text
 Stack: maven
 File: /srv/dev/projects/app/compose.sonar.yaml
-Tasks: .vscode/tasks.json (sonar: up, sonar: scan)
+Tasks: .vscode/tasks.json (sonar: start, sonar: stop, sonar: scan)
 Services: sonarqube, scanner
 Server: sonarqube:10.7-community; scanner: maven:3.9-eclipse-temurin-21
 Validate: pass

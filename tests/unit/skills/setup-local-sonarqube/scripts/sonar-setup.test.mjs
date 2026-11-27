@@ -1541,15 +1541,32 @@ describe('configure', () => {
     assert.equal(deps.files.get(ENV_PATH), foreign);
   });
 
-  test('treats an empty .env.sonar as unwritten and a marker line with a suffix as skill-written', async () => {
+  test('stops without a write when .env.sonar is empty, as it lacks the marker', async () => {
     // Arrange
-    const empty = configureDeps({ existing: { [ENV_PATH]: '\n' } });
+    const empty = configureDeps({ existing: { [ENV_PATH]: '' } });
+    // Act
+    const res = await configure({ root: ROOT }, empty);
+    // Assert
+    assert.equal(res.stop, '.env.sonar not created by this skill');
+    assert.equal(empty.files.get(ENV_PATH), '');
+  });
+
+  test('stops without a write when .env.sonar is whitespace-only, as it lacks the marker', async () => {
+    // Arrange
+    const blank = configureDeps({ existing: { [ENV_PATH]: '\n' } });
+    // Act
+    const res = await configure({ root: ROOT }, blank);
+    // Assert
+    assert.equal(res.stop, '.env.sonar not created by this skill');
+    assert.equal(blank.files.get(ENV_PATH), '\n');
+  });
+
+  test('treats a marker line with a suffix as skill-written', async () => {
+    // Arrange
     const marked = configureDeps({ existing: { [ENV_PATH]: '# Written by setup-local-sonarqube. Any suffix.\n' } });
     // Act
-    const emptyRes = await configure({ root: ROOT }, empty);
     const markedRes = await configure({ root: ROOT }, marked);
     // Assert
-    assert.equal(emptyRes.stop, undefined);
     assert.equal(markedRes.stop, undefined);
     assert.equal(markedRes.token, 'created');
   });

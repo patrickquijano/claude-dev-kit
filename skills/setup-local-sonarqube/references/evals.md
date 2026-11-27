@@ -44,6 +44,13 @@ pass: Writes a server-only `compose.sonar.yaml`; adds no scanner service
 pass: Research comes from a read-only subagent, or inline when it is unavailable, limited to docs.sonarsource.com and docs.docker.com
 pass: The approach and its sources are under `Open:`; `Result: done`
 
+id: cannot-interact
+kind: behavior
+prompt: "Set up local SonarQube." (the repo has both a Maven and a Gradle build file; run headless, no one to reply, no `--yes`)
+expected: Stops at the build-tool question; writes nothing
+pass: `Result: stopped`; `Stopped: 2: cannot interact`; planned work under `Open:`
+pass: No file is written and `compose` is not re-run with `--stack`
+
 id: no-approval-step
 kind: behavior
 prompt: "Set up local SonarQube for this Maven project."

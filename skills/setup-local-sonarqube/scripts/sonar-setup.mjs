@@ -736,6 +736,17 @@ function publishedPort(d, dir) {
   return n;
 }
 
+// The all-null `configure` result; callers fill in what they reached.
+const emptyResult = () => ({
+  env: null,
+  url: null,
+  password: null,
+  project: null,
+  token: null,
+  tokenType: null,
+  gitignore: null
+});
+
 // Configures the running server (admin password, project, analysis token) and writes `.env.sonar`; returns no secret values.
 export async function configure({ root } = {}, deps = {}) {
   if (!root) throw new Error('--root is required');
@@ -745,30 +756,12 @@ export async function configure({ root } = {}, deps = {}) {
   if (!contained(d, dir, file) || d.isSymlink(file))
     throw new Error(`${ENV_FILE} is a symlink or resolves outside the repo root`);
   const existing = d.readText(file);
-  if (existing?.trim() && !existing.startsWith(ENV_MARKER)) {
-    return {
-      env: null,
-      url: null,
-      password: null,
-      project: null,
-      token: null,
-      tokenType: null,
-      gitignore: null,
-      stop: `${ENV_FILE} not created by this skill`
-    };
-  }
+  if (typeof existing === 'string' && !existing.startsWith(ENV_MARKER))
+    return { ...emptyResult(), stop: `${ENV_FILE} not created by this skill` };
   const env = parseEnv(existing);
   const n = publishedPort(d, dir);
   const det = detect({ root: dir }, d);
-  const result = {
-    env: null,
-    url: `http://localhost:${n}`,
-    password: null,
-    project: null,
-    token: null,
-    tokenType: null,
-    gitignore: null
-  };
+  const result = { ...emptyResult(), url: `http://localhost:${n}` };
   const base = `http://127.0.0.1:${n}`;
   // Ignores the file first, then writes it, so a secret is never on disk unignored; called again as new values arrive.
   const persist = (values) => {
