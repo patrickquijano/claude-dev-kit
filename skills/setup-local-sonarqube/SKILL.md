@@ -1,6 +1,6 @@
 ---
 name: setup-local-sonarqube
-description: Writes compose.sonar.yaml (SonarQube Community Build and a stack scanner), VS Code tasks, and an analysis token in .env.sonar. Use only when the user explicitly asks to set up local SonarQube.
+description: Writes compose.sonar.yaml (SonarQube Community Build and a stack scanner), VS Code tasks, and an analysis token in .env.sonar. Use only when the user explicitly asks to set up local SonarQube. Not for CI scans.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Glob WebSearch Bash(git rev-parse *) Bash(docker info *) Bash(docker compose -f compose.sonar.yaml config -q) Bash(docker compose -f compose.sonar.yaml ps -q sonarqube) Bash(docker compose -f compose.sonar.yaml up -d --wait --wait-timeout 300 sonarqube) Bash(docker compose -f compose.sonar.yaml stop sonarqube) Bash(node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs *) WebFetch(domain:docs.sonarsource.com) WebFetch(domain:docs.docker.com)

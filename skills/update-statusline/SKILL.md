@@ -1,6 +1,6 @@
 ---
 name: update-statusline
-description: Creates or updates the user-scoped Claude Code status line, giving the git branch name a distinct emphasized color. Use only when the user explicitly asks to update the status line.
+description: Creates or updates the user-scoped Claude Code status line, giving the git branch name a distinct emphasized color. Use only when the user explicitly asks to update the status line. Not for project-scoped status lines.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Bash(node --version) Bash(cp ${CLAUDE_SKILL_DIR}/assets/statusline.mjs ~/.claude/statusline.mjs) Bash(cp ~/.claude/statusline.mjs ~/.claude/statusline.mjs.bak-*) Bash(date +*) Bash(chmod +x ~/.claude/statusline.mjs) Bash(printf '%s' *) Bash(node ~/.claude/statusline.mjs) Bash(NO_COLOR=1 node ~/.claude/statusline.mjs)

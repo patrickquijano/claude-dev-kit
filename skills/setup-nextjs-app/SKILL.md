@@ -1,6 +1,6 @@
 ---
 name: setup-nextjs-app
-description: Sets up a Next.js app at the latest stable versions with Tailwind CSS, Vitest, Playwright, Orval, Zod, MSW, and Faker at 80% coverage. Use only when the user explicitly asks to set up a Next.js app.
+description: Sets up a Next.js app at the latest stable versions with Tailwind CSS, Vitest, Playwright, Orval, Zod, MSW, and Faker at 80% coverage. Use only when the user explicitly asks to set up a Next.js app. Not for Laravel or .NET APIs.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Bash(git rev-parse *) Bash(node --version) Bash(npm view *) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(mktemp -d)

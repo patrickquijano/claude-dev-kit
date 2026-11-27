@@ -1,6 +1,6 @@
 ---
 name: run-spec-kit
-description: Runs the full GitHub Spec Kit cycle from one feature brief through implement and converge, then resolves open items. Use only when the user explicitly asks to build with Spec Kit.
+description: Runs the full GitHub Spec Kit cycle from one feature brief through implement and converge, then resolves open items. Use only when the user explicitly asks to build with Spec Kit. Not for installing Spec Kit or vetting an idea.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] <feature brief>'
 disable-model-invocation: true

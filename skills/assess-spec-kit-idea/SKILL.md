@@ -1,6 +1,6 @@
 ---
 name: assess-spec-kit-idea
-description: Vets an idea with Spec Kit's assess extension, returning go, needs-clarification, or kill; on go, prints a feature brief. Use only when the user explicitly asks to vet an idea with Spec Kit.
+description: Vets an idea with Spec Kit's assess extension, returning go, needs-clarification, or kill; on go, prints a feature brief. Use only when the user explicitly asks to vet an idea with Spec Kit. Not for fixing bugs or building features.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation, and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 disable-model-invocation: true
 argument-hint: '[--yes] <idea text | URL | ticket | codebase pointer>'

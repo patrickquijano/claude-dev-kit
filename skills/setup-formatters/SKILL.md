@@ -1,6 +1,6 @@
 ---
 name: setup-formatters
-description: Sets up one formatter per repo file type at a verified version, with its config and ignore paths. Use only when the user explicitly asks to set up formatters.
+description: Sets up one formatter per repo file type at a verified version, with its config and ignore paths. Use only when the user explicitly asks to set up formatters. Not for linters.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(npm view *) Bash(brew info *) Bash(node --version) Bash(php --version) Bash(dotnet --version) Bash(python3 --version) Bash(go version) Bash(node ${CLAUDE_SKILL_DIR}/scripts/pm-detect.mjs *) WebFetch(domain:pypi.org) WebFetch(domain:repo.packagist.org) WebFetch(domain:api.nuget.org) WebFetch(domain:proxy.golang.org)

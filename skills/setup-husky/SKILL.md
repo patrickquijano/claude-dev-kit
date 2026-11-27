@@ -1,6 +1,6 @@
 ---
 name: setup-husky
-description: Installs Husky Git hooks that enforce Conventional Commits and signed commits, with an optional signing pre-check. Use only when the user explicitly asks to set up Husky or Git hooks.
+description: Installs Husky Git hooks that enforce Conventional Commits and signed commits, with an optional signing pre-check. Use only when the user explicitly asks to set up Husky or Git hooks. Not for Claude Code hooks.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Read Write Glob AskUserQuestion Bash(git rev-parse *) Bash(git config --get *) Bash(node --version) Bash(command -v npm) Bash(command -v pnpm) Bash(command -v yarn) Bash(command -v bun) Bash(node ${CLAUDE_SKILL_DIR}/scripts/merge-prepare.mjs *)

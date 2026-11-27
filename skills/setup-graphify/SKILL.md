@@ -1,6 +1,6 @@
 ---
 name: setup-graphify
-description: Installs graphify, adds its hooks, builds the first code knowledge graph, and writes usage rules. Use only when the user explicitly asks to set up graphify or a code knowledge graph.
+description: Installs graphify, adds its hooks, builds the first code knowledge graph, and writes usage rules. Use only when the user explicitly asks to set up graphify or a code knowledge graph. Not for querying an existing graph.
 argument-hint: '[--yes]'
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(command -v graphify) Bash(command -v uv) Bash(command -v pipx) Bash(graphify --version) Bash(graphify hook status) Bash(git rev-parse *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/graphify-state.mjs state *)

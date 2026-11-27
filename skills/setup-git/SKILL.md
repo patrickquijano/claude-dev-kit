@@ -1,6 +1,6 @@
 ---
 name: setup-git
-description: 'Sets up git for signed commits: identity, SSH or OpenPGP signing, a signature smoke test, and ignore lines for signing artifacts only. Use only when the user explicitly asks to set up git or signing.'
+description: 'Sets up git for signed commits: identity, SSH or OpenPGP signing, a signature smoke test, and ignore lines for signing artifacts only. Use only when the user explicitly asks to set up git or signing. Not for Git hooks.'
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(git rev-parse *) Bash(git --version) Bash(git config --get *) Bash(git config --local --get *) Bash(git log -1 *) Bash(git ls-files *) Bash(git check-ignore *) Bash(git cat-file *) Bash(git verify-commit *) Bash(ssh-add -L) Bash(ssh-keygen -l -f *.pub) Bash(gpg --list-secret-keys *) Bash(command -v *)
 disable-model-invocation: true

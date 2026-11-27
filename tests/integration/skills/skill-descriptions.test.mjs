@@ -30,14 +30,14 @@ describe('skill descriptions stay short and standalone', () => {
   for (const { path, term } of cases) {
     const name = path.slice(0, -1).join('/');
 
-    test(`${name} description is at most 200 chars`, () => {
+    test(`${name} description is at most 400 chars`, () => {
       // Arrange
       const description = readDescription(path);
       // Act
       const length = description.length;
       // Assert
       assert.ok(length > 0, 'description not found');
-      assert.ok(length <= 200, `description is ${length} chars`);
+      assert.ok(length <= 400, `description is ${length} chars`);
     });
 
     test(`${name} description names no other skill`, () => {
@@ -59,6 +59,60 @@ describe('skill descriptions stay short and standalone', () => {
       const hasTerm = description.includes(term);
       // Assert
       assert.ok(hasTerm);
+    });
+  }
+});
+
+const skillRoots = [['skills'], ['.claude', 'skills']];
+const discovered = skillRoots.flatMap((base) =>
+  readdirSync(join(root, ...base), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => ({ path: [...base, entry.name, 'SKILL.md'], skill: entry.name }))
+);
+const allSkillNames = discovered.map(({ skill }) => skill);
+
+describe('every skill description is non-empty, short, bounded, and standalone', () => {
+  for (const { path, skill } of discovered) {
+    const name = path.slice(0, -1).join('/');
+
+    test(`${name} description is not empty`, () => {
+      // Arrange
+      const description = readDescription(path);
+      // Act
+      const length = description.trim().length;
+      // Assert
+      assert.ok(length > 0, 'description not found or empty');
+    });
+
+    test(`${name} description is at most 400 chars`, () => {
+      // Arrange
+      const description = readDescription(path);
+      // Act
+      const length = description.length;
+      // Assert
+      assert.ok(length > 0, 'description not found');
+      assert.ok(length <= 400, `description is ${length} chars`);
+    });
+
+    test(`${name} description has a Not for clause`, () => {
+      // Arrange
+      const description = readDescription(path);
+      // Act
+      const boundary = /Not for [^.]+\./.test(description);
+      // Assert
+      assert.ok(boundary, `description: ${description}`);
+    });
+
+    test(`${name} description names no other skill`, () => {
+      // Arrange
+      const description = readDescription(path);
+      // Act
+      const references = /cdk:|\/cdk/.test(description);
+      const named = allSkillNames.filter((other) => other !== skill && description.includes(other));
+      // Assert
+      assert.ok(description.length > 0, 'description not found');
+      assert.equal(references, false);
+      assert.deepEqual(named, []);
     });
   }
 });

@@ -1,6 +1,6 @@
 ---
 name: fix-spec-kit-bug
-description: Fixes a bug with GitHub Spec Kit's bug extension (assess, fix, test, up to 3 passes) from a stack trace, error, URL, or report. Use only when the user explicitly asks to fix a bug with Spec Kit.
+description: Fixes a bug with GitHub Spec Kit's bug extension (assess, fix, test, up to 3 passes) from a stack trace, error, URL, or report. Use only when the user explicitly asks to fix a bug with Spec Kit. Not for new features or bugs without Spec Kit.
 compatibility: Claude Code only. Uses argument-hint, CLAUDE_SKILL_DIR, and disable-model-invocation; claude.ai and API uploads reject unknown frontmatter keys.
 disable-model-invocation: true
 argument-hint: '[--yes] <stack trace | error | URL | bug report>'

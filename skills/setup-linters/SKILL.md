@@ -1,6 +1,6 @@
 ---
 name: setup-linters
-description: Sets up linters per repo file type at verified versions, with configs, ignores, and only the rule disables a present formatter's docs list. Use only when the user explicitly asks to set up linters.
+description: Sets up linters per repo file type at verified versions, with configs, ignores, and only the rule disables a present formatter's docs list. Use only when the user explicitly asks to set up linters. Not for formatters.
 compatibility: Claude Code only. Uses argument-hint, disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
 allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v *) Bash(npm view *) Bash(brew info *) Bash(node --version) Bash(php --version) Bash(dotnet --version) Bash(python3 --version) Bash(go version) Bash(node ${CLAUDE_SKILL_DIR}/scripts/pm-detect.mjs *) WebFetch(domain:pypi.org) WebFetch(domain:repo.packagist.org) WebFetch(domain:api.nuget.org) WebFetch(domain:proxy.golang.org)

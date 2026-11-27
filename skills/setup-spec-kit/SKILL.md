@@ -1,6 +1,6 @@
 ---
 name: setup-spec-kit
-description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit.
+description: Installs GitHub Spec Kit if missing, initializes the project with its assess and bug extensions, and updates ignore files. Use only when the user explicitly asks to set up Spec Kit. Not for running the Spec Kit cycle.
 argument-hint: '[--yes]'
 compatibility: Claude Code only. Uses disable-model-invocation and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 allowed-tools: Bash(command -v specify) Bash(command -v uv) Bash(specify --version) Bash(specify extension list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/plan-extensions.mjs *) Bash(git rev-parse --is-inside-work-tree)
