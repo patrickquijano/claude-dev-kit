@@ -2,7 +2,7 @@
 
 ## Commits
 
-- Conventional Commits per `.commitlintrc.json`: `<type>(<optional scope>)[!]: <subject>`, header max 72 chars (never raise it), imperative, lowercase, no trailing period.
+- Conventional Commits per `.commitlintrc.json`, header max 72 chars (never raise it).
 - Subject line only: no body, no footer, no attribution (`Co-Authored-By`, "Generated with").
 - Commits and tags are signed; never `--no-gpg-sign`. A signing failure → stop and report the exact error line; never edit signing config or retry unsigned.
 

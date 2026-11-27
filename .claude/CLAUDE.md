@@ -49,7 +49,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 ## Changes
 
 - Change only what the task needs; every changed line traces to the request; no unrelated edits or refactors.
-- Mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused, or dead code inside lines you already edit.
+- Mention unrelated dead code outside the lines you edit, never delete it; remove only what your own change left unused, or dead code inside lines you already edit; tidy only lines the change already edits.
 - One logical change per commit.
 
 ## Definition of done
@@ -58,7 +58,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - [ ] `npm test` passes; new or changed behavior has a test.
 - [ ] `npm run audit` passes.
 - [ ] Each changed component passes the `Verify:` check in its `.claude/rules/` file.
-- [ ] Before claiming done, run each check above once per session after the last change to the files it covers; never re-run a check when none of its files changed since it last passed, re-run a failed check after its fix, and while iterating run only the single-suite command covering the changed files (for example `node --test <file>`).
+- [ ] Before claiming done, run each check above once per session after the last change to the files it covers; never re-run a check when none of its files changed since it last passed, and while iterating run only the single-suite command covering the changed files (for example `node --test <file>`).
 
 ## Maintenance
 
