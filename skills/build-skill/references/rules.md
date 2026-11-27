@@ -10,7 +10,7 @@ Bundled snapshot of the skill rules. Read it, never guess a rule; the web is opt
 
 MUST
 
-- `description`: ≤400 chars (count it; house limit, the standard allows 1,024), third person, what + when, key use case and trigger terms first, filler words cut, no XML tags. A model-invocable skill ends the what-and-when with a `Not for <neighbour job>.` boundary in plain words, no skill names.
+- `description`: ≤400 chars (count it; house limit, the standard allows 1,024), third person, what + when, key use case and trigger terms first, filler words cut, no XML tags. Every skill ends the what-and-when with a `Not for <neighbour job>.` boundary in plain words, no skill names, so the model can tell neighbouring skills apart.
 - `when_to_use`: best omitted; description plus `when_to_use` stays ≤400 chars.
 - `name`: lowercase/digits/hyphens, ≤64 chars, matches the folder, no leading, trailing, or consecutive hyphens, no XML tags, no "anthropic" or "claude"; gerund (`processing-pdfs`) or verb-first (`process-pdfs`), the sibling convention breaking the tie; never vague (`helper`, `utils`); never includes the plugin namespace, because a colon is invalid and the plugin adds `plugin:` itself; never the reserved `synced` folder name (see MUST NOT).
 - Progressive disclosure: metadata about 100 tokens, then the body (under 5,000 tokens recommended), then resources on demand. The body covers the steps, concrete input→output examples, and edge cases.
@@ -77,7 +77,7 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 | `hooks` | - | hook config, kept for the session | A rule must hold every time |
 | `shell` | - | `bash` (default) or `powershell` | Injection blocks need PowerShell |
 
-Description: one job; third person; the words users say; distinctive. A model-invocable skill adds a `Not for <neighbour job>.` boundary. A side-effect task ends with "Use only when the user explicitly asks to <action>." Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it.
+Description: one job; third person; the words users say; distinctive. Every skill adds a `Not for <neighbour job>.` boundary. A side-effect task adds "Use only when the user explicitly asks to <action>." just before the `Not for` boundary, which stays last. Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it.
 
 ## Substitutions
 

@@ -25,7 +25,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - <Constraint that must hold, most important first.>
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never skips a safety stop. No `--yes` and AskUserQuestion unavailable: a user can reply → ask as a numbered inline list and stop for the answer; headless → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never skips a safety stop. No `--yes` and AskUserQuestion unavailable: a user can reply → ask as a numbered inline list and stop for the answer; headless → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - No gate (a question that only approves the next step). Before an irreversible step, a safety stop: a fact check that refuses (protected target, moved head, foreign-owned file, unmerged work).
 - Loops: at most <n> rounds; then report what is left.
 - <Invoke another skill as ``Invoke the `cdk:<skill>` skill (fallback: run the <skill> skill)``. Spawn a subagent as ``Spawn the `cdk:<agent>` subagent (fallback: a read-only subagent that <role>)`` (role in plain words only when no plugin agent fits) and give it an inline fallback.>

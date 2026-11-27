@@ -3,7 +3,7 @@ name: build-skill
 description: Builds, updates, or improves a skill, then validates, audits, and adds evals. Use when asked to create a skill, fix a SKILL.md, or add evals. Not for subagents, hooks, or CLAUDE.md.
 argument-hint: '[--yes] [skill name or path] [what it should do]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: Read Glob Grep Write Bash(node ${CLAUDE_SKILL_DIR}/scripts/validate-skill.mjs *) Bash(skills-ref validate *)
+allowed-tools: Read Glob Grep Bash(node ${CLAUDE_SKILL_DIR}/scripts/validate-skill.mjs *) Bash(skills-ref validate *)
 ---
 
 # Build skill
@@ -22,7 +22,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Safety stop (refuse, never ask; `--yes` never skips): the fit stop is step 2, because building the wrong mechanism wastes every later step.
 - Update: preserve intent, change only flagged items (improve: the baseline's; update: the user's stated change), and show a diff.
 - Never delete unless the printed spec summary names it and git tracks the file with no uncommitted changes; otherwise stop (`Result: stopped`, `Stopped: <step>: delete without git`), because Bash and subagent deletes cannot be rewound. `--yes` never skips this stop.
-- Ask only what blocks: one decision question per round with 2–4 options, the Recommended one first, because each answer can change the next question. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use AskUserQuestion (discover its limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → a numbered inline list, then stop for the answer).
+- Ask only what blocks: one decision question per round with 2–4 options, the Recommended one first, because each answer can change the next question. Grill (decision questions only): mine the conversation, files, and repo first, ask only what changes the output, and never fill a gap with an assumption. Use AskUserQuestion (discover its limits at runtime; inside a delegated subagent ask in the main thread before delegating; unavailable → the no-user rules below).
 - A fact-dependent question gets one web search per topic, official docs preferred, URLs cited, so each score rests on a checkable source; no search tool or source → "unverified", never an invented fact, source, or number. Before each question show the score table, the recommendation, and the option descriptions per `${CLAUDE_SKILL_DIR}/references/grill.md`.
 - Ask the name question per `naming.md` (create; update and improve only when the name breaks a rule or a rename is asked). Otherwise state assumptions. AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless, such as a subagent) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - A plugin directory as input → scope is Plugin; with no new-skill purpose it is a batch (`references/batch.md`), with one it is a single create at plugin scope.

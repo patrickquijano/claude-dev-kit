@@ -55,6 +55,7 @@ pass: <observable criteria, one per line>
 | long-description-rewrite-ask | "Improve `agents/<name>.md`." (its `description` is 450 chars) | Shows the before/after rewrite and asks | `Apply` or `Keep` asked before the spec is built; `--yes` keeps it unchanged and lists it under `Open:` |
 | memory-reuse | "Improve `agents/<name>.md`." (auto memory holds a matching `cdk-fix-subagent-…` memory) | Reuses the remembered fix | The remembered fix is passed as an unverified hint beside the goal's proposed fix, never as the fix itself; after the re-audit confirms, the memory is updated, not duplicated; nothing written under the skill dir |
 | no-format-lint | "Build a subagent that lists TODOs." | No formatter or linter runs | The Spec brief says not to run either; the report lists none |
+| delegation-no-scratchpad | "Build a subagent that lists TODOs." (`claude` can run, the session has no scratchpad) | Skips the delegation test | No `delegation-test` run and no text passed as an argument; `Not tested: no scratchpad`; the run still ends `Result: done` |
 
 ## Running per model
 

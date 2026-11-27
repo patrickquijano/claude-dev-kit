@@ -304,7 +304,7 @@ describe('build-subagent allowed-tools', () => {
     const text = readFileSync(join(root, 'skills', 'build-subagent', 'SKILL.md'), 'utf8');
     // Act
     const tools =
-      /^allowed-tools: Read Glob Grep Write AskUserQuestion WebFetch\(domain:code\.claude\.com\) Bash\(claude plugin validate \*\) Bash\(claude --version\) Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/check-agent\.mjs \*\) Bash\(claude --print \*\) Bash\(claude --debug --print \*\) Bash\(grep -i \*\)$/m.test(
+      /^allowed-tools: Read Glob Grep Edit\(\*\*\/\*\.bak\) AskUserQuestion WebFetch\(domain:code\.claude\.com\) Bash\(claude plugin validate \*\) Bash\(claude --version\) Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/check-agent\.mjs \*\) Bash\(claude --print < \*\) Bash\(claude --print\) Bash\(claude --debug --print "hi"\) Bash\(claude --debug --print "hi" 2>&1\) Bash\(grep -i "does not recognize or apply"\)$/m.test(
         text
       );
     // Assert
@@ -425,7 +425,10 @@ describe('build-skill reference rules and briefs', () => {
     const rulesLine = rules.match(/^Description: .*$/m)?.[0] ?? '';
     // Assert
     assert.match(templateLine, /side effects → end: Use only when the user explicitly asks to <action>\./);
-    assert.match(rulesLine, /A side-effect task ends with "Use only when the user explicitly asks to <action>\."/);
+    assert.match(
+      rulesLine,
+      /A side-effect task adds "Use only when the user explicitly asks to <action>\." just before the `Not for` boundary, which stays last\./
+    );
     assert.doesNotMatch(templateLine, /disable-model-invocation/);
     assert.doesNotMatch(rulesLine, /disable-model-invocation/);
   });
@@ -465,10 +468,10 @@ describe('build-skill dependencies, backups, batch, and namespace', () => {
     // Act
     const rule =
       /^- Backups \(update and improve\): .*one file at a time and never a directory, to `<scratchpad>\/build-skill-backups\/<skill>\/<relative path>\.bak`.*`Stopped: 6: no scratchpad`/m;
-    const tools = /^allowed-tools: .*\bWrite\b/m.test(text);
+    const tools = /^allowed-tools: .*\b(Write|Edit)\b/m.test(text);
     // Assert
     assert.match(text, rule);
-    assert.ok(tools, 'Write missing from allowed-tools');
+    assert.ok(!tools, 'allowed-tools grants a file write; the scratchpad needs none');
   });
 
   test('a plugin directory input sets Plugin scope and a batch runs per skill', () => {
@@ -553,7 +556,7 @@ describe('build-subagent dependencies, backups, batch, and namespace', () => {
     assert.equal(scratchLines.length, 1);
     assert.match(
       scratchLines[0],
-      /^- Write scope: the backup at `<target path>\.bak` beside the original, plus .*in the session scratchpad only\.$/
+      /^- Write scope: the backup at `<target path>\.bak` beside the original, the fix-memory files in Claude auto memory \(per Fix memory\), and the delegation-test task file in the session scratchpad only\.$/
     );
   });
 
