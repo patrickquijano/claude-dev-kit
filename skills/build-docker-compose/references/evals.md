@@ -168,4 +168,10 @@ prompt: "Write a Compose file for this Node app and Postgres." (no one to reply,
 expected: Stops at the first question and writes nothing
 pass: `Result: stopped`, `Stopped: <step>: cannot interact`; no file written
 
+id: yes-unresolved-image-unset
+kind: behavior
+prompt: "--yes Write a Compose file for my app with a `mcr.microsoft.com/mssql/server` database." (non-Docker-Hub registry, tag cannot be resolved)
+expected: Asks nothing, leaves the image unset
+pass: No question asked; no tag written from memory; the image is left unset in the file and listed under `Open:`
+
 ```

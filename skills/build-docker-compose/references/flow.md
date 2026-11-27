@@ -47,7 +47,7 @@ Update mode asks the backing-service and per-service deploy groups only when the
 Build the file from `practices.md` in this order: top-level `name` (Compose / DevContainer only, when the input or a user answer asks for it) → `services` (backing services from Clarify included, each with a `healthcheck`; keys per service in this order: image, build, ports, environment, secrets, configs, volumes, networks, depends_on, healthcheck, restart or deploy) → `networks` → `volumes` → `secrets` → `configs`.
 
 - `depends_on`: Compose / DevContainer only, a `condition` of `service_healthy` on the services the app needs. Compose Deploy writes no new `depends_on` and keeps an existing one unchanged (not converted), listed under `Open:`, because the docs read do not say whether `docker stack deploy` honors it (`practices.md` `## Gaps`); the healthcheck, `restart_policy` and `update_config` cover start order.
-- Resolve each image tag through the image-tag subagent spawn (`## Spawn briefs`, procedure in `practices.md` `## Image tags`); an `Unresolved` image is asked once. Review mode skips the spawn (step 5 does not run) and reports each non-exact tag as a finding.
+- Resolve each image tag through the image-tag subagent spawn (`## Spawn briefs`, procedure in `practices.md` `## Image tags`); an `Unresolved` image is asked once (`--yes`: left unset and listed under `Open:`). Review mode skips the spawn (step 5 does not run) and reports each non-exact tag as a finding.
 - Update mode → keep intent (service names, volumes, networks, ports) and fix only what breaks a practice, a short-syntax entry, or a redundant default; list each change with its reason.
 - Print the file (a diff when existing) and the change list.
 

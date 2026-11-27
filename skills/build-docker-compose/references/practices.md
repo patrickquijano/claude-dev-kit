@@ -44,7 +44,7 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
   - Keep tags matching `^\d+\.\d+\.\d+(-<variant>)?$`; an image that publishes only `X.Y` tags (no `X.Y.Z` form in the listing) → use the highest `^\d+\.\d+(-<variant>)?$` tag, the most specific one it offers. This drops `latest`, `stable`, short tags, and `-rc`, `-beta`, `-alpha` forms. The variant matches the image the app needs (default: none, else the repo's slim form).
   - Take the highest by numeric major, minor, patch comparison, not by `last_updated`; the API documents no sort order.
   - A tag already in an existing file that matches the pattern stays; resolve only new or non-exact ones.
-- **Required** another registry, a failed lookup, or an unverifiable version → ask the user (recommended: the tag they name); never fall back to a remembered tag.
+- **Required** another registry, a failed lookup, or an unverifiable version → ask the user (recommended: the tag they name); `--yes`: leave the image unset and list it under `Open:`; never fall back to a remembered tag.
 - **Recommended** `docker compose config --resolve-image-digests` exists to lock digests; this skill pins tags, not digests, because these are the repo's own images and Dependabot bumps the readable tags (a container action's image is the exception, handled by `build-github-action`).
 
 ## Plain Compose
