@@ -2,7 +2,7 @@
 name: rubric-scorer
 description: Use when an audit or update skill needs a checklist report scored 1–5 per category, or README.md or CLAUDE.md and rules scored against its 100-point rubric, verifying commands, paths, and links. Read-only.
 tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
-model: opus
+model: sonnet
 effort: medium
 color: cyan
 ---
