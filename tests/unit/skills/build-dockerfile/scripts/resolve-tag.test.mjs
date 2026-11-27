@@ -50,7 +50,7 @@ describe('pickTag', () => {
     assert.deepEqual(result, { ok: true, tag: '24.04' });
   });
 
-  test('reports no match when ubuntu has only interim releases', () => {
+  test('reports no match when ubuntu has only interim and point releases', () => {
     // Arrange
     const names = ['25.04', '25.10', '23.10', '24.04.1'];
     // Act
@@ -133,7 +133,17 @@ describe('resolveTag', () => {
     // Act
     const result = await resolveTag({ image: 'node', runtime: '22', variant: 'alpine' }, fetchJson);
     // Assert
-    assert.deepEqual(result, { ok: true, tag: '22.1.0-alpine' });
+    assert.deepEqual(result, { ok: true, tag: '22.1.0-alpine', truncated: true });
+  });
+
+  test('sets no truncated flag when the pages end before the cap', async () => {
+    // Arrange
+    const { fetchJson } = pager([page(['22.1.0-alpine'])]);
+    // Act
+    const result = await resolveTag({ image: 'node', runtime: '22', variant: 'alpine' }, fetchJson);
+    // Assert
+    assert.equal(result.ok, true);
+    assert.equal('truncated' in result, false);
   });
 
   test('fetches no more than the page cap', async () => {

@@ -81,7 +81,9 @@ export async function resolveTag({ image, runtime, variant }, fetchJson) {
   for (let page = 0; url; page += 1) {
     if (page >= MAX_PAGES) {
       const capped = pickTag({ names, runtime, variant });
-      return capped.ok ? capped : { ok: false, error: `page cap of ${MAX_PAGES} reached with no match` };
+      return capped.ok
+        ? { ...capped, truncated: true }
+        : { ok: false, error: `page cap of ${MAX_PAGES} reached with no match` };
     }
     const body = await fetchJson(url);
     if (!Array.isArray(body?.results)) return { ok: false, error: 'unexpected tags response' };
