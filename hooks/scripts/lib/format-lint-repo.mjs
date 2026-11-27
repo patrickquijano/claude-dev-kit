@@ -145,6 +145,10 @@ export function formatLintRepo(input, deps = {}) {
     // First run (no state file) or a corrupt one.
     if (!expected(e, 'ENOENT', 'ENOTDIR') && !(e instanceof SyntaxError)) throw e;
   }
+  // One status call replaces the per-group fingerprint spawns on a clean tree; a saved fingerprint still needs the loop to record the revert.
+  const status = d.git(cwd, ['status', '--porcelain=v1', '-z', '-uall']);
+  if (status.error || status.status !== 0) return null;
+  if (!status.stdout.length && !Object.values(last).some(Boolean)) return null;
   // Skip unchanged groups: Q&A turns cost nothing and Claude can stop once it stops editing.
   const stale = [];
   for (const [exts, steps] of groups) {

@@ -13,10 +13,11 @@ import {
 
 const fsError = (code) => Object.assign(new Error(code), { code });
 const out = (text = '', status = 0) => ({ status, stdout: Buffer.from(text), stderr: Buffer.from('') });
-// Fake git: `diff` text, untracked files (`ls-files -o`), and tracked+untracked files (`ls-files -co`).
+// Fake git: `diff` text, untracked files (`ls-files -o`), tracked+untracked files (`ls-files -co`), and `status` (dirty when diff or untracked exist).
 const fakeGit =
   ({ diff = '', untracked = [], all = [], status = 0 } = {}) =>
   (cwd, args) => {
+    if (args[0] === 'status') return out(diff || untracked.length ? ' M x\0' : '', status);
     if (args[0] === 'diff') return out(diff, status);
     if (args[0] === 'ls-files') return out((args[1] === '-o' ? untracked : all).map((f) => `${f}\0`).join(''), status);
     return out('', 1);
@@ -489,6 +490,95 @@ test('formatLintRepo: does nothing when git fails', () => {
   const result = formatLintRepo({}, deps);
   // Assert
   assert.equal(result, null);
+});
+
+// Wraps a fake git and records the first argument of every call.
+const recordGit = (git, calls) => (cwd, args) => (calls.push(args[0]), git(cwd, args));
+
+test('formatLintRepo: spawns only git status on a clean tree with no saved fingerprint', () => {
+  // Arrange
+  const calls = [];
+  const deps = baseDeps({
+    git: recordGit(fakeGit(), calls),
+    readFile: () => {
+      throw fsError('ENOENT');
+    }
+  });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(calls, ['status']);
+});
+
+test('formatLintRepo: spawns only git status on a clean tree whose saved fingerprints are empty', () => {
+  // Arrange
+  const calls = [];
+  const readFile = (f) => Buffer.from(f.includes('cdk-format-lint') ? JSON.stringify({ yaml: '' }) : '');
+  const deps = baseDeps({ git: recordGit(fakeGit(), calls), readFile });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(calls, ['status']);
+});
+
+test('formatLintRepo: runs the group loop on a dirty tree', () => {
+  // Arrange
+  const calls = [];
+  const deps = baseDeps({
+    git: recordGit(fakeGit({ untracked: ['a.yml'], all: ['a.yml'] }), calls),
+    available: (step) => step.cmd === 'yamllint'
+  });
+  // Act
+  formatLintRepo({}, deps);
+  // Assert
+  assert.equal(calls[0], 'status');
+  assert.ok(calls.includes('diff'));
+});
+
+test('formatLintRepo: does nothing when git status fails', () => {
+  // Arrange
+  const calls = [];
+  const git = (cwd, args) => (args[0] === 'status' ? out('', 128) : fakeGit({ untracked: ['a.yml'] })(cwd, args));
+  const deps = baseDeps({ git: recordGit(git, calls) });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(calls, ['status']);
+});
+
+test('formatLintRepo: does nothing when git status reports an error', () => {
+  // Arrange
+  const calls = [];
+  const git = (cwd, args) =>
+    args[0] === 'status'
+      ? { error: new Error('spawn'), status: null, stdout: Buffer.from('') }
+      : fakeGit({ untracked: ['a.yml'] })(cwd, args);
+  const deps = baseDeps({ git: recordGit(git, calls) });
+  // Act
+  const result = formatLintRepo({}, deps);
+  // Assert
+  assert.equal(result, null);
+  assert.deepEqual(calls, ['status']);
+});
+
+test('formatLintRepo: still runs the loop on a clean tree with a saved non-empty fingerprint', () => {
+  // Arrange
+  const calls = [];
+  const writes = [];
+  const readFile = (f) => Buffer.from(f.includes('cdk-format-lint') ? JSON.stringify({ yaml: 'abc' }) : '');
+  const deps = baseDeps({
+    git: recordGit(fakeGit(), calls),
+    readFile,
+    writeFile: (f, d) => writes.push(JSON.parse(d))
+  });
+  // Act
+  formatLintRepo({}, deps);
+  // Assert
+  assert.ok(calls.includes('diff'));
+  assert.equal(writes[0].yaml, '');
 });
 
 test('formatLintRepo: lets a project directory error bubble', () => {
