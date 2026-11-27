@@ -113,15 +113,20 @@ describe('address skills delegate fixes to implement-spec', () => {
       assert.ok(matched && replyRule && !resolveRow && !mutation, 'resolve is mentioned as an action');
     });
 
-    test(`${skill} nit opt-in asks one question and --yes never fixes nits`, () => {
+    test(`${skill} minor and nit opt-in asks one question, --yes never fixes them, only critical and major gate`, () => {
       // Arrange
       const triage = section(flowOf(skill), 'Triage');
       const text = read(skill, 'SKILL.md');
       // Act
-      const question = triage.includes('`Fix nits too? No | Yes`');
-      const yes = /`--yes` is No and never fixes nits/.test(triage) && /it never fixes nits/.test(text);
+      const question = triage.includes('`Fix minors and nits too? No | Yes`');
+      const yes = /`--yes` is No and never fixes them/.test(triage) && /it never fixes minors or nits/.test(text);
+      const gate =
+        /`\[critical\]`, `\[major\]`: gating/.test(triage) &&
+        /`\[minor\]`, `\[nit\]`: optional and never gating/.test(triage) &&
+        /`minor`: real issue with limited impact; never blocks/.test(text) &&
+        !/before approval/.test(text);
       // Assert
-      assert.ok(question && yes, 'nit opt-in question or --yes rule missing');
+      assert.ok(question && yes && gate, 'minor and nit opt-in, --yes rule, or critical-and-major-only gate missing');
     });
 
     test(`${skill} flow.md Triage reads severity and marks legacy labels inferred`, () => {
