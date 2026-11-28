@@ -19,4 +19,3 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `add-pkg` | `dotnet add <csproj> package <id>` | Package (version lives in `Directory.Packages.props`) |
 | `build` | `dotnet build -warnaserror` | Build with warnings as errors |
 | `test` | `dotnet test` | Run all tests |
-| `format` | `dotnet format --verify-no-changes` | Style check without changes |

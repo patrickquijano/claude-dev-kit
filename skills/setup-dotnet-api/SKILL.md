@@ -26,7 +26,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - No hard-coded or assumed version or configuration. Every version comes from the `cdk:version-resolver` subagent (fallback: a read-only subagent that resolves latest stable versions; inline fallback: the `commands.md` rows). Every recommended configuration comes from the `cdk:topic-researcher` subagent (fallback: a read-only research subagent; inline fallback: WebSearch and WebFetch of the `research.md` URLs), cited by URL; no source → `unverified`, never applied silently.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Existing repo: scaffold into a scratch dir and move files in; never overwrite or delete a tracked or user file (one this run did not create), even `--yes`: keep it and list it under `Open:` with the change it would take. An existing .NET app → configure-only; a re-run that finds nothing missing writes nothing and ends `Result: nothing-to-do`.
-- Format check: `dotnet format --verify-no-changes` is an exempt validation of the files this run wrote (step 13), never a formatting pass over other files.
+- Run no formatter or linter, check mode included (`dotnet format` too); hooks and CI own it.
 - Never write `.env` contents or read secrets; `.env.example` holds keys only.
 - Git ownership: never branch or commit; `Next:` says "commit the changes" in plain words.
 - Decision questions: at most 4 per call; each data-store category is one multi-select question with the top 3 scored options plus **Skip** (the full table lists every candidate; Other picks any); each asked once. Mine the repo first, ask only what changes the output. Use the structured-question tool (unavailable → the no-ask rule below). Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` with the fixed criteria from `options.md` before each question; a close call has no Recommended; `--yes` on a close call takes the catalog's first option and lists it under `Open:`.
@@ -49,7 +49,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 10. **ULID and timestamps.** ULID keys, `created_at` and `updated_at` at precision 6. `dotnet.md` Data.
 11. **JSON:API.** One error format per the API style pick. `dotnet.md` JSON:API.
 12. **Empty index.** `/` is unmapped, nothing rendered. `dotnet.md` Index. Then `collisions` and `move-files` (`dotnet.md` Layout).
-13. **Verify.** Run `dotnet build -warnaserror`, `dotnet test`, `dotnet format --verify-no-changes` from `commands.md`; repair what this run wrote, up to the cap.
+13. **Verify.** Run `dotnet build -warnaserror` and `dotnet test` from `commands.md`; repair what this run wrote, up to the cap.
 14. **Red flags.** Review per `red-flags.md`; fix up to the cap, then re-run the step 13 checks.
 15. **Report** the Output.
 
@@ -87,7 +87,7 @@ Mode: scaffold
 Versions: .NET SDK <version> (releases index), Scalar.AspNetCore <version> (NuGet)
 Choices: SQL: PostgreSQL (9), API style: controllers plus JsonApiDotNetCore (8)
 Written: Api.slnx, global.json, Directory.Build.props, src/Presentation/WebApi/Presentation.WebApi.csproj
-Verify: dotnet build -warnaserror: pass, dotnet test: pass, dotnet format --verify-no-changes: pass
+Verify: dotnet build -warnaserror: pass, dotnet test: pass
 Red flags: D8: leave `/` unmapped (applied)
 Research: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/overview
 Open: none
