@@ -1,8 +1,6 @@
 // PostToolUse hook: structural plugin check after Claude edits a plugin file (never the LLM-graded eval), plus advice listing tests that may pin an edited skill or agent; a nonzero exit (`--strict` turns warnings into errors) goes to stderr with exit 2 so Claude fixes it.
-// Hooks cannot run slash commands, so an edit to a plugin component that needs `/reload-plugins` writes a reload marker (`pre-tool-use.mjs` blocks tools until the user runs it), and a new or renamed project skill prints a non-blocking notice.
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   MAX,
@@ -12,11 +10,8 @@ import {
   readJsonStdin,
   runIfMain
 } from '../../hooks/scripts/lib/hook-io.mjs';
-import { RELOAD_PLUGINS, markerPath, writeMarker } from './lib/reload-marker.mjs';
 
 const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin'];
-const GATED = ['skills', 'agents', 'hooks', '.claude-plugin'];
-const NAME_LINE = /^name:[ \t]*(.*)$/m;
 const TIMEOUT_MS = 100_000;
 const MAX_PIN_TESTS = 8;
 
@@ -27,29 +22,10 @@ const defaults = {
   realpath: realpathSync,
   readdir: (dir) => readdirSync(dir, { withFileTypes: true }),
   readFile: (path) => readFileSync(path, 'utf8'),
-  writeFile: writeFileSync,
-  tmp: tmpdir(),
   readJsonStdin,
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text)
 };
-
-// Decides the reload an edit needs: `command` is gated (the plugin component is stale until the user runs it), `advisory` is a non-blocking notice.
-// Project `.claude/skills` edits need none (the harness watches them); a new skill file or a changed `name:` line gets an advisory.
-export function reloadNeeded(parts, { toolInput, toolResponse } = {}) {
-  if (GATED.includes(parts[0])) return { command: RELOAD_PLUGINS, advisory: null };
-  if (parts[0] !== '.claude' || parts[1] !== 'skills' || parts.length < 4) return { command: null, advisory: null };
-  const rel = parts.join('/');
-  if (toolResponse?.type === 'create' && parts[3] === 'SKILL.md') {
-    return { command: null, advisory: `${rel} is a new skill: if it does not appear, run /reload-skills.` };
-  }
-  const before = NAME_LINE.exec(toolInput?.old_string ?? '')?.[1];
-  const after = NAME_LINE.exec(toolInput?.new_string ?? '')?.[1];
-  if (before !== undefined && after !== undefined && before !== after) {
-    return { command: null, advisory: `${rel} renamed the skill: restart the session to pick up the new name.` };
-  }
-  return { command: null, advisory: null };
-}
 
 // Resolves symlinks so a link cannot point outside the project; a missing file keeps its resolved path.
 function realTarget(path, realpath) {
@@ -68,9 +44,9 @@ function pinName(parts) {
   return null;
 }
 
-// Plans the hook's work for one edited file: its project-relative path, whether to validate, the reload it needs, and the pin hint.
-// `cwd` must already be a real path (`projectDir`); `change` is the event's `toolInput` and `toolResponse`.
-export function plan(file, cwd, realpath = realpathSync, change = {}) {
+// Plans the hook's work for one edited file: its project-relative path, whether to validate and the pin hint.
+// `cwd` must already be a real path (`projectDir`).
+export function plan(file, cwd, realpath = realpathSync) {
   if (typeof file !== 'string' || !file) return null;
   const rel = relative(cwd, realTarget(resolve(cwd, file), realpath));
   if (!rel || rel.startsWith('..') || isAbsolute(rel)) return null;
@@ -78,7 +54,7 @@ export function plan(file, cwd, realpath = realpathSync, change = {}) {
   const top = parts[0];
   const validate = PATHS.includes(top);
   const pin = pinName(parts);
-  return { rel, validate, reload: reloadNeeded(parts, change), ...(pin && { pin }) };
+  return { rel, validate, ...(pin && { pin }) };
 }
 
 // Lists up to MAX_PIN_TESTS test files under `tests/` that mention `skills/<name>` or `agents/<name>`; a grep finds candidates, not changed wording.
@@ -138,10 +114,7 @@ export function validate(cwd, deps = defaults) {
 export async function main(deps = defaults) {
   const event = await deps.readJsonStdin();
   const cwd = projectDir(event, { env: deps.env, realpath: deps.realpath });
-  const work = plan(event.tool_input?.file_path, cwd, deps.realpath, {
-    toolInput: event.tool_input,
-    toolResponse: event.tool_response
-  });
+  const work = plan(event.tool_input?.file_path, cwd, deps.realpath);
   if (!work) return 0;
   if (work.validate) {
     const report = validate(cwd, deps);
@@ -150,16 +123,6 @@ export async function main(deps = defaults) {
       return 2;
     }
   }
-  const { command, advisory } = work.reload;
-  if (command) {
-    const path = markerPath(event.session_id, deps.tmp);
-    writeMarker(path, { file: work.rel, command }, deps);
-    deps.stdout(
-      JSON.stringify({
-        systemMessage: `${work.rel} changed: run ${command} (tools are blocked until you do${path ? `; or \`rm ${path}\`` : ''}).`
-      })
-    );
-  } else if (advisory) deps.stdout(JSON.stringify({ systemMessage: advisory }));
   const pinned = work.pin ? findPinTests(cwd, work.pin, deps) : [];
   if (pinned.length > 0) {
     const advice = `${work.rel} changed; these tests mention it and may pin its old wording: ${pinned.join(', ')}. Update pinned assertions in the same change.`;

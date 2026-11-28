@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { findPinTests, main, plan, reloadNeeded, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
+import { findPinTests, main, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
 
 const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };
@@ -14,7 +14,7 @@ function makeDeps({
   tree = {},
   env = { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' }
 } = {}) {
-  const calls = { spawn: [], stdout: [], stderr: [], writes: [] };
+  const calls = { spawn: [], stdout: [], stderr: [] };
   const deps = {
     spawn: (cmd, args, opts) => {
       calls.spawn.push({ cmd, args, opts });
@@ -32,8 +32,6 @@ function makeDeps({
       if (!(dir in tree)) throw Object.assign(new Error('missing'), { code: 'ENOENT' });
       return tree[dir][path.slice(dir.length + 1)];
     },
-    writeFile: (path, text) => calls.writes.push({ path, text }),
-    tmp: '/tmp',
     readJsonStdin: async () => JSON.parse(stdin),
     stdout: (text) => calls.stdout.push(text),
     stderr: (text) => calls.stderr.push(text)
@@ -43,86 +41,23 @@ function makeDeps({
 
 const event = (file, session_id) => JSON.stringify({ tool_input: { file_path: file }, session_id });
 
-describe('reloadNeeded', () => {
-  for (const top of ['skills', 'agents', 'hooks', '.claude-plugin']) {
-    test(`gates /reload-plugins for an edit under ${top}`, () => {
-      // Arrange
-      const parts = [top, 'x', 'f.md'];
-      // Act
-      const result = reloadNeeded(parts);
-      // Assert
-      assert.deepEqual(result, { command: '/reload-plugins', advisory: null });
-    });
-  }
-
-  test('needs nothing for an edit to an existing project skill', () => {
-    // Arrange
-    const parts = ['.claude', 'skills', 'x', 'SKILL.md'];
-    // Act
-    const result = reloadNeeded(parts, { toolResponse: { type: 'update' } });
-    // Assert
-    assert.deepEqual(result, { command: null, advisory: null });
-  });
-
-  test('needs nothing for a project rule or settings edit', () => {
-    // Arrange
-    const parts = ['.claude', 'rules', 'git.md'];
-    // Act
-    const result = reloadNeeded(parts);
-    // Assert
-    assert.deepEqual(result, { command: null, advisory: null });
-  });
-
-  test('advises /reload-skills for a newly created project skill', () => {
-    // Arrange
-    const parts = ['.claude', 'skills', 'x', 'SKILL.md'];
-    // Act
-    const result = reloadNeeded(parts, { toolResponse: { type: 'create' } });
-    // Assert
-    assert.equal(result.command, null);
-    assert.match(result.advisory, /\/reload-skills/);
-  });
-
-  test('advises a restart when a project skill name: line changes', () => {
-    // Arrange
-    const parts = ['.claude', 'skills', 'x', 'SKILL.md'];
-    const toolInput = { old_string: 'name: x', new_string: 'name: y' };
-    // Act
-    const result = reloadNeeded(parts, { toolInput });
-    // Assert
-    assert.match(result.advisory, /restart/);
-  });
-
-  test('gives no advisory when the name: line is unchanged', () => {
-    // Arrange
-    const parts = ['.claude', 'skills', 'x', 'SKILL.md'];
-    const toolInput = { old_string: 'name: x\na', new_string: 'name: x\nb' };
-    // Act
-    const result = reloadNeeded(parts, { toolInput });
-    // Assert
-    assert.equal(result.advisory, null);
-  });
-});
-
 describe('plan', () => {
-  test('validates a plugin skill file and gates its reload', () => {
+  test('validates a plugin skill file', () => {
     // Arrange
     const file = `${CWD}/skills/x/SKILL.md`;
     // Act
     const result = plan(file, CWD);
     // Assert
     assert.equal(result.validate, true);
-    assert.equal(result.reload.command, '/reload-plugins');
   });
 
-  test('needs no reload and no validation when a project rule changes', () => {
+  test('needs no validation when a project rule changes', () => {
     // Arrange
     const file = `${CWD}/.claude/rules/a.md`;
     // Act
     const result = plan(file, CWD);
     // Assert
     assert.equal(result.validate, false);
-    assert.equal(result.reload.command, null);
   });
 
   test('returns null for a file outside the project', () => {
@@ -199,13 +134,13 @@ describe('plan', () => {
     });
   }
 
-  test('returns no notice for a path that needs no reload', () => {
+  test('returns only the path and no validation for a non-plugin file', () => {
     // Arrange
     const file = `${CWD}/README.md`;
     // Act
     const result = plan(file, CWD);
     // Assert
-    assert.deepEqual(result, { rel: 'README.md', validate: false, reload: { command: null, advisory: null } });
+    assert.deepEqual(result, { rel: 'README.md', validate: false });
   });
 });
 
@@ -386,30 +321,15 @@ describe('validate', () => {
 });
 
 describe('main', () => {
-  test('writes the reload marker and prints the unlock message for a valid plugin edit', async () => {
-    // Arrange
-    const { deps, calls } = makeDeps({ stdin: event(`${CWD}/skills/x/SKILL.md`, 's1') });
-    // Act
-    const code = await main(deps);
-    // Assert
-    assert.equal(code, 0);
-    assert.deepEqual(calls.writes, [
-      {
-        path: '/tmp/cdk-reload-s1.json',
-        text: JSON.stringify([{ file: 'skills/x/SKILL.md', command: '/reload-plugins' }])
-      }
-    ]);
-    assert.match(JSON.parse(calls.stdout[0]).systemMessage, /run \/reload-plugins .*rm \/tmp\/cdk-reload-s1\.json/);
-  });
-
-  test('writes no marker without a session id', async () => {
+  test('prints no message for a valid plugin skill edit', async () => {
     // Arrange
     const { deps, calls } = makeDeps({ stdin: event(`${CWD}/skills/x/SKILL.md`) });
     // Act
     const code = await main(deps);
     // Assert
     assert.equal(code, 0);
-    assert.deepEqual(calls.writes, []);
+    assert.equal(calls.spawn.length, 1);
+    assert.deepEqual(calls.stdout, []);
   });
 
   test('prints the pin-test advice after a valid skill edit', async () => {
@@ -420,8 +340,8 @@ describe('main', () => {
     const code = await main(deps);
     // Assert
     assert.equal(code, 0);
-    assert.equal(calls.stdout.length, 2);
-    assert.match(JSON.parse(calls.stdout[1]).hookSpecificOutput.additionalContext, /tests\/a\.test\.mjs/);
+    assert.equal(calls.stdout.length, 1);
+    assert.match(JSON.parse(calls.stdout[0]).hookSpecificOutput.additionalContext, /tests\/a\.test\.mjs/);
   });
 
   test('prints no pin advice when validation fails', async () => {
@@ -437,10 +357,9 @@ describe('main', () => {
     // Assert
     assert.equal(code, 2);
     assert.equal(calls.stdout.length, 0);
-    assert.deepEqual(calls.writes, []);
   });
 
-  test('prints nothing and writes no marker for a project rule edit', async () => {
+  test('prints nothing for a project rule edit', async () => {
     // Arrange
     const { deps, calls } = makeDeps({ stdin: event(`${CWD}/.claude/rules/a.md`, 's1') });
     // Act
@@ -449,10 +368,9 @@ describe('main', () => {
     assert.equal(code, 0);
     assert.equal(calls.spawn.length, 0);
     assert.equal(calls.stdout.length, 0);
-    assert.deepEqual(calls.writes, []);
   });
 
-  test('prints a non-blocking advisory for a new project skill', async () => {
+  test('prints no notice for a new project skill', async () => {
     // Arrange
     const stdin = JSON.stringify({
       tool_input: { file_path: `${CWD}/.claude/skills/n/SKILL.md` },
@@ -464,8 +382,7 @@ describe('main', () => {
     const code = await main(deps);
     // Assert
     assert.equal(code, 0);
-    assert.match(JSON.parse(calls.stdout[0]).systemMessage, /new skill/);
-    assert.deepEqual(calls.writes, []);
+    assert.deepEqual(calls.stdout, []);
   });
 
   test('returns 2, writes the report to stderr, and prints no notice when validation fails', async () => {

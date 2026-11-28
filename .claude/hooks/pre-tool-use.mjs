@@ -1,9 +1,8 @@
-// PreToolUse hook: blocks every tool while the reload marker lists a reload the user has not run, and blocks a Bash `git commit` before git runs when its header is over commitlint's limit or it bypasses hooks or signing (`.claude/rules/git.md`).
+// PreToolUse hook: blocks a Bash `git commit` before git runs when its header is over commitlint's limit or it bypasses hooks or signing (`.claude/rules/git.md`).
 // An unparseable message is allowed through; commitlint still checks it.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expected, projectDir, readJsonStdin, runIfMain } from '../../hooks/scripts/lib/hook-io.mjs';
-import { markerPath, readMarker } from './lib/reload-marker.mjs';
 
 const COMMIT = /\bgit\b[^;&|\n]*\bcommit\b/;
 const MESSAGE_FLAG = /(?:^|\s)(?:-[a-zA-Z]*m|--message)(?:\s+|=)/;
@@ -78,22 +77,9 @@ export function violations(command, limit) {
   return reasons;
 }
 
-// Explains a pending reload: the files, the command that clears it, and the manual unlock.
-export function gateMessage(entries, path) {
-  const files = [...new Set(entries.map((e) => e.file))].join(', ');
-  const commands = [...new Set(entries.map((e) => e.command))].join(' or ');
-  return `cdk pre-tool-use: tools blocked until a reload: ${files} changed. Ask the user to run ${commands} (add --force if it is skipped), or to run \`! rm ${path}\` to unlock.\n`;
-}
-
-// Returns the exit code: 2 when a reload is pending or the commit must not run, else 0.
+// Returns the exit code: 2 when the commit must not run, else 0.
 export async function main(deps = defaults) {
   const event = await deps.readJsonStdin();
-  const path = markerPath(event.session_id, deps.tmp);
-  const pending = readMarker(path, deps.marker);
-  if (pending.length > 0) {
-    deps.stderr(gateMessage(pending, path));
-    return 2;
-  }
   if (event.tool_name !== undefined && event.tool_name !== 'Bash') return 0;
   const command = event.tool_input?.command;
   if (typeof command !== 'string' || !COMMIT.test(command)) return 0;
