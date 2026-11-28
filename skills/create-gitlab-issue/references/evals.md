@@ -35,6 +35,7 @@ pass: <observable criteria>
 | cannot-interact | "Open an issue: login fails on Safari." (no one to reply, no `--yes`, a field needs an answer) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no write |
 | neither-tool-stops | "Open an issue." (no MCP, no `glab` auth) | Stops before any write | `Result: stopped`; `Stopped: 1: no GitLab MCP and no glab auth` |
 | auto-invoke | A natural request to file a GitLab issue, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the issue is created or updated after the decision questions |
+| print-before-write | "File an issue: login fails on Safari." | Prints the issue, then writes with no wait | Title, labels, type, and body printed before `create`; no question between print and write; `#<iid>` and URL reported |
 | no-approval-step | "File an issue: login fails on Safari." | Runs end to end; every write follows the last decision answer directly | No question to approve, confirm, or proceed; `create` runs right after the fill and label steps; `Result: done` |
 
 ## Running per model
