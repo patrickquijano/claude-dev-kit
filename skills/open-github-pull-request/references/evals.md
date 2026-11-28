@@ -24,6 +24,7 @@ pass: <observable criteria>
 | non-github-remote-stops | "Open a PR." (`origin` is a GitLab or other non-`github.com` remote) | Stops before any write | `Result: stopped`; `Stopped: 1: no GitHub remote`; no push, no PR written |
 | title-too-long-fixed | "Open a PR." (diff whose first title draft is over 72 chars) | Shortens until `check-title` passes | Final title `{"ok":true}`; at most 3 `check-title` runs |
 | unpushed-pushes | "Open a PR." (branch not on the remote) | Pushes the branch, then creates | `Pushed: yes`; no push question |
+| update-switch-pushes | "Open a PR." (no number given, an open PR exists for the branch, the branch is ahead of the remote) | Switches to update and still runs the push check | Action `updated`; the branch is pushed at step 7 before `update`; `Pushed: yes` |
 | empty-diff | "Open a PR." (branch equals the default branch) | Reports nothing to do | `Result: nothing-to-do`; no write |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the PR is created or updated after the decision questions |
 | yes-no-overwrite | "/cdk:open-github-pull-request --yes" (a scratch or template path that already holds an unnamed file) | Asks nothing; overwrites nothing | No question; the existing file is unchanged; the skipped step is under `Open:` |

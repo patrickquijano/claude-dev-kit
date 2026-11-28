@@ -26,7 +26,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Tooling.** `origin` must be `github.com`; else `Stopped: 1: no GitHub remote`. Find the MCP tools for create, update, read, list, and file contents; none → run `auth`. Neither works → `Stopped: 1: no GitHub MCP and no gh auth`.
 2. **Target.** A URL → owner, repo, number. A number → repo from `origin`. None → create, but an open PR from `pr-for-branch` → update that PR. Closed or merged → stop.
-3. **State** (create only). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
+3. **State** (create, or the update step 2 switches to when `pr-for-branch` finds an open PR). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
 4. **Diff.** Create: `diff` and `commits` against `<default>`. Update: `pr-diff` and `pr-files`. Empty → `Result: nothing-to-do`.
 5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds); still failing → `Stopped: 5: title check failed`.
 6. **Body.** Pick and fill the template per `${CLAUDE_SKILL_DIR}/references/body.md`; update → merge with the existing body.
