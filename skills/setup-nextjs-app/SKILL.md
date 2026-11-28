@@ -38,14 +38,14 @@ Input: $ARGUMENTS (strip `--yes` first)
 1. **Pre-flight.** Repo root or Node version `<none>` → stop (name the missing tool). `pm-check` with `<pm>` = `npm` fails → stop, `Stopped: 1: npm not found`. Node older than Next.js `engines.node` (from `npm view next engines`) → stop with both versions. Every pre-flight stop: print the Output with `Result: stopped` and `Stopped: 1: <reason>`. An existing `next` dependency → configure-only (skip the scaffold).
 2. **Resolve versions.** Every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path, never from memory.
 3. **Research.** Recommended configuration per `research.md` through `cdk:topic-researcher` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/research.md` and `${CLAUDE_SKILL_DIR}/references/red-flags.md` by those paths, cited by URL; spawned in the same message as step 2 (independent).
-4. **Questions.** Package manager, linter (ESLint or Biome), `src/` directory, and the Orval API client mode, per `options.md`, each with the grill table.
+4. **Questions.** Package manager, linter (ESLint or Biome), `src/` directory, and the Orval API client mode, each with the grill table; then the OpenAPI spec path, a plain question with no grill table (a spec found in the repo is used with no ask); all per `options.md`.
 5. **Plan.** Resolve each step-4 pick through `cdk:version-resolver` with the version brief, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path; print the plan (`plan.md`).
 6. **Scaffold.** `nextjs.md` Scaffold.
 7. **Structure.** Per the official project-structure docs. `nextjs.md` Structure.
 8. **Tailwind.** Per research. `nextjs.md` Tailwind.
 9. **Vitest.** Unit and integration projects, coverage thresholds of 80. `nextjs.md` Vitest.
 10. **Playwright.** `tests/e2e` against a production build. `nextjs.md` Playwright.
-11. **Orval, Zod, MSW, Faker.** Generated client, schemas, mocks. `nextjs.md` Orval.
+11. **Orval, Zod, MSW, Faker.** Generated client, schemas, mocks from the OpenAPI spec (the given path, or a placeholder). `nextjs.md` Orval.
 12. **Sample tests.** Enough for coverage to pass. `nextjs.md` Samples.
 13. **Verify.** Run `lint`, `typecheck`, `unit`, and `e2e` from `commands.md`; repair what this run wrote, up to the cap.
 14. **Red flags.** Review per `red-flags.md`; fix up to the cap, then re-run the step 13 checks.

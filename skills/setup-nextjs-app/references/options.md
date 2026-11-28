@@ -35,3 +35,5 @@ Each question is one decision question with the grill table.
 | Orval client mode | fetch, react-query (plus the Zod and MSW outputs), swr, others the Orval docs list |
 
 Skip keeps the detected or framework default.
+
+The OpenAPI spec path is asked as a plain question, not a scored one: a repo path or URL the user gives, with no candidates and no grill table. A spec already in the repo (for example `openapi.yaml` or `openapi.json`) is used with no ask. `--yes` records the missing spec under `Open:` and uses the placeholder from `nextjs.md` Orval.

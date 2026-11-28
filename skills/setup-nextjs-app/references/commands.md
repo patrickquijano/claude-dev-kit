@@ -11,7 +11,8 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `pm-check` | `command -v <pm>` | Fails when the package manager is missing |
 | `scratch` | `mktemp -d` | Scratch dir for the scaffold |
 | `create-app` | `<exec> create-next-app@latest <scratch> --disable-git` | Scaffold into a scratch dir; flags per research |
-| `move-files` | `cp -Rn "<scratch>/." "<root>"` | Copy the scaffold from the scratch dir into the repo root without overwriting; collisions come from the step-5 plan check (a colliding file is never overwritten; it is listed under `Open:` with the change it would take), and `cp -n` itself lists none |
+| `collisions` | `diff -rq "<scratch>" "<root>"` | Run after the scaffold and before `move-files`; each `Files ... differ` or type-mismatch line is a collision |
+| `move-files` | `cp -Rn "<scratch>/." "<root>"` | Copy the scaffold from the scratch dir into the repo root without overwriting; collisions come from the `collisions` row run first (a colliding file is never overwritten; it is listed under `Open:` with the change it would take), and `cp -n` itself lists none |
 | `add` | `<pm> add <pkg>` | Dependencies; `-D` for dev tools (`npm install -D`) |
 | `lint` | `<pm> run lint` | ESLint CLI or Biome per the pick |
 | `typecheck` | `<exec> tsc --noEmit` | Type check |
