@@ -131,11 +131,12 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 
 ### Hooks
 
-| Event                      | Script                            | Purpose                                                                                                                                                    |
-| -------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PostToolUse` (Write/Edit) | `hooks/scripts/post-tool-use.mjs` | Format, then lint each file Claude edits with the repo's configured tools; failures go back to Claude as context, never blocking.                          |
-| `Stop`                     | `hooks/scripts/stop.mjs`          | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; feeds errors and warnings back to Claude to fix. |
-| `SessionStart`             | `hooks/scripts/session-start.mjs` | Inject today's date and time.                                                                                                                              |
+| Event                                   | Script                            | Purpose                                                                                                                                                    |
+| --------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PostToolUse` (Write/Edit)              | `hooks/scripts/post-tool-use.mjs` | Format, then lint each file Claude edits with the repo's configured tools; failures go back to Claude as context, never blocking.                          |
+| `Stop`                                  | `hooks/scripts/stop.mjs`          | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; feeds errors and warnings back to Claude to fix. |
+| `SessionStart`                          | `hooks/scripts/session-start.mjs` | Inject today's date and time.                                                                                                                              |
+| `SubagentStop` (`cdk:plan-implementer`) | `hooks/scripts/subagent-stop.mjs` | Blocks `cdk:plan-implementer` from finishing until its report carries passing `Proof:` exit codes; never blocks twice (when `stop_hook_active` is set).    |
 
 ### Hook flow
 
