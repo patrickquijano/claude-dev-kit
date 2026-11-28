@@ -33,7 +33,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 - For every runnable command, see `${CLAUDE_SKILL_DIR}/references/commands.md`.
 - For the evals, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
-- For the diff, see `${CLAUDE_SKILL_DIR}/scripts/tag-diff.mjs`.
+- For the tag diff (run, never read), see `${CLAUDE_SKILL_DIR}/scripts/tag-diff.mjs`.
 
 ## Output
 
