@@ -22,6 +22,7 @@ pass: <observable criteria, one per line>
 | inline-command | "Update the status line." (inline `statusLine` command) | Edits the command string | Only the branch part changes; backup of `settings.json`; other keys untouched |
 | rerun | "Update the status line." (already updated) | Changes nothing | `Result: nothing-to-do`; no new backup |
 | grill-close-call | A color question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
+| yes-close-call | "Update the status line --yes." (a color question whose top two totals are 5 or fewer apart) | No question; first-listed option taken | Table printed; no question asked; the first-listed option is applied; the close call is noted under `Open:` |
 | no-node | "Update the status line." (Node version is `<none>`) | Stops at pre-flight | `Result: stopped`, `Stopped: 1:` with "install Node.js"; no backup or write |
 | not-command-type | "Update the status line." (`statusLine` is not `type: command`) | Stops and reports | `Result: stopped`, `Stopped: 2:`; nothing written |
 | no-branch-seg | "Update the status line." (script has no `git(<name>)` styled call) | Stops without guessing another segment | `Result: stopped`, `Stopped: 3:`; no other segment edited; no write |

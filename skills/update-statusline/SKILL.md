@@ -28,7 +28,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Set `statusLine` only when none exists; never rewrite an existing `statusLine` command path.
 - Idempotent: a branch segment already using the chosen color is skipped.
 - Never branch or commit; the user scope is outside the repo.
-- Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Mine the script first. Use the structured-question tool. Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` first; a close call has no Recommended and goes under `Open:`.
+- Decision questions: at most 4 per call, 2-4 options, the Recommended first; each asked once. Mine the script first. Use the structured-question tool. Show the score table per `${CLAUDE_SKILL_DIR}/references/grill.md` first; a close call has no Recommended and goes under `Open:` (`--yes`: take the first-listed option and note it under `Open:`).
 - AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
 - Cap: fix loop 3 rounds; leftovers go under `Open:`.
 

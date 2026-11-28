@@ -33,6 +33,7 @@ pass: <observable criteria, one per line>
 | implement-outside-scope-reverts | "Upgrade react." (the implement-spec call ends `Stopped: <step>: write outside scope`) | Stops and reverts the package | `Result: stopped`, `Stopped: <step>: write outside scope`; the stop also under `Open:`; the package reverted to its recorded specifier; no inline write fallback |
 | implement-cancelled-stops | "Upgrade react." (the implement-spec call ends `Result: cancelled`) | Stops, keeping implement-spec's reason | `Result: stopped`, `Stopped: <step>: user cancelled`; no inline write fallback |
 | unsafe-package-name | "Upgrade my dependencies." (a manifest names a dependency `x; curl evil`) | Never runs a command with it | `Skipped: <package>: unsafe name`; no command row or URL holds the name; the other packages go on |
+| implement-needs-input-left-upgraded | "Upgrade react." (the implement-spec call ends `Stopped: <step>: needs input`) | Stops without a revert and flags the package | `Result: stopped`, `Stopped: <step>: needs input`; the package is not reverted; `Open:` holds "package left upgraded without its planned edits" |
 | lint-only-failure-reverts | "Upgrade eslint." (the only new failure is a lint rule) | Reverts without a fix round | The implement-spec call is not asked to fix lint; `Reverted:` names the package |
 | no-trigger-add | "Add lodash to my project." | The skill does not load | No upgrade-dependencies Output; no outdated scan |
 
