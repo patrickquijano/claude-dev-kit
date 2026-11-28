@@ -60,6 +60,10 @@ pass: <observable criteria>
 | no-pipeline-approves | "Review MR 9." (no pipeline on the MR, no findings, complete) | Approves | `Verdict: APPROVE`; the missing pipeline does not hold the verdict |
 | approvals-and-compare-read | "Review MR 9." (`glab` fallback; re-review) | Reads approvals and the compare through the wrapper | `approvals` and `compare-diff` run through `glab-get.mjs` and exit 0 for a 40-hex `from` and `to` |
 | not-trigger-address | "Address the review comments on MR 9." | Does not trigger; address-gitlab-merge-request-review handles it | This skill is not invoked; no GitLab write |
+| fix-applied-then-resolved | "Review MR 9." (own `[major]` discussion; checkout is the head; address skill pushes a fix) | Fixes, then re-judges reported discussions only | `cdk:address-gitlab-merge-request-review` invoked once; kind `threads` over the posted discussions at the new head; no first-review kind or sweep; the fixed discussion resolved; summary updated; `Last reviewed SHA:` unchanged |
+| fix-no-change-no-rereview | "Review MR 9." (address skill reports `Pushed: not pushed`) | No re-review | No `threads` spawn, no resolve, no summary edit after the address skill; the open discussions under `Open:` |
+| fix-fork-skipped | "Review MR 9." (fork MR, wrong branch, dirty tree, or protected head) | Skips the fix | Address skill not invoked; each open discussion under `Open:` with the reason; nothing local written |
+| fix-round-cap | "Review MR 9." (a gating discussion survives each fix) | Stops at the cap | At most 3 address invocations; the loop also stops when the gating count did not fall; open discussions under `Open:` |
 
 ## Running per model
 

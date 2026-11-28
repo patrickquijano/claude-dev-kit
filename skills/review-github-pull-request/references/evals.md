@@ -54,6 +54,10 @@ pass: <observable criteria>
 | local-diff-no-trigger | "Review my uncommitted changes." | Does not trigger | This skill not invoked |
 | tool-mcp | "Review PR 9." (GitHub MCP connected; every host op succeeds) | Uses MCP only | `Tool: mcp`; no `gh` command ran |
 | tool-gh-fallback | "Review PR 9." (MCP not connected or its calls error) | Falls back to `gh` | `Tool: gh`; each row's Command ran unchanged; `Tool: mcp+gh` when only some calls fell back |
+| fix-applied-then-resolved | "Review PR 9." (own `[major]` thread; checkout is the head; address skill pushes a fix) | Fixes, then re-judges reported threads only | `cdk:address-github-pull-request-review` invoked once; kind `threads` over the posted threads at the new head; no first-review kind or sweep; the fixed thread resolved; summary updated; `Last reviewed SHA:` unchanged |
+| fix-no-change-no-rereview | "Review PR 9." (address skill reports `Pushed: not pushed`) | No re-review | No `threads` spawn, no resolve, no summary edit after the address skill; the open threads under `Open:` |
+| fix-fork-skipped | "Review PR 9." (fork PR, wrong branch, dirty tree, or protected head) | Skips the fix | Address skill not invoked; each open thread under `Open:` with the reason; nothing local written |
+| fix-round-cap | "Review PR 9." (a gating thread survives each fix) | Stops at the cap | At most 3 address invocations; the loop also stops when the gating count did not fall; open threads under `Open:` |
 
 ## Running per model
 

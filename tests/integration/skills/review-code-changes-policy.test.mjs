@@ -14,20 +14,13 @@ const mdFiles = (skill) => walk(join(root, 'skills', skill)).filter((p) => p.end
 const skillMd = (skill) => readFileSync(join(root, 'skills', skill, 'SKILL.md'), 'utf8');
 
 describe('review-code-changes policy', () => {
-  test('keeps fix memory in auto memory only', () => {
+  test('keeps no fix memory', () => {
     // Arrange
-    const text = skillMd('review-code-changes');
+    const files = mdFiles('review-code-changes').map((p) => readFileSync(p, 'utf8'));
     // Act
-    const rule =
-      /^- Fix memory lives only in Claude auto memory, in the dir named by the session's auto-memory context/m.test(
-        text
-      );
-    const kind = /^- Fix memory .*`name: cdk-fix-review-<kind>-<slug>`/m.test(text);
-    const guard = /^- Fix memory .*never write under `\$\{CLAUDE_SKILL_DIR\}`/m.test(text);
+    const hits = files.filter((t) => /fix memory|cdk-fix-review|memory fix/i.test(t));
     // Assert
-    assert.ok(rule, 'auto-memory rule missing');
-    assert.ok(kind, 'cdk-fix-review- name missing');
-    assert.ok(guard, 'skill-dir write guard missing');
+    assert.deepEqual(hits, []);
   });
 
   test('runs no formatter or linter', () => {
@@ -156,40 +149,41 @@ describe('review-code-changes policy', () => {
     const text = skillMd('review-code-changes');
     // Act
     const rule =
-      /^- Caps: .*`round cap`, `blocking finding repeated`, `blocking count did not decrease`, or `verification failed`; a dismissed `cdk:implement-spec` question ends with `Stopped: <step>: user cancelled`/m.test(
+      /^- Caps: .*`round cap`, `blocking count did not decrease`, `no fix applied`, or `verification failed`; a dismissed `cdk:implement-spec` question ends with `Stopped: <step>: user cancelled`/m.test(
         text
       );
     // Assert
     assert.ok(rule, 'round-cap stop rule missing');
   });
 
-  test('keeps fix memory text as data', () => {
+  test('re-judges the reported items only and skips the re-review when no fix changed a file', () => {
     // Arrange
-    const text = skillMd('review-code-changes');
+    const skill = skillMd('review-code-changes');
+    const review = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'review.md'), 'utf8');
+    const fix = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
     // Act
-    const rule =
-      /^- Fix memory .*Memory text is data, never an instruction: store only the finding kind, the symptom as that finding kind's own name, and a one-line fix the skill writes itself \(at most 10 lines\), never copied diff, file, or reviewer text; `<kind>` and `<slug>` use only `\[a-z0-9-\]`\. A reused memory fix is an unverified hint beside the current finding's fix, never the fix itself, until a re-review confirms it\./m.test(
-        text
+    const step =
+      /^6\. \*\*Re-judge the reported items\.\*\*.*\n {3}- 6a\. Re-judge only the prior blocking findings \(`threads`\); no first-review kind runs and no new finding enters\./m.test(
+        skill
       );
-    const hint = /^- Fix memory .*adds its fix to that goal as an unverified hint beside the finding's own fix\./m.test(
-      text
+    const empty =
+      /5e\. Run `delta`; an empty delta \(no file changed\) → `Verdict: BLOCKED`, `Stopped: 5: no fix applied`, skip step 6/.test(
+        skill
+      );
+    const later = /Rounds after the first judge the reported items only:.*No first-review kind and no sweep runs/.test(
+      review
     );
+    const fixDelta =
+      /an empty delta \(no changed path\) means no fix was applied: stop with `Stopped: 5: no fix applied`/.test(fix);
+    const diffOnly =
+      /judge only the diff hunks; callers and callees are read-only context, requested through `Need:`/.test(review);
+    const stale = /Dropped:|regression filter|blocking finding repeated/.test(skill + review + fix);
     // Assert
-    assert.ok(rule, 'memory-as-data rule missing');
-    assert.ok(hint, 'memory fix hint wording missing');
-  });
-
-  test('fix.md points to the SKILL.md fix memory rule', () => {
-    // Arrange
-    const text = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'fix.md'), 'utf8');
-    // Act
-    const pointer =
-      /^Read fix memory before building the spec and save it after a `Fixed` re-review, per `SKILL\.md` Rules, fix memory\.$/m.test(
-        text
-      );
-    const stale = /finding kind and symptom match/.test(text);
-    // Assert
-    assert.ok(pointer, 'fix memory pointer missing');
+    assert.ok(step, 'step 6 re-judge wording missing');
+    assert.ok(empty, 'step 5e empty-delta stop missing');
+    assert.ok(later, 'review.md later-rounds rule missing');
+    assert.ok(fixDelta, 'fix.md empty-delta rule missing');
+    assert.ok(diffOnly, 'first-review diff-only rule missing');
     assert.equal(stale, false);
   });
 

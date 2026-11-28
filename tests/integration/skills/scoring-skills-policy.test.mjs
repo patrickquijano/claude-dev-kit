@@ -720,9 +720,9 @@ describe('build-skill evals.md aligns dirty-tracked-edit with the audit dirty-ta
 });
 
 describe('memory-reuse evals pass the remembered fix as a hint', () => {
-  const evalFiles = ['build-skill', 'build-subagent', 'update-readme', 'update-rules', 'review-code-changes'];
+  const evalFiles = ['build-skill', 'build-subagent', 'update-readme', 'update-rules'];
 
-  for (const skill of ['audit-skill', 'audit-subagent']) {
+  for (const skill of ['audit-skill', 'audit-subagent', 'review-code-changes']) {
     test(`${skill} keeps no memory-reuse row`, () => {
       // Arrange
       const text = readRel(`skills/${skill}/references/evals.md`);

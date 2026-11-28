@@ -1,10 +1,10 @@
 # Post
 
-Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new discussion body is `[severity] <problem>. <impact>. <fix>.` in plain English with no `Impact:` or `Fix:` label and no line starting with `/` (GitLab reads it as a quick action), a blank line, then the marker. The severity prefix is for discussions only; the summary has none. Example body: `[major] parseDate drops the UTC offset. Late orders land on the wrong day. Parse with the offset-aware parser.`
+Steps 8–10 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new discussion body is `[severity] <problem>. <impact>. <fix>.` in plain English with no `Impact:` or `Fix:` label and no line starting with `/` (GitLab reads it as a quick action), a blank line, then the marker. The severity prefix is for discussions only; the summary has none. Example body: `[major] parseDate drops the UTC offset. Late orders land on the wrong day. Parse with the offset-aware parser.`
 
 ## Contents
 
-- Summary · Head check · Threads · Summary note · State · Own MR · Errors · Report
+- Summary · Head check · Threads · Summary note · State · Own MR · Fix loop · Errors · Report
 
 ## Summary
 
@@ -38,6 +38,16 @@ The state is the discussions plus the approval:
 ## Own MR
 
 `APPROVE` refused because the author is Self (GitLab does not allow approving your own merge request when that setting applies) → the approval runs last, after the summary is posted, so the summary states it up front when the author is Self. Leave the discussions as they are and continue with no approval. Any other refusal of the approval (permission, rules) → report it under `Errors:`.
+
+## Fix loop
+
+Runs only when step 8g invoked the address skill; at most 3 rounds (`SKILL.md` Caps).
+
+- Guard: continue only when its Output has `Result: done` and `Pushed: <source branch> @ <short sha>`; `not pushed`, no commit, or `stopped` → no re-review, nothing written, and the open discussions go under `Open:`.
+- Re-judge: `head-sha`, then redo steps 3a–3c (`threads.md`) at the new head over the own discussions this run posted. First-review kinds, the sweep, and new discussions never run, so no new finding enters.
+- Update order: `thread-resolve` each discussion judged Fixed or Obsolete (`## Threads` rules), then edit the summary note (counts, verdict), then the state (`approve` only when no gating discussion is left, per `## State`; a verdict that is not `APPROVE` with an own approval present → `unapprove` first). Leave `Last reviewed SHA:` as it was, so a later run still reviews the fix commits.
+- Head check: reuse `## Head check`, one redo of steps 3a–3c only; a head that moves again → `Result: stopped`, `Stopped: 9: head moved twice`.
+- Loop: continue to step 8g only when the gating count fell below the previous round's and fewer than 3 rounds ran; otherwise stop and list what is open under `Open:`.
 
 ## Errors
 

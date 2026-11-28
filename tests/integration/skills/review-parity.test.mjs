@@ -171,6 +171,29 @@ describe('review PR and MR twins stay symmetric', () => {
       assert.deepEqual(results, [true, false]);
     });
 
+    test(`${skill} fixes through the address skill, then re-judges only its own ${unit}s`, () => {
+      // Arrange
+      const addr =
+        skill === 'review-github-pull-request'
+          ? 'address-github-pull-request-review'
+          : 'address-gitlab-merge-request-review';
+      const exception = `The one exception is step 8g: the invoked \`cdk:${addr}\` skill alone edits, commits, and pushes, under its own guards`;
+      const loop = /- Fix loop: after step 8 .* at most 3 rounds and only while the blocking count decreases;/;
+      const step = /9\. \*\*Re-judge the fixes\*\*.*no first-review kind, no sweep, no new/;
+      const fixLoop = /## Fix loop[\s\S]*no new finding enters[\s\S]*Leave `Last reviewed SHA:` as it was/;
+      const stale = /invoke the address skills\.|One pass per invocation/;
+      // Act
+      const results = [
+        skillMd.includes(exception),
+        loop.test(skillMd),
+        step.test(skillMd),
+        fixLoop.test(post),
+        stale.test(skillMd)
+      ];
+      // Assert
+      assert.deepEqual(results, [true, true, true, true, false]);
+    });
+
     test(`${skill} posts non-blocking items under one cap of 5`, () => {
       // Arrange
       const rule = /at most 5 inline non-blocking `minor`, `nit`, or `question` findings/;
@@ -257,13 +280,13 @@ describe('review-code-changes re-review state', () => {
     assert.deepEqual(results, [true, true, true]);
   });
 
-  test('prints the Mode and Dropped lines in the Output', () => {
+  test('prints the Mode line and no Dropped line in the Output', () => {
     // Arrange
     const mode = /^Mode: full \| delta since <short sha> \(<p> prior blocking: <f> fixed, <o> open\)$/m;
-    const dropped = /^Dropped: <key \[severity\] — reason>, … \| none$/m;
+    const dropped = /^Dropped:/m;
     // Act
     const results = [mode.test(skillMd), dropped.test(skillMd)];
     // Assert
-    assert.deepEqual(results, [true, true]);
+    assert.deepEqual(results, [true, false]);
   });
 });

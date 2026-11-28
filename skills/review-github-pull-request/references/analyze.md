@@ -1,6 +1,6 @@
 # Analyze
 
-Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed gating check (`threads.md` `## Gating check`) only keeps the state at changes requested. In a re-review the scope is only the changes since the last reviewed SHA, and only `critical` and `major` findings are posted; the rest are listed in the summary.
+Steps 5–7 of `SKILL.md`: scratch files, four reviewer subagents per batch, findings, the coverage check, the sweep, and the verdict. Steps 5–6 always run; a failed gating check (`threads.md` `## Gating check`) only keeps the state at changes requested. A first review judges only the PR diff; callers and callees are read-only context through `Need:`. In a fresh re-review the scope is only the changes since the last reviewed SHA, and only `critical` and `major` findings are posted; the rest are listed in the summary.
 
 ## Contents
 

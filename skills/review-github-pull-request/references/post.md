@@ -1,10 +1,10 @@
 # Post
 
-Steps 8–9 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new thread body is `[severity] <problem>. <impact>. <fix>.` in plain English with no `Impact:` or `Fix:` label, a blank line, then the marker. The severity prefix is for threads only; the summary has none.
+Steps 8–10 of `SKILL.md`. Nothing is asked here; every write runs without waiting. Every posted comment and the summary carry the marker; every new thread body is `[severity] <problem>. <impact>. <fix>.` in plain English with no `Impact:` or `Fix:` label, a blank line, then the marker. The severity prefix is for threads only; the summary has none.
 
 ## Contents
 
-- Pre-post report · Head check · Threads · Summary comment · State review · Own PR · Errors · Report
+- Pre-post report · Head check · Threads · Summary comment · State review · Own PR · Fix loop · Errors · Report
 
 ## Pre-post report
 
@@ -36,6 +36,16 @@ The review is the state: `REQUEST_CHANGES` while any gating thread is unresolved
 ## Own PR
 
 GitHub rejects `REQUEST_CHANGES` and `APPROVE` on the author's own PR ("can not approve your own pull request"): submit the same pending review once as `COMMENT`, say in the summary that changes are requested through the unresolved threads, and continue. Any other rejection of the event → resubmit as `COMMENT` once.
+
+## Fix loop
+
+Runs only when step 8g invoked the address skill; at most 3 rounds (`SKILL.md` Caps).
+
+- Guard: continue only when its Output has `Result: done` and `Pushed: <head ref> @ <short sha>`; `not pushed`, no commit, or `stopped` → no re-review, nothing written, and the open threads go under `Open:`.
+- Re-judge: `head-sha`, then redo steps 3a–3c (`threads.md`) at the new head over the own threads this run posted. First-review kinds, the sweep, and new threads never run, so no new finding enters.
+- Update order: `thread-resolve` each thread judged Fixed or Obsolete (`## Threads` rules), then `summary-update` (counts, verdict), then the state review (`APPROVE` only when no gating thread is left, per `## State review`). Leave `Last reviewed SHA:` as it was, so a later run still reviews the fix commits.
+- Head check: reuse `## Head check`, one redo of steps 3a–3c only; a head that moves again → `Result: stopped`, `Stopped: 9: head moved twice`.
+- Loop: continue to step 8g only when the gating count fell below the previous round's and fewer than 3 rounds ran; otherwise stop and list what is open under `Open:`.
 
 ## Errors
 
