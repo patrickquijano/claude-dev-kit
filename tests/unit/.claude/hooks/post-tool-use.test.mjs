@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { isProjectScoped, main, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
+import { findPinTests, isProjectScoped, main, plan, validate } from '../../../../.claude/hooks/post-tool-use.mjs';
 
 const CWD = '/proj';
 const ok = { status: 0, stdout: 'Validation passed', stderr: '' };
@@ -11,6 +11,7 @@ function makeDeps({
   spawnResult = ok,
   platform = 'linux',
   realpath = (p) => p,
+  tree = {},
   env = { CLAUDE_PROJECT_DIR: CWD, KEEP: 'yes' }
 } = {}) {
   const calls = { spawn: [], stdout: [], stderr: [] };
@@ -22,6 +23,14 @@ function makeDeps({
     platform,
     env,
     realpath,
+    readdir: (dir) => {
+      if (!(dir in tree)) throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      return Object.keys(tree[dir]).map((name) => ({ name, isDirectory: () => typeof tree[dir][name] === 'object' }));
+    },
+    readFile: (path) => {
+      const dir = path.slice(0, path.lastIndexOf('/'));
+      return tree[dir][path.slice(dir.length + 1)];
+    },
     readJsonStdin: async () => JSON.parse(stdin),
     stdout: (text) => calls.stdout.push(text),
     stderr: (text) => calls.stderr.push(text)
@@ -175,6 +184,93 @@ describe('plan', () => {
   });
 });
 
+describe('plan pin', () => {
+  test('names the skill for an edit under skills/<name>/', () => {
+    // Arrange
+    const file = `${CWD}/skills/x/references/a.md`;
+    // Act
+    const result = plan(file, CWD);
+    // Assert
+    assert.equal(result.pin, 'x');
+  });
+
+  test('names the agent for an edit to agents/<name>.md', () => {
+    // Arrange
+    const file = `${CWD}/agents/rubric-scorer.md`;
+    // Act
+    const result = plan(file, CWD);
+    // Assert
+    assert.equal(result.pin, 'rubric-scorer');
+  });
+
+  test('has no pin for a project rule', () => {
+    // Arrange
+    const file = `${CWD}/.claude/rules/a.md`;
+    // Act
+    const result = plan(file, CWD);
+    // Assert
+    assert.equal('pin' in result, false);
+  });
+
+  test('has no pin for a non-markdown file directly under agents', () => {
+    // Arrange
+    const file = `${CWD}/agents/notes.txt`;
+    // Act
+    const result = plan(file, CWD);
+    // Assert
+    assert.equal('pin' in result, false);
+  });
+});
+
+describe('findPinTests', () => {
+  const tree = {
+    [`${CWD}/tests`]: {
+      unit: {},
+      'a.test.mjs': 'see skills/x/SKILL.md',
+      'b.test.mjs': 'skills/x-other only',
+      'c.txt': 'skills/x'
+    },
+    [`${CWD}/tests/unit`]: { 'd.test.mjs': 'agents/x.md' }
+  };
+
+  test('lists test files that mention the skill or agent, recursively', () => {
+    // Arrange
+    const { deps } = makeDeps({ tree });
+    // Act
+    const result = findPinTests(CWD, 'x', deps);
+    // Assert
+    assert.deepEqual(result, ['tests/a.test.mjs', 'tests/unit/d.test.mjs']);
+  });
+
+  test('skips a longer name sharing the prefix and non-test files', () => {
+    // Arrange
+    const { deps } = makeDeps({ tree });
+    // Act
+    const result = findPinTests(CWD, 'x-oth', deps);
+    // Assert
+    assert.deepEqual(result, []);
+  });
+
+  test('returns nothing when the tests directory is missing', () => {
+    // Arrange
+    const { deps } = makeDeps();
+    // Act
+    const result = findPinTests(CWD, 'x', deps);
+    // Assert
+    assert.deepEqual(result, []);
+  });
+
+  test('caps the list at 8 files', () => {
+    // Arrange
+    const files = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`t${i}.test.mjs`, 'skills/x']));
+    const { deps } = makeDeps({ tree: { [`${CWD}/tests`]: files } });
+    // Act
+    const result = findPinTests(CWD, 'x', deps);
+    // Assert
+    assert.equal(result.length, 8);
+  });
+});
+
 describe('validate', () => {
   test('returns null when claude exits 0 with no warning', () => {
     // Arrange
@@ -273,6 +369,33 @@ describe('main', () => {
     // Assert
     assert.equal(code, 0);
     assert.deepEqual(calls.stdout, []);
+  });
+
+  test('prints the pin-test advice after a valid skill edit', async () => {
+    // Arrange
+    const tree = { [`${CWD}/tests`]: { 'a.test.mjs': 'skills/x' } };
+    const { deps, calls } = makeDeps({ stdin: event(`${CWD}/skills/x/SKILL.md`), tree });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+    assert.equal(calls.stdout.length, 1);
+    assert.match(JSON.parse(calls.stdout[0]).hookSpecificOutput.additionalContext, /tests\/a\.test\.mjs/);
+  });
+
+  test('prints no pin advice when validation fails', async () => {
+    // Arrange
+    const tree = { [`${CWD}/tests`]: { 'a.test.mjs': 'skills/x' } };
+    const { deps, calls } = makeDeps({
+      stdin: event(`${CWD}/skills/x/SKILL.md`),
+      spawnResult: { status: 1, stdout: 'broken', stderr: '' },
+      tree
+    });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 2);
+    assert.equal(calls.stdout.length, 0);
   });
 
   test('prints a notice without validating for a project rule edit', async () => {

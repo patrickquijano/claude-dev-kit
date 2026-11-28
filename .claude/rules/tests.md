@@ -11,4 +11,5 @@ paths:
 - Behavior that needs real I/O (temp git repos, spawned CLIs, stdin→stdout contracts) goes in `tests/integration/` at the mirrored path. Same `// Arrange`, `// Act`, `// Assert` comments, one Act per test, temp dirs removed in `after`, no network.
 - No integration tests in `tests/unit/`; move existing ones with `git mv` so history follows.
 - The `.husky/*.mjs` and `skills/setup-husky/assets/*.mjs` test pairs are intentional mirrors of byte-identical modules and differ only by import path; so are `skills/audit-skill/scripts/count.mjs` and `skills/audit-subagent/scripts/count.mjs`, which differ only in line 1.
+- Changing user-facing skill or agent wording: grep `tests/` for the old phrase and update pinned assertions in the same commit.
 - Verify: `npm test` (single-suite commands: `.claude/CLAUDE.md` Commands).

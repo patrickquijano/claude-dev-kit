@@ -1,8 +1,8 @@
-// PostToolUse hook: structural plugin check after Claude edits a plugin file (never the LLM-graded eval); a nonzero exit (`--strict` turns warnings into errors) goes to stderr with exit 2 so Claude fixes it.
+// PostToolUse hook: structural plugin check after Claude edits a plugin file (never the LLM-graded eval), plus advice listing tests that may pin an edited skill or agent; a nonzero exit (`--strict` turns warnings into errors) goes to stderr with exit 2 so Claude fixes it.
 // Hooks cannot run slash commands, so each valid project component edit prints a `/reload-skills` notice instead.
 import { spawnSync } from 'node:child_process';
-import { realpathSync } from 'node:fs';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { readFileSync, readdirSync, realpathSync } from 'node:fs';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 import {
   MAX,
   contextOutput,
@@ -16,12 +16,15 @@ const PATHS = ['skills', 'commands', 'agents', 'evals', 'hooks', '.claude-plugin
 const PROJECT_DIRS = ['agents', 'hooks', 'rules', 'skills'];
 const PROJECT_FILES = ['settings.json', 'CLAUDE.md'];
 const TIMEOUT_MS = 100_000;
+const MAX_PIN_TESTS = 8;
 
 const defaults = {
   spawn: spawnSync,
   platform: process.platform,
   env: process.env,
   realpath: realpathSync,
+  readdir: (dir) => readdirSync(dir, { withFileTypes: true }),
+  readFile: (path) => readFileSync(path, 'utf8'),
   readJsonStdin,
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text)
@@ -43,6 +46,13 @@ function realTarget(path, realpath) {
   }
 }
 
+// Returns the skill or agent name an edited path belongs to (`skills/<name>/…`, `agents/<name>.md`), else null.
+function pinName(parts) {
+  if (parts[0] === 'skills' && parts.length > 2) return parts[1];
+  if (parts[0] === 'agents' && parts.length === 2 && parts[1].endsWith('.md')) return parts[1].slice(0, -3);
+  return null;
+}
+
 // Plans the hook's work for one edited file: its project-relative path, whether to validate, and the notice to print.
 // `cwd` must already be a real path (`projectDir`).
 export function plan(file, cwd, realpath = realpathSync) {
@@ -53,7 +63,8 @@ export function plan(file, cwd, realpath = realpathSync) {
   const top = parts[0];
   const project = isProjectScoped(parts);
   const validate = PATHS.includes(top);
-  if (!project) return { rel, validate, notice: null };
+  const pin = pinName(parts);
+  if (!project) return { rel, validate, notice: null, ...(pin && { pin }) };
   const notice = {
     systemMessage: `${rel} changed: run /reload-skills.`,
     ...contextOutput(
@@ -62,6 +73,36 @@ export function plan(file, cwd, realpath = realpathSync) {
     )
   };
   return { rel, validate, notice };
+}
+
+// Lists up to MAX_PIN_TESTS test files under `tests/` that mention `skills/<name>` or `agents/<name>`; a grep finds candidates, not changed wording.
+export function findPinTests(cwd, name, deps = defaults) {
+  const needles = [`skills/${name}`, `agents/${name}`];
+  const mentions = (text) =>
+    needles.some((needle) => {
+      for (let i = text.indexOf(needle); i !== -1; i = text.indexOf(needle, i + 1)) {
+        if (!/[\w-]/.test(text[i + needle.length] ?? '')) return true;
+      }
+      return false;
+    });
+  const found = [];
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = deps.readdir(dir);
+    } catch (err) {
+      if (!expected(err, 'ENOENT')) throw err;
+      return;
+    }
+    for (const entry of [...entries].sort((a, b) => a.name.localeCompare(b.name))) {
+      if (found.length >= MAX_PIN_TESTS) return;
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (entry.name.endsWith('.test.mjs') && mentions(deps.readFile(path))) found.push(relative(cwd, path));
+    }
+  };
+  walk(join(cwd, 'tests'));
+  return found;
 }
 
 // Runs the strict plugin validation; returns the report when it exits nonzero, else null.
@@ -101,6 +142,11 @@ export async function main(deps = defaults) {
     }
   }
   if (work.notice) deps.stdout(JSON.stringify(work.notice));
+  const pinned = work.pin ? findPinTests(cwd, work.pin, deps) : [];
+  if (pinned.length > 0) {
+    const advice = `${work.rel} changed; these tests mention it and may pin its old wording: ${pinned.join(', ')}. Update pinned assertions in the same change.`;
+    deps.stdout(JSON.stringify(contextOutput('PostToolUse', advice)));
+  }
   return 0;
 }
 
