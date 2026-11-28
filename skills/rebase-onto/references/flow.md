@@ -8,7 +8,7 @@
 
 - Protected branch → stop (`Stopped: 1: protected branch`), since the rebase would rewrite it: the current branch is `main`, `master`, `develop`, `release/*`, or the `default-branch`'s local name (the part after `origin/`; unset → only the named ones). Never a question or a bypass, `--yes` included.
 - Detached `HEAD` → stop. `status` shows "rebase in progress" → stop; tell the user to finish it or `rebase-abort`. `dirty-tracked` non-empty → stop; tell the user to commit the changes first.
-- Signing: run `check-signing` with `--root <root>` (Context). Exit 1 → stop and say each error's `fix`. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
+- Signing: run `check-signing` with no argument (it defaults to the current directory). Exit 1 → stop and say each error's `fix`. Never edit signing config or retry unsigned; a signing failure during the rebase stops with the exact error line.
 
 ## Remote branches
 

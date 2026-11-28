@@ -4,7 +4,7 @@
 | --- | --- | --- | --- |
 | `current-branch` | `git rev-parse --abbrev-ref HEAD` | Branch name; `HEAD` = detached (preloaded in Context) | — |
 | `status` | `git status` | Shows "rebase in progress" | — |
-| `check-signing` | `node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs --root <root>` | JSON: `ok` or the failed signing checks (exit 1) | — |
+| `check-signing` | `node ${CLAUDE_SKILL_DIR}/scripts/check-signing.mjs` | JSON: `ok` or the failed signing checks (exit 1) | — |
 | `dirty-tracked` | `git status --porcelain=v1 --untracked-files=no` | Uncommitted tracked changes | — |
 | `fetch` | `git fetch --prune origin` | Refresh remote refs | — |
 | `upstream` | `git rev-parse --abbrev-ref @{u}` | Upstream ref name | — |
