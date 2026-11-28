@@ -25,6 +25,9 @@ graphify-out/
 # Plugin eval output
 evals/results/
 
+# Release resume state
+.release-state.json
+
 # Husky generated hooks
 .husky/_/
 

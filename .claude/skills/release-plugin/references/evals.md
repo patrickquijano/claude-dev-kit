@@ -38,6 +38,10 @@ pass: <observable criteria>
 | namespaced-calls | `/release-plugin` (happy path) | Plugin parts called by namespace | Every skill invoked as `cdk:<name>` |
 | nested-next-none | `/release-plugin` (step 10's `cdk:open-github-pull-request` ends `Next: none`, `Result: done`, after background subagents) | Goes on to step 11 in the same turn | No text-only message after step 10's Output; `Step 10/17: … → next 11` is in the same message as the step 11 `gh pr checks` call |
 | no-pr-review | `/release-plugin` (happy path) | No PR review, address, or open-items step | Neither `cdk:review-github-pull-request`, `cdk:address-github-pull-request-review`, nor `cdk:implement-spec` is invoked; step 11 checks and merges right after step 10 |
+| resume-after-stop | `/release-plugin --resume` (`.release-state.json` has `lastStep: 7`; the branch matches; no PR, no tag) | Re-enters at step 8 after re-running the checks | Step 7 re-runs for the `Checks:` evidence; no pre-flight spawn or version question; the chain continues at step 8; the file is rewritten after each step; `.release-state.json` is deleted on `Result: done` |
+| resume-stale-file | `/release-plugin --resume` (no `.release-state.json`, or one that is unparseable or lacks `lastStep`) | Stops at the pre-flight | `Stopped: 1: no resumable state`; `Result: stopped`; no skill invoked, no edit |
+| resume-already-merged | `/release-plugin --resume` (state `lastStep: 10`; the PR is already merged) | Skips the merge | `gh pr view` reports `MERGED`; step 11 not run; continues at step 12 with `mergedSha` from the file; the merge skill not invoked |
+| resume-tag-exists | `/release-plugin --resume` (state `lastStep: 14`; `v<version>` exists on the remote) | Skips to the workflow wait | Steps 14 and 15 not run; continues at step 16; with the tag only local it continues at step 15 |
 | no-auto-invoke | "We should ship a new release soon." (no command) | Claude does not load the skill | The skill does not run |
 
 ## Running per model

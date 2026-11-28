@@ -1,14 +1,14 @@
 ---
 name: release-plugin
 description: Releases the plugin, version bump to GitHub release. Use only on an explicit ask to release, cut a release, ship a new version, or publish the plugin. Not for editing a release or only tagging.
-argument-hint: '[--yes] [version]'
+argument-hint: '[--yes] [--resume] [version]'
 compatibility: Claude Code only. Uses argument-hint; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: Read Edit Bash(git rev-parse *) Bash(git status *) Bash(date +%F) Bash(gh run list *) Bash(gh run watch *) Bash(gh release view *) Bash(git branch -D *) Bash(git switch *) Bash(git pull --ff-only) Bash(npm run lint) Bash(npm test) Bash(npm run audit) Bash(claude plugin validate --strict .) Bash(gh pr checks *)
+allowed-tools: Read Write Edit Bash(rm .release-state.json) Bash(git ls-remote *) Bash(gh pr view *) Bash(git rev-parse *) Bash(git status *) Bash(date +%F) Bash(gh run list *) Bash(gh run watch *) Bash(gh release view *) Bash(git branch -D *) Bash(git switch *) Bash(git pull --ff-only) Bash(npm run lint) Bash(npm test) Bash(npm run audit) Bash(claude plugin validate --strict .) Bash(gh pr checks *)
 ---
 
 # Release Plugin
 
-Input: $ARGUMENTS (strip `--yes` first)
+Input: $ARGUMENTS (strip `--yes` and `--resume` first)
 
 ## Rules
 
@@ -17,6 +17,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Run steps 1-17 in one continuous run. An invoked skill's Output or Report, including its `Next: none` and `Result: done`, is only that step's result, never the chain's end or its `Next:`. After printing it, the same message carries the next step's first tool call. Never send a text-only message between steps, ask "continue?", or wait for a prompt.
 - Wait for each spawn's Return before going on. A background spawn's completion resumes the chain at the step that spawned it: on every resume, re-read the last ledger line and make the next step's tool call in that same message.
 - Step ledger, so a skipped step shows up: after every step print `Step <n>/17: <result> → next <m>`, where `m` is the step this one routes to (`n+1`), naming a step number, never a description, in the same message as the next step's first tool call. Before step 17, check that `Steps:` holds 1-16, except the one skipped part (step 2's `cdk:switch-branch` part on an unprotected branch). A missing step → run it now.
+- State file: after each step write `.release-state.json` in the repo root with `version`, `branch`, `pr`, `mergedSha`, and `lastStep` (`null` until known; never a secret, token, or PR text), so `--resume` can continue a stopped run. The file is gitignored; step 17 deletes it on `Result: done`.
 - Skills are invoked by their `cdk:` name; fallback when one is unavailable: follow `<root>/skills/<name>/SKILL.md` and the files it links, reading `${CLAUDE_SKILL_DIR}` in them as `<root>/skills/<name>`.
 - Chain stop: stop on `Result: stopped`, a host refusal, a failed check, or a stop a step names (no PR URL, release-check miss), with `Result: stopped`, `Stopped: <step>: <reason>`, and `Steps:` listing what is done. `nothing-to-do` (for example, an unchanged README) counts as done and continues; a missing `Result:` line → derive it from what the step did, then continue.
 - The version bump in step 6 changes only `version`; never change any other manifest field, so the tag, CHANGELOG, README, and `plugin.json` agree (step 12 checks).
@@ -30,6 +31,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 1. **Pre-flight.**
    - Spawn the pre-flight reader (brief and Return in `${CLAUDE_SKILL_DIR}/references/subagents.md`).
    - Stop: `origin` none or not GitHub → `Result: stopped`, `Stopped: 1: origin is not a GitHub remote`. Nothing to release (no pending changes or commits) → `Result: nothing-to-do`.
+   - `--resume` (no version argument): skip the pre-flight spawn and the version question, and read `.release-state.json`. A missing or unparseable file, a missing key, `lastStep` not an integer 1-16, or (while `lastStep` is below 12) a current branch other than `branch` → `Result: stopped`, `Stopped: 1: no resumable state`.
+   - Verify before re-entering, in this order: tag `v<version>` on the remote (`git ls-remote --tags origin v<version>`) → continue at step 16; tag only local (`git rev-parse -q --verify refs/tags/v<version>`) → step 15; PR `pr` merged (`gh pr view <pr> --json state,headRefOid`, state `MERGED`; `mergedSha` from the file, else `headRefOid`) → step 12; otherwise step `lastStep + 1`. Steps before the entry count as done in `Steps:`; entering step 8, 9, or 10 re-runs step 7 first for the `Checks:` evidence; `<head>` is `branch` and `<url>` is `pr`.
    - Version: a valid `[version]` argument (SemVer above the current version, else stop) sets it. Otherwise ask the version question (proposed version recommended first); with `--yes` take the proposed version and list it under `Open:`. Nothing edits `plugin.json` before that.
 
 2. **Review, then switch.**
@@ -68,7 +71,7 @@ Input: $ARGUMENTS (strip `--yes` first)
     - Run `gh run watch <id> --exit-status --compact`; a non-zero exit → `Stopped: 16: release workflow failed`, `Workflow: failure`, with Next: recover the release through `cdk:create-github-release`.
     - Success → `Workflow: success`, then `gh release view v<version> --json url` for `Release:`.
     - No `gh` → `Workflow: not watched`, listed under `Open:`.
-17. **Report.** Print the Output.
+17. **Report.** Print the Output; on `Result: done` run `rm .release-state.json`.
 
 ## Files
 
