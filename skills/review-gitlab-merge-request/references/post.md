@@ -14,9 +14,11 @@ Before any write, print the mode, the verdict, the coverage, the finding counts,
 
 Run `head-sha`. State not `opened` → `Result: stopped`, `Stopped: post: MR is <state>`. The head differs from the reviewed SHA → redo steps 3–7 once at the new head and use it for this post; it changes again → `Result: stopped`, `Stopped: post: head moved twice`, nothing posted.
 
+Then run `approvals`. `REQUEST_CHANGES` with an own approval present → `unapprove`. `COMMENT` (a hold) with an own approval present → `unapprove` too; with none, no approval write. The revoke runs before any other write, so a later stop never leaves a stale approval on an MR with new gating discussions.
+
 ## Threads
 
-Right after the head check: `thread-resolve` for each own gating discussion judged Fixed or Obsolete, with no reply. Open and unjudged discussions get nothing added; disputed discussions are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: post: cannot resolve discussion <id>` with the exact error; never post a replacement note. Re-run `review-threads` once; each resolved discussion must show `resolved` true, else stop the same way.
+Right after the head check and revoke: `thread-resolve` for each own gating discussion judged Fixed or Obsolete, with no reply. Open and unjudged discussions get nothing added; disputed discussions are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: post: cannot resolve discussion <id>` with the exact error; never post a replacement note. Re-run `review-threads` once; each resolved discussion must show `resolved` true, else stop the same way.
 
 ## Summary note
 
@@ -29,10 +31,9 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 
 The state is the discussions plus the approval:
 
-1. Run `approvals`. `REQUEST_CHANGES` with an own approval present → `unapprove`. `COMMENT` (a hold) with an own approval present → `unapprove` too; with none, no approval write. The revoke runs before any other write, so a later stop never leaves a stale approval on an MR with new gating discussions.
-2. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical` and `major` discussions; `APPROVE` carries no gating findings, only the non-gating `minor`, `nit`, and `question` discussions of a first review.
-3. Post or edit the summary (above), then run `head-sha` once more; a head that differs from the posted SHA is reported under `Errors:`.
-4. Last, `APPROVE` → `approve` with the full head SHA (a refusal follows `## Own MR`), then verify the approval through `approvals`; a missing approval is reported under `Errors:`.
+1. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical` and `major` discussions; `APPROVE` carries no gating findings, only the non-gating `minor`, `nit`, and `question` discussions of a first review.
+2. Post or edit the summary (above), then run `head-sha` once more; a head that differs from the posted SHA is reported under `Errors:`.
+3. Last, `APPROVE` → `approve` with the full head SHA (a refusal follows `## Own MR`), then verify the approval through `approvals`; a missing approval is reported under `Errors:`.
 
 ## Own MR
 
@@ -40,7 +41,7 @@ The state is the discussions plus the approval:
 
 ## Errors
 
-A failed resolve or summary edit stops (see above). Any other error from a write: print its exact line under `Errors:` and keep going to the report. A discussion or note already posted when a later step fails is listed under `Open:` with its URL, never deleted. A stop after the revoke in step 1 never restores the approval.
+A failed resolve or summary edit stops (see above). Any other error from a write: print its exact line under `Errors:` and keep going to the report. A discussion or note already posted when a later step fails is listed under `Open:` with its URL, never deleted. A stop after the revoke never restores the approval.
 
 ## Report
 

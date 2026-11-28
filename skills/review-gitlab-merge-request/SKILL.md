@@ -83,9 +83,10 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 8. **Post** (per `${CLAUDE_SKILL_DIR}/references/post.md`):
    - 8a. Print the verdict, counts, and writes.
    - 8b. Re-fetch the head SHA.
-   - 8c. Resolve addressed own discussions; a refusal → stop.
-   - 8d. Post or edit the summary.
-   - 8e. Set the state.
+   - 8c. Revoke own approval when the verdict is not APPROVE.
+   - 8d. Resolve addressed own discussions; a refusal → stop.
+   - 8e. Post or edit the summary.
+   - 8f. Set the state.
 9. **Report.** Print the Output; list what is left under `Open:`.
 
 ## Files
