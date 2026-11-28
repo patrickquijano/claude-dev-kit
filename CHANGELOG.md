@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - A `SubagentStop` hook blocks `cdk:plan-implementer` from finishing until its report lists `Proof:` exit codes and none is nonzero (breaking); it lets the agent go on a second stop so it never loops.
-- `/cdk:address-open-items` works through the Open items a run reported: it fixes the clear ones and asks the rest in one batch.
+- `/cdk:address-open-items` works through the Open items a run reported: it fixes the clear ones, asks the rest in one batch, then commits through `/cdk:commit-changes` and pushes once through `/cdk:push-commits`.
 - `/cdk:release-plugin` keeps per-step state in `.release/state.json`, takes `--resume`, and runs failure handlers (retry, lint, network backoff) before it stops.
 - Every skill follows the running project's own instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`) over its defaults, and never lowers a safety stop; `/cdk:build-skill` requires the same of the skills it builds.
 - `/cdk:audit-skill` has an optional `O3` check that lists where a skill's defaults conflict with the working repo's project rules, under `Open:`.
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/cdk:build-skill` warns when `Next:` comes before `Open:` in a skill's Output.
 - `/cdk:implement-spec` can locate code and search for leftovers through the `cdk:codebase-explorer` subagent.
 - The merge and open pull request skills read GitHub through read-only `gh-get` wrappers.
+- `cdk:practices-reviewer` takes a `compose` kind that checks a Compose file against practices, and `/cdk:build-docker-compose` runs it when it reviews a file.
 
 ### Changed
 
@@ -33,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `setup-husky` commit rules say subject line only.
 - Skills print `Open:` before `Next:`, and several skills' `allowed-tools` are trimmed to the tools they use.
 - The analyzer subagents run on Sonnet instead of Haiku.
+- `/cdk:update-statusline` installs a status line that also shows context window and auto-compact usage, with model and effort colors.
+- `/cdk:setup-dotnet-api` no longer runs `dotnet format --verify-no-changes`; it verifies with `dotnet build -warnaserror` and `dotnet test`.
+- The address-review skills list an unfixed minor or nit under `Skipped:` and post no reply to it.
 
 ### Fixed
 
