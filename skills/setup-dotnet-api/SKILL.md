@@ -36,8 +36,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Repo root or SDK list `<none>` → stop (name the missing tool). An existing `*.slnx` or `*.sln` → configure-only (skip the scaffold; add what is missing).
-2. **Resolve versions.** The SDK from the releases index (a failed `releases` command → `Result: stopped`, `Stopped: 2: curl or network`) and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path.
+1. **Pre-flight.** Repo root or SDK list `<none>` → stop (name the missing tool). Run `releases` once (step 2 reuses it); the highest installed SDK older than the highest `active` channel's stable `latest-sdk`, which step 6 pins in `global.json`, (only when step 6 writes `global.json`) → stop with `Result: stopped` and `Stopped: 1: SDK <version> older than <pin>` (a failed fetch is not a step 1 stop; step 2 stops it). An existing `*.slnx` or `*.sln` → configure-only (skip the scaffold; add what is missing).
+2. **Resolve versions.** The SDK from the releases index fetched in step 1 (a failed `releases` command → `Result: stopped`, `Stopped: 2: curl or network`) and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path.
 3. **Research.** Recommended configuration per `research.md` through `cdk:topic-researcher` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/research.md` and `${CLAUDE_SKILL_DIR}/references/red-flags.md` by those paths, cited by URL; spawned in the same message as step 2 (independent).
 4. **Questions.** One multi-select question each for SQL, NoSQL, Search Engine, Cache, Messaging, SMTP, Object Storage; then the CQRS dispatcher and the API style, per `options.md`.
 5. **Plan.** Resolve each step-4 pick through `cdk:version-resolver` with the version brief, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path; print the plan (`plan.md`).

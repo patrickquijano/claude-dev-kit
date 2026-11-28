@@ -8,7 +8,8 @@ Run by name; never alter flags. Versions come from the resolver; a pinned number
 | `sdks` | `dotnet --list-sdks` | Installed SDKs (preloaded) |
 | `releases` | `curl -fsS https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json` | Channels; pick the highest `active` channel with a stable `latest-sdk` |
 | `scratch` | `mktemp -d` | Scratch dir for the scaffold |
-| `move-files` | `cp -Rn "<scratch>/." "<root>"` | Copy the scaffold from the scratch dir into the repo root without overwriting; collisions come from the step-5 plan check (a colliding file is never overwritten; it is listed under `Open:` with the change it would take), and `cp -n` itself lists none |
+| `collisions` | `diff -rq "<scratch>" "<root>"` | Run after the scaffold and before `move-files`; each `Files ... differ` or type-mismatch line is a collision |
+| `move-files` | `cp -Rn "<scratch>/." "<root>"` | Copy the scaffold from the scratch dir into the repo root without overwriting; collisions come from the `collisions` row run first (a colliding file is never overwritten; it is listed under `Open:` with the change it would take), and `cp -n` itself lists none |
 | `pkg-latest` | `dotnet package search <id> --exact-match --format json` | Latest stable version of a package; fallback registry row |
 | `new-global` | `dotnet new globaljson --sdk-version <v> --roll-forward latestFeature` | Write `global.json` |
 | `new-sln` | `dotnet new sln --format slnx --name <RepoNamePascalCase>` | Solution file |
