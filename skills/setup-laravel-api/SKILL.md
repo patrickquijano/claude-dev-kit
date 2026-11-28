@@ -36,8 +36,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Repo root, `php`, or `composer` `<none>` → stop: print the Output with `Result: stopped` and `Stopped: 1: <reason>` (name the missing tool). An existing `composer.json` requiring `laravel/framework` → configure-only (skip step 6; apply what is missing).
-2. **Resolve versions.** Laravel and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path (never from memory); the PHP floor is the stricter of the skeleton and Pest requirements.
+1. **Pre-flight.** Repo root, `php`, or `composer` `<none>` → stop: print the Output with `Result: stopped` and `Stopped: 1: <reason>` (name the missing tool). Run `available` for `laravel/laravel` and `pestphp/pest`; the PHP floor is the stricter of the two `php` requirements, and PHP older than it → stop with `Result: stopped` and `Stopped: 1: PHP <version> older than <floor>` (a failed lookup is not a stop; step 2 resolves it). An existing `composer.json` requiring `laravel/framework` → configure-only (skip step 6; apply what is missing).
+2. **Resolve versions.** Laravel and every package through `cdk:version-resolver` per `commands.md` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path (never from memory); the PHP floor is the one step 1 computed.
 3. **Research.** Recommended configuration per `research.md` through `cdk:topic-researcher` with the brief in `research.md`, naming `${CLAUDE_SKILL_DIR}/references/research.md` and `${CLAUDE_SKILL_DIR}/references/red-flags.md` by those paths, cited by URL; spawned in the same message as step 2 (independent).
 4. **Questions.** One multi-select question each for SQL, NoSQL, Search Engine, Cache, Object Storage, then the OpenAPI generator, JSON:API approach, PHP CS Fixer, and folder layout, per `options.md`.
 5. **Plan.** Resolve each step-4 pick through `cdk:version-resolver` with the version brief, naming `${CLAUDE_SKILL_DIR}/references/commands.md` by that path; print the plan (`plan.md`).

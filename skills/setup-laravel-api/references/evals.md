@@ -19,10 +19,11 @@ pass: <observable criteria, one per line>
 | main-path | "Set up Laravel." (empty git repo) | Resolves, asks, plans, scaffolds, verifies | Versions cite a resolver source; grill tables before each question; plan prints before the first write; checks pass |
 | yes-flag | "Set up Laravel --yes." | No question, Recommended taken | Assumptions under `Open:`; no existing user file overwritten |
 | existing-kept | "Set up Laravel." (repo has `README.md` and a Laravel app) | Configure-only, user files kept | No scaffold; `README.md` untouched; a re-run changes nothing and ends `Result: nothing-to-do` |
-| user-file-kept | "Set up Laravel --yes." (a user-edited tracked file collides with a generated one) | Keeps it; lists it | The file is not overwritten or deleted; it is listed under `Open:` with the change it would take; no question asked |
+| user-file-kept | "Set up Laravel --yes." (a user-edited tracked file collides with a generated one) | Keeps it; lists it | The file is not overwritten or deleted; the `collisions` row finds it after the scaffold and before `move-files`; it is listed under `Open:` with the change it would take; no question asked |
 | red-flag-round | "Set up Laravel." (main path) | Red-flag pass, then fixes | Table with ID, cause, options, chosen, source; fixes print before applying; checks re-run |
 | no-source | "Set up Laravel." (research sources unreachable) | Marks `unverified`, applies nothing silently | Each unsourced item listed under `Open:`; none applied |
 | no-php | "Set up Laravel." (`php` not on PATH) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: php not found`; nothing installed or written |
+| php-too-old | "Set up Laravel." (PHP older than the stricter of the skeleton and Pest requirements) | Stops at pre-flight | Both versions named; `Result: stopped`; `Stopped: 1: PHP <version> older than <floor>`; nothing installed or written |
 | cannot-interact | "Set up Laravel." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; nothing installed or written |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
 | grill-close-call-yes | "Set up Laravel --yes." (a decision question whose top two totals are 5 or fewer apart) | Takes the first catalog option; lists it | No Recommended is marked; the first option in the catalog is taken; it is listed under `Open:` |

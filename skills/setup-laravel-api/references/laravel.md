@@ -6,7 +6,7 @@
 
 ## Scaffold
 
-- `scratch`, `create` into it (no scripts run, so no `.env` or app key is written), then `move-files`; a colliding file is never overwritten and is listed under `Open:` with the change it would take; a `.env` that appears in the scratch dir anyway is never moved and is listed under `Open:`.
+- `scratch`, `create` into it (no scripts run, so no `.env` or app key is written); then `collisions`, listing each colliding path under `Open:` with the change it would take, and only then `move-files`, which never overwrites; print the moved-file list after it; a `.env` that appears in the scratch dir anyway is never moved and is listed under `Open:`.
 - No app key is set, so list under `Open:` that the user runs `php artisan key:generate`, which writes `.env`; this skill never writes `.env` because it holds secrets.
 - API-only per research (`artisan` `install:api`). Removing the frontend is a plan entry only (L4).
 - Accept: `composer.json` requires the resolved framework version; `routes/api.php` exists.
