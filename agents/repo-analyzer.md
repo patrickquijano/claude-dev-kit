@@ -49,10 +49,10 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Required inputs: root. List tracked files: `git -C <root> ls-files` (not a git repo → Glob).
 - Manifests: `package.json`, `pyproject.toml`, `setup.cfg`, `Cargo.toml`, `go.mod`, `composer.json`, `pom.xml`, `build.gradle*`, `Gemfile`, `*.gemspec`, `.claude-plugin/plugin.json`, workspace files (`pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `go.work`). Extract name, description, version, runtime/engine pins, bins/entry points, workspaces.
 - Commands: package scripts, Makefile targets, `justfile`, `Taskfile.yml`, CI jobs. Record exact names.
-- Components: user-facing units (CLI commands, exported modules, plugin `skills/`, `agents/`, `hooks/`, packages in workspaces). Scripts inside a component directory belong to it, not separate components. Record name, path, one-line purpose from its own file.
+- Components: a caller-passed `components` list is authoritative; copy it in full. Otherwise user-facing units (CLI commands, exported modules, plugin `skills/`, `agents/`, `hooks/`, packages in workspaces). Scripts inside a component directory belong to it, not separate components. Record name, path, one-line purpose from its own file.
 - Config: `.env.example`, config files, env vars read in code (Grep `process.env`, `os.environ`, `getenv`). Split user-set from internal: host-injected vars (e.g. `CLAUDE_*`), CI-internal vars, and dev-tooling config are internal.
 - Community: LICENSE (SPDX id from text, owner), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue templates.
-- Existing README (if any): headings, stated commands/components; mark each stale item (command or component not in repo, missing component).
+- Existing README (if any): headings, stated commands/components; mark each stale item (command or component not in repo, missing component). For each README row naming a component, compare its purpose with the component's own description and report a mismatch as `Stale: <name> — purpose drift (README: "…" vs file: "…")`. Mark each section that names a file, version, hook event, or behavior the repo no longer matches.
 - Host: `git -C <root> remote get-url origin` → github | gitlab | other (anchor slug rules).
 - Archetype: pick one of `library | cli | application | plugin | monorepo | minimal | docs` with one-line reason.
 
@@ -152,7 +152,7 @@ Gaps: <topic, ... | none>
 
 A required input missing → `Question: <what is needed and why>` instead.
 
-Size cap: at most 150 lines; a list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs conclusions, not a file dump. The `Instructions:` and `Tracked but ignored:` lists stay full, because the caller audits every entry and a cut entry is never checked.
+Size cap: at most 150 lines; a list over 30 entries keeps the first 30 and ends with `+<n> more`, because the caller needs conclusions, not a file dump. The `Instructions:` and `Tracked but ignored:` lists stay full, because the caller audits every entry and a cut entry is never checked; for kind `readme`, `Components:`, `Commands:`, and `Stale:` stay full for the same reason.
 
 Filled Return (`gitignore`):
 

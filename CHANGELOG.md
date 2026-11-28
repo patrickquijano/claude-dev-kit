@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Many skills now print `Stopped:` on every stop path, stop under `--yes` instead of guessing, and name the failing step, across the setup, spec-kit, issue, review, rebase, tag, and upgrade skills.
 - `word-count` rejects unsafe `--file` paths, `/cdk:delete-branches` pages the GitLab listing and rejects encoded dots, and the review thread filters match bot logins.
+- `/cdk:update-readme` now lists every plugin component, not just the first 30, and rewrites rows whose purpose differs from the component's own description.
 
 ## [0.10.0] - 2026-11-24
 

@@ -48,7 +48,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Criteria: S1 S2 S3 S4 P1 P2 P3 G1 G2 G3 U1 U2 U3 A1 A2 A3 F1 F2 L1 L2 C1 C2.
 - Spot checks:
   - A1: each command in README exists in manifest scripts, Makefile targets, bins, facts `Commands`, or external tools (`command -v <tool>` only, run only when the tool name matches `^[A-Za-z0-9._+][A-Za-z0-9._+-]*$`, otherwise A1 unverified).
-  - A2: README component list vs facts `Components`; name each missing and extra; scripts inside a component directory belong to it, not extra units.
+  - A2: README component list vs facts `Components`; name each missing, extra, and drifted one (purpose differs from its own description; a drifted row fails the unit); scripts inside a component directory belong to it, not extra units.
   - U3: score facts `Config` user items only; internal items are not units.
   - L1: each relative link target exists; anchors match a heading slug per facts `Host`.
 

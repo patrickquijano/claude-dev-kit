@@ -3,7 +3,7 @@ name: update-readme
 description: Creates, updates, or scores a README.md from archetype templates against a 100-point rubric. Use when asked to write, improve, or score one. Not for CHANGELOG.md or other docs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [optional type | score]'
-allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(git remote get-url *) Bash(wc -l *)
+allowed-tools: Bash(git rev-parse *) Bash(git ls-files *) Bash(git remote get-url *) Bash(wc -l *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/components.mjs *)
 ---
 
 # Update README
@@ -47,8 +47,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 2. **Host.**
    - Run `remote-url`.
    - Map it per `${CLAUDE_SKILL_DIR}/references/flow.md` `## Host`.
-3. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root, per `${CLAUDE_SKILL_DIR}/references/spawns.md`.
+3. **Analyze.** Run `components`, then spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root and the `components` output, per `${CLAUDE_SKILL_DIR}/references/spawns.md`.
    - Keep its facts block for steps 6, 7, 13.
+   - A plugin's `Components:` is the script output, never the analyst's own list, because the analyst caps long lists.
 4. **Detect type.**
    - Read `## Signals` in `${CLAUDE_SKILL_DIR}/references/templates.md`.
    - Glob and Read each signal against the repo.
@@ -63,6 +64,7 @@ Input: $ARGUMENTS (strip `--yes` first)
    - Fit existing content into the type's `## Section matrix` and mapped skeleton, in portable syntax; convert existing host syntax per `portable.md`.
    - Preserve user-written text. An unknown fact the user did not omit becomes `TODO`.
    - Verify each kept command and path with Glob, Grep, or facts `Commands`.
+   - Every analyst `Stale:` item becomes a draft change, so stale prose is rewritten even when no name is missing.
    - A draft of 100 lines or more gets a plain link-list ToC after the intro.
 8. **Length.** A projection of 200 lines or fewer → max = 200, no question. Above 200 → ask 200 | 400 | 600 per `## Length options` in `${CLAUDE_SKILL_DIR}/references/modularization.md`. Stop and wait.
 9. **Modularize.** Projection above the max → ask the layout per `## Layouts` in `modularization.md`; per-package only for monorepo types. Apply `## Split rules`. Stop and wait.

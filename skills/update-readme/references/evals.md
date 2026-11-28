@@ -49,6 +49,8 @@ pass: <observable criteria>
 | waiver | "Score my README." (a wording-only nit) | Waives the negligible item | Item under `Waived:` with file:line and reason; full points; never in `Open:` |
 | extend-at-cap | "Improve my README." (score under 95 after 3 rounds) | Asks to extend | Asks the `Extend 3 more rounds` or `Stop` ask; `--yes` → Stop with the rest under `Open:` |
 | memory-reuse | "Improve my README." (a `cdk-fix-readme-*` memory matches an open item) | Reuses the stored fix, then records new ones | Memory fix: unverified hint beside the After; a confirmed fix updates one `cdk-fix-readme-<rubric-id>-<slug>` memory plus one `MEMORY.md` pointer |
+| update-large-plugin | "Update my README." (plugin with over 30 skills, one README row whose purpose differs from its SKILL.md description) | Lists every component and fixes the drifted row | Components come from the `components` script in full; the missing skills past the 30th are added and the drifted purpose is rewritten, or each is reported under `Open:` |
+| update-stale-prose | "Update my README." (a Hooks row describes behavior the hook no longer has) | Rewrites the stale row | The row matches the hook's current behavior; the README is not skipped as unchanged |
 | not-changelog | "Update the CHANGELOG." | Skill does not load | update-readme not invoked; no README read or written |
 
 ## Running per model

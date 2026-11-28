@@ -22,7 +22,7 @@ Type: `bin` = full or 0; `ratio` = max × (passing units ÷ total units), floor 
 | U2 | Usage & examples | Expected output or behavior shown for examples. | bin | 4 |
 | U3 | Usage & examples | Unit = user-set config option, flag, or env var in facts `Config` (user), documented; host-injected, CI-internal, and dev-tooling config excluded. None in repo → N/A. | ratio | 3 |
 | A1 | Accuracy vs repo | Unit = command shown; exists (package script, Makefile target, bin, facts `Commands`, external tool). | ratio | 6 |
-| A2 | Accuracy vs repo | Unit = facts `Components` item (scripts inside a component directory belong to it) listed, plus each listed item not in repo counts as failing unit. | ratio | 6 |
+| A2 | Accuracy vs repo | Unit = facts `Components` item (scripts inside a component directory belong to it) listed with a purpose consistent with its own file (a drifted row fails the unit), plus each listed item not in repo counts as failing unit. | ratio | 6 |
 | A3 | Accuracy vs repo | Unit = path, name, version, in-repo URL; correct. External URLs not fetched. | ratio | 3 |
 | F1 | Code blocks & formatting | Unit = code block; fenced with language tag. | ratio | 5 |
 | F2 | Code blocks & formatting | Input and output in separate blocks; omissions marked with code comments, not `...`. | bin | 3 |
