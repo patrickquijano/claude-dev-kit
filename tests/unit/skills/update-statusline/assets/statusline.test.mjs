@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import {
+  autoCompactLimit,
   formatTimeLeft,
   formatTokens,
   gitBranch,
@@ -27,7 +28,8 @@ const INPUT = { cwd: '/work/app', model: { display_name: 'Model' } };
 const NOW = 1_000;
 const PLAIN = { NO_COLOR: '1' };
 
-const renderWith = (name, input = INPUT, env = {}) => render(input, { nowSeconds: NOW, branch: () => name, env });
+const renderWith = (name, input = INPUT, env = {}, limit = () => null) =>
+  render(input, { nowSeconds: NOW, branch: () => name, env, limit });
 
 describe('paint', () => {
   test('wraps text in the styles and a reset', () => {
@@ -314,6 +316,111 @@ describe('gitBranch', () => {
   });
 });
 
+describe('autoCompactLimit', () => {
+  const settingsFile = (settings) => () => JSON.stringify(settings);
+  const missing = () => {
+    throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+  };
+
+  test('caps the configured window at the context window', () => {
+    // Act
+    const limit = autoCompactLimit(1_000_000, { HOME: '/h', CLAUDE_CODE_AUTO_COMPACT_WINDOW: '200k' }, missing);
+
+    // Assert
+    assert.equal(limit, 200_000);
+  });
+
+  test('reads the window from settings.json and accepts a suffix', () => {
+    // Act
+    const limit = autoCompactLimit(1_000_000, { HOME: '/h' }, settingsFile({ autoCompactWindow: '0.5m' }));
+
+    // Assert
+    assert.equal(limit, 500_000);
+  });
+
+  test('falls back to the context window when none is configured', () => {
+    // Act
+    const limit = autoCompactLimit(400_000, { HOME: '/h' }, missing);
+
+    // Assert
+    assert.equal(limit, 400_000);
+  });
+
+  test('falls back to the context window when the configured one is below the minimum', () => {
+    // Act
+    const limit = autoCompactLimit(400_000, { HOME: '/h', CLAUDE_CODE_AUTO_COMPACT_WINDOW: '50k' }, missing);
+
+    // Assert
+    assert.equal(limit, 400_000);
+  });
+
+  test('returns null when auto-compact is disabled in settings', () => {
+    // Act
+    const limit = autoCompactLimit(400_000, { HOME: '/h' }, settingsFile({ autoCompactEnabled: false }));
+
+    // Assert
+    assert.equal(limit, null);
+  });
+
+  test('returns null when DISABLE_AUTO_COMPACT is 1', () => {
+    // Act
+    const limit = autoCompactLimit(400_000, { HOME: '/h', DISABLE_AUTO_COMPACT: '1' }, missing);
+
+    // Assert
+    assert.equal(limit, null);
+  });
+
+  test('returns null with no window size and nothing configured', () => {
+    // Act
+    const limit = autoCompactLimit(undefined, { HOME: '/h' }, missing);
+
+    // Assert
+    assert.equal(limit, null);
+  });
+
+  test('uses the configured window when the context window is unknown', () => {
+    // Act
+    const limit = autoCompactLimit(undefined, { HOME: '/h', CLAUDE_CODE_AUTO_COMPACT_WINDOW: '300000' }, missing);
+
+    // Assert
+    assert.equal(limit, 300_000);
+  });
+
+  test('treats invalid settings JSON as no settings', () => {
+    // Act
+    const limit = autoCompactLimit(400_000, { HOME: '/h' }, () => '{not json');
+
+    // Assert
+    assert.equal(limit, 400_000);
+  });
+
+  test('skips settings when HOME is unset', () => {
+    // Arrange
+    const run = () => {
+      throw new Error('must not read');
+    };
+
+    // Act
+    const limit = autoCompactLimit(400_000, {}, run);
+
+    // Assert
+    assert.equal(limit, 400_000);
+  });
+
+  test('rethrows an unexpected read error', () => {
+    // Arrange
+    const run = () => {
+      throw Object.assign(new Error('denied'), { code: 'EACCES' });
+    };
+
+    // Act
+    const act = () => autoCompactLimit(400_000, { HOME: '/h' }, run);
+
+    // Assert
+    assert.throws(act, { code: 'EACCES' });
+  });
+});
+
 describe('render', () => {
   test('prints the token count and context percentage computed from the window size', () => {
     // Arrange
@@ -323,7 +430,7 @@ describe('render', () => {
     const line = renderWith(null, input, PLAIN);
 
     // Assert
-    assert.equal(line, '12.3k │ 12%');
+    assert.equal(line, '12.3k / 100k (12%)');
   });
 
   test('prefers the reported context percentage', () => {
@@ -334,7 +441,71 @@ describe('render', () => {
     const line = renderWith(null, input, PLAIN);
 
     // Assert
-    assert.equal(line, '1.00k │ 42%');
+    assert.equal(line, '1.00k (42%)');
+  });
+
+  test('prints the auto-compact window with its percentage after the context window', () => {
+    // Arrange
+    const input = { context_window: { total_input_tokens: 120_000, context_window_size: 1_000_000 } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN, () => 200_000);
+
+    // Assert
+    assert.equal(line, '120k / 1.00m (12%) / 200k (60%)');
+  });
+
+  test('colors the auto-compact percentage by how close the context is to it', () => {
+    // Arrange
+    const at = (tokens) => ({ context_window: { total_input_tokens: tokens, context_window_size: 1_000_000 } });
+
+    // Act
+    const green = renderWith(null, at(20_000), {}, () => 200_000);
+    const yellow = renderWith(null, at(100_000), {}, () => 200_000);
+    const red = renderWith(null, at(180_000), {}, () => 200_000);
+
+    // Assert
+    assert.ok(green.endsWith(`${BOLD}${GREEN}200k (10%)${RESET}`));
+    assert.ok(yellow.endsWith(`${BOLD}${YELLOW}200k (50%)${RESET}`));
+    assert.ok(red.endsWith(`${BOLD}${RED}200k (90%)${RESET}`));
+  });
+
+  test('omits the auto-compact part when the limit is unavailable', () => {
+    // Arrange
+    const input = { context_window: { total_input_tokens: 4_000, context_window_size: 200_000 } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN, () => null);
+
+    // Assert
+    assert.equal(line, '4.00k / 200k (2%)');
+  });
+
+  test('prints nothing for the context when only the limit is known', () => {
+    // Act
+    const line = renderWith(null, {}, PLAIN, () => 200_000);
+
+    // Assert
+    assert.equal(line, '');
+  });
+
+  test('prints nothing for the context when no context data exists', () => {
+    // Act
+    const line = renderWith(null, {}, PLAIN);
+
+    // Assert
+    assert.equal(line, '');
+  });
+
+  test('prints the prefix of the line before the auto-compact part separated by a dim slash', () => {
+    // Arrange
+    const input = { context_window: { total_input_tokens: 10_000, context_window_size: 100_000 } };
+
+    // Act
+    const line = renderWith(null, input, {}, () => 100_000);
+
+    // Assert
+    assert.ok(line.includes(`${RESET} ${ESC}[2m/${RESET} `));
   });
 
   test('prints the rate-limit usage and the time left', () => {

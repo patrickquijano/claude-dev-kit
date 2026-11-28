@@ -2,12 +2,12 @@
  * Claude Code status line.
  *
  * Reads the session JSON from stdin and prints one line:
- *   dir | branch | tokens | ctx% | model | effort | 5h % | 5h reset | 7d % | 7d reset
+ *   dir | branch | tokens / window (ctx%) / auto-compact (compact%) | model | effort | 5h % | 5h reset | 7d % | 7d reset
  * Segments whose data is unavailable are omitted.
  */
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
+import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const COLOR = {
@@ -26,6 +26,7 @@ const COLOR = {
 
 const MINUTES_PER_HOUR = 60;
 const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+const MIN_COMPACT_WINDOW = 100_000;
 
 /**
  * @param {string} text
@@ -224,6 +225,81 @@ export function gitBranch(directory, run = execFileSync) {
 }
 
 /**
+ * Parses an integer with an optional k/m suffix (e.g. 200k, 1M).
+ *
+ * @param {unknown} value
+ * @returns {number | null}
+ */
+function parseTokenCount(value) {
+  if (isNumber(value)) {
+    return value;
+  }
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const match = /^\s*(\d+\.\d+|\d+)\s*([kKmM]?)\s*$/.exec(value);
+  if (!match) {
+    return null;
+  }
+  const multiplier = { '': 1, k: 1_000, m: 1_000_000 }[match[2].toLowerCase()];
+
+  return Math.round(Number(match[1]) * multiplier);
+}
+
+/**
+ * Reads `~/.claude/settings.json`; a missing or malformed file means "no settings".
+ *
+ * @param {Record<string, string | undefined>} env
+ * @param {typeof readFileSync} run
+ * @returns {Record<string, any>}
+ */
+function readSettings(env, run) {
+  if (!env.HOME) {
+    return {};
+  }
+
+  try {
+    const settings = JSON.parse(run(join(env.HOME, '.claude', 'settings.json'), 'utf8'));
+
+    return isObject(settings) ? settings : {};
+  } catch (error) {
+    if (error?.code !== 'ENOENT' && !(error instanceof SyntaxError)) {
+      throw error;
+    }
+
+    return {};
+  }
+}
+
+/**
+ * The token count at which auto-compact triggers: the configured window capped at the context window,
+ * the context window when none is configured, or null when auto-compact is off.
+ *
+ * @param {number | undefined} windowSize
+ * @param {Record<string, string | undefined>} [env]
+ * @param {typeof readFileSync} [run]
+ * @returns {number | null}
+ */
+export function autoCompactLimit(windowSize, env = process.env, run = readFileSync) {
+  const settings = readSettings(env, run);
+  if (settings.autoCompactEnabled === false || env.DISABLE_AUTO_COMPACT === '1') {
+    return null;
+  }
+
+  const known = isNumber(windowSize) && windowSize > 0 ? windowSize : null;
+  let configured = parseTokenCount(env.CLAUDE_CODE_AUTO_COMPACT_WINDOW);
+  if (configured === null) {
+    configured = parseTokenCount(settings.autoCompactWindow);
+  }
+  if (configured === null || configured < MIN_COMPACT_WINDOW) {
+    return known;
+  }
+
+  return known === null ? configured : Math.min(configured, known);
+}
+
+/**
  * @param {{ used_percentage?: number, resets_at?: number } | undefined} window
  * @param {string} label
  * @param {boolean} allowDays
@@ -251,10 +327,18 @@ function rateLimitSegments(window, label, allowDays, nowSeconds, color) {
 
 /**
  * @param {Record<string, any>} input
- * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null, env?: Record<string, string | undefined> }} [options]
+ * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null, env?: Record<string, string | undefined>, limit?: (windowSize: number | undefined) => number | null }} [options]
  * @returns {string}
  */
-export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBranch, env = process.env } = {}) {
+export function render(
+  input,
+  {
+    nowSeconds = Date.now() / 1_000,
+    branch = gitBranch,
+    env = process.env,
+    limit = (size) => autoCompactLimit(size, env)
+  } = {}
+) {
   const payload = isObject(input) ? input : {};
   const segments = [];
   const color = (text, ...styles) => paint(text, styles, env);
@@ -275,16 +359,30 @@ export function render(input, { nowSeconds = Date.now() / 1_000, branch = gitBra
 
   const contextWindow = isObject(payload.context_window) ? payload.context_window : {};
   const tokens = contextWindow.total_input_tokens;
-  if (isNumber(tokens)) {
-    segments.push(color(formatTokens(tokens), COLOR.bold, tokenColor(tokens)));
-  }
+  const windowSize = contextWindow.context_window_size;
+  const compactLimit = limit(windowSize);
 
   let contextPercentage = contextWindow.used_percentage;
-  if (!isNumber(contextPercentage) && isNumber(tokens) && contextWindow.context_window_size > 0) {
-    contextPercentage = (tokens / contextWindow.context_window_size) * 100;
+  if (!isNumber(contextPercentage) && isNumber(tokens) && windowSize > 0) {
+    contextPercentage = (tokens / windowSize) * 100;
   }
-  if (isNumber(contextPercentage)) {
-    segments.push(color(`${Math.round(contextPercentage)}%`, tokenColor(tokens ?? 0)));
+
+  if (isNumber(tokens) || isNumber(windowSize) || isNumber(contextPercentage)) {
+    const used = isNumber(tokens) ? tokens : 0;
+    let text = formatTokens(used);
+    if (isNumber(windowSize)) {
+      text += ` / ${formatTokens(windowSize)}`;
+    }
+    if (isNumber(contextPercentage)) {
+      text += ` (${Math.round(contextPercentage)}%)`;
+    }
+    let contextSegment = color(text, COLOR.bold, tokenColor(used));
+    if (isNumber(compactLimit) && compactLimit > 0) {
+      const compactPercentage = (used / compactLimit) * 100;
+      const compactText = `${formatTokens(compactLimit)} (${Math.round(compactPercentage)}%)`;
+      contextSegment += ` ${color('/', COLOR.dim)} ${color(compactText, COLOR.bold, usageColor(compactPercentage))}`;
+    }
+    segments.push(contextSegment);
   }
 
   if (payload.model?.display_name) {

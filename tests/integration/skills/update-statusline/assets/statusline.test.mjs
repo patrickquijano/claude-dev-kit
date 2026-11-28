@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
@@ -72,5 +72,35 @@ describe('statusline CLI', () => {
 
     // Assert
     assert.ok(result.stdout.includes(String.fromCharCode(27)));
+  });
+
+  test('prints context, window and auto-compact with percentages from the env window', () => {
+    // Arrange
+    const payload = JSON.stringify({
+      context_window: { total_input_tokens: 120_000, context_window_size: 1_000_000 }
+    });
+
+    // Act
+    const result = run(payload, { HOME: root, CLAUDE_CODE_AUTO_COMPACT_WINDOW: '200k' });
+
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '120k / 1.00m (12%) / 200k (60%)');
+  });
+
+  test('reads the auto-compact window from settings.json under HOME', () => {
+    // Arrange
+    mkdirSync(join(root, '.claude'), { recursive: true });
+    writeFileSync(join(root, '.claude', 'settings.json'), JSON.stringify({ autoCompactWindow: '400k' }));
+    const payload = JSON.stringify({
+      context_window: { total_input_tokens: 100_000, context_window_size: 1_000_000 }
+    });
+
+    // Act
+    const result = run(payload, { HOME: root, CLAUDE_CODE_AUTO_COMPACT_WINDOW: '' });
+
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '100k / 1.00m (10%) / 400k (25%)');
   });
 });
