@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { commitHeader, headerLimit, main, violations } from '../../../../.claude/hooks/pre-tool-use.mjs';
+import { commitHeader, gateMessage, headerLimit, main, violations } from '../../../../.claude/hooks/pre-tool-use.mjs';
 
 const CWD = '/proj';
 const RC = JSON.stringify({ rules: { 'header-max-length': [2, 'always', 72] } });
@@ -233,6 +233,75 @@ describe('main', () => {
     // Arrange
     const stdin = JSON.stringify({ tool_name: 'Edit', tool_input: { command: `git commit -m "${LONG}"` } });
     const { deps } = makeDeps({ stdin });
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+  });
+});
+
+describe('gateMessage', () => {
+  test('names the files, the command, and the manual unlock', () => {
+    // Arrange
+    const entries = [{ file: 'skills/a.md', command: '/reload-plugins' }];
+    // Act
+    const result = gateMessage(entries, '/tmp/m.json');
+    // Assert
+    assert.match(result, /skills\/a\.md changed.*\/reload-plugins.*--force.*! rm \/tmp\/m\.json/);
+  });
+
+  test('lists each file and command once', () => {
+    // Arrange
+    const entries = [
+      { file: 'a', command: '/reload-plugins' },
+      { file: 'a', command: '/reload-plugins' },
+      { file: 'b', command: '/reload-plugins' }
+    ];
+    // Act
+    const result = gateMessage(entries, '/tmp/m.json');
+    // Assert
+    assert.match(result, /a, b changed/);
+    assert.doesNotMatch(result, /\/reload-plugins or/);
+  });
+});
+
+describe('main reload gate', () => {
+  const gated = (tool_name) => JSON.stringify({ tool_name, session_id: 's1', tool_input: { file_path: '/x' } });
+  const marker = { readFile: () => JSON.stringify([{ file: 'skills/a.md', command: '/reload-plugins' }]) };
+
+  for (const tool of ['Read', 'Bash', 'Edit']) {
+    test(`blocks ${tool} while a reload is pending`, async () => {
+      // Arrange
+      const { deps, calls } = makeDeps({ stdin: gated(tool) });
+      deps.tmp = '/tmp';
+      deps.marker = marker;
+      // Act
+      const code = await main(deps);
+      // Assert
+      assert.equal(code, 2);
+      assert.match(calls.stderr[0], /tools blocked until a reload/);
+    });
+  }
+
+  test('allows a tool when the marker is absent', async () => {
+    // Arrange
+    const { deps } = makeDeps({ stdin: gated('Read') });
+    deps.tmp = '/tmp';
+    deps.marker = {
+      readFile: () => {
+        throw Object.assign(new Error('missing'), { code: 'ENOENT' });
+      }
+    };
+    // Act
+    const code = await main(deps);
+    // Assert
+    assert.equal(code, 0);
+  });
+
+  test('allows a tool for an event without a session id', async () => {
+    // Arrange
+    const { deps } = makeDeps({ stdin: JSON.stringify({ tool_name: 'Read' }) });
+    deps.marker = marker;
     // Act
     const code = await main(deps);
     // Assert

@@ -2,14 +2,26 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
             "command": "node",
             "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-tool-use.mjs"],
             "timeout": 10,
-            "statusMessage": "Checking commit"
+            "statusMessage": "Checking reload and commit"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/user-prompt-submit.mjs"],
+            "timeout": 10,
+            "statusMessage": "Checking reload"
           }
         ]
       }

@@ -9,7 +9,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Subagents: `agents/` — workers spawned by skills; read-only except the editing agent (`plan-implementer`).
 - Plugin hooks: `hooks/hooks.json` → one entry script per event in `hooks/scripts/`, logic in `hooks/scripts/lib/`. Event behavior and error policy: `.claude/rules/hooks.md`.
 - Tests: `tests/unit/` and `tests/integration/`. Rules `.claude/rules/tests.md`, `.claude/rules/es-modules.md`.
-- Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component.
+- Project Claude config: the `.claude/settings.json` `PostToolUse` hook runs `claude plugin validate --strict .` (via `.claude/hooks/post-tool-use.mjs`) after Claude edits a plugin component and, for `skills/`, `agents/`, `hooks/`, `.claude-plugin/`, writes a reload marker; `PreToolUse` (`pre-tool-use.mjs`) blocks every tool until `UserPromptSubmit` (`user-prompt-submit.mjs`) sees `/reload-plugins` (`.claude/rules/hooks.md`).
 - Git hooks (Husky): `.husky/` + `.commitlintrc.json` enforce `.claude/rules/git.md`; canonical copies in `skills/setup-husky/assets/`, sync rule in `.claude/rules/git-hooks.md`.
 - CI: `.github/workflows/`: lint, test, and audit on PRs to `main`; the release on a `vX.Y.Z` tag push; weekly Dependabot update PRs.
 - Release policy: rules `.claude/rules/release.md`.
@@ -24,6 +24,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - SessionStart hook smoke test: `echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/session-start.mjs` (JSON with a `Today is …` line)
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/stop.mjs` (no output when no covered file changed since its last run)
 - Commit-gate hook smoke test: `echo '{"tool_input":{"command":"git commit -m \"<73-char header>\""}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/pre-tool-use.mjs` (exit 2 and one stderr line; exit 0 for a header within `.commitlintrc.json` `header-max-length`)
+- Reload-gate smoke test: `echo '{"session_id":"t","tool_name":"Read"}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/pre-tool-use.mjs` (exit 0 with no marker at `$TMPDIR/cdk-reload-t.json`; exit 2 with the unlock message when it exists)
 - Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/.claude-plugin/plugin.json"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/post-tool-use.mjs` (exit 0 and no output when valid)
 
 ## Precedence
