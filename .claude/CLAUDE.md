@@ -23,6 +23,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 - Plugin hook smoke test: `echo '{"tool_input":{"file_path":"<abs>"}}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/post-tool-use.mjs`
 - SessionStart hook smoke test: `echo '{"source":"startup"}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/session-start.mjs` (JSON with a `Today is …` line)
 - Repo format-lint hook smoke test: `echo '{}' | CLAUDE_PROJECT_DIR=$PWD node hooks/scripts/stop.mjs` (no output when no covered file changed since its last run)
+- Commit-gate hook smoke test: `echo '{"tool_input":{"command":"git commit -m \"<73-char header>\""}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/pre-tool-use.mjs` (exit 2 and one stderr line; exit 0 for a header within `.commitlintrc.json` `header-max-length`)
 - Validate hook smoke test: `echo '{"tool_input":{"file_path":"'"$PWD"'/.claude-plugin/plugin.json"}}' | CLAUDE_PROJECT_DIR=$PWD node .claude/hooks/post-tool-use.mjs` (exit 0 and no output when valid)
 
 ## Precedence

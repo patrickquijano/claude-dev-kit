@@ -4,6 +4,7 @@
 
 - Conventional Commits per `.commitlintrc.json`, header max 72 chars (never raise it).
 - Subject line only: no body, no footer, no attribution (`Co-Authored-By`, "Generated with").
+- Run `git status` first and stage explicit paths per commit (never `git add -A` or `.`), so a retried commit cannot sweep in another commit's files.
 - Commits and tags are signed; never `--no-gpg-sign`. A signing failure → stop and report the exact error line; never edit signing config or retry unsigned.
 
 ## Branches
