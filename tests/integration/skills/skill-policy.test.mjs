@@ -494,5 +494,21 @@ describe('skill policy', () => {
       assert.ok(files.length >= 3);
       assert.deepEqual(stale, []);
     });
+
+    test('setup-husky installs husky only and skips the commitlint outputs when the message check is skipped', () => {
+      // Arrange
+      const lines = skillText('setup-husky').split('\n');
+      const evals = readFileSync(join(skillsDir, 'setup-husky', 'references', 'evals.md'), 'utf8');
+      // Act
+      const install = lines.find((line) => line.startsWith('6. '));
+      const config = lines.find((line) => line.startsWith('10. '));
+      const outputs = lines.filter((line) => /^(Commitlint config|Rules): .*</.test(line));
+      // Assert
+      assert.ok(install.includes('Message check skipped → `husky` only.'));
+      assert.ok(config.includes('Message check skipped → skip.'));
+      assert.equal(outputs.length, 2);
+      for (const line of outputs) assert.ok(line.endsWith('| skipped (message check skipped)'), line);
+      assert.ok(evals.includes('| message-skipped |'));
+    });
   });
 });

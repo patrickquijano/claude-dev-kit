@@ -44,11 +44,11 @@ Input: $ARGUMENTS (strip `--yes` first)
 3. **Package manager.** Per `package-manager.md` Detect; `<exec>` and the add command come from its Commands table.
 4. **package.json.** Missing → note it; create it per `package-manager.md` Missing package.json once the plan is printed.
 5. **Hook events + signing.** First run the read-only foreign hook-owner and `core.hooksPath` checks (`init.md`): another hook owner (lefthook, pre-commit, `.git/hooks` files) or foreign `core.hooksPath` → stop before any question, list it under `Open:`, replace nothing. Then reuse the choice of existing asset stubs; else commit-msg message check plus signed check (commit-msg pre-check, post-commit report). Pre-check chosen and signing config missing → ask: skip the signing pre-check or stop (`--yes`: skip it, under `Open:`). Ask every other question here too (unchosen asset hook: Remove | Keep; differing `header-max-length`: Set 72 | Keep), before any write; headless without `--yes` → `Stopped: 5: cannot interact`. `hooks.md` Events. Then print the plan (`${CLAUDE_SKILL_DIR}/references/plan.md`).
-6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
+6. **Install.** Missing from `dependencies` and `devDependencies`: `husky`, `@commitlint/cli`, `@commitlint/config-conventional` (skip it when an existing commitlint config does not extend it). Message check skipped → `husky` only. One add command in package dir, with the workspace-root flag per `package-manager.md`. Fail → quote the error line, stop.
 7. **Initialize Husky.** `hooks-path` check (a foreign owner already stopped the run at step 5); not initialized → snapshot, `husky-init`, merge `prepare` with `merge-prepare`; always `run-prepare`. `init.md`.
 8. **pre-commit.** Only when init ran. Snapshot had a file → restore it. Else keep init's file only when `scripts.test` exists and is not npm's placeholder; otherwise delete it (a placeholder blocks every commit).
 9. **Hooks.** Copy each chosen hook and its `.mjs` to `<package dir>/.husky/` (absent → copy, identical → skip, differs → keep and report); apply the step 5 Remove | Keep answer for an unchosen asset hook; `chmod-exec` copied stubs. `hooks.md` Copy.
-10. **Commitlint config.** Existing → keep and enforce header ≤72 (a differing value follows the step 5 Set 72 | Keep answer); none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
+10. **Commitlint config.** Message check skipped → skip. Existing → keep and enforce header ≤72 (a differing value follows the step 5 Set 72 | Keep answer); none → copy `assets/commitlintrc.json` to `.commitlintrc.json`. `hooks.md` Commitlint config.
 11. **Commit rules.** Message check skipped → skip. Copy `assets/commit-rules.md` to `.claude/rules/commits.md` at the git root (absent → write, identical → skip, differs → keep and report). Report when root `CLAUDE.md` does not mention commit rules; never edit it.
 12. **Git ignore.** Append `<pkg>/.husky/_/` (`.husky/_/` at root) to root `.gitignore`, creating it if missing; linters read only the root one.
 13. **Line endings.** Append `<pkg>/.husky/* text eol=lf` (`.husky/* text eol=lf` at root) to root `.gitattributes`, creating it if missing, unless an identical `eol=lf` line exists (CRLF breaks the `sh` stubs).
@@ -83,8 +83,8 @@ Init: ran | already initialized
 pre-commit: removed | kept (test script) | restored | untouched
 Events: message <commit-msg | skipped>, signing <pre-check + report | pre-check | report | skipped> | kept user hook
 Hooks: commit-msg <copied|same|kept|removed>, commit-msg.mjs <...>, post-commit <...>, post-commit.mjs <...>
-Commitlint config: <file> (<kept | written>; header-max-length <added | present | set 72 (was <value>) | kept <value> | report-only>)
-Rules: .claude/rules/commits.md (<written | same | kept>); CLAUDE.md mention <present | missing>
+Commitlint config: <file> (<kept | written>; header-max-length <added | present | set 72 (was <value>) | kept <value> | report-only>) | skipped (message check skipped)
+Rules: .claude/rules/commits.md (<written | same | kept>); CLAUDE.md mention <present | missing> | skipped (message check skipped)
 Line endings: .gitattributes (<added | created | up to date>)
 Ignores: <file: added path>, ... | up to date
 Smoke test: <pass/fail lines> | skipped (<reason>)
