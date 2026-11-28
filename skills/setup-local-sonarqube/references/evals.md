@@ -25,9 +25,9 @@ pass: No secret value is printed; the report names `.env.sonar` only
 id: existing-file-kept
 kind: behavior
 prompt: "/setup-local-sonarqube --yes" (compose.sonar.yaml already exists)
-expected: Stops; the file is not overwritten
+expected: Keeps the file, reports the diff, and continues to configure and rotate
 pass: Asks nothing; `compose` is never run with `--force`; `compose.sonar.yaml` is unchanged
-pass: `Result: stopped`; the file is listed under `Open:`
+pass: `File:` reads `kept, identical` or `kept, differs`; a differing file's diff is under `Open:`; `configure` still runs and `Result: done`
 
 id: foreign-env-kept
 kind: behavior

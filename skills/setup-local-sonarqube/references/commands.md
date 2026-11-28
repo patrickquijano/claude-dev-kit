@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `repo-root` | `git rev-parse --show-toplevel` | Repository root (preloaded in Context) |
 | `detect` | `node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs detect --root <root> [--stack <maven\|gradle>]` | JSON `{key, name, stack, scanner, jdk, wrapper, exclusions, excluded, dropped, stop?, ask?}`: read-only stack detection per `flow.md` `## Stack`; `--stack` resolves an `ask`; one stderr line and exit 1 on error |
-| `compose` | `node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs compose --root <root> [--stack <maven\|gradle>]` | Detects the stack, resolves the tags (at most once per day), writes `compose.sonar.yaml` and `.vscode/tasks.json`; JSON `{path, stack, services, server, scanner, tasks, taskLabels, dropped, stop?, ask?, tasksStop?}`; an `ask` or `stop` = `compose.sonar.yaml exists` writes nothing; `image tag unresolved` error → stop |
+| `compose` | `node ${CLAUDE_SKILL_DIR}/scripts/sonar-setup.mjs compose --root <root> [--stack <maven\|gradle>]` | Detects the stack, resolves the tags (at most once per day), writes `compose.sonar.yaml` and `.vscode/tasks.json`; JSON `{path, stack, services, server, scanner, tasks, taskLabels, dropped, stop?, ask?, tasksStop?}`; an existing `compose.sonar.yaml` is kept, with `existing` (`identical` or `differs`) and `diff` added; an `ask` writes nothing; `image tag unresolved` error → stop |
 | `docker-info` | `docker info` | Docker availability |
 | `compose-check` | `docker compose -f compose.sonar.yaml config -q` | Run in `<root>`; exit 0 means the file is valid Compose |
 | `server-state` | `docker compose -f compose.sonar.yaml ps -q sonarqube` | Run in `<root>`; a container id means the server is running, empty output means it is not |

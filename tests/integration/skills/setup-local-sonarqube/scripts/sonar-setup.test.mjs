@@ -210,7 +210,7 @@ describe('sonar-setup compose', () => {
     assert.ok(yaml.includes('path: .env.sonar'));
   });
 
-  test('refuses a second run without --force and overwrites with it', () => {
+  test('keeps an edited file on a second run and overwrites with --force', () => {
     // Arrange
     const dir = gitRepo({ 'package.json': '{}' });
     const env = cachedTags();
@@ -220,9 +220,10 @@ describe('sonar-setup compose', () => {
     const refused = run(['compose', '--root', dir], env);
     const forced = run(['compose', '--root', dir, '--force'], env);
     // Assert
-    assert.equal(JSON.parse(refused.stdout).stop, 'compose.sonar.yaml exists');
-    assert.equal(readFileSync(path.join(dir, 'compose.sonar.yaml'), 'utf8') === 'edited', false);
+    assert.equal(JSON.parse(refused.stdout).existing, 'differs');
+    assert.equal(JSON.parse(refused.stdout).stop, undefined);
     assert.equal(JSON.parse(forced.stdout).stop, undefined);
+    assert.equal(readFileSync(path.join(dir, 'compose.sonar.yaml'), 'utf8') === 'edited', false);
   });
 
   test('leaves a JSONC tasks file untouched', () => {

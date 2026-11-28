@@ -562,7 +562,23 @@ function contained(d, dir, file) {
   return rel === '' || (rel !== '..' && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel));
 }
 
-// Writes compose.sonar.yaml and .vscode/tasks.json under `root`; refuses an existing compose file without `force`.
+// Line-level diff: `-` for existing lines missing from the render, `+` for rendered lines missing from the existing file.
+function lineDiff(existing, rendered) {
+  const had = new Set(existing.split('\n'));
+  const want = new Set(rendered.split('\n'));
+  return [
+    ...existing
+      .split('\n')
+      .filter((l) => !want.has(l))
+      .map((l) => `-${l}`),
+    ...rendered
+      .split('\n')
+      .filter((l) => !had.has(l))
+      .map((l) => `+${l}`)
+  ];
+}
+
+// Writes compose.sonar.yaml and .vscode/tasks.json under `root`; an existing compose file is kept (diffed against the render) unless `force`.
 export async function compose({ root, stack, force } = {}, deps = {}) {
   if (!root) throw new Error('--root is required');
   const d = { ...realDeps, ...deps };
@@ -580,7 +596,7 @@ export async function compose({ root, stack, force } = {}, deps = {}) {
   };
   if (det.ask) return { ...result, ask: det.ask };
   const file = path.join(dir, COMPOSE_FILE);
-  if (d.existsSync(file) && !force) return { ...result, stop: `${COMPOSE_FILE} exists` };
+  const keep = d.existsSync(file) && !force;
   const tasksFile = path.join(dir, TASKS_FILE);
   if (!contained(d, dir, file) || !contained(d, dir, tasksFile) || d.isSymlink(file) || d.isSymlink(tasksFile))
     throw new Error('target path is a symlink or resolves outside the repo root');
@@ -610,7 +626,11 @@ export async function compose({ root, stack, force } = {}, deps = {}) {
     }
   }
   const merged = plain ? renderTasks(existing, { scanner: withScanner }) : null;
-  d.writeText(file, yaml);
+  if (keep) {
+    const current = d.readText(file) ?? '';
+    result.existing = current === yaml ? 'identical' : 'differs';
+    result.diff = result.existing === 'identical' ? [] : lineDiff(current, yaml);
+  } else d.writeText(file, yaml);
   Object.assign(result, {
     path: file,
     services: withScanner ? ['sonarqube', 'scanner'] : ['sonarqube'],

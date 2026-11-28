@@ -1237,16 +1237,53 @@ describe('compose', () => {
     assert.deepEqual(res.taskLabels, ['sonar: start', 'sonar: stop']);
   });
 
-  test('refuses an existing file without force and writes nothing', async () => {
+  test('keeps a differing existing file, reports the diff, and still writes tasks', async () => {
     // Arrange
     const deps = composeDeps({ existing: { [COMPOSE_PATH]: 'old' } });
     // Act
     const res = await compose({ root: ROOT }, deps);
     // Assert
-    assert.equal(res.stop, 'compose.sonar.yaml exists');
-    assert.equal(res.path, null);
+    assert.equal(res.stop, undefined);
+    assert.equal(res.existing, 'differs');
+    assert.equal(res.path, COMPOSE_PATH);
+    assert.ok(res.diff.includes('-old'));
+    assert.ok(res.diff.some((l) => l.startsWith('+') && l.includes('sonarqube')));
     assert.equal(deps.files.get(COMPOSE_PATH), 'old');
-    assert.equal(deps.files.has(TASKS_FILE_PATH), false);
+    assert.equal(res.tasks, TASKS_FILE_PATH);
+  });
+
+  test('reports an existing file identical to the render with an empty diff', async () => {
+    // Arrange
+    const fresh = composeDeps();
+    await compose({ root: ROOT }, fresh);
+    const deps = composeDeps({ existing: { [COMPOSE_PATH]: fresh.files.get(COMPOSE_PATH) } });
+    // Act
+    const res = await compose({ root: ROOT }, deps);
+    // Assert
+    assert.equal(res.existing, 'identical');
+    assert.deepEqual(res.diff, []);
+    assert.equal(deps.files.get(COMPOSE_PATH), fresh.files.get(COMPOSE_PATH));
+  });
+
+  test('reports no existing marker when the file is absent', async () => {
+    // Arrange
+    const deps = composeDeps();
+    // Act
+    const res = await compose({ root: ROOT }, deps);
+    // Assert
+    assert.equal(res.existing, undefined);
+    assert.equal(res.diff, undefined);
+  });
+
+  test('force replaces a differing file and reports no diff', async () => {
+    // Arrange
+    const deps = composeDeps({ existing: { [COMPOSE_PATH]: 'old' } });
+    // Act
+    const res = await compose({ root: ROOT, force: true }, deps);
+    // Assert
+    assert.equal(res.existing, undefined);
+    assert.equal(res.diff, undefined);
+    assert.notEqual(deps.files.get(COMPOSE_PATH), 'old');
   });
 
   test('returns the ask before writing', async () => {
