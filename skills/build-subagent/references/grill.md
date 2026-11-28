@@ -41,7 +41,7 @@ State one line per criterion for what 1, 3, and 5 mean. Every score cites a sour
 ## Recommend
 
 - Mark Recommended only on the highest total.
-- Top two ≤5 points apart → mark none and say "close call"; on the Name question under `--yes` → `Result: stopped`, `Stopped: <step>: close call`.
+- Top two ≤5 points apart → mark none and say "close call"; on the Name question under `--yes` → `Result: stopped`, `Stopped: 5: close call`.
 - The lead depends on unverified scores → say so.
 
 ## Sensitivity
