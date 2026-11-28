@@ -2,7 +2,7 @@
 
 ## Contents
 
-- How to decide · Frontmatter F1–F9 · Structure and size S1–S8 · Content quality Q1–Q8 · Scripts X1–X3 · Testing T1–T2 · Optional O1–O2 · Report format
+- How to decide · Frontmatter F1–F9 · Structure and size S1–S8 · Content quality Q1–Q8 · Scripts X1–X3 · Testing T1–T2 · Optional O1–O3 · Report format
 
 ## How to decide
 
@@ -82,6 +82,7 @@ Never block and excluded from the score.
 | --- | --- | --- | --- |
 | O1 | `skills-ref validate <dir>` | Exit 0 is Pass; otherwise Fail with its first message (portable fields only) | `command -v skills-ref` fails |
 | O2 | Trigger and no-trigger prompts | Write 2 prompts that should trigger and 2 that should not; Pass when the description separates them | never |
+| O3 | Defaults fit the working repo's project rules | Read the skill's Rules and steps against the working repo's `CLAUDE.md`, `AGENTS.md`, and `.claude/rules/` (judgment-only); Pass with no conflict, else Pass and list each as `O3 <skill file:line> vs <rule file:line>` for `Open:` | the working repo has none of those files |
 
 ## Report format
 
@@ -96,4 +97,4 @@ First line the totals, then one table per skill:
 | F7 | Not checked | SKILL.md | no `when_to_use` | none |
 ```
 
-A Fail row gives the exact `file:line` and the replacement text when short; every check gets one row, a Pass row included. Totals count F, S, Q, X, and T checks only; O1 and O2 are listed apart.
+A Fail row gives the exact `file:line` and the replacement text when short; every check gets one row, a Pass row included. Totals count F, S, Q, X, and T checks only; O1–O3 are listed apart.

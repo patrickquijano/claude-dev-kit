@@ -47,7 +47,7 @@ describe('audit-skill follows the checklist model', () => {
     'never edits outside implement-spec':
       /^- Never edit outside `cdk:implement-spec`; if it is missing or fails, stop and leave the fixes under `Open:`, with no manual fix\./m,
     'lists every unfixed Fail under Open':
-      /^- `Open:` lists every Fail row not fixed: Scripts Fails, declined rows, and rows a stop left unfixed\./m,
+      /^- `Open:` lists every O3 conflict and every Fail row not fixed: Scripts Fails, declined rows, and rows a stop left unfixed\./m,
     'resolves a skill or plugin directory':
       /^ {3}- A skill directory has `SKILL\.md`; a plugin directory has `\.claude-plugin\/plugin\.json` and each `skills\/\*\/SKILL\.md` is a target\./m,
     'asks for a missing path':
@@ -165,7 +165,8 @@ describe('audit-skill checks.md lists every required check', () => {
     'T1',
     'T2',
     'O1',
-    'O2'
+    'O2',
+    'O3'
   ];
 
   for (const id of ids) {

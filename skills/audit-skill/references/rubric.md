@@ -12,7 +12,7 @@ Informational only: the score never changes a result, blocks, or triggers a fix.
 | Scripts            | X1–X3     |
 | Testing            | T1–T2     |
 
-`O1` and `O2` are excluded from every category.
+`O1`, `O2`, and `O3` are excluded from every category.
 
 ## Scale
 

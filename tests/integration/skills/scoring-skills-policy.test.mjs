@@ -125,7 +125,7 @@ describe('rubrics waive negligible items', () => {
     });
   }
 
-  test('audit-skill checks.md lists 32 checks across six groups and the rubric scales them 1-5', () => {
+  test('audit-skill checks.md lists 33 checks across six groups and the rubric scales them 1-5', () => {
     // Arrange
     const checks = readFileSync(join(root, 'skills/audit-skill/references/checks.md'), 'utf8');
     const rubric = readFileSync(join(root, 'skills/audit-skill/references/rubric.md'), 'utf8');
@@ -133,7 +133,7 @@ describe('rubrics waive negligible items', () => {
     const rows = [...new Set([...checks.matchAll(/^\| ([FSQXTO]\d) +\|/gm)].map((m) => m[1]))];
     const counts = ['F', 'S', 'Q', 'X', 'T', 'O'].map((letter) => rows.filter((id) => id.startsWith(letter)).length);
     // Assert
-    assert.deepEqual(counts, [9, 8, 8, 3, 2, 2]);
+    assert.deepEqual(counts, [9, 8, 8, 3, 2, 3]);
     assert.match(rubric, /^# Skill Score Rubric \(1–5\)$/m);
   });
 

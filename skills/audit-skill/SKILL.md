@@ -24,7 +24,7 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
 - Run no formatter or linter; repo hooks and CI own that, and the Spec brief says so.
 - This skill spawns only `cdk:rubric-scorer`, never another subagent; the planner, implementer, and verifier spawns inside `cdk:implement-spec` follow its own spawn rule, so context and token cost stay bounded.
 - Never edit outside `cdk:implement-spec`; if it is missing or fails, stop and leave the fixes under `Open:`, with no manual fix.
-- `Open:` lists every Fail row not fixed: Scripts Fails, declined rows, and rows a stop left unfixed. A `scripts/` fix is never offered for approval.
+- `Open:` lists every O3 conflict and every Fail row not fixed: Scripts Fails, declined rows, and rows a stop left unfixed. A `scripts/` fix is never offered for approval.
 - Report failures as found; never claim a Pass from an earlier run, since any edit can change it.
 
 ## Workflow
