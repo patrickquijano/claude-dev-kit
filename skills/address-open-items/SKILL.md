@@ -21,18 +21,22 @@ Input: $ARGUMENTS (strip `--yes` first; the rest is pasted `Open:` items or the 
 - Every fix goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill)`` with a spec of numbered goals (one per item, its acceptance criterion the item's own stated fix), non-goals, and one top-level `Write scope:` line naming only the files of the approved items; this skill edits nothing itself, because implement-spec plans, scopes, and verifies the change. Print the spec summary first and do not wait, since the answers in step 3 were the approval. Pass `--yes` only when the user did.
 - A `Stopped:` from implement-spec whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, so the caller writes `Stopped: <step>: user cancelled`; any other `Stopped:` is a cap stop: its `Open:` items join the round's new items and the run continues.
 - Never edit outside `cdk:implement-spec`; if it is missing or fails to run, stop with `Stopped: <step>: dependency cdk:implement-spec missing` and leave every item under `Open:`.
-- Run no formatter or linter, and never commit, push, or edit memory; repo hooks, CI, and the user own those.
+- Run no formatter or linter, and never edit memory; this skill never runs a git commit or push command itself, it only invokes `cdk:commit-changes` (step 6) and `cdk:push-commits` (step 7), which sign, guard, and prompt for each write; repo hooks, CI, and the user own formatting and linting.
+- Commit once after the round loop ends, and push once right after: ``Invoke the `cdk:commit-changes` skill (fallback: run the `cdk:commit-changes` skill)`` with `paths:` listing the union of the implement-spec `Files` of every round, never a pre-existing dirty file, then ``Invoke the `cdk:push-commits` skill (fallback: run the `cdk:push-commits` skill)``; pass `--yes` to each only when the user did. Skip both when `Result` is `nothing-to-do`, no round produced a `Fixed` file, or any stop happened, because `cdk:push-commits` publishes every pending commit on the branch, so a push with no new commit of ours would publish unrelated work, and a stopped run did not reach an approved state (its edited files stay uncommitted and go under `Open:`).
+- A `Result: stopped` from `cdk:commit-changes` or `cdk:push-commits` becomes `Result: stopped` with `Stopped: <step>: <their Stopped reason>`; a missing skill → `Stopped: <step>: dependency cdk:<name> missing`. A failed push keeps the commits local, reports the exact error line, and is never retried.
 - Round cap of 3, matching implement-spec, because a loop that is not converging needs the user's judgment. A round that returns no new item ends the run early, because another round would change nothing.
 - Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 
 ## Workflow
 
 1. **Resolve input.** Collect the items per Rules; one item per line with its id, file, and stated fix. A path that is missing or unreadable → ask for it once (`--yes`: `Stopped: 1: no input`).
-2. **Classify.** Mark each item auto-fixable or needs-decision per Rules and print the two lists with a one-line reason each. No item is either (all empty, or already resolved on a read of its file) → `Result: nothing-to-do`, go to step 6.
+2. **Classify.** Mark each item auto-fixable or needs-decision per Rules and print the two lists with a one-line reason each. No item is either (all empty, or already resolved on a read of its file) → `Result: nothing-to-do`, go to step 8.
 3. **Decide.** Ask every needs-decision item in one batch per Rules; a `Skip` answer moves that item to `Open:`. `--yes` → take each Recommended option and list it under `Decisions:`. Nothing to decide → no question.
 4. **Fix.** Build the spec per Rules from the auto-fixable items and the decided ones, then invoke `cdk:implement-spec`. Record its `Files` and map its `Open:` items to the round's new items. A decided item whose answer is `Skip` or a delete not named by the user stays in `Open:`.
 5. **Next round.** The round's new items are the implement-spec `Open:` items not already tried, each with a stated fix. None → step 6. Fewer than 3 rounds done → back to step 2 with them, and carry earlier `Decisions:` so the same question is never asked again. At 3 rounds → step 6 with the rest under `Open:`.
-6. **Report.** Print the Output block.
+6. **Commit.** No `Fixed` file, or any stop → step 8. Otherwise invoke `cdk:commit-changes` once per Rules and record its `Commits:`.
+7. **Push.** Step 6 skipped or `Result` not `done` → step 8. Otherwise invoke `cdk:push-commits` once per Rules and record its `Branch:` and `Pending after:`.
+8. **Report.** Print the Output block.
 
 ## Files
 
@@ -45,13 +49,15 @@ Items: <n> in, <a> auto-fixed, <d> decided, <o> left
 Fixed: <id: file>, … | none
 Decisions: <id: option → taken | skipped>, … | none
 Rounds: <n>/3
+Commits: <hash subject>, … | none
+Pushed: <branch → origin/branch> | not pushed
 Open: <id: reason; recommended fix>, … | none
 Next: <plain words> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
 
-`stopped` covers an input stop, a cannot-interact stop, a missing implement-spec, and an implement-spec input stop or cancel. `nothing-to-do` is a run where no item needed a change. `Result: done` with a non-empty `Open:` means every approved fix ran and the rest was skipped or hit the round cap.
+`stopped` covers an input stop, a cannot-interact stop, a missing implement-spec, an implement-spec input stop or cancel, and a commit or push stop. `nothing-to-do` is a run where no item needed a change. `Result: done` with a non-empty `Open:` means every approved fix ran and the rest was skipped or hit the round cap.
 
 Example (three items, one needing a decision, `--yes` not passed):
 
@@ -60,6 +66,8 @@ Items: 3 in, 2 auto-fixed, 1 decided, 0 left
 Fixed: O1: skills/push-commits/SKILL.md, O2: skills/push-commits/references/evals.md, O3: skills/create-git-tag/SKILL.md
 Decisions: O3: add the line to Rules or to step 5 → Rules (recommended)
 Rounds: 1/3
+Commits: 4f2a9c1 fix(skills): address open items in push-commits and create-git-tag
+Pushed: fix/open-items → origin/fix/open-items
 Open: none
 Next: none
 Result: done
