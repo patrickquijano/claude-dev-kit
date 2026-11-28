@@ -48,7 +48,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 4. **Clarify.** Ask the Dockerfile, backend-service, scoped-file, common, and per-service deploy questions in that order, recommended first with the reason (`flow.md` `## Clarify`).
 5. **Draft and write.** Resolve image tags with the `cdk:version-resolver` subagent (fallback: a read-only subagent that resolves image tags; brief in `flow.md` `## Spawn briefs`); build the file; print it (a diff when existing) with the change list, then write it through implement-spec (`flow.md` `## Draft`, `## Write`).
 6. **Verify.** Validate and lint with the commands for the target; fix through implement-spec up to the cap (`flow.md` `## Verify`).
-7. **Review and report.** Spawn a read-only subagent (Read, Grep only; fallback: check inline) with only the file path (the written file; in review mode the existing file, which is never rewritten), the target, and `${CLAUDE_SKILL_DIR}/references/practices.md`, never the draft or the conversation (brief in `briefs.md` `## Reviewer brief`); it returns each missed Required item for the target as `path:line item`. Confirm each with Read, list leftovers under `Open:`, print the Output.
+7. **Review and report.** Spawn the `cdk:practices-reviewer` subagent with `kind: compose` (fallback: a read-only subagent (Read, Grep only), then check inline) with only the file path (the written file; in review mode the existing file, which is never rewritten), the target, and `${CLAUDE_SKILL_DIR}/references/practices.md`, never the draft or the conversation (brief in `briefs.md` `## Reviewer brief`); it returns each missed Required item for the target as `path:line item`. Confirm each with Read, list leftovers under `Open:`, print the Output.
 
 ## Files
 

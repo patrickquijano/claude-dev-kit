@@ -52,8 +52,8 @@ pass: The only questions are decision questions for unstated choices (target, ap
 id: independent-review
 kind: behavior
 prompt: "Write a Compose file for a Node app."
-expected: Step 7 reviews the written file with a fresh read-only subagent; review mode reviews the existing file
-pass: Spawns a read-only subagent (Read, Grep only) that gets only the file path (the written file; in review mode the existing file), the target, and `practices.md`, never the draft or the conversation
+expected: Step 7 reviews the written file with a fresh `cdk:practices-reviewer` subagent; review mode reviews the existing file
+pass: Spawns `cdk:practices-reviewer` with `kind: compose` (fallback: a read-only subagent, Read and Grep only) that gets only the file path (the written file; in review mode the existing file), the target, and `practices.md`, never the draft or the conversation
 pass: The skill confirms each returned `path:line item` with Read and lists leftovers under `Open:`
 pass: When no subagent is available, checks the file inline; no approval question is asked
 

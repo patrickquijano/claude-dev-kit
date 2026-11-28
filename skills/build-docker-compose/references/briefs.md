@@ -37,7 +37,7 @@ A fix round fixes the root cause and never weakens a check.
 
 ## Reviewer brief
 
-The text passed to the read-only subagent at step 7 (fallback: the skill checks inline). It reviews the written file with fresh context.
+The text passed to the `cdk:practices-reviewer` subagent (`kind: compose`) at step 7 (fallback: a read-only subagent given the same text, then the skill checks inline). It reviews the written file with fresh context.
 
 Goal: list every **Required** item of the target in `practices.md` that the written compose file misses.
 
