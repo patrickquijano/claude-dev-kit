@@ -29,6 +29,7 @@ MUST
 - **Git ownership**: A skill other than `cdk:switch-branch` never switches, creates, or checks out a branch. A skill other than `cdk:commit-changes` never commits. Others invoke the owning skill in the skill-call form above (fallback: plain language). Exceptions: `cdk:rebase-onto` replays existing commits during a rebase, and a branch that a third-party tool creates (Spec Kit's git hook in `cdk:run-spec-kit`) is reported, never made by the skill. A file-level `git checkout --ours/--theirs` and the dangling `git commit-tree` smoke test in `cdk:setup-git` are not branch switches or commits.
 - **Memory**: a skill that keeps memory writes a memory file plus its `MEMORY.md` pointer to Claude's auto-memory dir. It takes the path from the session's auto-memory context and never guesses it; if none is found, it lists the item under `Open:`. It never writes memory under `${CLAUDE_SKILL_DIR}` or anywhere in its skill directory.
 - **No format or lint**: a skill runs no formatter or linter and has no step that does, because repo hooks and CI own that; a skill whose purpose is linting or formatting, or one that validates the file it writes with that file type's own linter (such as `cdk:build-dockerfile` or `cdk:build-docker-compose`), is exempt for that purpose.
+- **Project rules**: a skill's Rules section carries one bullet that starts `Project rules:` and says, with the reason, that the running project's instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`, read from the working directory's repo, never a path of the skill's own repo) win over the skill's defaults when they exist, that the skill's defaults apply when they do not, that a project rule never lowers a safety stop, and how a conflict with an explicit user request, `--yes`, and an unattended run resolve. Copy the canonical bullet from `cdk:build-skill` `SKILL.md` Rules.
 - Reference MCP tools as `ServerName:tool_name`.
 - At least 3 evals, tested on Haiku, Sonnet, and Opus, including routing cases (should-be-skill, should-be-subagent, should-be-neither, hybrid) when the skill makes a fit decision.
 
@@ -136,6 +137,7 @@ Mirrors `scripts/validate-skill.mjs`; the bracketed code is the `rule` field it 
 18. [J1] Terms are consistent, examples are concrete, and steps are clear (judgment-only).
 19. [J2] Scripts handle errors, justify every constant, and list their package dependencies (judgment-only).
 20. [J3] Evals: at least 3, a no-skill baseline first, tested on Haiku, Sonnet, and Opus; at least one should-trigger and one should-not-trigger prompt (judgment-only).
+21. [P1] Rules has the `Project rules:` bullet, worded per the Project rules MUST bullet and naming no path of this plugin's repo (judgment-only).
 
 ## Sources
 

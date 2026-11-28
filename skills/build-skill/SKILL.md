@@ -12,6 +12,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - Self-contained: read bundled files on demand with Read; never use injection; never require the web, a CLI subcommand, or a Claude Code version. Every skill you build follows the `rules.md` MUST bullets.
 - Flags: `--yes` runs unattended: no questions, recommended name and complexity choices taken, assumptions under `Open:`. Only a flag the user passed counts; never add one, because --yes removes every question the user would answer.
 - Rules come from `${CLAUDE_SKILL_DIR}/references/rules.md` (a bundled snapshot); never guess one, because validate-skill and the audit check against this same snapshot.
@@ -61,11 +62,11 @@ Input: $ARGUMENTS (strip `--yes` first)
    b. Record the name.
 
 4. **Classify complexity (create only).** Ask the complexity question per `${CLAUDE_SKILL_DIR}/references/complexity.md`; the user's answer is final.
-5. **Spec.** Build the spec per the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`: numbered goals with checkable acceptance criteria, non-goals, and instructions from `rules.md`, `complexity.md`, the template, and the evals template (absolute `${CLAUDE_SKILL_DIR}` paths, because cdk:implement-spec resolves that variable to its own directory), plus the recorded name and complexity class; the target's `references/evals.md` is a goal (step 9).
+5. **Spec.** Build the spec per the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`: numbered goals with checkable acceptance criteria, non-goals, and instructions from `rules.md`, `complexity.md`, the template, the evals template, and the `Project rules:` bullet in `${CLAUDE_SKILL_DIR}/SKILL.md` Rules (absolute `${CLAUDE_SKILL_DIR}` paths, because cdk:implement-spec resolves that variable to its own directory), plus the recorded name and complexity class; the target's `references/evals.md` is a goal (step 9).
 
    a. Print the spec summary.
 
-6. **Implement.** On update and improve, write the backups per Rules first, then invoke `cdk:implement-spec` per Rules with the spec.
+6. **Implement.** On update and improve, write the backups per Rules first, then invoke `cdk:implement-spec` per Rules with the spec; the build reads the working directory's project instructions first and follows them over these defaults, and the built skill carries the `Project rules:` bullet, because every skill must respect its project.
 
    a. A `cdk:implement-spec` that cannot be invoked by a skill, or that still asks an approval question a fixed-approach spec should skip → `Result: stopped`, `Stopped: 6: cdk:implement-spec conflict`; a missing skill is the hard-dependency stop.
 

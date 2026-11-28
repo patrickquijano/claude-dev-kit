@@ -75,6 +75,7 @@ A behavior eval for a build: the skill asks the name and complexity (create) que
 | fail-left-stops | "Improve my deploy skill." (a Fail remains after the rounds, `Stop` chosen) | Stops, asks first, never reports done | Ask `Extend 3 more rounds` or `Stop` shown; `Result: stopped`, `Stopped: 8: audit fail`; evals listed as untested; the full audit report printed |
 | prints-backup-and-memory-first | "Improve my deploy skill." (an existing skill, a scratchpad, a Fail with a fix to remember) | Prints each write target before writing | The backup path and each fix-memory row (path and text) are printed before the Write that creates them; no wait |
 | name-no-namespace | "Build a skill named cdk:tidy-logs." | Drops the namespaced name | The candidate is dropped with the namespace hard rule; frontmatter `name` has no `cdk:`; skill references in the built skill read `cdk:<name>` |
+| project-rule-wins | "Build a skill that writes commit notes." (the working repo's `CLAUDE.md` says notes use a 100-char limit; the template default is 72) | Follows the project rule over the default | The built skill has the `Project rules:` bullet; the 100-char limit is used; `validate-skill` has no error |
 | no-trigger-hook | "Add a hook that formats files after each edit." | cdk:build-skill does not load | The skill is not invoked; no spec summary printed |
 | no-trigger-agent | "Write a subagent that reviews my diffs." | cdk:build-skill does not load | The skill is not invoked; no file written |
 
