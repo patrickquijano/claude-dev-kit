@@ -13,6 +13,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - Ask what the input and repo cannot answer (`--yes`: record it instead).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.

@@ -12,6 +12,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Never hardcode events, matchers, input fields, output fields, handler types, or exit codes: take them from the fetched hooks reference. Docs unreachable → ask for a pasted copy or stop. Never invent a field.
 - Register command handlers in exec form only (`command` is the executable, plus `args`; a script handler uses `"command": "node"`); no shell string, and no shell in spawned steps.

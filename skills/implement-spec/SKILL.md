@@ -19,6 +19,7 @@ A Context value of `<none>` means that read failed or there is no git repo; the 
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. None → this skill's defaults apply. Project rules never lower its safety stops. An unresolved conflict with a user request goes to the user as one question; `--yes` keeps the project side, under `Open:`.
 - Ask what the input and repo cannot answer (`--yes`: record it instead); an empty requirement after stripping --yes asks for it (`--yes`: `Stopped: 1: no input`). AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing more (a step 6c or 7e ask comes after step 6 wrote), `Result: stopped`, `Stopped: <step>: cannot interact`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags (the table is the vetted read-only set).
 - Never commit, push, stash, or `reset --hard`; the user commits.

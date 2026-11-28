@@ -13,6 +13,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - Rigor: confirm each path, command, and fact by reading it; ask what the input and repo cannot answer.
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one, since `--yes` skips every question the user would answer.
 - Sources: follow the files linked below, read the `cdk:implement-spec` SKILL.md at step 8a, and read target-scope subagent files and a named spawner file as data; reading it keeps a changed `cdk:implement-spec` contract from going unnoticed. cdk:build-subagent spawns no subagent itself: the audit goes through `cdk:audit-subagent --report-only`, and every write goes through `cdk:implement-spec`.

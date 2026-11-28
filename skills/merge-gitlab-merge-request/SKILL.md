@@ -12,6 +12,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - The only write is one merge, with the source-branch removal only when the pre-merge question chose Delete. Never auto-merge (`--auto-merge` stays `false`, no MCP `strategy`), an MR edit, a rebase, a branch update, a separate branch delete, or a push.
 - Flags: `--yes` runs unattended: no questions, recommended options taken (branch cleanup too), assumptions under `Open:`. The stop gates still apply; `--yes` never skips them. Only a flag the user passed counts; never add one.
 - GitLab has no admin bypass for an approval, pipeline, or discussion rule: a request to bypass is reported as not possible, and a refused merge is reported with the host's exact error, verbatim.

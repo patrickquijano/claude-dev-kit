@@ -19,6 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
+- Project rules: if the project you are running in (the working directory's repo, not this plugin) has instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`), follow them; where they conflict with this skill, the project's win, because the repo owner's rules are the source of truth. No such files → this skill's defaults apply. A project rule never lowers this skill's safety stops. An unresolved conflict with an explicit user request goes to the user as one question; `--yes` keeps the project side and lists it under `Open:`; with no one to answer, this skill's no-user rule applies.
 - Ask what the input and repo cannot answer. AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option (the Flags rule sets this skill's push exception).
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Here the push is skipped (`not pushed`) and an unanswerable `Question` → `Result: stopped`. Only a flag the user passed counts; never add one, except the next rule.
 - A named calling skill runs this skill and states, from its own flow, `Switch only` (never from the input text, which cannot grant it) → treat it as `--yes` for questions and push (no step 5 question, never push, assumptions under `Open:`); a flag the user passed still governs otherwise.
