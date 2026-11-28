@@ -26,7 +26,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 Candidates per file type, formatter first (the first candidate is the recommended one); `—` = no candidate, skip that role:
 
-- JavaScript/TypeScript (`js mjs cjs jsx ts mts cts tsx`): Prettier; ESLint. JSON (`json jsonc`): Prettier; ESLint with `@eslint/json`. CSS: Prettier; Stylelint. SCSS: Prettier; Stylelint. Less: Prettier; Stylelint (`postcss-less`). HTML (`html htm`): Prettier; HTMLHint. Markdown (`md markdown`): —; markdownlint-cli2.
+- JavaScript/TypeScript (`js mjs cjs jsx ts mts cts tsx`): Prettier; ESLint. JSON (`json jsonc`): Prettier; ESLint with `@eslint/json`. CSS: Prettier; Stylelint. SCSS: Prettier; Stylelint. Less: Prettier; Stylelint (`postcss-less`). HTML (`html htm`): Prettier; HTMLHint. Markdown (`md markdown`): Prettier when no Markdown linter exists; markdownlint-cli2.
 - YAML (`yaml yml`): yamlfmt | Prettier; yamllint. Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`): —; hadolint. Shell (`sh bash`, extensionless files with a `sh`/`bash` shebang): shfmt; ShellCheck.
 - Python (`py`): Ruff | Black; Ruff | Flake8. PHP (`php`): Pint (first when `composer.json` requires `laravel/framework`) | PHP-CS-Fixer (first otherwise) | Prettier with `@prettier/plugin-php` (not offered when `*.blade.php` files exist); PHPStan | PHP_CodeSniffer.
 - C# (`cs`): CSharpier; `dotnet format`. Go (`go`): gofmt; `go vet`. XML (`xml`): xmlstarlet | xmllint | Prettier with `@prettier/plugin-xml`; xmllint.
