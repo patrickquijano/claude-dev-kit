@@ -77,7 +77,7 @@ Opening `---` on line 1, valid YAML, closing `---`; booleans are `true` / `false
 | `hooks` | - | hook config, kept for the session | A rule must hold every time |
 | `shell` | - | `bash` (default) or `powershell` | Injection blocks need PowerShell |
 
-Description: one job; third person; the words users say; distinctive. Every skill adds a `Not for <neighbour job>.` boundary. A side-effect task adds "Use only when the user explicitly asks to <action>." just before the `Not for` boundary, which stays last. Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it.
+Description: one job; third person; the words users say; distinctive. Every skill adds a `Not for <neighbour job>.` boundary. A side-effect task whose skill must never auto-load adds "Use only when the user explicitly asks to <action>." just before the `Not for` boundary, which stays last; a skill users ask for in natural words (commit, push, merge, open) omits it. Never name a skill or subagent in it. Not triggering → add natural keywords; over-triggering → narrow it.
 
 ## Substitutions
 

@@ -36,7 +36,7 @@ describe('build-skill standards', () => {
   test('the template comment says ≤400 chars and keeps the side-effect clause', () => {
     // Arrange
     const limit =
-      /# ≤400 chars, no skill names; side effects → end: Use only when the user explicitly asks to <action>\.$/;
+      /# ≤400 chars, no skill names; side effects that must never auto-load → end: Use only when the user explicitly asks to <action>\.$/;
     // Act
     const found = hasLine(template, limit);
     // Assert

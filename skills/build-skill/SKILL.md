@@ -81,7 +81,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
    b. A fix list (check id, file, line, message) → invoke cdk:implement-spec with the fix-round variant of the brief.
 
-   c. Re-run 7a; at most 3 rounds.
+   c. Re-run 7a; at most 3 rounds. A failure left goes to `Open:` as `validate <check id> <file>:<line>: <message>`.
 
    d. When `skills-ref` is on PATH, also run `skills-ref validate <skill-dir>` and add its errors to the fix list; absent → record `skills-ref: skipped`, never block.
 
@@ -103,7 +103,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
    h. At the current cap, with a Fail row with a fix outside `scripts/` still open, ask per the round-cap rule (Extend → step 8c); no such row left → no ask, go to 8i, because another round would fix nothing.
 
-   i. Print the full report-only audit report (the totals line and one row per check), not only the `Open:` items. Every Fail row not fixed goes to `Open:` as `<check ID> <file>:<line>: <fix>`.
+   i. Print the full report-only audit report (the totals line and one row per check), not only the `Open:` items. Every Fail row not fixed goes to `Open:` as `audit <check ID> <file>:<line>: <fix>`; `audit` and `validate` name the source, because both use IDs such as F3 and S1 for different checks.
 
    j. Any Fail left after 8h (a `scripts/` Fail, or a Stop) → `Result: stopped`, `Stopped: 8: audit fail`, never `done`, and step 9 evals are listed as untested; running `cdk:audit-skill` without `--report-only` fixes approved findings. Every check Pass or Not checked → report completion and list the Not checked checks.
 
@@ -148,7 +148,7 @@ Validation: validate-skill pass | fail; manual checklist | n/a
 Audit: <p> pass, <f> fail, <n> not checked (report-only, <n> rounds) | n/a
 Not checked: <check IDs> | none
 Evals: written | run | skipped
-Open: <check ID file:line: fix, … | none>
+Open: <source check ID file:line: fix, … | none>
 Next: <follow-up in plain words> | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none

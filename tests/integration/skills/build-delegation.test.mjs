@@ -424,10 +424,13 @@ describe('build-skill reference rules and briefs', () => {
     const templateLine = template.match(/^description: .*$/m)?.[0] ?? '';
     const rulesLine = rules.match(/^Description: .*$/m)?.[0] ?? '';
     // Assert
-    assert.match(templateLine, /side effects → end: Use only when the user explicitly asks to <action>\./);
+    assert.match(
+      templateLine,
+      /side effects that must never auto-load → end: Use only when the user explicitly asks to <action>\./
+    );
     assert.match(
       rulesLine,
-      /A side-effect task adds "Use only when the user explicitly asks to <action>\." just before the `Not for` boundary, which stays last\./
+      /A side-effect task whose skill must never auto-load adds "Use only when the user explicitly asks to <action>\." just before the `Not for` boundary, which stays last; a skill users ask for in natural words \(commit, push, merge, open\) omits it\./
     );
     assert.doesNotMatch(templateLine, /disable-model-invocation/);
     assert.doesNotMatch(rulesLine, /disable-model-invocation/);

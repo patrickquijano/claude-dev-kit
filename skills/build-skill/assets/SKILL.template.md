@@ -5,7 +5,7 @@ Copy one skeleton, replace every `<…>`, drop the comments. Field rules: the fr
 ````markdown
 ---
 name: <kebab-name>
-description: <What it does>. Use when <triggers>. Not for <neighbour job>. # ≤400 chars, no skill names; side effects → end: Use only when the user explicitly asks to <action>.
+description: <What it does>. Use when <triggers>. Not for <neighbour job>. # ≤400 chars, no skill names; side effects that must never auto-load → end: Use only when the user explicitly asks to <action>.
 argument-hint: '[--yes] <[arg]>' # task only; keep the flag
 compatibility: Claude Code only. Uses <the Claude Code-only keys>; claude.ai and API uploads reject unknown keys. # required when any Claude Code-only key is set
 allowed-tools: Read <least-privilege tools> # task only
