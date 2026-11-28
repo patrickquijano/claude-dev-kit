@@ -587,7 +587,9 @@ describe('build-subagent dependencies, backups, batch, and namespace', () => {
     const stop = /^ +j\. Any Fail left after 9h .*`Result: stopped`, `Stopped: 9: audit fail`, never `done`/m.test(
       text
     );
-    const notChecked = /^Not checked: <check IDs> \| none$/m.test(text);
+    const notChecked = /^Not checked: <check IDs, each with its Unverified: reason when it has one> \| none$/m.test(
+      text
+    );
     const example = /^Not checked: [A-Z0-9. ]+$/m.test(text);
     // Assert
     assert.ok(stop, 'audit fail stop missing');

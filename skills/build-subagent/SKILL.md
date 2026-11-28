@@ -147,7 +147,7 @@ Checks: check-agent pass | fail | not run; validate-agents pass | fail | not tes
 Reload: none | restart (new agents dir)
 Unverified: <facts omitted or overlaps | none>
 Not tested: <what | none>
-Not checked: <check IDs> | none
+Not checked: <check IDs, each with its Unverified: reason when it has one> | none
 Open: <check ID file:line: fix, … | none>
 Next: none | build <remaining subagents> | run the subagent audit without report-only on <path>
 Result: done | nothing-to-do | stopped
