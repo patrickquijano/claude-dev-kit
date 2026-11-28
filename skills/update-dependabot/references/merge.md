@@ -18,6 +18,6 @@ Show a unified diff of the file (or the full new file) in the summary. No change
 
 ## Edge cases
 
-- Empty or unparseable file → ask: stop, or replace (replace is never covered by `--yes`).
+- Empty or unparseable file → ask: stop, or replace (replace is never covered by `--yes`). Under `--yes` → `Result: stopped`, `Stopped: 5: unparseable config`, nothing written.
 - Both `.yml` and `.yaml` → step 1 asks.
 - `.yml` present → keep `.yml`; never rename.
