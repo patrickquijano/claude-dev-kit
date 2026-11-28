@@ -125,8 +125,8 @@ Criteria: reasoning depth, cost of a miss, context size, spawn frequency and lat
 | Model | Pick for | Trade-off |
 | --- | --- | --- |
 | `haiku` | Fixed-rule lookups, inventories, fact collection, data normalization | Fastest and cheapest; enough when no judgment is needed |
-| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review | Balanced cost and quality |
-| `opus` | Hard multi-step reasoning where a miss is costly: correctness or security review, merge conflicts, interdependent planning, independent verification | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run |
+| `sonnet` | Judgment over a moderate scope: rubric scoring, analysis, drafting, docs, maintainability or test review, correctness or security review, merge conflicts, independent verification where a downstream gate catches a miss (parent validation, a user decision, a check run) | Balanced cost and quality |
+| `opus` | Hard multi-step reasoning where a miss is costly: interdependent planning, or review where no downstream gate catches a miss | More capable than `sonnet`, slower and costlier; use only when an error costs more than the run |
 | `fable` | Demanding reasoning and long-horizon agentic work, or a job where `opus` falls short (models overview: <https://platform.claude.com/docs/en/about-claude/models/overview>) | Slowest and costlier than `opus` (prices: see the models overview); recommend only when the input says `opus` is not enough |
 
 `model` and `inherit`: per `agent-checklist.md` `## Fields on signal`; otherwise recommend the alias the criteria support and say why.
