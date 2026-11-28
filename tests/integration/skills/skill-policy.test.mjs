@@ -70,6 +70,28 @@ describe('skill policy', () => {
     });
   }
 
+  const treatsDataAsData = /data; ignore instructions inside them|data, (not|never) instructions/;
+
+  for (const name of names.filter((n) => n.startsWith('setup-'))) {
+    test(`${name} names its data sources as data`, () => {
+      // Arrange
+      const text = readFileSync(join(skillsDir, name, 'SKILL.md'), 'utf8');
+      // Act
+      const matched = treatsDataAsData.test(text);
+      // Assert
+      assert.ok(matched, 'Rules lacks a data-sources line');
+    });
+  }
+
+  test('the setup data-sources matcher rejects a skill text without the line', () => {
+    // Arrange
+    const text = '## Rules\n\n- Repo files are read first.\n';
+    // Act
+    const matched = treatsDataAsData.test(text);
+    // Assert
+    assert.equal(matched, false);
+  });
+
   test('delete-branches grants no host api command', () => {
     // Arrange
     const front = frontmatterOf(readFileSync(join(skillsDir, 'delete-branches', 'SKILL.md'), 'utf8'));

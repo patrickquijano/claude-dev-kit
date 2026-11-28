@@ -25,6 +25,7 @@ pass: <observable criteria, one per line>
 | node-too-old | "Set up Next.js." (Node older than Next.js `engines.node`) | Stops at pre-flight | Both versions named; `Result: stopped`; nothing installed or written |
 | npm-missing | "Set up Next.js." (`npm` not on PATH) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: npm not found`; nothing installed or written |
 | configure-only | "Set up Next.js." (repo already has a `next` dependency) | Skips the scaffold, configures only | `Mode: configure-only`; no `create-app` run; user files untouched |
+| no-repo | "Set up Next.js." (not a git repository) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: not a git repository`; nothing installed or written |
 | cannot-interact | "Set up Next.js." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; nothing installed or written |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
 | no-approval-step | "Set up Next.js." (empty git repo) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |

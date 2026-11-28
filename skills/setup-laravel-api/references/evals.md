@@ -22,6 +22,7 @@ pass: <observable criteria, one per line>
 | user-file-kept | "Set up Laravel --yes." (a user-edited tracked file collides with a generated one) | Keeps it; lists it | The file is not overwritten or deleted; it is listed under `Open:` with the change it would take; no question asked |
 | red-flag-round | "Set up Laravel." (main path) | Red-flag pass, then fixes | Table with ID, cause, options, chosen, source; fixes print before applying; checks re-run |
 | no-source | "Set up Laravel." (research sources unreachable) | Marks `unverified`, applies nothing silently | Each unsourced item listed under `Open:`; none applied |
+| no-php | "Set up Laravel." (`php` not on PATH) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: php not found`; nothing installed or written |
 | cannot-interact | "Set up Laravel." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; nothing installed or written |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
 | no-approval-step | "Set up Laravel." (empty git repo) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
