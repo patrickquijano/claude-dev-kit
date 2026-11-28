@@ -24,7 +24,7 @@ tests/Presentation/WebApi/Presentation.WebApi.UnitTests.csproj
 tests/IntegrationTests.csproj
 ```
 
-- Scaffold in the scratch dir with `new-global`, `new-sln`, `new-proj`, `sln-add`, then `move-files` into the repo root; move any file that would collide only through a plan entry.
+- Scaffold in the scratch dir with `new-global`, `new-sln`, `new-proj`, `sln-add`, then `move-files` into the repo root; a colliding file is never overwritten; it is listed under `Open:` with the change it would take.
 - Central Package Management in `Directory.Packages.props`; shared properties (nullable, implicit usings, warnings as errors) in `Directory.Build.props`.
 - Accept: every path exists; the solution lists all projects.
 
