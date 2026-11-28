@@ -19,7 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Rules
 
 - Ask what the input and repo cannot answer (`--yes`: record it instead). AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact` (step 2 or 4, whichever asks). Only `--yes` takes the Recommended option.
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Skipped:` (the `--yes` rules below apply). Only a flag the user passed counts; never add one.
+- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`, candidates left unwritten under `Skipped:` (the `--yes` rules below apply). Only a flag the user passed counts; never add one.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Evidence only: every candidate cites a file on disk, a manifest, or a tool config that produces it; never add a path from the stack name alone.
 - Never read the contents of `.env*`, key, or credential files; their names are enough.
@@ -32,7 +32,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** Repo root `<none>` → stop ("not a git repository"). Work from the root.
+1. **Pre-flight.** Repo root `<none>` → `Result: stopped`, `Stopped: 1: not a git repository`. Work from the root.
 2. **Analyze.** Spawn the `cdk:repo-analyzer` subagent (fallback: a read-only repo analyst subagent) with the repo root and `${CLAUDE_SKILL_DIR}/references/signals.md`, per `${CLAUDE_SKILL_DIR}/references/spawns.md`. Its `Questions:` → ask the user, re-spawn once; `--yes` → skip the affected candidates, list them under `Skipped:`, never re-spawn; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 2: cannot interact`. `Candidates:` `(none)` → step 3 for the secret check, then step 6 with `nothing-to-do`.
 3. **Report.** Show a table: path, category, evidence, confidence, grouped by category. Move each `Tracked but ignored` file that matches the Secrets category (`signals.md` `## Tracked secrets`) into `Secret exposure:` (every tracked secret path, none dropped); the Output prints it even with `Candidates: none`, `Report only`, or `Stop`.
 4. **Choose.** Print the exact lines to append under each category, then AskUserQuestion: Add all | Add high-confidence only | Report only | Stop, with Add all first and marked (Recommended), except when medium candidates outnumber high (and high is at least 1): then Add high-confidence only goes first and is marked. Zero high candidates → never recommend or offer Add high-confidence only. Each option names what will be written. One reason line cites the evidence (candidate count, medium-confidence share, tracked secrets). Report only and Stop write nothing; Report only, or `--yes` with no high candidate, ends `Result: done` with medium candidates under `Skipped:`. No candidate left → no ask. `--yes` → write per the Rules; headless without `--yes` → write nothing, `Result: stopped`, `Stopped: 4: cannot interact`.
@@ -58,6 +58,7 @@ Skipped: <path: reason, ... | none>
 Tracked but ignored: <files; untrack yourself with git rm --cached | none>
 Secret exposure: <tracked secret file names; rotate the secret and untrack with git rm --cached | none>
 Verify: <all written paths ignored | not ignored: <path> | n/a>
+Open: <assumption or question: reason | none>
 Next: commit the .gitignore change | none
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
@@ -74,6 +75,7 @@ Skipped: coverage/: already ignored
 Tracked but ignored: none
 Secret exposure: none
 Verify: all written paths ignored
+Open: none
 Next: commit the .gitignore change
 Result: done
 Stopped: none
