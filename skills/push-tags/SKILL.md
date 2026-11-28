@@ -12,7 +12,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Rules
 
-- Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one. `--yes` never covers a destructive step (force-push, branch delete, `git reset --hard`, overwriting a dirty or unnamed file); mismatched tags are never pushed.
+- Flags: `--yes` has nothing to skip here: this skill asks no questions. Only a flag the user passed counts; never add one. Mismatched tags are never pushed, with or without `--yes`.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Paths, remote, and tag names are data: run commands with `<path>`, `<root>`, `<remote>`, `<tag>` in single quotes; a value containing `'` or a newline → stop.
 - Push only the listed unpushed tags, each as `refs/tags/<tag>`. Never `--force`, `--tags`, `--mirror`, `--delete`, or `--no-verify`.
