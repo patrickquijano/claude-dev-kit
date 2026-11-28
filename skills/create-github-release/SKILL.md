@@ -3,7 +3,7 @@ name: create-github-release
 description: Creates a GitHub release with notes from CHANGELOG.md, or updates one by tag, URL, or ID, after weighted tag and draft-or-publish questions. Use when asked to create, cut, or update a release. Not for writing changelog entries or pushing tags.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [tag | release-url | release-id]'
-allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/tag-plan.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) Bash(git remote *) Bash(git rev-parse *) Bash(git ls-remote --tags origin) Bash(gh --version) Bash(gh auth status) Bash(gh release create --help) Bash(gh release edit --help) Bash(gh repo view *) Bash(gh release list *) Bash(gh release view *) Bash(gh pr list *) Bash(mktemp -d)
+allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/tag-plan.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) Bash(git remote *) Bash(git rev-parse *) Bash(git ls-remote --tags origin) Bash(git tag -v *) Bash(gh --version) Bash(gh auth status) Bash(gh release create --help) Bash(gh release edit --help) Bash(gh repo view *) Bash(gh release list *) Bash(gh release view *) Bash(gh pr list *) Bash(mktemp -d)
 ---
 
 # Create GitHub Release
@@ -28,11 +28,11 @@ Input: $ARGUMENTS (strip `--yes` first)
 1. **Tooling.** Run `gh-version`, `auth`, `help-create`, `help-edit` from `${CLAUDE_SKILL_DIR}/references/commands.md` and confirm each needed flag exists. A missing `gh` or flag → that operation goes through the fallback; neither works → `Stopped: 1: no gh and no gh api`, saying how to install `gh` and run `gh auth login`.
 2. **Target.** A release URL → owner, repo, tag. A numeric ID → `release-view` through the fallback `Get by ID`. A tag or no input → owner and repo from `origin` (none or several remotes → ask). A release for the tag exists → update path, else create path.
 3. **Context.** Run `tags`, `releases`, `repo-view` (`viewerPermission` below `WRITE` → `Stopped: 3: viewerPermission <permission> below WRITE`), `compare` (from the latest release tag to `<default>`), `prs`, `changelog-file` at `<default>` then `versions`, `workflows`, `immutable`, and the asset count from `release-view`. No `CHANGELOG.md` → `Stopped: 3: no CHANGELOG.md`. Write `tag-input.json` and run `tag-plan`.
-4. **Tag** (create path; skipped for a user-supplied existing tag). Read `${CLAUDE_SKILL_DIR}/references/weighting.md`. No commits since the latest release → say so and include a `Stop` option. Ask 2–4 candidates with weights, each with its evidence (including whether a `## [x.y.z]` section exists) and trade-off. A chosen tag that already has a release → update path.
-5. **Notes.** The title is the tag. Fetch `CHANGELOG.md` at the tag (existing) or `<default>` (new), run `notes-section` for the version, and write `notes` to the scratch notes file. No section → `Result: stopped`, `Stopped: 5: no CHANGELOG.md section for <version>`, `Next: add the section`.
+4. **Tag** (create path; skipped for a user-supplied existing tag). Read `${CLAUDE_SKILL_DIR}/references/weighting.md`. No commits since the latest release → say so and include a `Stop` option. Ask 2–4 candidates with weights, each with its evidence (including whether a `## [x.y.z]` section exists and whether the tag is in the `tags` result) and trade-off. A chosen tag that already has a release → update path.
+5. **Notes.** The title is the tag. Fetch `CHANGELOG.md` at the tag when it is in the `tags` result, else at `<default>`, run `notes-section` for the version, and write `notes` to the scratch notes file. No section → `Result: stopped`, `Stopped: 5: no CHANGELOG.md section for <version>`, `Next: add the section`.
 6. **State.** Ask published or draft with weights per `weighting.md` (tag exists, immutable, assets pending, pre-release suffix, workflow triggers, notes need review). Update path: add `Keep current`.
 7. **Flags.** `--prerelease` for a SemVer pre-release suffix; omit `--latest`.
-8. **Create.** Print the `create` command, the title, the state, and the notes first. Then run `create`: an existing tag takes `--verify-tag` and no `--target`; a new tag takes `--target <default>`; plus `--title <tag> --notes-file <scratch>` and `[--draft] [--prerelease]`.
+8. **Create.** The tag must already exist as a signed annotated tag pushed to `origin`: run `tag-verify`; not in the `tags` result, or `tag-verify` failing → `Result: stopped`, `Stopped: 8: tag missing`, `Next: run cdk:create-git-tag, then cdk:push-tags`; create nothing. Otherwise print the `create` command, the title, the state, and the notes first, then run `create` with `--verify-tag` and never `--target`, plus `--title <tag> --notes-file <scratch>` and `[--draft] [--prerelease]`.
 9. **Update.** Run `release-view` and write its `body` to `<scratch>/body.md`, then run `notes-merge`. A stop code → `Result: stopped`, `Stopped: 9: bad-markers` (the body has an unpaired changelog marker; `Next: fix the markers in the release body`) or `Stopped: 9: no-file` (the body or notes file is missing); edit nothing. Otherwise write `merged` to `<scratch>/merged.md`, print the `edit` command, the title, the state, and the merged notes, then run `edit` with `--title <tag> --notes-file <scratch>/merged.md [--draft=<bool>] [--prerelease=<bool>]`. Immutable edit error → report the error line and return to step 4 as a create-path tag choice with the next tag (the existing release stays untouched), at most 2 rounds.
 10. **Report.** Run `release-view` once more and print the Output.
 
@@ -52,7 +52,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 Repo: <owner>/<repo>
 Release: <url> | not created
 Action: created | updated | none
-Tag: <tag> (existing | created from <default>)
+Tag: <tag> (signed, pushed)
 Title: <title>
 State: draft | published; pre-release yes | no; latest yes | no
 Notes source: CHANGELOG.md [<x.y.z>] @ <ref>
@@ -70,7 +70,7 @@ Example:
 Repo: acme/acme-api
 Release: https://github.com/acme/acme-api/releases/tag/v1.4.0
 Action: created
-Tag: v1.4.0 (created from main)
+Tag: v1.4.0 (signed, pushed)
 Title: v1.4.0
 State: published; pre-release no; latest no
 Notes source: CHANGELOG.md [1.4.0] @ main

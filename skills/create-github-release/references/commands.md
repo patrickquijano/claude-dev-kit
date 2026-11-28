@@ -6,12 +6,13 @@
 | --- | --- | --- |
 | `gh-version` | `gh --version` | `gh` present; missing → use `gh-api-fallback.md` |
 | `auth` | `gh auth status` | Must succeed, else tell the user to run `gh auth login` |
-| `help-create` | `gh release create --help` | Confirm `--title`, `--notes-file`, `--draft`, `--prerelease`, `--verify-tag`, `--target` |
+| `help-create` | `gh release create --help` | Confirm `--title`, `--notes-file`, `--draft`, `--prerelease`, `--verify-tag` |
 | `help-edit` | `gh release edit --help` | Confirm `--title`, `--notes-file`, `--draft`, `--prerelease`, `--verify-tag` |
 | `origin` | `git remote get-url origin` | Owner and repo of the working directory; none or several remotes → ask |
 | `repo-view` | `gh repo view <owner>/<repo> --json defaultBranchRef,viewerPermission` | `<default>` is `defaultBranchRef.name`; `viewerPermission` below `WRITE` → stop |
 | `scratch-dir` | `mktemp -d` | The scratch directory for notes and bodies |
 | `tags` | `git ls-remote --tags origin` | Remote tags: take the names after `refs/tags/`, drop `^{}` lines |
+| `tag-verify` | `git tag -v <tag>` | Read-only: exits non-zero for a missing, lightweight, or unsigned tag → `Stopped: 8: tag missing` |
 | `releases` | `gh release list --repo <owner>/<repo> --limit 30 --json tagName,name,isDraft,isPrerelease,isLatest,isImmutable` | Latest release, drafts, and whether a tag already has a release |
 | `release-view` | `gh release view <tag> --repo <owner>/<repo> --json tagName,name,body,isDraft,isPrerelease,isImmutable,url,assets,databaseId` | Current state of one release; `assets` counts pending uploads; exit 1 → no release for the tag |
 | `compare` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/compare/<base>...<default>'` | Read-only GET: commits and ahead count since the latest release tag |
@@ -23,7 +24,7 @@
 | `tag-plan` | `node ${CLAUDE_SKILL_DIR}/scripts/tag-plan.mjs < <scratch>/tag-input.json` | Candidates and signals; input JSON per `weighting.md` |
 | `notes-section` | `node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs section --version <x.y.z> --changelog <scratch>/CHANGELOG.md` | `{"ok":true,"notes":…}` or `{"ok":false,"code":…}`; write `notes` to `<scratch>/notes.md` |
 | `notes-merge` | `node ${CLAUDE_SKILL_DIR}/scripts/release-notes.mjs merge --body <scratch>/body.md --notes <scratch>/notes.md` | `{"ok":true,"merged","replaced","kept"}`; write `merged` to `<scratch>/merged.md` |
-| `create` | `gh release create <tag> --repo <owner>/<repo> --title '<tag>' --notes-file <scratch>/notes.md [--verify-tag \| --target '<default>'] [--draft] [--prerelease]` | Write: new release; an existing tag takes `--verify-tag`, a new tag takes `--target` |
+| `create` | `gh release create <tag> --repo <owner>/<repo> --title '<tag>' --notes-file <scratch>/notes.md --verify-tag [--draft] [--prerelease]` | Write: new release for an existing pushed tag; never `--target` |
 | `edit` | `gh release edit <tag> --repo <owner>/<repo> --title '<tag>' --notes-file <scratch>/merged.md [--draft=<bool>] [--prerelease=<bool>]` | Write: update the release in place |
 
 Never pass `--latest`, `--generate-notes`, or `--notes-start-tag`; never run `gh release delete` or delete a tag. `gh api` operations that write are listed in the `gh api` fallback reference (see SKILL.md `## Files`) and stay ungranted, so each prompts. The `gh-get.mjs` rows take exactly one endpoint, send no Accept header (responses are JSON), and exit 2 for any other argument.

@@ -9,7 +9,7 @@ The four GET rows run through `gh-get.mjs`, which is the only granted `gh api` f
 | Get by tag | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/releases/tags/<tag>'` | 404 → no published release; check drafts in the list below |
 | Get by ID | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/releases/<id>'` | A numeric Input is an ID |
 | List | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/releases?per_page=30'` | Drafts appear here; a draft has no tag-based GET |
-| Create | `gh api -X POST repos/<owner>/<repo>/releases -f tag_name='<tag>' -f name='<tag>' -F body=@<scratch>/notes.md -F draft=<bool> -F prerelease=<bool> [-f target_commitish='<default>']` | Omit `target_commitish` when the tag exists; never send `make_latest` |
+| Create | `gh api -X POST repos/<owner>/<repo>/releases -f tag_name='<tag>' -f name='<tag>' -F body=@<scratch>/notes.md -F draft=<bool>  -F prerelease=<bool>` | Never send `target_commitish` (the tag must exist) or `make_latest` |
 | Update | `gh api -X PATCH repos/<owner>/<repo>/releases/<id> -f name='<tag>' -F body=@<scratch>/merged.md -F draft=<bool> -F prerelease=<bool>` | Send only the fields that change |
 | Changelog | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs 'repos/<owner>/<repo>/contents/CHANGELOG.md?ref=<ref>'` | `content` is base64 |
 
