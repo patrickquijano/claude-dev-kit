@@ -41,6 +41,7 @@ State one line per criterion for what 1, 3, and 5 mean. Every score cites a sour
 
 - Mark Recommended only on the highest total.
 - Top two ≤5 points apart → mark none and say "close call".
+- `--yes` on a close call takes the catalog's first option and lists it under `Open:`.
 - The lead depends on unverified scores → say so.
 
 ## Sensitivity

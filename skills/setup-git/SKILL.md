@@ -41,7 +41,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 1. **Pre-flight.** Context Git version `<none>` → stop ("install git"). SSH signing needs git 2.34 or later.
 2. **Repository.** Root `<none>` → print the `init` command and `<cwd>`, then run it with no wait; a headless run with no user to reply and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Root is not cwd → use `<root>` (git writes local config there). Work from the root.
 3. **Detect.** `config-get` each key: `user.name`, `user.email`, `gpg.format`, `user.signingkey`, `commit.gpgsign`, `tag.gpgsign`, `gpg.ssh.allowedSignersFile`, `gpg.program`, `gpg.ssh.program`, `gpg.x509.program`; `config-local` to see local ones. Unset `gpg.format` = `openpgp`.
-4. **Identity.** Unset `user.name` or `user.email` → ask in plain text (cap in Rules). With a commit, show `last-author` and ask whether it is the user (`--yes`: skip this question).
+4. **Identity.** Unset `user.name` or `user.email` → ask in plain text (cap in Rules). Only when `user.name` or `user.email` is unset and a commit exists, show `last-author` and ask whether it is the user (`--yes`: skip this question).
 5. **Signing format.** Set in any scope → keep. Else set `ssh`; git < 2.34 → `openpgp`.
 6. **Signing key.** Keep `user.signingkey` when valid for the format; else pick a candidate; write steps 4-6 values. Detail: `${CLAUDE_SKILL_DIR}/references/signing-key.md`.
 7. **Sign by default.** Set `commit.gpgsign` and `tag.gpgsign` to `true` when not already (every `git tag <name>` becomes a signed annotated tag and asks for a message).

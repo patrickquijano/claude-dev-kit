@@ -1,6 +1,6 @@
 # Signing Artifact Ignores
 
-Only signing artifacts that sit inside the work tree are ignore candidates; other stacks and files are out of scope.
+Only signing artifacts that sit inside the work tree and outside `.git/` (e.g. `.git/allowed_signers`) are ignore candidates; other stacks and files are out of scope.
 
 | Artifact | Source | Pattern written |
 | --- | --- | --- |
