@@ -20,6 +20,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`, flags never altered. Call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged and record it under `Fallbacks:`.
 - Never guess: a fact neither MCP nor `gh` returns is `Open:`, never assumed ready.
 - No subagent spawns; no checkout, build, or file edits.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 
 ## Workflow
 

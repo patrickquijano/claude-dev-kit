@@ -34,7 +34,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Never commit, push, or change files outside the repo; the user commits afterwards.
 - Caps: researchers at most 4 per message (`${CLAUDE_SKILL_DIR}/references/plan.md`); one respawn, then mark the package high risk and continue (`${CLAUDE_SKILL_DIR}/references/spawns.md`); one implement-spec call per package step, then revert that package if a check still fails and continue (`${CLAUDE_SKILL_DIR}/references/validate.md`); one retry of a reverted package by a safer path (for example an intermediate version) in step 11.
 - `--yes`: the recommended option applies patch and minor only; list majors under `Open:`; step 5 is skipped.
-- Stops and cancels print the Output with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`; a cancel prints `Result: cancelled` with `Stopped:`. A later failure or cap → still print the Output, with what is left under `Open:`.
 
 ## Workflow
 

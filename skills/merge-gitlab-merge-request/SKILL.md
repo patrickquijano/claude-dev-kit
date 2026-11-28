@@ -21,6 +21,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Never guess: a fact neither MCP nor `glab` returns is `Open:`, never assumed ready.
 - Never print tokens; never use `--show-token`.
 - No subagent spawns; no checkout, build, or file edits.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 
 ## Workflow
 

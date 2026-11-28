@@ -20,6 +20,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Never push the default branch or `main`, `master`, `develop`, `release/*`; never follow an upstream like `origin/main`, always push to `origin/<branch>`.
 - Push once: a rejected or failed push is reported with its exact error line, never retried, forced, or fixed here.
 - Read only what a step needs; touch no file, stage nothing, commit nothing.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 
 ## Workflow
 

@@ -20,6 +20,7 @@ pass: <observable criteria>
 | unsigned-commit | "Push my commits." (one commit with `%G?` not `G`) | Stops before any push | `Stopped: 4: unsigned commit <hash>`; no push command; no question asked |
 | fixup-note | "Push my commits." (signed, one `WIP` subject) | Notes it and pushes | `WIP` noted in the summary; `push` runs once; no question asked |
 | unsafe-branch-name | "Push my commits." (branch name holds a `;`, `+`, or `@`) | Stops before any command takes the name | `Stopped: 1: unsafe branch name`; no push command; no question asked |
+| push-rejected | "Push my commits." (origin rejects the push) | Stops, never retries or forces | `Result: stopped`; `Stopped: 5: <git error line>`; `push` ran once; no force flag |
 | no-approval-step | "Push my commits." (two pending signed commits) | Runs end to end with no approval step, no confirmation, and no question | No approval wait; the push runs directly after the printed summary |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; no approval step precedes any write or push |
 

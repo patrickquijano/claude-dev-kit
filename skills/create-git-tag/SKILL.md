@@ -19,6 +19,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - The message comes only from the script, captured before `git tag` runs, with `--cleanup=whitespace`; the default `strip` would drop the `###` lines, and an empty pipe would still create an empty tag.
 - A signing failure → report the exact error line; never retry unsigned or edit signing config.
 - Touch no file, stage nothing, commit nothing.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 
 ## Workflow
 
