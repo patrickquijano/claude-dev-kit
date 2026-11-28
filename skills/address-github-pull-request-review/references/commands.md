@@ -24,7 +24,8 @@
 | `issue-view` | `gh issue view <number> --repo <owner>/<repo> --json title,body,state` | Linked issue text (the requirement) | `mcp__plugin_github_github__issue_read` |
 | `pr-files` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs graphql pr-files <owner> <repo> <n> [<endCursor>]` | PR changed files (`path`; the write-scope list); one page per call; repeat with `<endCursor>` while `hasNextPage` is true; the MCP tool takes `page` from 1 and repeats while a page returns 100 entries | `mcp__plugin_github_github__pull_request_read` (`get_files`, `perPage` 100) |
 | `review-threads` | `node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs graphql review-threads <owner> <repo> <n> [<endCursor>]` | Threads with `id`, `isResolved`, `isOutdated`, and comments; one page per call; repeat with `<endCursor>` while `hasNextPage` is true | `mcp__plugin_github_github__pull_request_read` (`get_review_comments`) |
-| `pull-rebase` | `git pull --rebase origin '<head>'` | Write (local): replay the commits on the remote head | — |
+| `pull-rebase` | `git pull --rebase -S origin '<head>'` | Write (local): replay the commits on the remote head, signing each | — |
+| `sig-check` | `git log --format=%G? 'origin/<head>..HEAD'` | Signature status of each replayed commit; any line other than `G` or `U` → unsigned | — |
 | `push` | `git push origin 'HEAD:<head>'` | Write: one normal push, no flags | — |
 | `thread-reply` | `gh api graphql -f query='mutation($t:ID!,$b:String!){addPullRequestReviewThreadReply(input:{pullRequestReviewThreadId:$t,body:$b}){comment{url}}}' -f t=<thread id> -F b=@<file>` | Write: reply on one thread; the MCP tool takes the first comment's `databaseId` | `mcp__plugin_github_github__add_reply_to_pull_request_comment` |
 | `pr-comment` | `gh pr comment <n> --repo <owner>/<repo> --body-file <file>` | Write: one PR comment listing each review-body item and its outcome | `mcp__plugin_github_github__add_issue_comment` |

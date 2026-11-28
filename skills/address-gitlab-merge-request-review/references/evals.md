@@ -55,6 +55,7 @@ pass: <observable criteria>
 | discussions-page-unreadable | "Address MR 5." (a `discussions` page is cut off) | Stops at Identify | `Result: stopped`, `Stopped: 1: discussions page <page> unreadable`; no edit |
 | mr-files-unreadable | "Address MR 5." (one fixable discussion; `mr-files` returns a 404) | Stops before the spec | `Result: stopped`, `Stopped: 3: mr-files needs GitLab 15.7 or later`; the items under `Open:`; no edit |
 | tracked-dirty-before-push | "Address MR 5." (a tracked file is modified when the push step starts) | Stops before the pull rebase | `pull-rebase` and `push` not run; the paths reported; no reply posted |
+| unsigned-after-rebase | "Address MR 5." (`sig-check` prints `N` for a replayed commit) | Stops before the push | `push` not run; `Stopped:` names the unsigned commit; no reply posted |
 | verification-failure-stops | "Address MR 5." (`cdk:implement-spec` ends `Verify: <cmd> fail`) | Stops | `Result: stopped`; `Stopped: 5: verification failed: <cmd>`; `Verification: failed (<reason>)`; no retry, no own check, no commit, push, or reply; edits stay in the tree under `Open:` |
 | unmet-goals-stops | "Address MR 5." (`cdk:implement-spec` ends `Goals: 2 met, 1 unmet`, `Verify` pass) | Stops | `Result: stopped`; `Stopped: 5: verification failed: 1 unmet goal`; no commit, push, or reply; no discussion called fixed |
 | implement-spec-cancelled-stops | "Address MR 5." (`cdk:implement-spec` ends `Result: cancelled`) | Stops | `Result: stopped`; `Stopped: 5: user cancelled`; no commit, push, or reply |

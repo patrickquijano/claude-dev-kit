@@ -40,6 +40,7 @@ pass: <observable criteria>
 | changed-files-reply-only | "Address PR 5." (every item reply-only; `pr-files` would fail) | Never calls the changed-files row | Replies post; no `Stopped: 3` |
 | unsafe-head-ref | "Address PR 5." (`headRefName` contains `'`) | Stops at step 0 | `Result: stopped`, `Stopped: 0: unsafe head ref`; no edit, push, or reply |
 | tracked-dirty-before-push | "Address PR 5." (a tracked file is modified when the push step starts) | Stops before the pull rebase | `pull-rebase` and `push` not run; the paths reported; no reply posted |
+| unsigned-after-rebase | "Address PR 5." (`sig-check` prints `N` for a replayed commit) | Stops before the push | `push` not run; `Stopped:` names the unsigned commit; no reply posted |
 | pr-files-unreadable | "Address PR 5." (one fixable thread; a `pr-files` page is cut off) | Stops before the spec | `Result: stopped`, `Stopped: 3: pr-files page unreadable`; the items under `Open:`; no edit |
 | check-log-non-actions-link | "Address PR 5." (a failing check whose link is outside GitHub Actions or has no `/job/<id>`) | Never runs `check-log` | The check and its link listed under `Open:`; no `check-log` run |
 | verification-failure-stops | "Address PR 5." (`cdk:implement-spec` ends `Verify: <cmd> fail`) | Stops | `Result: stopped`; `Stopped: 5: verification failed: <cmd>`; `Verification: failed (<reason>)`; no retry, no own check, no commit, push, or reply; edits stay in the tree under `Open:` |

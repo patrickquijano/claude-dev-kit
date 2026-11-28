@@ -26,7 +26,8 @@
 | `discussions` | `mcp__plugin_gitlab_gitlab__get_merge_request` (`include: [discussions]`) | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> 'projects/<enc>/merge_requests/<iid>/discussions?per_page=100&page=<page>'` | Discussions with `id`, `individual_note`, and `notes` (`resolvable`, `resolved`, `position`); one page per call |
 | `member` | `mcp__plugin_gitlab_gitlab__list_project_members` | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> projects/<enc>/members/all/<author id>` | Author's `access_level` (Developer = 30), inherited and invited included |
 | `current-user` | `mcp__plugin_gitlab_gitlab__get_user` | `node ${CLAUDE_SKILL_DIR}/scripts/glab-get.mjs <host> user` | Authenticated user (`id`, `username`) for the already-answered check |
-| `pull-rebase` | — | `git pull --rebase origin '<source_branch>'` | Write (local): replay the commits on the remote source branch |
+| `pull-rebase` | — | `git pull --rebase -S origin '<source_branch>'` | Write (local): replay the commits on the remote source branch, signing each |
+| `sig-check` | — | `git log --format=%G? 'origin/<source_branch>..HEAD'` | Signature status of each replayed commit; any line other than `G` or `U` → unsigned |
 | `push` | — | `git push origin 'HEAD:<source_branch>'` | Write: one normal push, no flags |
 | `discussion-reply` | `mcp__plugin_gitlab_gitlab__save_note` (`method: reply_discussion`, `discussion_id`, `body`) | `glab api --hostname <host> -X POST projects/<enc>/merge_requests/<iid>/discussions/<discussion id>/notes --field body=@<file>` | Write: reply on one discussion |
 | `mr-note` | `mcp__plugin_gitlab_gitlab__save_note` | `glab api --hostname <host> -X POST projects/<enc>/merge_requests/<iid>/notes --field body=@<file>` | Write: one MR note listing each review-body item and its outcome |

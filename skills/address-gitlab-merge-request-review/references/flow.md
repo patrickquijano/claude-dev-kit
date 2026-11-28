@@ -104,7 +104,7 @@ Run before step 8, right after Commit: every identified item must end as exactly
 
 ## Push
 
-No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `discussion-reply`, and `mr-note` commands, ask nothing, run none. Otherwise require `status-tracked` (`--untracked-files=no`) to be empty (else stop and report the paths: a pull rebase refuses tracked changes unless autostash is set), then run `pull-rebase`, then `push`. After both succeed, re-run `log-paths` per fixed item; those SHAs replace the provisional ones. A conflict or rejection → stop and report; no retry, no force.
+No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `discussion-reply`, and `mr-note` commands, ask nothing, run none. Otherwise require `status-tracked` (`--untracked-files=no`) to be empty (else stop and report the paths: a pull rebase refuses tracked changes unless autostash is set), then run `pull-rebase`, then `sig-check` (any commit other than `G` or `U` → stop and report, no push, because commits here are signed), then `push`. After all succeed, re-run `log-paths` per fixed item; those SHAs replace the provisional ones. A conflict or rejection → stop and report; no retry, no force.
 
 ## Reply
 
