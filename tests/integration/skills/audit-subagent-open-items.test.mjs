@@ -63,8 +63,8 @@ describe('audit-subagent follows the checklist model', () => {
     'ignores bak files': /^ {3}- Read the subagent file and every file its body names[^\n]*never read `\*\.bak`\./m,
     'counts with the count script':
       /^ {3}- Count lines, characters, and words with `node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs '<absolute path>'`, never by hand;/m,
-    'runs plugin validate only for a plugin directory':
-      /^ {3}- Run `claude plugin validate <plugin dir>` for O1 only on a plugin directory; if it cannot run, O1 is Not checked\./m,
+    'runs plugin validate when the target is under a plugin directory':
+      /^ {3}- Run `claude plugin validate <plugin dir>` for O1 when the target is under a plugin directory \(the nearest ancestor with `\.claude-plugin\/plugin\.json`\); if it cannot run or there is none, O1 is Not checked\./m,
     'reads the scorer definition once and reports not scored':
       /^ {3}- `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5\.$/m,
     'spawns the scorer per subagent in parallel with kind subagent-checklist':

@@ -36,7 +36,7 @@ Input: $ARGUMENTS (strip `--yes` and `--report-only` first)
 2. **Audit each subagent.**
    - Read the subagent file and every file its body names, then decide each check in `${CLAUDE_SKILL_DIR}/references/checks.md`; never read `*.bak`.
    - Count lines, characters, and words with `node ${CLAUDE_SKILL_DIR}/scripts/count.mjs '<absolute path>'`, never by hand; it takes only an absolute path that matches `^[A-Za-z0-9._/-]+$` with no `..` segment as one single-quoted argument, and the script reads the file with `fs` itself and never embeds file text.
-   - Run `claude plugin validate <plugin dir>` for O1 only on a plugin directory; if it cannot run, O1 is Not checked.
+   - Run `claude plugin validate <plugin dir>` for O1 when the target is under a plugin directory (the nearest ancestor with `.claude-plugin/plugin.json`); if it cannot run or there is none, O1 is Not checked.
 3. **Report.** Print the report per `checks.md`: first line the totals, then one row per check. A Fail never stops another subagent; a plugin run prints one combined report.
 4. **Score.** Default mode only.
    - `cdk:rubric-scorer` unavailable → `Not scored: scorer unavailable`, go to step 5.
