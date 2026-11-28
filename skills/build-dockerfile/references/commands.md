@@ -5,6 +5,7 @@
 | `repo-root` | `git rev-parse --show-toplevel` | Repo root; fail falls back to cwd (preloaded in Context) |
 | `docker-check` | `command -v docker` | Whether docker is installed |
 | `build-check` | `docker build --check -f <Dockerfile> <context>` | Build checks only, no image (run by the reviewer, or inline when it is unavailable) |
+| `hadolint-probe` | `command -v hadolint` | Whether hadolint is installed; no output → `not installed` |
 | `hadolint-lint` | `hadolint <Dockerfile>` plus the `--ignore` flags in practices.md `## Packages` | Lint, when installed (run by the reviewer, or inline when it is unavailable) |
 | `resolve-tag` | `node ${CLAUDE_SKILL_DIR}/scripts/resolve-tag.mjs --image <repo or namespace/repo> [--runtime <major.minor>] --variant <suffix or ubuntu>` | Highest stable exact tag from Docker Hub as JSON (`ok`, `tag`) |
 | `image-build` | `docker build -f <Dockerfile> -t cdk-build-test:<run id> <context>` | Test build to a throwaway tag (default target only) |

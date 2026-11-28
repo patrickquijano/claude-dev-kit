@@ -3,7 +3,7 @@ name: audit-subagent
 description: Audits one subagent or every subagent in a plugin against a Pass / Fail / Not checked checklist, scores it 1–5 per category, and fixes approved Fails. Use when asked to audit, review, check, or score a subagent. Not for building a subagent or auditing skills.
 argument-hint: '[--yes] [--report-only] [subagent file or plugin directory path]'
 compatibility: Claude Code only. Uses allowed-tools and argument-hint; claude.ai and API uploads reject unknown keys.
-allowed-tools: Read Glob Grep Edit(**/*.bak) AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(claude plugin validate *)
+allowed-tools: Read Glob Grep AskUserQuestion Bash(node ${CLAUDE_SKILL_DIR}/scripts/count.mjs *) Bash(claude plugin validate *)
 ---
 
 # Audit Subagent

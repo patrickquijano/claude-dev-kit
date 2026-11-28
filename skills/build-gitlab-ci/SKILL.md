@@ -3,7 +3,7 @@ name: build-gitlab-ci
 description: 'Creates or updates a GitLab CI/CD pipeline: thin .gitlab-ci.yml plus per-job files in .gitlab/ci, pinned images, CI Lint validated. Use when asked to write or change GitLab CI. Not for GitHub Actions.'
 argument-hint: '[--yes] [stack, stages, requirements]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys. Needs Node.js 22 or newer for scripts/.
-allowed-tools: Read Glob Grep Bash(node ${CLAUDE_SKILL_DIR}/scripts/*) Bash(command -v *) Bash(git rev-parse *) Bash(git remote get-url *) Bash(gitlab-runner --version) WebFetch(domain:docs.gitlab.com) WebFetch(domain:hub.docker.com) WebSearch
+allowed-tools: Read Glob Grep Bash(node ${CLAUDE_SKILL_DIR}/scripts/*) Bash(git rev-parse *) Bash(gitlab-runner --version) WebFetch(domain:docs.gitlab.com) WebFetch(domain:hub.docker.com) WebSearch
 ---
 
 # Build GitLab CI

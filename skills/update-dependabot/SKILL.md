@@ -3,7 +3,7 @@ name: update-dependabot
 description: Creates or updates .github/dependabot.yaml from the repo's package ecosystems and directories, merged in place and schema-checked. Use when asked to set up, add, or update Dependabot. Not for upgrading dependencies or other CI config.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes]'
-allowed-tools: Read Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v uvx) Bash(command -v pipx)
+allowed-tools: Read WebFetch Bash(git rev-parse *) Bash(git ls-files *) Bash(command -v uvx) Bash(command -v pipx)
 ---
 
 # Update Dependabot

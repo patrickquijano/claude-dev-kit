@@ -20,8 +20,8 @@ describe('audit-subagent follows the checklist model', () => {
   const cases = {
     'names the report-only flag in the hint':
       /^argument-hint: '\[--yes\] \[--report-only\] \[subagent file or plugin directory path\]'$/m,
-    'allows only the audit tools and backup writes':
-      /^allowed-tools: Read Glob Grep Edit\(\*\*\/\*\.bak\) AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(claude plugin validate \*\)$/m,
+    'allows only the audit tools':
+      /^allowed-tools: Read Glob Grep AskUserQuestion Bash\(node \$\{CLAUDE_SKILL_DIR\}\/scripts\/count\.mjs \*\) Bash\(claude plugin validate \*\)$/m,
     'has the cannot-interact path':
       /^- Ask with AskUserQuestion\. Unavailable but a user can reply → ask as a numbered inline list and stop for the answer\. No user to reply \(headless\) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`\. Only `--yes` takes the Recommended option\./m,
     'names the neighbour exclusions in the description':
