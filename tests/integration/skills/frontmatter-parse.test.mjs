@@ -38,7 +38,7 @@ describe('every shipped frontmatter parses', () => {
     // Act
     const count = found.length;
     // Assert
-    assert.equal(count, 55, `found ${count} skill files`);
+    assert.equal(count, 56, `found ${count} skill files`);
   });
 
   test('agent files are found', () => {
