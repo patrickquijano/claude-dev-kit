@@ -44,7 +44,7 @@ The parent checks each finding:
 - `fix` is present; else respawn that kind once for the missing fixes, then write the fix inline.
 - Key: `<file>:<category>:<short-description>`, where `category` is the reviewer kind that found it (`sweep` findings take the area they belong to) and `short-description` is at most 6 words of the problem in `[a-z0-9-]`. The key has no line, so it survives a fix that moves lines. Findings that share a key merge into one entry that lists every site.
 - Merge duplicates on key; sort by severity (`critical`, `major`, `minor`, `nit`, `question`), then file, then line.
-- Unaddressed: every `nit` and `question` → `Unaddressed:` in the Output (a finding that only restates what automated tooling enforces is dropped, not listed); it is never counted as open, never fixed, and never in a fix spec.
+- Unaddressed: a `nit` or `question` that Phase 2 does not fix (a `question` with no concrete fix; a stale item goes under `Open:`) → `Unaddressed:` in the Output (a finding that only restates what automated tooling enforces is dropped, not listed); it is never counted as open and never in a Phase 1 fix spec.
 - A finding with no quoted evidence or `low` confidence is already a `question`; a severity is never upgraded after the first review, so the step 6c count-decrease rule compares like with like.
 
 ## Coverage and sweep
@@ -62,7 +62,7 @@ Rounds after the first judge the reported items only: run `delta` (`fix.md`) so 
 
 A prior finding keeps its severity from the review that found it. `Accepted` counts as open for the stop rules, because the finding still stands.
 
-After each review print `Round <n>: Open <n> (critical <a>, major <b>)` and one line per open blocking item `<key> [severity] <path>:<line> — <fix>`; `minor`, `nit`, and `question` are not counted. Round 0 is the first review. Open blocking items re-enter step 4 only when no stop rule of step 6c holds; the `Open` count of the previous round is the one the count-decrease rule compares against, and round 1 compares with round 0.
+After each review print `Round <n>: Open <n> (critical <a>, major <b>, minor <c>)` and one line per open blocking item `<key> [severity] <path>:<line> — <fix>`; `nit` and `question` are not counted. Round 0 is the first review. Open blocking items re-enter step 4 only when no stop rule of step 6c holds; the `Open` count of the previous round is the one the count-decrease rule compares against, and round 1 compares with round 0.
 
 ## Spawn briefs
 

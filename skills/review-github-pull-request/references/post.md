@@ -4,7 +4,7 @@ Steps 8–10 of `SKILL.md`. Nothing is asked here; every write runs without wait
 
 ## Contents
 
-- Pre-post report · Head check · Threads · Summary comment · State review · Own PR · Fix loop · Errors · Report
+- Pre-post report · Head check · Threads · Summary comment · State review · Own PR · Fix loop · Nit pass · Errors · Report
 
 ## Pre-post report
 
@@ -29,8 +29,8 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 
 The review is the state: `REQUEST_CHANGES` while any gating thread is unresolved, `APPROVE` when none is and no hold applies, `COMMENT` for a hold (`analyze.md` `## Verdict`). Its body is only the marker; the summary comment is the report.
 
-1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
-2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical` or `major` threads (created as in item 1 with `review-create` and `add-comment`, since a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
+1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical`, `major`, and `minor` findings plus at most 5 inline non-blocking `nit` or `question` findings (highest severity first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
+2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical`, `major`, or `minor` threads (created as in item 1 with `review-create` and `add-comment`, since a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
 3. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
 
 ## Own PR
@@ -46,6 +46,10 @@ Runs only when step 8g invoked the address skill; at most 3 rounds (`SKILL.md` C
 - Update order: `thread-resolve` each thread judged Fixed or Obsolete (`## Threads` rules), then `summary-update` (counts, verdict), then the state review (`APPROVE` only when no gating thread is left, per `## State review`). Leave `Last reviewed SHA:` as it was, so a later run still reviews the fix commits.
 - Head check: reuse `## Head check`, one redo of steps 3a–3c only; a head that moves again → `Result: stopped`, `Stopped: 9: head moved twice`.
 - Loop: continue to step 8g only when the gating count fell below the previous round's and fewer than 3 rounds ran; otherwise stop and list what is open under `Open:`.
+
+## Nit pass
+
+Runs only at step 9b: verdict `APPROVE` and own open `[nit]` or `[question]` threads, with the step 8g checkout guards. The address skill is invoked once with `--nits-only`; continue only when its Output has `Result: done`, else nothing is written and the threads go under `Open:`. The fix is pushed with no re-review, no resolve, no summary or state edit, and `Last reviewed SHA:` unchanged. Known limit: the address skills skip the summary comment, so a `nit` or `question` beyond the inline cap of 5 (summary-only) is not fixed and stays listed in the summary. The push may make the host dismiss the approval (stale-approval setting); say so under `Open:`.
 
 ## Errors
 

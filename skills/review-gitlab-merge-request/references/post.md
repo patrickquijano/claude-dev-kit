@@ -4,7 +4,7 @@ Steps 8–10 of `SKILL.md`. Nothing is asked here; every write runs without wait
 
 ## Contents
 
-- Summary · Head check · Threads · Summary note · State · Own MR · Fix loop · Errors · Report
+- Summary · Head check · Threads · Summary note · State · Own MR · Fix loop · Nit pass · Errors · Report
 
 ## Summary
 
@@ -31,7 +31,7 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 
 The state is the discussions plus the approval:
 
-1. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical` and `major` discussions; `APPROVE` carries no gating findings, only the non-gating `minor`, `nit`, and `question` discussions of a first review.
+1. New discussions: `review-post` (glab fallback: `inline-comment` per comment) for the `critical`, `major`, and `minor` findings plus at most 5 inline non-blocking `nit` or `question` findings (highest severity first); MCP posts at most 20 per call, so split them. Every other finding goes in the summary. A re-review posts only new `critical`, `major`, and `minor` discussions; `APPROVE` carries no gating findings, only the non-gating `nit` and `question` discussions of a first review.
 2. Post or edit the summary (above), then run `head-sha` once more; a head that differs from the posted SHA is reported under `Errors:`.
 3. Last, `APPROVE` → `approve` with the full head SHA (a refusal follows `## Own MR`), then verify the approval through `approvals`; a missing approval is reported under `Errors:`.
 
@@ -48,6 +48,10 @@ Runs only when step 8g invoked the address skill; at most 3 rounds (`SKILL.md` C
 - Update order: `thread-resolve` each discussion judged Fixed or Obsolete (`## Threads` rules), then edit the summary note (counts, verdict), then the state (`approve` only when no gating discussion is left, per `## State`; a verdict that is not `APPROVE` with an own approval present → `unapprove` first). Leave `Last reviewed SHA:` as it was, so a later run still reviews the fix commits.
 - Head check: reuse `## Head check`, one redo of steps 3a–3c only; a head that moves again → `Result: stopped`, `Stopped: 9: head moved twice`.
 - Loop: continue to step 8g only when the gating count fell below the previous round's and fewer than 3 rounds ran; otherwise stop and list what is open under `Open:`.
+
+## Nit pass
+
+Runs only at step 9b: verdict `APPROVE` and own open `[nit]` or `[question]` discussions, with the step 8g checkout guards. The address skill is invoked once with `--nits-only`; continue only when its Output has `Result: done`, else nothing is written and the discussions go under `Open:`. The fix is pushed with no re-review, no resolve, no summary or approval edit, and `Last reviewed SHA:` unchanged. Known limit: the address skills skip the summary note, so a `nit` or `question` beyond the inline cap of 5 (summary-only) is not fixed and stays listed in the summary. The push may make the host dismiss the approval (stale-approval setting); say so under `Open:`.
 
 ## Errors
 

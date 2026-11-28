@@ -38,12 +38,12 @@ pass: <observable criteria>
 | no-approval-step | "Review PR 9." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly |
 | reviewer-agent-kind | "Review PR 9." (any diff) | Spawns the dedicated reviewer once per area | Four `cdk:code-reviewer` spawns, one per area kind; no other subagent type |
 | re-review-resolves | "Review PR 9." (re-review; an own `[major]` thread now fixed at the head) | Resolves it with no reply, edits the summary in place | `thread-resolve` ran; `summary-update` ran; no `summary-post`; approves when no gating thread is left |
-| re-review-new-findings | "Review PR 9." (re-review; the delta has one minor and one critical issue) | Adds only the critical thread | Only the `[critical]` thread is posted; the minor is dropped as `re-review` and listed under `Dropped:` in the summary |
+| re-review-new-findings | "Review PR 9." (re-review; the delta has one nit and one critical issue) | Adds only the critical thread | Only the `[critical]` thread is posted; the nit is dropped as `re-review` and listed under `Dropped:` in the summary |
 | already-approved | "Review PR 9." (own approval, no commits since the last reviewed SHA) | Stops | `already approved`; `Result: nothing-to-do`; nothing posted |
 | approved-new-commits | "Review PR 9." (own approval, new commits since) | Reviews only the delta since the approved SHA | Mode `re-review (last reviewed <short SHA>)`; the scratch diff comes from `compare-diff` from the approved SHA; the existing summary is edited in place, no new one |
 | approved-force-push | "Review PR 9." (own approval, the approved SHA is gone after a force-push, or the summary has no `Last reviewed SHA:`) | Falls back to the full diff | The full diff is reviewed; the fallback is noted under `Open:` |
-| minor-never-gates | "Review PR 9." (first review; one `minor` finding, checks green, complete) | Posts it as non-gating and approves | `Verdict: APPROVE`; the `[minor]` thread is posted within the 5 non-blocking inline cap; it is never counted as gating |
-| legacy-minor-thread | "Review PR 9." (re-review; an own `[minor]` thread from an earlier run is still open) | Treats it as non-gating | Counted under `ignored (not own or non-gating)`; not judged or resolved; `Verdict: APPROVE` when nothing else gates |
+| minor-gates | "Review PR 9." (first review; one `minor` finding, checks green, complete) | Posts it as a gating thread and requests changes | `Verdict: REQUEST_CHANGES`; the `[minor]` thread is posted inline outside the 5 non-blocking cap and counted as gating |
+| own-minor-thread-gates | "Review PR 9." (re-review; an own `[minor]` thread is still open, change missing) | Judges it like a `[major]` thread | Judged, not counted under `ignored (not own or non-gating)`; left open; `Verdict: REQUEST_CHANGES` |
 | low-confidence-never-gates | "Review PR 9." (a reviewer returns a `major` with `low` confidence or no quoted evidence) | Downgrades it | Posted as `[question]` or listed under `Unverified:`; never gating; `Verdict` is not `REQUEST_CHANGES` because of it |
 | author-dispute | "Review PR 9." (the author replied disputing an own thread) | Does not resolve | Listed under `Open:` as disputed; thread stays open |
 | cannot-edit-summary | "Review PR 9." (re-review; `summary-update` fails) | Stops | `Stopped: 8: cannot edit summary`; no new summary comment |
@@ -58,6 +58,7 @@ pass: <observable criteria>
 | fix-no-change-no-rereview | "Review PR 9." (address skill reports `Pushed: not pushed`) | No re-review | No `threads` spawn, no resolve, no summary edit after the address skill; the open threads under `Open:` |
 | fix-fork-skipped | "Review PR 9." (fork PR, wrong branch, dirty tree, or protected head) | Skips the fix | Address skill not invoked; each open thread under `Open:` with the reason; nothing local written |
 | fix-round-cap | "Review PR 9." (a gating thread survives each fix) | Stops at the cap | At most 3 address invocations; the loop also stops when the gating count did not fall; open threads under `Open:` |
+| post-approval-nit-pass | "Review PR 9." (verdict `APPROVE`; own open `[nit]` thread; checkout is the head) | Fixes the nit once, no re-review | Address skill invoked once with `--nits-only`; no `threads` spawn, resolve, summary edit, or state change after it; `Last reviewed SHA:` unchanged; `Open:` notes a stale-approval dismissal may follow |
 
 ## Running per model
 

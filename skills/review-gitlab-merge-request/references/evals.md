@@ -41,12 +41,12 @@ pass: <observable criteria>
 | foreign-thread-ignored | "Review MR 9." (an open discussion by another reviewer, or by Self without the marker) | Ignores it entirely | Not judged, replied to, or resolved; counted under `ignored` |
 | unjudged-gating | "Review MR 9." (own `[major]` discussion, no change since) | Keeps changes requested | `Verdict: REQUEST_CHANGES`; discussion untouched |
 | re-review-resolves | "Review MR 9." (re-review; an own `[major]` discussion now fixed at the head) | Resolves it with no reply, edits the summary in place | `thread-resolve` ran; `summary-update` ran; no `summary-post`; approves when no gating discussion is left |
-| re-review-new-findings | "Review MR 9." (re-review; the delta has one minor and one critical issue) | Adds only the critical discussion | Only the `[critical]` discussion is posted; the minor is dropped as `re-review` and listed under `Dropped:` in the summary; scratch diff from `compare-diff` |
+| re-review-new-findings | "Review MR 9." (re-review; the delta has one nit and one critical issue) | Adds only the critical discussion | Only the `[critical]` discussion is posted; the nit is dropped as `re-review` and listed under `Dropped:` in the summary; scratch diff from `compare-diff` |
 | already-approved | "Review MR 9." (own approval, no commits since the last reviewed SHA) | Stops | `already approved`; `Result: nothing-to-do`; nothing posted |
 | approved-new-commits | "Review MR 9." (own approval, new commits since) | Reviews only the delta since the approved SHA | Mode `re-review (last reviewed <short SHA>)`; the scratch diff comes from `compare-diff` from the approved SHA; the existing summary is edited in place, no new one |
 | approved-force-push | "Review MR 9." (own approval, the approved SHA is gone after a force-push, or the summary has no `Last reviewed SHA:`) | Falls back to the full diff | The full diff is reviewed; the fallback is noted under `Open:` |
-| minor-never-gates | "Review MR 9." (first review; one `minor` finding, checks green, complete) | Posts it as non-gating and approves | `Verdict: APPROVE`; the `[minor]` discussion is posted within the 5 non-blocking inline cap; it is never counted as gating |
-| legacy-minor-thread | "Review MR 9." (re-review; an own `[minor]` discussion from an earlier run is still open) | Treats it as non-gating | Counted under `ignored (not own or non-gating)`; not judged or resolved; `Verdict: APPROVE` when nothing else gates |
+| minor-gates | "Review MR 9." (first review; one `minor` finding, checks green, complete) | Posts it as a gating discussion and requests changes | `Verdict: REQUEST_CHANGES`; the `[minor]` discussion is posted inline outside the 5 non-blocking cap and counted as gating |
+| own-minor-thread-gates | "Review MR 9." (re-review; an own `[minor]` discussion is still open, change missing) | Judges it like a `[major]` discussion | Judged, not counted under `ignored (not own or non-gating)`; left open; `Verdict: REQUEST_CHANGES` |
 | low-confidence-never-gates | "Review MR 9." (a reviewer returns a `major` with `low` confidence or no quoted evidence) | Downgrades it | Posted as `[question]` or listed under `Unverified:`; never gating; `Verdict` is not `REQUEST_CHANGES` because of it |
 | author-dispute | "Review MR 9." (the author replied disputing an own discussion) | Does not resolve | Listed under `Open:` as disputed; discussion stays open |
 | truncated-no-summary | "Review MR 9." (MCP path only; `review-threads` returns 100 discussions, `truncated` true, no own summary among them) | Stops | `Result: stopped`; `Stopped: 3: discussion list truncated`; no write; not treated as a first review |
@@ -64,6 +64,7 @@ pass: <observable criteria>
 | fix-no-change-no-rereview | "Review MR 9." (address skill reports `Pushed: not pushed`) | No re-review | No `threads` spawn, no resolve, no summary edit after the address skill; the open discussions under `Open:` |
 | fix-fork-skipped | "Review MR 9." (fork MR, wrong branch, dirty tree, or protected head) | Skips the fix | Address skill not invoked; each open discussion under `Open:` with the reason; nothing local written |
 | fix-round-cap | "Review MR 9." (a gating discussion survives each fix) | Stops at the cap | At most 3 address invocations; the loop also stops when the gating count did not fall; open discussions under `Open:` |
+| post-approval-nit-pass | "Review MR 9." (verdict `APPROVE`; own open `[nit]` discussion; checkout is the head) | Fixes the nit once, no re-review | Address skill invoked once with `--nits-only`; no `threads` spawn, resolve, summary edit, or state change after it; `Last reviewed SHA:` unchanged; `Open:` notes a stale-approval dismissal may follow |
 
 ## Running per model
 

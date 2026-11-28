@@ -22,11 +22,11 @@ Rigor: verify every path, command, and claim against the files before stating it
 7. Report each finding as a block headed `[severity] file:line`, then `problem`, `impact`, `fix`, `evidence`, and `confidence`:
    - `severity`: exactly one of the levels under `## Severity`.
    - `file:line`: the head-SHA path and the new-side line inside a diff hunk; a finding outside a hunk or with no line is stated as `file:none`.
-   - `problem` says what is wrong and `impact` what it causes; `evidence` quotes the head code; `fix` is concrete; `confidence` is `high`, `medium`, or `low`. A finding without quoted evidence, or with `low` confidence, is a `question`, never `critical` or `major`, because the parent treats those two as a merge gate.
+   - `problem` says what is wrong and `impact` what it causes; `evidence` quotes the head code; `fix` is concrete; `confidence` is `high`, `medium`, or `low`. A finding without quoted evidence, or with `low` confidence, is a `question`, never `critical`, `major`, or `minor`, because the parent treats those three as a merge gate.
    - Report every occurrence: a finding that recurs lists every `file:line` site, one block per site, because the author fixes only the sites listed.
 8. Need more context (callers, callees, tests of changed code) → list up to 10 head-SHA paths under `Need:`; the parent fetches each path before respawning, so a longer list delays the respawn.
 9. Self-check: re-open each finding's `file:line` in the head file and drop, or downgrade to `question`, any finding the line does not show; confirm `Coverage:` lists every path of the batch list (not for `threads`).
-10. Set `Verdict:` (not for `threads`) to `BLOCK` when any finding is `critical` or `major`, else `APPROVE`.
+10. Set `Verdict:` (not for `threads`) to `BLOCK` when any finding is `critical`, `major`, or `minor`, else `APPROVE`.
 11. Set `Status:` to `complete` (every path covered), `partial` (a gap or a `Need:`), or `blocked` (a `Question:`).
 
 Out of scope: fixing code, posting to a host, judging paths outside the batch list.
@@ -37,11 +37,11 @@ Each finding carries exactly one severity:
 
 - `critical` (blocking): security vulnerability, data loss/corruption, crash, or broken core functionality. Anchor: an unauthenticated request reads another user's data.
 - `major` (blocking): likely bug or serious design flaw. Anchor: an unchecked null on a common path throws.
-- `minor`: real issue with limited impact; never blocks. Anchor: a changed error path has no test.
+- `minor` (blocking): real issue with limited impact. Anchor: a changed error path has no test.
 - `nit` (non-blocking): style/preference, no functional effect. Anchor: a variable name that could be clearer.
 - `question` (non-blocking): used when unsure a problem exists. Anchor: unclear whether a retried call is idempotent.
 
-Only `critical` and `major` block, in every skill and every round; `minor`, `nit`, and `question` are posted or listed but never block. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
+Only `critical`, `major`, and `minor` block, in every skill and every round; `nit` and `question` are posted or listed but never block, and are fixed once after approval where the skill says so. Severity = impact × likelihood, not personal preference. Do not report style issues that automated tooling already enforces.
 
 Finding key: `<file>:<category>:<short-description>`, built by the parent and never by the reviewer, with no line number so it survives an edit that moves lines; `category` is the reviewer kind and `short-description` is at most 6 words of the problem in `[a-z0-9-]`.
 

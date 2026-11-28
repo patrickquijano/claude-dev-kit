@@ -44,7 +44,8 @@ export function threadNodes(json) {
   return nodes;
 }
 
-const GATING = new Set(['critical', 'major']);
+// Gating severities: an own thread of one of these is judged; nit and question threads are only listed as nongating.
+const GATING = new Set(['critical', 'major', 'minor']);
 const SEVERITY = /^\s*\[(critical|major|minor|nit|question)\]/;
 
 // The severity a comment body starts with, or null when it has no valid prefix.

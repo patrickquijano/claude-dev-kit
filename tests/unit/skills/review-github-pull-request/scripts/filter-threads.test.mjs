@@ -114,13 +114,13 @@ describe('classifyThreads', () => {
     assert.deepEqual([res.judged, res.unjudged, res.ignored], [[], [], 3]);
   });
 
-  test('lists an own minor thread as non-gating', () => {
+  test('judges an own minor thread as gating, not non-gating', () => {
     // Arrange
     const nodes = [thread({ id: 'm', body: `[minor] x\n${MARKER}`, last: 'dev' })];
     // Act
     const res = classifyThreads({ nodes, ...base });
     // Assert
-    assert.deepEqual([res.nongating, res.judged], [['m'], []]);
+    assert.deepEqual([res.nongating, res.judged.map((t) => [t.id, t.severity])], [[], [['m', 'minor']]]);
   });
 
   test('lists own nit and question threads as non-gating', () => {

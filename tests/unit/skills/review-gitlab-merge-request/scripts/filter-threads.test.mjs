@@ -180,13 +180,13 @@ describe('classifyThreads', () => {
     );
   });
 
-  test('lists an own minor discussion as non-gating', () => {
+  test('judges an own minor discussion as gating, not non-gating', () => {
     // Arrange
     const nodes = [thread({ id: 'm', last: 'dev', body: `[minor] x\n\n${MARKER}` })];
     // Act
     const res = classifyThreads({ nodes, ...base });
     // Assert
-    assert.deepEqual([res.nongating, res.judged], [['m'], []]);
+    assert.deepEqual([res.nongating, res.judged.map((t) => [t.id, t.severity])], [[], [['m', 'minor']]]);
   });
 
   test('ignores threads that are not own or lack a valid severity prefix', () => {

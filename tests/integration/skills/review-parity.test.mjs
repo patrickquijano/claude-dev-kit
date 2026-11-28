@@ -46,11 +46,14 @@ describe('review severity text', () => {
     assert.deepEqual(missing, []);
   });
 
-  test('lets only critical and major block and carries a line-free key', () => {
+  test('lets only critical, major, and minor block and carries a line-free key', () => {
     // Arrange
     const text = block(sources[0].text);
     // Act
-    const rule = /Only `critical` and `major` block, in every skill and every round;/.test(text);
+    const rule =
+      /Only `critical`, `major`, and `minor` block, in every skill and every round; `nit` and `question` are posted or listed but never block, and are fixed once after approval where the skill says so\./.test(
+        text
+      );
     const key = /Finding key: `<file>:<category>:<short-description>`.*no line number/.test(text);
     // Assert
     assert.ok(rule, 'blocking rule missing');
@@ -59,7 +62,8 @@ describe('review severity text', () => {
 
   test('has no stale minor-gating or local-only blocking sentence anywhere in the review files', () => {
     // Arrange
-    const stale = /must be resolved before approval|In local review, only critical and major block/;
+    const stale =
+      /must be resolved before approval|In local review, only critical and major block|Only `critical` and `major` block|`minor`: real issue with limited impact; never blocks/;
     const files = [
       read('agents', 'code-reviewer.md'),
       ...skills.flatMap((s) =>
@@ -85,13 +89,12 @@ describe('review severity text', () => {
     assert.deepEqual(hits, []);
   });
 
-  test('agent sets APPROVE when no critical or major finding exists and caps thread reasons', () => {
+  test('agent sets APPROVE when no critical, major, or minor finding exists and caps thread reasons', () => {
     // Arrange
     const agent = sources[0].text;
     // Act
-    const verdict = /Set `Verdict:` .* to `BLOCK` when any finding is `critical` or `major`, else `APPROVE`\./.test(
-      agent
-    );
+    const verdict =
+      /Set `Verdict:` .* to `BLOCK` when any finding is `critical`, `major`, or `minor`, else `APPROVE`\./.test(agent);
     const cap =
       /Kind `threads`: one line per listed thread id, never dropped,.*at most 20 words and never cap the number of lines\./.test(
         agent
@@ -109,20 +112,20 @@ describe('review PR and MR twins stay symmetric', () => {
     const threads = read('skills', skill, 'references', 'threads.md');
     const post = read('skills', skill, 'references', 'post.md');
 
-    test(`${skill} gates on critical and major ${unit}s only`, () => {
+    test(`${skill} gates on critical, major, and minor ${unit}s only`, () => {
       // Arrange
-      const rule = `- Gating ${unit}s are the own \`[critical]\` and \`[major]\` ${unit}s, cleared only when resolved. \`[minor]\`, \`[nit]\`, and \`[question]\` ${unit}s never gate`;
+      const rule = `- Gating ${unit}s are the own \`[critical]\`, \`[major]\`, and \`[minor]\` ${unit}s, cleared only when resolved. \`[nit]\` and \`[question]\` ${unit}s never gate`;
       // Act
       const found = skillMd.split('\n').some((line) => line.startsWith(rule));
       // Assert
       assert.ok(found, 'gating rule missing');
     });
 
-    test(`${skill} verdict table blocks on critical or major only and approves with non-blocking items`, () => {
+    test(`${skill} verdict table blocks on critical, major, or minor and approves with non-blocking items`, () => {
       // Arrange
-      const blocking = /or any kept `critical` or `major` finding \| `REQUEST_CHANGES` \|/;
+      const blocking = /or any kept `critical`, `major`, or `minor` finding \| `REQUEST_CHANGES` \|/;
       const approving =
-        /\| Otherwise; kept `minor`, `nit`, `question`, and `Unverified` items are posted as non-gating \| `APPROVE` \|/;
+        /\| Otherwise; kept `nit`, `question`, and `Unverified` items are non-gating \(the first two posted\) \| `APPROVE` \|/;
       // Act
       const results = [blocking.test(analyze), approving.test(analyze)];
       // Assert
@@ -154,7 +157,7 @@ describe('review PR and MR twins stay symmetric', () => {
     test(`${skill} downgrades a finding with no evidence or low confidence`, () => {
       // Arrange
       const rule =
-        /a missing or `low` one is downgraded to `question`, and a `critical` or `major` needs quoted evidence and at least `medium`/;
+        /a missing or `low` one is downgraded to `question`, and a `critical`, `major`, or `minor` needs quoted evidence and at least `medium`/;
       // Act
       const found = rule.test(analyze);
       // Assert
@@ -177,8 +180,9 @@ describe('review PR and MR twins stay symmetric', () => {
         skill === 'review-github-pull-request'
           ? 'address-github-pull-request-review'
           : 'address-gitlab-merge-request-review';
-      const exception = `The one exception is step 8g: the invoked \`cdk:${addr}\` skill alone edits, commits, and pushes, under its own guards`;
-      const loop = /- Fix loop: after step 8 .* at most 3 rounds and only while the blocking count decreases;/;
+      const exception = `The one exception is the address-skill invocation in steps 8g and 9b: the invoked \`cdk:${addr}\` skill alone edits, commits, and pushes, under its own guards`;
+      const loop =
+        /- Fix loop: after step 8 .* at most 3 rounds and only while the blocking count decreases, plus one post-approval invocation with `--nits-only` \(step 9b\);/;
       const step = /9\. \*\*Re-judge the fixes\*\*.*no first-review kind, no sweep, no new/;
       const fixLoop = /## Fix loop[\s\S]*no new finding enters[\s\S]*Leave `Last reviewed SHA:` as it was/;
       const stale = /invoke the address skills\.|One pass per invocation/;
@@ -194,9 +198,20 @@ describe('review PR and MR twins stay symmetric', () => {
       assert.deepEqual(results, [true, true, true, true, false]);
     });
 
+    test(`${skill} runs one nit pass with --nits-only that never re-judges or moves state`, () => {
+      // Arrange
+      const step =
+        /9b\. \*\*Nit pass\.\*\* Verdict `APPROVE`.*`--nits-only`.*No re-judge, no state change, and `Last reviewed SHA:` stays unchanged\./;
+      const section = /## Nit pass[\s\S]*`Result: done`[\s\S]*no re-review[\s\S]*`Last reviewed SHA:` unchanged/;
+      // Act
+      const results = [step.test(skillMd), section.test(post)];
+      // Assert
+      assert.deepEqual(results, [true, true]);
+    });
+
     test(`${skill} posts non-blocking items under one cap of 5`, () => {
       // Arrange
-      const rule = /at most 5 inline non-blocking `minor`, `nit`, or `question` findings/;
+      const rule = /at most 5 inline non-blocking `nit` or `question` findings/;
       // Act
       const found = rule.test(post);
       // Assert

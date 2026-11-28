@@ -8,7 +8,7 @@ Steps 4, 5, 7, and 8 of `SKILL.md`: the fix spec, delegating the edits, mapping 
 
 ## Fix spec
 
-Write `<scratch>/fix-spec-<n>.md` with Write only. It holds only the findings of its phase: open `critical` and `major` findings in Phase 1 (`fix-spec-<n>.md`), `minor` findings in Phase 2 (`fix-spec-minor.md`); never `nit` or `question`:
+Write `<scratch>/fix-spec-<n>.md` with Write only. It holds only the findings of its phase: open `critical`, `major`, and `minor` findings in Phase 1 (`fix-spec-<n>.md`), `nit` and `question` findings in Phase 2 (`fix-spec-nits.md`); never a `nit` or `question` in Phase 1:
 
 - Goals: one per finding key, giving severity, file, line, problem, impact, quoted evidence, and the fix as the acceptance criterion, each quoted field in a fenced block (backticks or `~~~`) whose fence is longer than any run of its own character inside it (so a quoted fence line cannot close it early and a quoted `Write scope:` or `Target directory:` line never counts), and the test file to add or update, so that file is inside the write scope.
 - Approach: fixed to the finding's fix, so `cdk:implement-spec` skips its approach ask.
@@ -24,11 +24,11 @@ Its reported outcome is the verification result, read from its Output block (`Ve
 
 ## Phase 2
 
-Runs once, only after APPROVE and only when minor findings exist. Drop a minor finding whose quoted evidence no longer matches the head file and list it under `Open:` as stale. Write `<scratch>/fix-spec-minor.md`, `<scratch>/paths.txt`, run `verify`, run `snapshot` (this snapshot is the restore source), and invoke `cdk:implement-spec` as in `## Implement`. Do not spawn the reviewer.
+Runs once, only after APPROVE and only when nit or question findings exist. Drop a finding whose quoted evidence no longer matches the head file and list it under `Open:` as stale. Fix a `question` only when it names a concrete fix; otherwise list it under `Unaddressed:`. Write `<scratch>/fix-spec-nits.md`, `<scratch>/paths.txt`, run `verify`, run `snapshot` (this snapshot is the restore source), and invoke `cdk:implement-spec` as in `## Implement`. Do not spawn the reviewer.
 
 - Outcome passed → run `delta` for the file list only; the fixes are `applied`.
-- Verification failed or could not be completed (same conditions) → restore: for each path in `<scratch>/snap.json` `snapshot`, write back the content of `<scratch>/snap/<path>` with Write; list each restored finding under `Minor:` as `reverted`. A path in `absent` that now exists is a new file: leave it and list it under `Open:`. A changed file outside the snapshot is listed under `Open:`, never reverted. The verdict stays APPROVE and `Result: done`, except a cancel, which ends as `Stopped: 7: user cancelled`.
-- Leave `nit` and `question` items unaddressed.
+- Verification failed or could not be completed (same conditions) → restore: for each path in `<scratch>/snap.json` `snapshot`, write back the content of `<scratch>/snap/<path>` with Write; list each restored finding under `Nits:` as `reverted`. A path in `absent` that now exists is a new file: leave it and list it under `Open:`. A changed file outside the snapshot is listed under `Open:`, never reverted. The verdict stays APPROVE and `Result: done`, except a cancel, which ends as `Stopped: 7: user cancelled`.
+- Leave a `question` with no concrete fix unaddressed; a stale item goes under `Open:`.
 
 ## Delta
 
@@ -36,7 +36,7 @@ After implementing, run `status` and compare it with the step-1b baseline plus `
 
 ## Commit
 
-Runs once at step 8, after the fixes (rule: `SKILL.md` Rules). The condition is `SKILL.md` step 8a.
+Runs once at step 8, after the fixes (rule: `SKILL.md` Rules). The condition is `SKILL.md` step 8a: a blocking finding `Fixed` or a nit or question `applied`.
 
 - `paths:` comes from the `scope` manifest: every reviewed file that is not skipped, plus any new file of an accepted (verified) fix run created inside the write scope, so a dirty file outside the review is never committed. When Phase 2 was reverted, leave out of `paths:` every file Phase 2 created or touched outside its snapshot and list them only under `Open:`.
 - Outcome: copy its `Commits:` to this skill's `Commits:` and join its `Open:`. A failure, `Stopped:`, or cancel leaves the verdict and `Result: done` as they were, goes under `Open:` as `commit: <its Stopped reason>`, and is never retried or re-invoked.

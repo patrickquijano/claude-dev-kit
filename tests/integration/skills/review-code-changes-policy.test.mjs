@@ -34,19 +34,33 @@ describe('review-code-changes policy', () => {
     assert.ok(rule, 'no-formatter rule missing');
   });
 
-  test('leaves nit and question findings unaddressed', () => {
+  test('fixes nit and question findings once after approval and lists the rest as unaddressed', () => {
     // Arrange
     const text = skillMd('review-code-changes');
     // Act
     const rule =
-      /^- `nit` and `question` findings are unaddressed: never fixed or counted open, listed under `Unaddressed:`; definition in `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Validation\./m.test(
+      /^- `nit` and `question` findings never block or count as open; once after APPROVE they are fixed in one pass \(step 7\), a `question` only when its quoted evidence still matches the head and it names a concrete fix\. The rest are listed under `Unaddressed:`; definition in `\$\{CLAUDE_SKILL_DIR\}\/references\/review\.md` Validation\./m.test(
         text
       );
     const review = readFileSync(join(root, 'skills', 'review-code-changes', 'references', 'review.md'), 'utf8');
-    const definition = /^- Unaddressed: every `nit` and `question`.*`Unaddressed:` in the Output/m.test(review);
+    const definition =
+      /^- Unaddressed: a `nit` or `question` that Phase 2 does not fix.*stale item goes under `Open:`.*`Unaddressed:` in the Output/m.test(
+        review
+      );
     // Assert
     assert.ok(rule, 'unaddressed pointer missing');
     assert.ok(definition, 'unaddressed definition missing in review.md');
+  });
+
+  test('runs Phase 2 only over fixable nits and questions and sends a stale item to Open', () => {
+    // Arrange
+    const skill = skillMd('review-code-changes');
+    // Act
+    const guard = /7a\. No fixable nit or question \(after the stale and no-concrete-fix drops/.test(skill);
+    const spec = /7b\. Write `<scratch>\/fix-spec-nits\.md` with only the nit and question findings/.test(skill);
+    const stale = /stale item goes under `Open:`/.test(skill);
+    // Assert
+    assert.deepEqual([guard, spec, stale], [true, true, true]);
   });
 
   test('caps Phase 1 at 3 rounds with no extension ask', () => {
@@ -96,10 +110,17 @@ describe('review-code-changes policy', () => {
       );
     const newFile = /A path in `absent` that now exists is a new file: leave it and list it under `Open:`\./.test(fix);
     const noReviewer = /Do not spawn the reviewer\./.test(fix);
+    const nitSpec = /`nit` and `question` findings in Phase 2 \(`fix-spec-nits\.md`\)/.test(fix);
+    const staleSpec = /fix-spec-minor/.test(fix + skillMd('review-code-changes'));
+    const questionRule =
+      /Fix a `question` only when it names a concrete fix; otherwise list it under `Unaddressed:`/.test(fix);
     // Assert
     assert.ok(revert, 'Phase 2 restore rule missing');
     assert.ok(newFile, 'new-file rule missing');
     assert.ok(noReviewer, 'no-reviewer rule missing');
+    assert.ok(nitSpec, 'Phase 2 nit spec rule missing');
+    assert.ok(questionRule, 'question concrete-fix rule missing');
+    assert.equal(staleSpec, false);
   });
 
   test('keeps the Flags no-approval carve-out for implement-spec Clarify questions', () => {
@@ -227,12 +248,16 @@ describe('review-code-changes policy', () => {
     // Arrange
     const text = skillMd('review-code-changes');
     // Act
-    const round = /^Round <n>: Open <n> \(critical <a>, major <b>\)$/m.test(text);
-    const unaddressed = /^Unaddressed: <key \[nit\|question\] <path>:<line> — problem>, … \| none$/m.test(text);
+    const round = /^Round <n>: Open <n> \(critical <a>, major <b>, minor <c>\)$/m.test(text);
+    const unaddressed = /^Unaddressed: <key \[question\] <path>:<line> — problem>, … \| none$/m.test(text);
     const verdict = /^Verdict: APPROVE \| BLOCKED$/m.test(text);
+    const nits = /^Nits: applied <key>, … \| reverted <key>: <reason>, … \| none$/m.test(text);
+    const fixed = /^Fixed: critical <a>, major <b>, minor <c>, nit <d>, question <e>$/m.test(text);
     // Assert
     assert.ok(round, 'Round line missing');
     assert.ok(unaddressed, 'Unaddressed line missing');
     assert.ok(verdict, 'Verdict line missing');
+    assert.ok(nits, 'Nits line missing');
+    assert.ok(fixed, 'Fixed line missing');
   });
 });
