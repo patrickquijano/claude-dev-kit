@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `setup-husky` commit rules say subject line only.
 - Skills print `Open:` before `Next:`, and several skills' `allowed-tools` are trimmed to the tools they use.
 - The analyzer subagents run on Sonnet instead of Haiku.
+- `cdk:change-verifier`, `cdk:code-reviewer`, `cdk:conflict-analyzer`, and `cdk:security-reviewer` run on Sonnet instead of Opus; `cdk:implementation-planner` stays on Opus.
+- `/cdk:review-code-changes` fixes `critical` and `major` findings right after the review and re-judges only the reported items on later rounds; with no file changed by the fix it stops with `no fix applied` instead of re-reviewing, and it no longer keeps fix memory.
+- `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` now invoke the matching address skill after posting, so a checkout of the PR head or MR source branch gets fix commits pushed (up to 3 rounds), then re-judge only their own threads and resolve the fixed ones; a fork, a wrong branch, a dirty tree, or a protected head skips the fix and lists the open threads.
 - `/cdk:update-statusline` installs a status line that also shows context window and auto-compact usage, with model and effort colors.
 - `/cdk:setup-dotnet-api` no longer runs `dotnet format --verify-no-changes`; it verifies with `dotnet build -warnaserror` and `dotnet test`.
 - The address-review skills list an unfixed minor or nit under `Skipped:` and post no reply to it.
