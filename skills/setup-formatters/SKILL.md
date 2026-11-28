@@ -91,7 +91,7 @@ Example:
 File types: TypeScript (42), JSON (6), Markdown (9)
 Package manager: npm (lockfile), package dir .
 Formatters: TypeScript: prettier (only option), JSON: prettier (only option)
-Versions: prettier: 3.3.3 (npm)
+Versions: prettier: <version> (npm)
 Installed: prettier
 Skipped tools: none
 Constraints: none
