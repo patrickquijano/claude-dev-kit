@@ -12,7 +12,7 @@ The `commit-msg` hook rejects messages that break these rules.
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
 - Header (first line) max 72 characters.
 - Imperative subject ("add", not "added").
-- Body and footer are optional; keep them short (config-conventional limits apply).
+- Subject line only: no body and no footer.
 - No `Co-` trailer such as `Co-Authored-By` (the hook rejects any trailer starting `Co-`); also leave out "Generated with" lines (not enforced).
 - Signed and verified; check with `git log --show-signature -1`.
 - Atomic: one logical change per commit, related files grouped.
