@@ -96,7 +96,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
    b. A fix list (rubric id, line, message) → invoke `cdk:implement-spec` with the fix-round variant of the brief; at most 3 rounds.
 
-   c. ``Invoke the `cdk:audit-subagent` skill`` as `cdk:audit-subagent --report-only <absolute target path>`. Report-only audits inline in this skill's own context and never edits. It returns the report, one row per check (`Check | Result | Location | Evidence | Proposed fix`, Result `Pass`, `Fail`, `Not checked`, or `Unverified`), at most 200 lines.
+   c. ``Invoke the `cdk:audit-subagent` skill`` as `cdk:audit-subagent --report-only <absolute target path>`. Report-only audits inline in this skill's own context and never edits. It returns the report, one row per check (`Check | Result | Location | Evidence | Proposed fix`, Result `Pass`, `Fail`, or `Not checked`; a Not checked row may carry `Unverified: <what is missing>` as evidence), at most 200 lines.
 
    d. At least one Fail row remains → invoke `cdk:implement-spec` with a spec whose goals are only those rows (check ID, `file:line`, proposed fix, with a matching remembered fix as an unverified hint) and whose acceptance criterion is "the check passes on re-audit"; no Fail row → skip to 9i with no fix round. Its `Open:` joins the open list; an input stop ends the run per Rules, and after a cap stop the re-audit still runs.
 
@@ -110,7 +110,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
    i. Print the full report-only audit report (the counts and one row per check), not only the Fail rows. Every Fail row not fixed goes to `Open:` as `<check ID> <file>:<line>: <fix>`.
 
-   j. Any Fail left after 9h → `Result: stopped`, `Stopped: 9: audit fail`, never `done`, the delegation test (step 11) listed under `Not tested:`, and `Next:` says to run the subagent audit without report-only on `<absolute target path>`, which fixes approved findings. Every check Pass, Not checked, or Unverified → report completion and list the Not checked and Unverified checks under `Not checked:`.
+   j. Any Fail left after 9h → `Result: stopped`, `Stopped: 9: audit fail`, never `done`, the delegation test (step 11) listed under `Not tested:`, and `Next:` says to run the subagent audit without report-only on `<absolute target path>`, which fixes approved findings. Every check Pass or Not checked → report completion and list the Not checked checks (with any `Unverified:` reasons) under `Not checked:`.
 
 10. **Validate.** `validate-agents` and `debug-log-search` once per `verify.md` `## Validate`; what cannot run → `Not tested:`.
 11. **Delegation test.** Per `verify.md` `## Delegation test`, else `Not tested:`.
