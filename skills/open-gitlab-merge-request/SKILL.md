@@ -21,17 +21,17 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Host ops: discover the GitLab MCP tools at runtime with ToolSearch (`gitlab merge request`). Use MCP only when `get_project` on the project path succeeds and its `web_url` host equals the remote host; otherwise use `glab`. A capability MCP lacks (the source-branch filter on list, `--draft` on create) uses `glab` for that step only. A 403, a 404, or neither tool working → stop with the fix from `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
 - Never print tokens; never use `--show-token`.
 - No step spawns a subagent.
-- Loops: the title check runs at most 3 rounds; then report what is left.
+- Loops: the title check runs at most 3 rounds; still failing → write nothing, `Result: stopped`, `Stopped: 5: title check failed`, the remaining errors under `Open:`.
 
 ## Workflow
 
 1. **Tooling.** Parse `origin` into host and project path per `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`; no GitLab host → `Stopped: 1: no GitLab remote`. Then run the MCP host check; else run `auth`. Neither works → `Stopped: 1: no GitLab MCP and no glab auth`.
 2. **Target.** A URL (`/-/merge_requests/<iid>`) → host, project path, IID. An IID → project from `origin`. A branch, or none → create, but an open MR from `mr-for-branch` → update that MR, never create a second. Closed, merged, or locked → stop.
-3. **State** (create only). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
+3. **State** (create, or the update step 2 switches to when `mr-for-branch` finds an open MR). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
 4. **Diff.** Create: `diff` and `commits` against `<default>` (the target branch). Update: `mr-diff` and `mr-files`. Empty → `Result: nothing-to-do`.
-5. **Title.** Derive `type(scope)!: description` from the diff and commits, never with a `Draft:` prefix (`--draft` sets it); write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds).
+5. **Title.** Derive `type(scope)!: description` from the diff and commits, never with a `Draft:` prefix (`--draft` sets it); write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds); still failing → `Stopped: 5: title check failed`.
 6. **Body.** Pick and fill the template per `${CLAUDE_SKILL_DIR}/references/body.md`, with no body line starting with `/`; update → merge with the existing description.
-7. **Submit.** Print the title and the body first, without waiting. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report `!<iid>` and the URL.
+7. **Submit.** Print the title, the body, the action (create or update), and, when pushing, `origin/<head>` first, without waiting. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report `!<iid>` and the URL.
 
 ## Files
 

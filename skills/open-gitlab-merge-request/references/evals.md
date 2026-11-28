@@ -23,6 +23,7 @@ pass: <observable criteria>
 | neither-tool-stops | "Open an MR." (no MCP, no `glab` auth) | Stops before any write | `Result: stopped`; `Stopped: 1` |
 | title-too-long-fixed | "Open an MR." (diff whose first title draft is over 72 chars) | Shortens until `check-title` passes | Final title `{"ok":true}`; at most 3 `check-title` runs |
 | unpushed-pushes | "Open an MR." (branch not on the remote) | Pushes the branch, then creates | `Pushed: yes`; no push question |
+| update-switch-pushes | "Open an MR." (no IID given, an open MR exists for the branch, the branch is ahead of the remote) | Switches to update and still runs the push check | Action `updated`; the branch is pushed at step 7 before `update`; `Pushed: yes` |
 | empty-diff | "Open an MR." (branch equals the default branch) | Reports nothing to do | `Result: nothing-to-do`; no write |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the MR is created or updated after the decision questions |
 | nested-group-self-hosted | "Open an MR." (`origin` is `git@gitlab.example.com:a/b/c.git`) | Resolves host and the full project path | Host `gitlab.example.com`, path `a/b/c`, `<enc>` `a%2Fb%2Fc`; no `a/b` truncation |
@@ -33,7 +34,8 @@ pass: <observable criteria>
 | draft-uses-glab | "Open a draft MR." (MCP connected for this host) | Uses `glab` for create only | `Tool: mcp+glab`; `--draft` flag set; title has no `Draft:` prefix |
 | yes-no-force | "/cdk:open-gitlab-merge-request --yes" (the remote branch holds other history, so the push is rejected) | Asks nothing; never forces | No question; no force flag; the rejected push's exact error line is reported; the skipped step is under `Open:` |
 | quick-action-line-guarded | "Open an MR." (the template or the existing description has a line starting with `/label`) | Never submits a quick action | No line of the submitted body starts with `/`; the line is reworded or indented |
-| prints-before-submit | "Open an MR." | Shows the text before any write | The title and the body are printed before `push`, `create`, or `update`; nothing waits on a reply |
+| title-check-fails | "Open an MR." (`check-title` still fails after 3 rounds) | Stops and writes nothing | `Result: stopped`; `Stopped: 5: title check failed`; no push, create, or update; the errors under `Open:` |
+| prints-before-submit | "Open an MR." (pushed branch, non-empty diff) | Shows the text before any write | The title, the body, and the action (create or update) are printed before `push`, `create`, or `update`; with a push, `origin/<head>` is printed too; nothing waits on a reply |
 | no-approval-step | "Open an MR." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 | cannot-interact | "Open an MR." (a decision question is needed; no one to reply, no `--yes`) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no push, no MR written |
 

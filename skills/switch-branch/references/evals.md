@@ -23,7 +23,8 @@ pass: <observable criteria, one per line>
 | switch-only | "Switch to a new branch for this." (the user picks Switch only) | Switches without pushing | No `push` run; `Branch: <name> → not pushed`; changes and commits carried |
 | name-taken | "Put this on a new branch." (the derived name exists on origin) | Suffixes the name through the script | `free-name` returns `-2`; the summary shows the suffixed name |
 | nothing-to-do | "Move to a new branch." (clean tree, no unique commits, no input) | Does nothing | `Result: nothing-to-do`; no analyzer spawn |
-| unattended | "--yes Create a branch for these edits." (run as a subagent, no way to ask) | Switches, never pushes | `Branch: <name> → not pushed`; `Result: done`; no question asked |
+| unattended | "--yes Create a branch for these edits." (run as a subagent, no way to ask) | Switches, never pushes | `Branch: <name> → not pushed`; `Open:` lists the assumptions or `none`; `Result: done`; no question asked |
+| no-repo-stops | "Create a branch." (not a git repository, or a rebase in progress) | Stops in pre-flight, changes nothing | No unstage, switch, or push; `Result: stopped`, `Stopped: 1: <reason>` |
 | cannot-interact | "Create a branch for these edits." (run as a subagent, no way to ask, no `--yes`) | Asks nothing and changes nothing | No unstage, switch, or push; `Result: stopped`, `Stopped: <step>: cannot interact` |
 | analyzer-failure | "Branch these changes off." (the analyzer spawn is unavailable) | Derives the name inline | Name comes from `Type and description`; no second spawn attempt beyond the cap |
 | input-full-name | "Switch to feat/add-login." (dirty tree) | Uses the name verbatim, no analyzer | Summary shows `feat/add-login`; reason `from input`; no analyzer spawn |

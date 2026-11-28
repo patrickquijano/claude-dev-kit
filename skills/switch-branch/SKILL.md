@@ -31,15 +31,15 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 ## Workflow
 
-1. **Pre-flight.** `inside-work-tree` fails → stop. `status` shows a rebase, merge, or cherry-pick in progress → stop and tell the user to finish or abort it. Origin = Context → Origin; `<none>` → skip the remote check and the push.
+1. **Pre-flight.** `inside-work-tree` fails → `Result: stopped`, `Stopped: 1: not a git repository`. `status` shows a rebase, merge, or cherry-pick in progress → `Result: stopped`, `Stopped: 1: <operation> in progress` and tell the user to finish or abort it. Origin = Context → Origin; `<none>` → skip the remote check and the push.
 2. **Collect.** Current = Context → Branch; `HEAD` → `detached@` plus `short-head`. Base = `origin-head` when `verify-ref` resolves it, else the first that `verify-full-ref` resolves of `refs/remotes/origin/main`, `refs/remotes/origin/master`, `refs/heads/main`, `refs/heads/master`. Current equals the base's branch name → base = `origin/<name>` when that ref resolves, else no base. Count `unique-commits` (no base or failure → 0). `changes` empty, no commits, no input → `Result: nothing-to-do`.
 3. **Analyze.**
    - Empty input → spawn the `cdk:change-analyzer` subagent (fallback: a read-only analyzer subagent) per `${CLAUDE_SKILL_DIR}/references/branch-name.md` `## Spawn brief` with root, `mode=branch-name`, `base=<ref>|none` (`none` without one), and `input=none`: the name comes from the commits unique to the branch and the uncommitted changes.
-   - Non-empty input → interpret it per `branch-name.md` `## Input`. A full name → use it normalized, no spawn. Every name from any path (full name, inline description, analyzer) must pass a quoting guard before the first command that uses it: only `[a-z0-9/-]`, else fix it or stop. The guard is not the name check; `free-name` (step 4) is. A description with a clear type → name it inline, no spawn. A description with the type open → spawn the analyzer with `mode=branch-name` and `input=<text>` as its hints (the input fixes the description; diffs set the type only). Intent unclear → AskUserQuestion (`--yes`: `Result: stopped`).
+   - Non-empty input → interpret it per `branch-name.md` `## Input`. A full name → use it normalized, no spawn. Every name from any path (full name, inline description, analyzer) must pass a quoting guard before the first command that uses it: only `[a-z0-9/-]`, else fix it or stop. The guard is not the name check; `free-name` (step 4) is. A description with a clear type → name it inline, no spawn. A description with the type open → spawn the analyzer with `mode=branch-name` and `input=<text>` as its hints (the input fixes the description; diffs set the type only). Intent unclear → AskUserQuestion (`--yes`: `Result: stopped`, `Stopped: 3: intent unclear`).
    - Take `Branch` and `Changes`; `Question` → AskUserQuestion, then respawn once. Unavailable or malformed twice → derive them inline per `## Inline analysis`. Without a spawn, `Changes` = the `changes` count.
-4. **Name.** Run `free-name` with the name single-quoted `'<name>'` (`--no-remote` without origin); it is the authoritative check of format, the 72-char cap, and uniqueness. Exit 1 → `Result: stopped` with its message.
+4. **Name.** Run `free-name` with the name single-quoted `'<name>'` (`--no-remote` without origin); it is the authoritative check of format, the 72-char cap, and uniqueness. Exit 1 → `Result: stopped`, `Stopped: 4: <its message>`.
 5. **Method.** Show `Branch: <current> → <name>`, a one-line reason naming its source (`from input` | `from input + changes (type)` | `from changes`, plus any input normalization), and each effect: unstage (staged files from `staged-files`, noting any `MM` file, whose staged and unstaged parts merge into one unstaged change with no content lost), switch, push. Ask once: `Switch + push (Recommended)` | `Switch only`. Without origin, skip the question: `Switch only`. `--yes`: `Switch only` without asking.
-6. **Switch and push.** `staged-files` non-empty → `unstage`; failure (no HEAD) → stop. Run `switch`; failure → report the exact error line, stop. Then `push` when chosen; failure → report the exact error line, stop.
+6. **Switch and push.** `staged-files` non-empty → `unstage`; failure (no HEAD) → `Result: stopped`, `Stopped: 6: no HEAD`. Run `switch`; failure → `Result: stopped`, `Stopped: 6: <exact error line>`. Then `push` when chosen; failure → `Result: stopped`, `Stopped: 6: <exact error line>`.
 7. **Report.** Print the Output.
 
 ## Files
@@ -57,6 +57,7 @@ Switched from: <previous branch>
 Unstaged: <files or none>
 Changes carried: <count> files
 Commits carried: <count> | none
+Open: <item: reason | none>
 Next: commit the carried changes | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
@@ -70,6 +71,7 @@ Switched from: main
 Unstaged: none
 Changes carried: 3 files
 Commits carried: none
+Open: none
 Next: commit the carried changes
 Result: done
 Stopped: none
