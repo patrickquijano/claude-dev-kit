@@ -73,4 +73,19 @@ describe('project rules clause', () => {
     // Assert
     assert.equal(found, true);
   });
+
+  test('project instructions rank above skill defaults in CLAUDE.md, matching the skill bullet', () => {
+    // Arrange
+    const order = readFileSync(join(skillsDir, '..', '.claude', 'CLAUDE.md'), 'utf8').match(/^- Order:.*$/m)?.[0] ?? '';
+    const clause = read('build-skill', 'SKILL.md').match(/^- Project rules:.*$/m)?.[0] ?? '';
+    // Act
+    const found = [
+      order.includes('safety stops > project rules (path-scoped rule > this file > unconditional rules'),
+      order.endsWith("> running `cdk` skill's defaults."),
+      clause.includes(anchor),
+      clause.includes("A project rule never lowers this skill's safety stops.")
+    ];
+    // Assert
+    assert.deepEqual(found, [true, true, true, true]);
+  });
 });
