@@ -113,20 +113,43 @@ describe('address skills delegate fixes to implement-spec', () => {
       assert.ok(matched && replyRule && !resolveRow && !mutation, 'resolve is mentioned as an action');
     });
 
-    test(`${skill} minor and nit opt-in asks one question, --yes never fixes them, only critical and major gate`, () => {
+    test(`${skill} nit opt-in asks one question, --yes never fixes nits, critical, major, and minor gate`, () => {
       // Arrange
       const triage = section(flowOf(skill), 'Triage');
       const text = read(skill, 'SKILL.md');
       // Act
-      const question = triage.includes('`Fix minors and nits too? No | Yes`');
-      const yes = /`--yes` is No and never fixes them/.test(triage) && /it never fixes minors or nits/.test(text);
+      const question = triage.includes('`Fix nits too? No | Yes`') && text.includes('`Fix nits too? No | Yes`');
+      const yes =
+        /`--yes` is No and never fixes them/.test(triage) && /it never fixes nits unless `--nits-only`/.test(text);
       const gate =
-        /`\[critical\]`, `\[major\]`: gating/.test(triage) &&
-        /`\[minor\]`, `\[nit\]`: optional and never gating/.test(triage) &&
-        /`minor`: real issue with limited impact; never blocks/.test(text) &&
+        /`\[critical\]`, `\[major\]`, `\[minor\]`: gating/.test(triage) &&
+        /`\[nit\]`: optional and never gating/.test(triage) &&
+        /`minor` \(blocking\): real issue with limited impact\./.test(text) &&
+        text.includes(
+          'Only `critical`, `major`, and `minor` block, in every skill and every round; `nit` and `question` are posted or listed but never block, and are fixed once after approval where the skill says so.'
+        ) &&
         !/before approval/.test(text);
       // Assert
-      assert.ok(question && yes && gate, 'minor and nit opt-in, --yes rule, or critical-and-major-only gate missing');
+      assert.ok(question && yes && gate, 'nit opt-in, --yes rule, or critical-major-minor gate missing');
+    });
+
+    test(`${skill} --nits-only fixes only nits and fix-bearing questions with no ask and skips gating items`, () => {
+      // Arrange
+      const text = read(skill, 'SKILL.md');
+      const triage = section(flowOf(skill), 'Triage');
+      const input = section(flowOf(skill), 'Input');
+      // Act
+      const hint = /^argument-hint:.*\[--nits-only\]/m.test(text);
+      const rule =
+        /^- `--nits-only`: fixes only `\[nit\]` and fix-bearing `\[question\]` items and asks no question; it skips gating items \(`critical`, `major`, `minor`\)[^\n]*works with `--yes`\./m.test(
+          text
+        );
+      const flow =
+        /^- `--nits-only`: no question; each nit and each fix-bearing question is a fixable item/m.test(triage) &&
+        /not `--dry-run` or `--nits-only`/.test(input);
+      const minorFixable = /Mark critical, major, and minor items fixable/.test(text);
+      // Assert
+      assert.ok(hint && rule && flow && minorFixable, '--nits-only flag, rule, or minor-fixable triage missing');
     });
 
     test(`${skill} flow.md Triage reads severity and marks legacy labels inferred`, () => {

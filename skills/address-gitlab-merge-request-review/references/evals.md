@@ -65,11 +65,13 @@ pass: <observable criteria>
 | no-own-checks | "Address MR 5." (a fix lands; the repo has lint and test scripts) | Runs no check itself | No lint, type-check, or test command run by this skill; `cdk:implement-spec`'s Output is the verification result |
 | implement-spec-unavailable | "Address MR 5." (`cdk:implement-spec` cannot be invoked) | Stops, never fixes inline | `Result: stopped`; `Stopped: 4: cdk:implement-spec unavailable`; no edit by this skill, no commit, push, or reply |
 | out-of-scope-path | "Address MR 5." (`status` shows a modified path outside the write scope) | Lists it, never reverts | Path under `Open:`; not in `cdk:commit-changes` `paths:`; the edit stays in the tree |
-| nit-optin-question | "Address MR 5." (one `[nit]` discussion, one `[minor]` discussion) | Asks once | One question `Fix minors and nits too? No \| Yes`; Yes → the nit and the minor are goals in the spec and fixed; No →`Skipped:` lists it |
-| yes-never-fixes-nits | "/cdk:address-gitlab-merge-request-review 5 --yes" (one `[nit]` discussion and one `[minor]` discussion) | Asks nothing, neither fixed | No question; both are under `Skipped:`; no goal for either; no reply for it |
-| minor-optional-not-fixed | "Address MR 5." (one `[minor]` discussion, answer No to the opt-in question) | Leaves the minor unfixed | Never gates; no `cdk:implement-spec` call; `Skipped:` lists the minor; no reply |
+| nit-optin-question | "Address MR 5." (one `[nit]` discussion, one `[minor]` discussion) | Asks once, about the nit only | One question `Fix nits too? No \| Yes`; Yes → the nit is a goal and fixed; No → `Skipped:` lists it; the minor is a goal either way |
+| yes-never-fixes-nits | "/cdk:address-gitlab-merge-request-review 5 --yes" (one `[nit]` discussion and one `[minor]` discussion) | Asks nothing, fixes the minor only | No question; the nit is under `Skipped:` with no goal and no reply; the minor is a goal and fixed |
+| minor-fixed-by-default | "/cdk:address-gitlab-merge-request-review 5 --yes" (one `[minor]` discussion) | Fixes it like a major | Gating; one `cdk:implement-spec` call with a goal for the minor; reply names the short SHA |
+| nits-only-flag | "/cdk:address-gitlab-merge-request-review 5 --nits-only" (one `[major]`, one `[minor]`, one `[nit]`, one `[question]` that names a concrete fix) | Fixes the nit and the question only, asks nothing | No question; goals for the nit and the question only; the major and the minor are under `Skipped:` with no reply; one pass, one push |
+| nits-only-yes | "/cdk:address-gitlab-merge-request-review 5 --nits-only --yes" (one `[nit]` discussion) | Fixes it, asks nothing | The `--nits-only` token is not read as the MR reference; the nit is a goal and fixed; `--yes` is passed on to `cdk:implement-spec` |
 | legacy-label-inferred | "Address MR 5." (a discussion labeled `**blocker:**` that describes a crash) | Classifies by criteria, marks inferred | `Inferred:` lists the item with its severity (critical) and the reason; the item is gating and fixed |
-| legacy-suggestion-non-gating | "Address MR 5." (a discussion labeled `**suggestion:**` that is a preference) | Classified as nit, non-gating | `Inferred:` lists it as nit; not fixed unless the minor-and-nit opt-in is Yes |
+| legacy-suggestion-non-gating | "Address MR 5." (a discussion labeled `**suggestion:**` that is a preference) | Classified as nit, non-gating | `Inferred:` lists it as nit; not fixed unless the nit opt-in is Yes or `--nits-only` is passed |
 | unlabeled-ambiguous-asks | "Address MR 5." (an unlabeled discussion that could be major or minor) | Asks one question | One AskUserQuestion with the likeliest severity Recommended, the other candidate, and `Skip` |
 | unlabeled-ambiguous-yes | "/cdk:address-gitlab-merge-request-review 5 --yes" (an unlabeled discussion that could be major or minor) | Asks nothing, non-gating | No question; no fix; the item under `Open:` and `Inferred:` |
 | question-answered | "Address MR 5." (one `[question]` discussion that the code answers) | Replies with an answer | Reply `Answer: <answer>.` posted; no goal, no commit; discussion not resolved |
@@ -80,7 +82,7 @@ pass: <observable criteria>
 | reply-carries-no-marker | "Address MR 5." (any reply or summary posted) | Replies are marker-free | No posted body contains `<!-- cdk-review -->`; each starts `**note:**` |
 | one-pass-snapshot | "Address MR 5." (a new comment is posted while the skill runs) | Ignores it | Only the items collected at Identify are processed; no re-fetch, no polling, no review skill invoked, no second pass |
 | every-stop-prints-output | "Address MR 5." (any stop, such as a dirty tree at step 0d) | Prints the Output block, not a bare message | `Result: stopped` and `Stopped: 0: <reason>` in the Output; nothing pushed |
-| unfixed-minor-no-reply | "Address MR 5." (a `[minor]` item, the opt-in answered No) | Lists it, never replies | Listed under `Skipped:` as a minor or nit not fixed; no reply posted to it |
+| unfixed-nit-no-reply | "Address MR 5." (a `[nit]` item, the opt-in answered No) | Lists it, never replies | Listed under `Skipped:` as a nit not fixed; no reply posted to it |
 | severity-block-verbatim | Read `SKILL.md` | Holds the shared severity block | The `## Severity` block and the `Marker` line match the other five files word for word |
 
 ## Running per model

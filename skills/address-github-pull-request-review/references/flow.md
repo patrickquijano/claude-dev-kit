@@ -7,7 +7,7 @@
 ## Input
 
 1. Run `auth-status`; failure → stop with the error.
-2. Run `parse-ref` on the argument (the first token that is not `--dry-run`). A bare number needs `origin` as `--remote`. No argument → ask for the PR (AskUserQuestion, recommended option first); with `--yes` → `Result: stopped`, `Stopped: 0: no PR reference`. Exit 1 or 2, or a 404 from `pr-view` → stop and ask (`--yes` → `Result: stopped`, `Stopped: 0: invalid PR reference`); make no edits.
+2. Run `parse-ref` on the argument (the first token that is not `--dry-run` or `--nits-only`). A bare number needs `origin` as `--remote`. No argument → ask for the PR (AskUserQuestion, recommended option first); with `--yes` → `Result: stopped`, `Stopped: 0: no PR reference`. Exit 1 or 2, or a 404 from `pr-view` → stop and ask (`--yes` → `Result: stopped`, `Stopped: 0: invalid PR reference`); make no edits.
 3. Run `pr-view`. `state` not `OPEN` → stop and report.
 4. Local checks: `origin` owner and repo equal `headRepositoryOwner` and `headRepository` (a fork PR → stop, the push target is not `origin`); `branch` equals `headRefName`; `status` is empty; `headRefName` is not `baseRefName`, the `repo-default` output, `main`, `master`, `develop`, or `release/*` (a protected head → stop, the push is refused by the rules). `headRefName` contains `'` or a control character → `Result: stopped`, `Stopped: 0: unsafe head ref`. Any mismatch → stop and report which.
 
@@ -27,9 +27,9 @@
 
 Read each item's severity from the prefix of its comment text, after stripping the marker.
 
-- `[critical]`, `[major]`: gating, must be addressed. Fix via `cdk:implement-spec`, or, when the code or requirement contradicts the item, dispute it with a justification and flag it under `For you:`. Reply on the thread; never resolve it.
-- `[minor]`, `[nit]`: optional and never gating; not fixed by default, listed under `Skipped:` with no reply. Fixed only on the opt-in below.
-- `[question]`: answered in a reply. Code changes only when the answer reveals a needed fix; that fix is a goal whose severity is inferred from the criteria in `SKILL.md` `## Severity`.
+- `[critical]`, `[major]`, `[minor]`: gating, must be addressed (under `--nits-only` they are skipped, because the review skill already settled them). Fix via `cdk:implement-spec`, or, when the code or requirement contradicts the item, dispute it with a justification and flag it under `For you:`. Reply on the thread; never resolve it.
+- `[nit]`: optional and never gating; not fixed by default, listed under `Skipped:` with no reply. Fixed only on the opt-in below or under `--nits-only`.
+- `[question]`: answered in a reply. Code changes only when the answer reveals a needed fix (under `--nits-only`, only when it names a concrete fix); that fix is a goal whose severity is inferred from the criteria in `SKILL.md` `## Severity`.
 
 Dispositions that replace a fix, whatever the severity:
 
@@ -39,16 +39,17 @@ Dispositions that replace a fix, whatever the severity:
 
 Rules:
 
-- Unlabeled or differently labeled items (a human reviewer, or a legacy label such as `blocker`, `suggestion`, `nitpick`): classify by the severity criteria, never by the label's name, and mark the classification inferred (`Inferred:`). Treat such an item as gating only when it is marked blocking (a `blocker` or `blocking` label, or text that says it blocks) or clearly meets the critical or major criteria. Ambiguous → ask (AskUserQuestion, one question per item, at most 4 per call: the likeliest severity as Recommended, the other candidate, `Skip`); `--yes` → non-gating, no fix, listed under `Open:`.
+- Unlabeled or differently labeled items (a human reviewer, or a legacy label such as `blocker`, `suggestion`, `nitpick`): classify by the severity criteria, never by the label's name, and mark the classification inferred (`Inferred:`). Treat such an item as gating only when it is marked blocking (a `blocker` or `blocking` label, or text that says it blocks) or clearly meets the critical, major, or minor criteria. Ambiguous → ask (AskUserQuestion, one question per item, at most 4 per call: the likeliest severity as Recommended, the other candidate, `Skip`); `--yes` → non-gating, no fix, listed under `Open:`.
 - A failing check is classified by the criteria from its log (usually major) and marked inferred.
-- Minors and nits, labeled or inferred: when any exist, ask once `Fix minors and nits too? No | Yes`, Recommended No. `--yes` is No and never fixes them. Yes → each is a fixable item; No → each is listed under `Skipped:`.
+- Nits, labeled or inferred: when any exist and no `--nits-only`, ask once `Fix nits too? No | Yes`, Recommended No. `--yes` is No and never fixes them. Yes → each is a fixable item; No → each is listed under `Skipped:`.
+- `--nits-only`: no question; each nit and each fix-bearing question is a fixable item, every other item is reply-only or listed under `Skipped:`, and a failing check is listed under `Skipped:`.
 - Each item carries evidence as `path:line`. A fix that needs a new dependency, a public-interface change, or a weakened test is still asked first.
 - A disputed reply cites its evidence; a needs-clarification reply holds one question; neither is implemented. Disputed, needs-clarification, and ambiguous items are listed under `For you:`.
 - An already-fixed item is listed under `Skipped:` as already fixed, because `Severity:` counts only items with a severity.
 
 ## Spec
 
-No fixable item (every item disputed, already-fixed, needs-clarification, answer-only, or an unfixed minor or nit) → no spec and no `cdk:implement-spec` call; the plan holds the triage and replies only.
+No fixable item (every item disputed, already-fixed, needs-clarification, answer-only, or an unfixed nit) → no spec and no `cdk:implement-spec` call; the plan holds the triage and replies only.
 
 Otherwise fetch the changed files: `pr-files`, paged as its row says. More than 10 pages → `Result: stopped`, `Stopped: 3: pr-files over 10 pages`, the items under `Open:`; a failed or unparseable page → `Result: stopped`, `Stopped: 3: pr-files page unreadable`, never counted as the last page.
 

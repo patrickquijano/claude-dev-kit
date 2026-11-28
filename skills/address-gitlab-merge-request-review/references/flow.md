@@ -9,7 +9,7 @@
 1. Parse `origin` into host and project path per `gitlab-mapping.md`; no GitLab host → `Stopped: 0: no GitLab remote`.
    - Run the MCP host check; it fails → run `auth`.
    - Neither works → `Stopped: 0: no GitLab MCP and no glab auth`.
-2. Run `parse-ref` on the argument (the first token that is not `--dry-run`). A bare IID, `!<iid>`, or `group/project!<iid>` needs `origin` as `--remote`. No argument → ask for the MR (AskUserQuestion, recommended option first); with `--yes` → `Result: stopped`, `Stopped: 0: no MR reference`. Exit 1 or 2 from `parse-ref`, or a 404 from `mr-get` → stop and ask with the fix from `gitlab-mapping.md` (`--yes` → `Result: stopped`, `Stopped: 0: invalid MR reference`); make no edits.
+2. Run `parse-ref` on the argument (the first token that is not `--dry-run` or `--nits-only`). A bare IID, `!<iid>`, or `group/project!<iid>` needs `origin` as `--remote`. No argument → ask for the MR (AskUserQuestion, recommended option first); with `--yes` → `Result: stopped`, `Stopped: 0: no MR reference`. Exit 1 or 2 from `parse-ref`, or a 404 from `mr-get` → stop and ask with the fix from `gitlab-mapping.md` (`--yes` → `Result: stopped`, `Stopped: 0: invalid MR reference`); make no edits.
 3. Run `mr-get`. `state` not `opened` → stop and report.
 4. Local checks: `source_project_id` equals `target_project_id` (a fork MR → stop, the push target is not `origin`); `branch` equals `source_branch`; `status` is empty; `source_branch` is not `target_branch`, the `project-default` output, or a protected branch per SKILL.md Rules (a protected or default source → stop, the push is refused by the rules). `source_branch` contains `'` or a control character → `Result: stopped`, `Stopped: 0: unsafe source branch`. Any mismatch → stop and report which.
 
@@ -29,9 +29,9 @@
 
 Read each item's severity from the prefix of its comment text, after stripping the marker.
 
-- `[critical]`, `[major]`: gating, must be addressed. Fix via `cdk:implement-spec`, or, when the code or requirement contradicts the item, dispute it with a justification and flag it under `For you:`. Reply on the discussion; never resolve it.
-- `[minor]`, `[nit]`: optional and never gating; not fixed by default, listed under `Skipped:` with no reply. Fixed only on the opt-in below.
-- `[question]`: answered in a reply. Code changes only when the answer reveals a needed fix; that fix is a goal whose severity is inferred from the criteria in `SKILL.md` `## Severity`.
+- `[critical]`, `[major]`, `[minor]`: gating, must be addressed (under `--nits-only` they are skipped, because the review skill already settled them). Fix via `cdk:implement-spec`, or, when the code or requirement contradicts the item, dispute it with a justification and flag it under `For you:`. Reply on the discussion; never resolve it.
+- `[nit]`: optional and never gating; not fixed by default, listed under `Skipped:` with no reply. Fixed only on the opt-in below or under `--nits-only`.
+- `[question]`: answered in a reply. Code changes only when the answer reveals a needed fix (under `--nits-only`, only when it names a concrete fix); that fix is a goal whose severity is inferred from the criteria in `SKILL.md` `## Severity`.
 
 Dispositions that replace a fix, whatever the severity:
 
@@ -41,16 +41,17 @@ Dispositions that replace a fix, whatever the severity:
 
 Rules:
 
-- Unlabeled or differently labeled items (a human reviewer, or a legacy label such as `blocker`, `suggestion`, `nitpick`): classify by the severity criteria, never by the label's name, and mark the classification inferred (`Inferred:`). Treat such an item as gating only when it is marked blocking (a `blocker` or `blocking` label, or text that says it blocks) or clearly meets the critical or major criteria. Ambiguous → ask (AskUserQuestion, one question per item, at most 4 per call: the likeliest severity as Recommended, the other candidate, `Skip`); `--yes` → non-gating, no fix, listed under `Open:`.
+- Unlabeled or differently labeled items (a human reviewer, or a legacy label such as `blocker`, `suggestion`, `nitpick`): classify by the severity criteria, never by the label's name, and mark the classification inferred (`Inferred:`). Treat such an item as gating only when it is marked blocking (a `blocker` or `blocking` label, or text that says it blocks) or clearly meets the critical, major, or minor criteria. Ambiguous → ask (AskUserQuestion, one question per item, at most 4 per call: the likeliest severity as Recommended, the other candidate, `Skip`); `--yes` → non-gating, no fix, listed under `Open:`.
 - A failing check is classified by the criteria from its log (usually major) and marked inferred.
-- Minors and nits, labeled or inferred: when any exist, ask once `Fix minors and nits too? No | Yes`, Recommended No. `--yes` is No and never fixes them. Yes → each is a fixable item; No → each is listed under `Skipped:`.
+- Nits, labeled or inferred: when any exist and no `--nits-only`, ask once `Fix nits too? No | Yes`, Recommended No. `--yes` is No and never fixes them. Yes → each is a fixable item; No → each is listed under `Skipped:`.
+- `--nits-only`: no question; each nit and each fix-bearing question is a fixable item, every other item is reply-only or listed under `Skipped:`, and a failing check is listed under `Skipped:`.
 - Each item carries evidence as `path:line`. A fix that needs a new dependency, a public-interface change, or a weakened test is still asked first.
 - A disputed reply cites its evidence; a needs-clarification reply holds one question; neither is implemented. Disputed, needs-clarification, and ambiguous items are listed under `For you:`.
 - An already-fixed item is listed under `Skipped:` as already fixed, because `Severity:` counts only items with a severity.
 
 ## Spec
 
-No fixable item (every item disputed, already-fixed, needs-clarification, answer-only, or an unfixed minor or nit) → no spec and no `cdk:implement-spec` call; the plan holds the triage and replies only.
+No fixable item (every item disputed, already-fixed, needs-clarification, answer-only, or an unfixed nit) → no spec and no `cdk:implement-spec` call; the plan holds the triage and replies only.
 
 Otherwise fetch the changed files: `mr-files`, paged as its row says. More than 10 pages → `Result: stopped`, `Stopped: 3: mr-files over 10 pages`, the items under `Open:`; a 404 → `Result: stopped`, `Stopped: 3: mr-files needs GitLab 15.7 or later`; exit 1 or output that is not a JSON array → `Result: stopped`, `Stopped: 3: mr-files page <page> unreadable`, never counted as the last page.
 
