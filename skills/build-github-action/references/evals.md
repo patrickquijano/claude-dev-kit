@@ -35,6 +35,9 @@ pass: <observable criteria, one per line>
 - `docker-build`: "Wrap our CLI in a Docker action."
   - Expected: Builds the image
   - Pass: Base image has exact tag and digest; `docker build` result reported or `Unverified:`
+- `standalone-docs-delegated`: "Create a standalone composite action and publish it." (root `README.md` and `CHANGELOG.md` needed)
+  - Expected: Docs come from the doc skills
+  - Pass: `cdk:update-readme` and `cdk:update-changelog` invoked after the last implement-spec call; neither file is in any implement-spec Write scope
 - `no-approval-step`: "Create a composite action that runs our linter."
   - Expected: Runs end to end with no approval step and no confirmation; side-effect steps run directly
   - Pass: The only questions are type, input/output contract, runner, and publishing choices; the files are printed and then written through `cdk:implement-spec` in the same turn with no "Proceed?" prompt and no planner approach question
