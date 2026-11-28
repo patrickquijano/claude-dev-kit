@@ -28,7 +28,7 @@ Claude Code plugin (`name: cdk`): skills, subagents, and hooks for any framework
 
 ## Precedence
 
-- Order: explicit user request > running `cdk` skill's rules > path-scoped rule > this file > unconditional rules (`principles.md`, `git.md`, `release.md`).
+- Order: explicit user request > running `cdk` skill's safety stops > project rules (path-scoped rule > this file > unconditional rules: `principles.md`, `git.md`, `release.md`) > running `cdk` skill's defaults.
 - Trade-off order: correctness > security > clarity > simplicity > maintainability > testability > measured performance.
 - Conflict between two instructions → ask user; never resolve silently.
 
