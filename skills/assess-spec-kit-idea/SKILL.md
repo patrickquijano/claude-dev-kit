@@ -48,8 +48,8 @@ Input: $ARGUMENTS (strip `--yes` first)
 Assessment: .specify/assessments/<slug>/
 Verdict: go | needs-clarification | kill | unknown (<re-runs> re-run(s))
 Brief: <## If go section verbatim> | none
-Next: build the feature from the brief above | answer the blocking questions | closed (<decisive reason>) | none
 Open: <question or risk: who acts; recommended answer path, …> | none
+Next: build the feature from the brief above | answer the blocking questions | closed (<decisive reason>) | none
 Result: done | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
@@ -60,8 +60,8 @@ Example (needs clarification):
 Assessment: .specify/assessments/bulk-csv-export/
 Verdict: needs-clarification (2 re-run(s))
 Brief: none
-Next: answer the blocking questions
 Open: Which roles may export more than 10,000 rows: the product owner decides; recommend admins only
+Next: answer the blocking questions
 Result: stopped
 Stopped: 7: 2 re-runs, blocking questions open
 ```

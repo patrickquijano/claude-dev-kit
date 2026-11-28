@@ -78,8 +78,8 @@ Verify: <consistent | inconsistent: <check>>
 Smoke test: ✅ Signed | ✅ Signed (not verifiable locally) | ❌ Signed: <error line>
 Ignores: <file: added paths>, ... | up to date | none needed
 Tracked but ignored: <files> (<kept | untracked>) | none
-Next: upload the signing public key to your forge account | none
 Open: <item: reason; recommended fix>, ... | none
+Next: upload the signing public key to your forge account | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
@@ -97,8 +97,8 @@ Verify: consistent
 Smoke test: ✅ Signed
 Ignores: none needed
 Tracked but ignored: none
-Next: upload the signing public key to your forge account
 Open: none
+Next: upload the signing public key to your forge account
 Result: done
 Stopped: none
 ```

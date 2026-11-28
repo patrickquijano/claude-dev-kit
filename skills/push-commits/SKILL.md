@@ -25,7 +25,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Pre-flight.** `current-branch`; `HEAD` (detached) → `Stopped: 1: detached HEAD`. A name outside `[A-Za-z0-9._/-]` → `Stopped: 1: unsafe branch name`, before any later command takes `<branch>`. `origin-url` fails → `Stopped: 1: no origin remote`.
 2. **Branch guard.** `default-branch` minus `origin/` (unset → `main`). Current is that name or `main`, `master`, `develop`, `release/*` → `Stopped: 2: protected branch <name>`.
-3. **Pending.** `pending-count`. `0` → `Result: nothing-to-do`; reason: no commit on this branch is missing from origin. A failed read → `Stopped: 3: <error line>`. Otherwise `pending-log` lists them and `head-sha` records HEAD.
+3. **Pending.** `pending-count`. `0` → `Result: nothing-to-do`; reason: no commit on this branch is missing from origin. A failed read → `Stopped: 3: <error line>`. Otherwise `pending-log` lists them.
 4. **Summary.** Print `Branch: <branch> → origin/<branch>`, the count, and each pending commit. Any commit whose `%G?` is not `G` → `Stopped: 4: unsigned commit <hash>` (commits are signed by repo rule; fix the signing and rerun). Note (one line each, then push anyway) any `fixup!`, `squash!`, or `WIP` subject, and a remote with commits not in HEAD (`remote-head` sha not an ancestor per `is-ancestor`, or unknown). The text names the effect: `origin/<branch>`, N commits, and "creates the remote branch and sets upstream" when `push-upstream` applies. No wait.
 5. **Push.** `push`, or `push-upstream` when `upstream` fails or is not `origin/<branch>`. Failure → `Stopped: 5: <git error line>`.
 6. **Verify.** Re-run `pending-count` (the push refreshed the origin ref); it must be `0`, else `Open:` reports the remaining count.
@@ -44,8 +44,8 @@ Commits:
 - <hash> <subject>
 Pending after: <count> | n/a
 Reason: <why nothing was pushed> | none
-Next: none
 Open: <item: impact; recommended fix, …> | none
+Next: none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
@@ -59,8 +59,8 @@ Commits:
 - 7e8f9a0 test(export): cover empty result sets
 Pending after: 0
 Reason: none
-Next: none
 Open: none
+Next: none
 Result: done
 Stopped: none
 ```

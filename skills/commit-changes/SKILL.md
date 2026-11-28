@@ -70,8 +70,8 @@ Commits:
 - <hash> <subject> [signature: G]
 Commitlint: pass | skipped (not installed) | fail (<error line>) | n/a
 Excluded: <files or none>
-Next: push the commits | none
 Open: <item: impact; recommended fix, …> | none
+Next: push the commits | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
@@ -86,8 +86,8 @@ Commits:
 - a1b2c3d feat(auth): add login form [signature: G]
 Commitlint: skipped (not installed)
 Excluded: none
-Next: push the commits
 Open: none
+Next: push the commits
 Result: done
 Stopped: none
 ```

@@ -73,8 +73,8 @@ Code and config changes: <file — change>, …
 Checks: <command: pass | fail | fail (baseline)>, …
 Reverted: <package: reason> | none
 Leftovers: <file: item>, … | none
-Next: review the diff
 Open: <item: reason; recommended fix>, … | none
+Next: review the diff
 Result: done | nothing-to-do | stopped | cancelled
 Stopped: <step>: <reason> | none
 ```
@@ -89,8 +89,8 @@ Code and config changes: eslint.config.js — renamed a removed rule
 Checks: npm run lint: pass, npm test: pass
 Reverted: left-pad: tests failed after upgrade
 Leftovers: none
-Next: review the diff
 Open: vite: major declined; upgrade it in its own run, left-pad: tests failed; pin to the current version or fix the failing test
+Next: review the diff
 Result: done
 Stopped: none
 ```

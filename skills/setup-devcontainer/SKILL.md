@@ -79,8 +79,8 @@ Files: <path (written | updated | kept)>, …
 Changes: <change — reason>, … | none
 Skipped practices: <item — reason> | none
 Checks: JSON <pass | fail | n/a (JSONC | no node)>, read-configuration <pass | fail | not installed>, compose config <pass | fail | not installed | n/a>, shellcheck <pass | fail | not installed | n/a>, up + exec test <pass | fail | not installed | skipped (no Dockerfile) | skipped (not chosen)>
-Next: <item>, … | none
 Open: <item: impact; recommended fix, …> | none
+Next: <item>, … | none
 Result: done | nothing-to-do | stopped
 Stopped: <step>: <reason> | none
 ```
@@ -100,8 +100,8 @@ Files: .devcontainer/devcontainer.json (written), .gitattributes (updated)
 Changes: pinned the image to its major tag — reproducible builds
 Skipped practices: none
 Checks: JSON pass, read-configuration pass, compose config n/a, shellcheck n/a, up + exec test skipped (not chosen)
-Next: commit devcontainer-lock.json after the first build, use this devcontainer only with trusted repositories (Claude Code)
 Open: none
+Next: commit devcontainer-lock.json after the first build, use this devcontainer only with trusted repositories (Claude Code)
 Result: done
 Stopped: none
 ```
