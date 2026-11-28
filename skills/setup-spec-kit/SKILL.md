@@ -57,9 +57,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 specify-cli: installed <version> | present <version>
 Init: done | Claude integration added | skipped (already initialized)
 Extensions: agent-context <added|priority N→10|ok|failed>, assess <…>, bug <…>
-Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo)
+Git ignore: <n> lines added to .gitignore | up to date | skipped (not a git repo) | skipped (plan failed)
 Lint/format ignores: <file: added paths>, … | skipped <file: reason> | none found
-Required skills: all present | missing <dirs>
+Required skills: all present | missing <dirs> | skipped (plan failed)
 Open: <item: reason; recommended fix>, … | none | not run (stopped, nothing recorded)
 Next: run the Spec Kit workflow on a feature | none
 Result: done | nothing-to-do | stopped
