@@ -349,6 +349,19 @@ export function checkBody(content, { kind, hasBundled = false, bodyStart = 0 } =
       if (!output.some((l) => /^Next:/.test(l))) {
         found.push(warning('output-next', 'Q4', 'SKILL.md', start + 1, 'Output has no "Next:" follow-up line'));
       }
+      // Open: comes before Next: (the build-skill template order); a Next: line followed by an Open: line before the next Result: is out of order.
+      let nextSeen = false;
+      const misordered = output.some((l) => {
+        if (/^Result:/.test(l)) nextSeen = false;
+        else if (/^Next:/.test(l)) nextSeen = true;
+        else if (/^Open:/.test(l) && nextSeen) return true;
+        return false;
+      });
+      if (misordered) {
+        found.push(
+          warning('output-order', 'Q4', 'SKILL.md', start + 1, 'Output lists "Next:" before "Open:"; put "Open:" first')
+        );
+      }
       // An `Example:` line must be followed, past blank lines, by the opening fence of a filled example.
       const labelled = output.findIndex(
         (l, i) =>

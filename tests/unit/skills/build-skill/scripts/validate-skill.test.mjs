@@ -460,6 +460,35 @@ describe('checkBody', () => {
     assert.deepEqual(found, []);
   });
 
+  test('warns output-order when Next precedes Open in the template and in the example', () => {
+    // Arrange
+    const swapped =
+      '## Output\n\n```text\nNext: none\nOpen: none\nResult: done\n```\n\nExample:\n\n```text\nNext: none\nOpen: none\nResult: done\n```\n';
+    const exampleOnly =
+      '## Output\n\n```text\nOpen: none\nNext: none\nResult: done\n```\n\nExample:\n\n```text\nNext: none\nOpen: none\n```\n';
+    // Act
+    const found = [...checkBody(swapped, { kind: 'task' }), ...checkBody(exampleOnly, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(
+      found.map((f) => [f.id, f.rule, f.level]),
+      [
+        ['output-order', 'Q4', 'warning'],
+        ['output-order', 'Q4', 'warning']
+      ]
+    );
+  });
+
+  test('does not warn output-order for Open before Next, or a Next with no Open', () => {
+    // Arrange
+    const ordered =
+      '## Output\n\n```text\nOpen: none\nNext: none\nResult: done\n```\n\nExample:\n\n```text\nOpen: none\nNext: none\nResult: done\n```\n';
+    const noOpen = `## Output\n\n\`\`\`text\nNext: none\nResult: done\n\`\`\`\n${example}`;
+    // Act
+    const found = [...checkBody(ordered, { kind: 'task' }), ...checkBody(noOpen, { kind: 'task' })];
+    // Assert
+    assert.deepEqual(found, []);
+  });
+
   test('warns output-example when a task Output has no Example block', () => {
     // Arrange
     const none = '## Output\n\n```text\nScope: x\nNext: none\nResult: done\n```\n';
