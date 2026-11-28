@@ -96,7 +96,7 @@ File types: TypeScript (42), YAML (4)
 Package manager: npm (lockfile), package dir .
 Formatter: prettier (only one)
 Linters: TypeScript: eslint (chosen), YAML: yamllint (only option)
-Versions: eslint: 9.15.0 (npm)
+Versions: eslint: <version> (npm)
 Installed: eslint
 Skipped tools: none
 Constraints: none
