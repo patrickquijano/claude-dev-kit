@@ -24,7 +24,11 @@ pass: <observable criteria, one per line>
 | stale-key | "Update Dependabot." (file uses a removed key) | Fixes it with a cited reason | Summary names the key and the URL; fix applied directly |
 | no-manifests | "Set up Dependabot." (no manifests) | Stops | `Result: nothing-to-do`; no write |
 | cannot-interact | "Set up Dependabot." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; no write |
-| not-a-repo | "Set up Dependabot." (repo root is `<none>`) | Stops at pre-flight | "not a git repository"; `Result: stopped`; no write |
+| not-a-repo | "Set up Dependabot." (repo root is `<none>`) | Stops at pre-flight | `Result: stopped`, `Stopped: 1: not a git repository`; no write |
+| both-files-stop | "Update Dependabot." (both `.yml` and `.yaml` exist; the user answers Stop) | Stops without touching either file | `Result: stopped`, `Stopped: 1: user stopped`; no write |
+| unparseable-stop | "Update Dependabot." (empty or unparseable config; the user answers Stop to stop-or-replace) | Stops without writing | `Result: stopped`, `Stopped: 5: user stopped`; the file is untouched |
+| unverified-source | "Set up Dependabot." (the options reference is unreachable, npm manifest) | Writes no entry it could not verify | `Research: unverified`; no `npm` entry written; the skipped entry listed under `Open:` |
+| fix-cap-leftovers | "Update Dependabot." (validation still fails after 3 fix rounds) | Stops fixing at the cap | `Result: done`; the remaining failures under `Open:`; no fourth round |
 | no-approval-step | "Set up Dependabot." (npm and Actions, no config) | Runs end to end; every write follows the last decision answer directly | Only the schedule, grouping, cooldown, and prefix questions are asked; the file is written right after the summary prints; `Result: done` |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
 

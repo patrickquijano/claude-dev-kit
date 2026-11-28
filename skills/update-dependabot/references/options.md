@@ -6,7 +6,7 @@
 
 ## Research
 
-Topics for the research step (cite each URL; unreachable → `unverified`):
+Topics for the research step (cite each URL; unreachable → `unverified`, and each entry not written for it is listed under `Open:`):
 
 - Dependabot options reference: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference`. Collect valid `package-ecosystem` values, `schedule.interval` values, `cooldown`, `groups`, `commit-message`, `multi-ecosystem-groups`, and any key marked removed or deprecated (for example `reviewers` in favor of CODEOWNERS) and any default cooldown.
 - Configuration file location: `https://docs.github.com/en/code-security/dependabot/working-with-dependabot/configuring-dependabot-version-updates`.
