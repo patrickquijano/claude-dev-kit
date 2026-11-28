@@ -71,9 +71,9 @@ Example:
 ```text
 Target: ~/.claude/statusline.sh (updated)
 Backup: ~/.claude/statusline.sh.bak-20260115-093000
-Color: \033[36m cyan (chosen)
+Color: \033[1;97m bold bright white (chosen)
 statusLine: set
-Smoke test: renders one line with cyan prefix: pass
+Smoke test: renders one line with bright white prefix: pass
 Open: none
 Next: restart or reopen Claude Code to see the new color
 Result: done
