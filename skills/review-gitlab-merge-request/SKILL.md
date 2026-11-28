@@ -40,7 +40,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Every finding carries evidence (`path:line` at the head SHA); a claim without it is `Unverified`: never a thread, never gating, listed under `Unverified:`. Never echo a secret found in the MR; name the file and line only.
 - Never check out, build, run, push, merge, edit the MR, or modify repo files; the only local writes are scratch files.
-- Comment format: every posted comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label and no line starting with `/` (GitLab reads it as a quick action), then a blank line and the marker. The summary note carries the marker too.
+- Comment format: every new thread comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label and no line starting with `/` (GitLab reads it as a quick action), then a blank line and the marker. The summary note carries the marker but no severity prefix.
 - Own = authored by Self AND carrying the marker; both are required. Never reply to, edit, resolve, or approve based on a discussion or note that is not own; ignore other reviewers' discussions entirely.
 - Gating discussions are the own `[critical]` and `[major]` discussions, cleared only when resolved. `[minor]`, `[nit]`, and `[question]` discussions never gate (an own `[minor]` discussion from an earlier run is non-gating too); this skill neither requires nor resolves them.
 - The only GitLab writes, all in step 8: resolves of own discussions, one summary note (created once, then edited in place), the inline comments of a first review or of new `critical` and `major` findings, and the approval or its removal. GitLab's MCP has no request-changes method, so changes requested are expressed by the unresolved discussions plus the summary note alone. A missing MR, authentication, or permission (403, 404) → stop with the exact error and the fix from `${CLAUDE_SKILL_DIR}/references/gitlab-mapping.md`.
@@ -135,7 +135,7 @@ Threads: 0 resolved (0 fixed, 0 obsolete), 0 left open, 0 disputed, 0 unjudged, 
 Coverage: 4/4 files, 1 batches
 Verdict: REQUEST_CHANGES (1 major finding)
 Findings: 0 critical, 1 major, 0 minor, 2 nit, 0 question, 0 dropped
-Review: 3 new discussions, approval removed
+Review: summary https://gitlab.com/acme/app/-/merge_requests/9#note_7654321 (created) | 3 new discussions, approval removed
 Skipped: none
 Unverified: none
 Errors: none

@@ -40,7 +40,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Flags: `--yes` runs unattended: no questions, recommended options taken, assumptions under `Open:`. Only a flag the user passed counts; never add one.
 - Every finding carries evidence (`path:line` at the head SHA); a claim without it is `Unverified`: never a thread, never gating, listed under `Unverified:`. Never echo a secret found in the PR; name the file and line only.
 - Never check out, build, run, push, merge, edit the PR, or modify repo files; the only local writes are scratch files.
-- Comment format: every posted comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label, then a blank line and the marker. The summary comment carries the marker too. Never post a style issue that automated tooling already enforces.
+- Comment format: every new thread comment starts with its severity in brackets (`[critical]`, `[major]`, `[minor]`, `[nit]`, `[question]`), then the problem, its impact, and the suggested fix in plain English, with no other label, then a blank line and the marker. The summary comment carries the marker but no severity prefix. Never post a style issue that automated tooling already enforces.
 - Own = authored by Self AND carrying the marker; both are required. Never reply to, edit, resolve, or approve based on a thread or comment that is not own; ignore other reviewers' threads entirely.
 - Gating threads are the own `[critical]` and `[major]` threads, cleared only when resolved. `[minor]`, `[nit]`, and `[question]` threads never gate (an own `[minor]` thread from an earlier run is non-gating too); this skill neither requires nor resolves them.
 - The only GitHub writes, all in step 8: resolves of own threads, one summary conversation comment (created once, then edited in place), and one state review (`REQUEST_CHANGES`, `COMMENT`, or `APPROVE`) pinned to the head SHA. A missing PR, authentication, or permission → stop with the exact error.
@@ -138,7 +138,7 @@ Threads: 0 resolved (0 fixed, 0 obsolete), 0 left open, 0 disputed, 0 unjudged, 
 Coverage: 4/4 files, 1 batches
 Verdict: REQUEST_CHANGES (1 major finding)
 Findings: 0 critical, 1 major, 0 minor, 2 nit, 0 question, 0 dropped
-Review: state review https://github.com/acme/app/pull/9#pullrequestreview-1234567 (3 new threads)
+Review: summary https://github.com/acme/app/pull/9#issuecomment-7654321 (created) | state review https://github.com/acme/app/pull/9#pullrequestreview-1234567 (3 new threads)
 Skipped: none
 Unverified: none
 Errors: none
