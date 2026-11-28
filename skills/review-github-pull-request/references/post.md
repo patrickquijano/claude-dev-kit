@@ -30,7 +30,7 @@ Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts
 The review is the state: `REQUEST_CHANGES` while any gating thread is unresolved, `APPROVE` when none is and no hold applies, `COMMENT` for a hold (`analyze.md` `## Verdict`). Its body is only the marker; the summary comment is the report.
 
 1. First review: `review-create` (`commit_id` = the full head SHA, `body` = the marker), then `add-comment` for each new thread: `critical` and `major` findings plus at most 5 inline non-blocking `minor`, `nit`, or `question` findings (highest severity first, so non-blocking noise does not bury gating threads). Every other finding goes in the summary. Post the summary comment, then `review-submit` with the verdict event.
-2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical` or `major` threads (a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
+2. Re-review: submit a review only when it carries something GitHub cannot express otherwise: new `critical` or `major` threads (created as in item 1 with `review-create` and `add-comment`, since a thread needs a review object; the review keeps the event `REQUEST_CHANGES`), or an `APPROVE` once no gating thread is unresolved. Nothing new and still unresolved → no review; the state stays as it is. `APPROVE` carries no findings.
 3. Verify with `pr-view` that the review's `commit.oid` equals the head SHA; a mismatch is reported under `Errors:`.
 
 ## Own PR

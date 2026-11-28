@@ -8,7 +8,7 @@ Steps 2–4 of `SKILL.md`. Judging writes nothing to GitLab; resolves are posted
 
 ## Mode
 
-Run `review-threads` and read it for the summary: the own summary is the newest individual note (a discussion with `individual_note` true) authored by Self whose body carries the marker; its `Last reviewed SHA:` line holds the last reviewed head. Run `approvals` for the own approval: Self is in `approved_by`.
+Run `review-threads` and read it for the summary: the own summary is the newest individual note (a discussion with `individual_note` true) authored by Self whose body carries the marker; its `Last reviewed SHA:` line holds the last reviewed head. Run `approvals` for the own approval: Self is in `approved_by`. On the MCP path only, `review-threads` reads at most 100 discussions: when the Digest's `truncated` is true and no own summary is found, stop with `Result: stopped`, `Stopped: 3: discussion list truncated` and never treat it as a first review.
 
 - No own summary → **first review**.
 - Own summary and no own approval → **re-review**: scope as above; no new summary; the existing one is edited in place.

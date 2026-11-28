@@ -85,7 +85,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 
    8c. Resolve addressed own threads.
 
-   8d. Queue the new threads (`post.md` `## State review` 1).
+   8d. Queue the new threads (`post.md` `## State review` 1–2).
 
    8e. Post or edit the summary.
 

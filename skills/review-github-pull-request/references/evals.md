@@ -48,7 +48,7 @@ pass: <observable criteria>
 | author-dispute | "Review PR 9." (the author replied disputing an own thread) | Does not resolve | Listed under `Open:` as disputed; thread stays open |
 | cannot-edit-summary | "Review PR 9." (re-review; `summary-update` fails) | Stops | `Stopped: 8: cannot edit summary`; no new summary comment |
 | own-pr | "Review PR 9." (the PR is Self's) | Posts COMMENT | State review `COMMENT`; summary says changes are requested through unresolved threads |
-| comment-format | "Review PR 9." (any finding) | Labels every comment | Each body starts with `[severity]`, has problem, impact, fix, and ends with the marker; no other label |
+| comment-format | "Review PR 9." (any finding) | Labels every new thread comment | Each new thread body starts with `[severity]`, has problem, impact, fix, and ends with the marker; the summary and the review body carry the marker and no severity prefix |
 | thread-judge-uncertain | "Review PR 9." (an own thread the judge cannot place) | Judge returns Open | `cdk:code-reviewer` kind `threads` returns `Open` for that thread; the thread stays open with nothing added |
 | gitlab-mr-no-trigger | "Review MR !12 on GitLab." | Does not trigger | This skill not invoked |
 | local-diff-no-trigger | "Review my uncommitted changes." | Does not trigger | This skill not invoked |
