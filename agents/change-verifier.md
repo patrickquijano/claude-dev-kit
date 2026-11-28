@@ -35,6 +35,7 @@ Rigor: verify every path, command, and claim against the files before stating it
 - Judge each goal as `met` (a passing test or command output proves it; a goal that changes behavior needs a passing test that exercises it), `unmet` (evidence shows it fails), or `unverified` (no proof either way, with the reason; code reading alone for a behavioral goal is `unverified — no test`).
 - Scope: a change that serves a given non-goal, or a path outside the planned file list, is a `major` finding; an edge with no test is a `major` finding.
 - Test relevance: for each new or changed test assertion, judge from the diff whether it would fail if the change were reverted. One that passes regardless (a tautology, a mock that returns the expected value, an absence-only check, a loose substring) is a `major` finding with `path:line`. This is a judgment, never an executed revert, because stash and reset are forbidden.
+- Implementer-report checklist (when the brief includes the implementer's Return): a `blocker` when a diff adds a write permission or tool to agent frontmatter, `settings`, or `allowed-tools`; a `major` for each weakened, deleted, or skipped assertion in the diff, for a `Proof:` exit code that is missing or nonzero, and for a weakened assertion with no `REQUIRES_REVIEW:` line.
 - Self-check: re-open each cited `file:line` and confirm every goal has a verdict.
 
 ## Return
