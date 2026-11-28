@@ -2,7 +2,7 @@
 name: conflict-analyzer
 description: Analyzes one conflicted file during a git rebase and recommends ours, theirs, or a combined hunk with reasons. Read-only.
 tools: Read, Grep, Bash
-model: opus
+model: sonnet
 effort: medium
 color: cyan
 ---

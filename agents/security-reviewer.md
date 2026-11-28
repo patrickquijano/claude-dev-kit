@@ -2,7 +2,7 @@
 name: security-reviewer
 description: Use during a whole-repo security audit to map trust boundaries and sinks, hunt one ledger unit for exploitable flaws, or verify one candidate finding. Read-only; not for fixing.
 tools: Read, Glob, Grep
-model: opus
+model: sonnet
 effort: high
 color: cyan
 ---

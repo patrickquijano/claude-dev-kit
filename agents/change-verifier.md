@@ -2,7 +2,7 @@
 name: change-verifier
 description: Use proactively after changes to run the repo's documented checks in check mode, or judge the diff against goals. Read-only; not for a general code-quality or security review.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: sonnet
 effort: medium
 color: cyan
 ---
