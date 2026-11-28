@@ -3,7 +3,7 @@ name: open-github-pull-request
 description: Creates a GitHub PR from the diff, or updates one by URL or number, with a Conventional Commits title and the repo's filled template. Use when asked to open or update a PR. Not for merging or reviewing PRs.
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
 argument-hint: '[--yes] [pr-url | number] [--draft]'
-allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --format=%s%n%b --no-merges origin/*..HEAD) Bash(git diff origin/*...HEAD) Bash(git rev-parse *) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__get_file_contents
+allowed-tools: Read Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-title.mjs *) Bash(git remote get-url *) Bash(git branch --show-current) Bash(git status *) Bash(git log --format=%s%n%b --no-merges origin/*..HEAD) Bash(git diff origin/*...HEAD) Bash(git symbolic-ref --short refs/remotes/origin/HEAD) Bash(gh auth status) Bash(gh pr view *) Bash(gh pr diff *) Bash(gh pr list *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/gh-get.mjs *) mcp__plugin_github_github__pull_request_read mcp__plugin_github_github__list_pull_requests mcp__plugin_github_github__get_file_contents
 ---
 
 # Open GitHub Pull Request
@@ -20,7 +20,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Host ops: discover the GitHub MCP PR tools at runtime with ToolSearch (`github pull request`) and call them first; use `gh` only when MCP is unavailable; neither → stop.
 - No step spawns a subagent.
-- Loops: the title check runs at most 3 rounds; then report what is left.
+- Loops: the title check runs at most 3 rounds; still failing → write nothing, `Result: stopped`, `Stopped: 5: title check failed`, the remaining errors under `Open:`.
 
 ## Workflow
 
@@ -28,9 +28,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 2. **Target.** A URL → owner, repo, number. A number → repo from `origin`. None → create, but an open PR from `pr-for-branch` → update that PR. Closed or merged → stop.
 3. **State** (create only). Warn on uncommitted changes. Branch not on the remote or ahead of it → push it at step 7.
 4. **Diff.** Create: `diff` and `commits` against `<default>`. Update: `pr-diff` and `pr-files`. Empty → `Result: nothing-to-do`.
-5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds).
+5. **Title.** Derive `type(scope)!: description` from the diff and commits; write it to a scratch file and run `check-title` on that file; fix and re-run (3 rounds); still failing → `Stopped: 5: title check failed`.
 6. **Body.** Pick and fill the template per `${CLAUDE_SKILL_DIR}/references/body.md`; update → merge with the existing body.
-7. **Submit.** Print the title, the body, and the action (create or update) first, without waiting. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report the URL.
+7. **Submit.** Print the title, the body, the action (create or update), and, when pushing, `origin/<head>` first, without waiting. Then `push` if step 3 found the branch unpushed, then `create` (ready, unless `--draft` or the user asked for a draft) or `update`; report the URL.
 
 ## Files
 
