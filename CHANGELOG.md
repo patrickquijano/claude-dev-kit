@@ -10,11 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - A `SubagentStop` hook blocks `cdk:plan-implementer` from finishing until its report lists `Proof:` exit codes and none is nonzero (breaking); it lets the agent go on a second stop so it never loops.
+- `/cdk:address-open-items` works through the Open items a run reported: it fixes the clear ones and asks the rest in one batch.
+- `/cdk:release-plugin` keeps per-step state in `.release/state.json`, takes `--resume`, and runs failure handlers (retry, lint, network backoff) before it stops.
+- Every skill follows the running project's own instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`) over its defaults, and never lowers a safety stop; `/cdk:build-skill` requires the same of the skills it builds.
+- `/cdk:audit-skill` has an optional `O3` check that lists where a skill's defaults conflict with the working repo's project rules, under `Open:`.
+- The SessionStart hook adds one advisory line when the working repo has project instructions.
+- `/cdk:build-skill` warns when `Next:` comes before `Open:` in a skill's Output.
+- `/cdk:implement-spec` can locate code and search for leftovers through the `cdk:codebase-explorer` subagent.
+- The merge and open pull request skills read GitHub through read-only `gh-get` wrappers.
 
 ### Changed
 
 - `cdk:plan-implementer` can run `node --test` and lint on its own files, lists the test assertions that pin what it edits, and reports `Proof:`, `Pinned:`, and `REQUIRES_REVIEW:` for any weakened assertion (breaking); `/cdk:implement-spec` callers that parse its return must read the new fields.
 - `cdk:change-verifier` flags a diff that adds a write permission, a weakened or skipped assertion, a missing `REQUIRES_REVIEW:`, and a missing or failing `Proof:` exit code.
+- The GitHub and GitLab review and address skills, and `/cdk:review-code-changes`, gate on critical and major findings only and re-review just the delta since the last review (breaking).
+- `/cdk:run-spec-kit`, `/cdk:fix-spec-kit-bug`, and `/cdk:build-subagent` end a user Stop with `Result: stopped` (breaking).
+- `cdk:change-analyzer` makes its `Groups:` line unambiguous, and `cdk:format-lint-analyzer` returns Bats files in their own list (breaking).
+- `/cdk:setup-local-sonarqube` keeps an existing compose file and shows a diff, and `/cdk:setup-husky` skips the commitlint config when the message check is skipped (breaking).
+- `/cdk:create-github-release` needs an existing signed tag already pushed to `origin`, never passes `--target`, and otherwise stops with `tag missing`.
+- `/cdk:build-github-action` writes a standalone action's README and CHANGELOG through `/cdk:update-readme` and `/cdk:update-changelog`.
+- The address-review skills sign the rebase and stop before the push when a replayed commit is unsigned.
+- The `setup-husky` commit rules say subject line only.
+- Skills print `Open:` before `Next:`, and several skills' `allowed-tools` are trimmed to the tools they use.
+- The analyzer subagents run on Sonnet instead of Haiku.
+
+### Fixed
+
+- Many skills now print `Stopped:` on every stop path, stop under `--yes` instead of guessing, and name the failing step, across the setup, spec-kit, issue, review, rebase, tag, and upgrade skills.
+- `word-count` rejects unsafe `--file` paths, `/cdk:delete-branches` pages the GitLab listing and rejects encoded dots, and the review thread filters match bot logins.
 
 ## [0.10.0] - 2026-11-24
 
