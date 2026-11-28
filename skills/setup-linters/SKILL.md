@@ -95,7 +95,7 @@ Example:
 File types: TypeScript (42), YAML (4)
 Package manager: npm (lockfile), package dir .
 Formatter: prettier (only one)
-Linters: TypeScript: eslint (chosen), YAML: yamllint (only option)
+Linters: TypeScript: eslint (only option), YAML: yamllint (only option)
 Versions: eslint: <version> (npm)
 Installed: eslint
 Skipped tools: none

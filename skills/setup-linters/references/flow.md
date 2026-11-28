@@ -61,7 +61,7 @@ Run each linter's check command from `configs.md`. Then the conflict check for t
 
 ## Spawn briefs
 
-Each brief ends: "If any input is missing, ambiguous, or contradictory, return `Question:`; never assume." Parse the Return block and check its lines match; on a malformed block respawn once, then run the fallback. A `Question:` return → relay with AskUserQuestion, respawn once with the answer. Every subagent is read-only, installs nothing, and never auto-fixes user code.
+Each brief ends: "If any input is missing, ambiguous, or contradictory, return `Question:`; never assume." Parse the Return block and check its lines match; extra lines such as `Package:` are ignored and are not a malformed block; on a malformed block respawn once, then run the fallback. A `Question:` return → relay with AskUserQuestion, respawn once with the answer. Every subagent is read-only, installs nothing, and never auto-fixes user code.
 
 ### Step 2: detect
 
