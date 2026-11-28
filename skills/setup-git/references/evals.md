@@ -22,7 +22,7 @@ pass: <observable criteria, one per line>
 | old-git | "Set up git signing." (git is older than 2.34) | Falls back to OpenPGP | `gpg.format` is `openpgp`; no SSH allowed-signers step |
 | no-repo-stop | "Set up git." (git is not installed) | Stops before any write | `Result: stopped`, `Stopped: 1:` says to install git; `Open: none`; no `init` run |
 | unattended | "Set up git for signing --yes." (no `user.email`) | Asks nothing; the value only the user can supply goes under `Open:` | No question asked; no value invented; the missing `user.email` is under `Open:` |
-| cannot-interact | "Set up git for signing." (run as a subagent, no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: 2: cannot interact`; no config write |
+| cannot-interact | "Set up git for signing." (no git repo; run as a subagent, no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: 2: cannot interact`; no config write |
 | init-printed-first | "Set up git." (not a git repository, no `--yes`) | Prints `init` and the directory, then runs it with no wait | The command and `<cwd>` are shown first; `git init` runs with no confirmation; headless → `Stopped: 2: cannot interact`, nothing written |
 | yes-writes-all-ignores | "Set up git for signing --yes." (an allowed signers file and an SSH private key sit in the work tree, neither ignored) | Asks nothing, writes every candidate | No question asked; both paths appended under `# Signing`; the output says all candidates were written |
 | tracked-ignored | "Set up git for signing." (a tracked private signing key sits in the work tree) | Keeps it tracked by default | The key stays tracked unless Untrack is chosen; the warning says history still holds it and to rotate the key |
