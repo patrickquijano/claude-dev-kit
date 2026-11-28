@@ -8,8 +8,8 @@ Step 8 detail. Generated JSON, Markdown, and HTML only add noise, so each existi
 
 ## Rules
 
-- Step 7's `append-ignores` already covers `.prettierignore`, `.markdownlintignore`, `.stylelintignore`, `.eslintignore` (no flat config), and the root `.dockerignore`; do those only when `skipped` lists them.
-- Look for each config in the repo root and the package dir. Edit only configs that already exist.
+- Step 7's `append-ignores` already covers `.prettierignore`, `.markdownlintignore`, `.stylelintignore`, `.eslintignore` (no flat config), and the root `.dockerignore`; step 8 covers configs outside the repo root, `<Dockerfile>.dockerignore`, and the tools `append-ignores` does not touch.
+- Look for each config step 7 did not cover. Edit only configs that already exist.
 - Append only missing entries; keep existing entries, order, and syntax form.
 - Do not skip a tool because it reads `.gitignore`: step 7 un-ignores two files there, so those tools would lint them.
 - Config form not listed or not parseable → report the file, skip it.
