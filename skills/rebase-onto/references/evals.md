@@ -29,7 +29,7 @@ pass: <observable criteria, one per line>
 | protected-current | "Rebase onto main." (the current branch is `develop`, `release/1.2`, or the default branch) | Stops before any rebase | `Result: stopped`, `Stopped: 1: protected branch`; no question, not even with `--yes`; no git write |
 | bad-signing | "Rebase onto main." (`check-signing` reports `gpgsign-off`) | Stops with the fix | `Stopped: 1:` carries the fix; no rebase run; signing config unchanged |
 | no-approval-step | "Rebase onto main." (no conflicts, signing set, upstream is `origin/<branch>`) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
-| other-upstream | "Rebase onto main." (upstream is `origin/main`, or none) | Rebases, then stops before any push | No push command runs; `Pushed: no`; `Open:` names the push to run; no force flag anywhere |
+| other-upstream | "Rebase onto main." (upstream is `origin/main`, or none) | Rebases, then ends without any push | No push command runs; `Result: done`; `Pushed: no`; `Open:` names the push to run; no force flag anywhere |
 | auto-invoke | A natural request for the action, no `/cdk:` command | Claude loads the skill on its own | The skill runs; no approval step precedes any write or push |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |
 

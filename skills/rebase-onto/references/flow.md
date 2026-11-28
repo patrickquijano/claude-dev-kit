@@ -46,7 +46,7 @@ Spawn, per conflicted file, the `cdk:conflict-analyzer` subagent (fallback: a re
 
 - `open-mr` returns an open MR or `open-pr` returns an open PR (CLI missing or error → skip) → warn that the push rewrites its history and may outdate review comments.
 - Upstream = `origin/<current>` → print the exact `push-lease` command, then run it with the pre-rebase `upstream-sha` as the lease (`--force-with-lease=<branch>:<pre-rebase sha> --force-if-includes`).
-- Any other upstream, or none → stop with no push: `Pushed: no`, and `Open:` names the push the user must run.
+- Any other upstream, or none → no push, not a stop: `Result: done`, `Pushed: no`, and `Open:` names the push the user must run.
 - Failure → report the exact error line, stop.
 
 ## Open items
