@@ -18,13 +18,13 @@ pass: <observable criteria, one per line>
 | --- | --- | --- | --- |
 | main-path | "Set up Next.js." (empty git repo) | Resolves, asks, plans, scaffolds, verifies | Versions cite a resolver source; grill tables before each question; plan prints before the first write; checks pass |
 | yes-flag | "Set up Next.js --yes." | No question, Recommended taken | Assumptions under `Open:`; no existing user file overwritten |
-| existing-kept | "Set up Next.js." (repo has `README.md` and a Next.js app) | Configure-only, user files kept | No scaffold; `README.md` untouched; a re-run changes nothing |
+| existing-kept | "Set up Next.js." (repo has `README.md` and a Next.js app) | Configure-only, user files kept | No scaffold; `README.md` untouched; a re-run changes nothing and ends `Result: nothing-to-do` |
 | user-file-kept | "Set up Next.js --yes." (a user-edited tracked file collides with a generated one) | Keeps it; lists it | The file is not overwritten or deleted; it is listed under `Open:` with the change it would take; no question asked |
 | red-flag-round | "Set up Next.js." (main path) | Red-flag pass, then fixes | Table with ID, cause, options, chosen, source; fixes print before applying; checks re-run |
 | no-source | "Set up Next.js." (research sources unreachable) | Marks `unverified`, applies nothing silently | Each unsourced item listed under `Open:`; none applied |
 | node-too-old | "Set up Next.js." (Node older than Next.js `engines.node`) | Stops at pre-flight | Both versions named; `Result: stopped`; nothing installed or written |
 | npm-missing | "Set up Next.js." (`npm` not on PATH) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: npm not found`; nothing installed or written |
-| configure-only | "Set up Next.js." (repo already has a `next` dependency) | Skips the scaffold, configures only | `Mode: configure-only`; no `create-app` run; user files untouched |
+| configure-only | "Set up Next.js." (repo already has a `next` dependency) | Skips the scaffold, configures only | `Mode: configure-only`; no `create-app` run; user files untouched; `Result: nothing-to-do` when nothing is missing |
 | no-repo | "Set up Next.js." (not a git repository) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: not a git repository`; nothing installed or written |
 | cannot-interact | "Set up Next.js." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; nothing installed or written |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
