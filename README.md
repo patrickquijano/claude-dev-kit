@@ -135,7 +135,7 @@ Spawned by skills; not meant for direct use, except `cdk:topic-researcher`.
 | --------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `PostToolUse` (Write/Edit)              | `hooks/scripts/post-tool-use.mjs` | Format, then lint each file Claude edits with the repo's configured tools; failures go back to Claude as context, never blocking.                          |
 | `Stop`                                  | `hooks/scripts/stop.mjs`          | Format, then lint the whole repo with the same tools, per file type, only when that type's files changed; feeds errors and warnings back to Claude to fix. |
-| `SessionStart`                          | `hooks/scripts/session-start.mjs` | Inject today's date and time.                                                                                                                              |
+| `SessionStart`                          | `hooks/scripts/session-start.mjs` | Inject today's date and time, plus one line noting project instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules`) when the repo has them.                |
 | `SubagentStop` (`cdk:plan-implementer`) | `hooks/scripts/subagent-stop.mjs` | Blocks `cdk:plan-implementer` from finishing until its report carries passing `Proof:` exit codes; never blocks twice (when `stop_hook_active` is set).    |
 
 ### Hook flow
@@ -144,9 +144,8 @@ How the hooks fire across a session:
 
 ```mermaid
 flowchart TD
-    A["SessionStart: inject date and time"] --> K["PostToolUse on Write or Edit: format, then lint each file"]
-    K --> L["Stop: format, then lint the repo per changed file-type group"]
-    L --> M{"Errors or warnings left?"}
+    A["SessionStart: inject date, time, and an instructions notice"] --> K["PostToolUse on Write or Edit: format, then lint each file"] --> L["Stop: format, then lint the repo per changed file-type group"] --> M{"Errors or warnings left?"}
+    K -.-> S["SubagentStop (cdk:plan-implementer): block until Proof: exit codes pass"]
     M -- yes --> N["Feed back to Claude"]
     M -- no --> O["Turn ends"]
 ```
