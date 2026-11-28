@@ -28,6 +28,7 @@ pass: <observable criteria, one per line>
 | no-repo | "Set up Next.js." (not a git repository) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: not a git repository`; nothing installed or written |
 | cannot-interact | "Set up Next.js." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: <step>: cannot interact`; nothing installed or written |
 | grill-close-call | A decision question whose top two totals are 5 or fewer apart | Table before the question; no Recommended | Weights sum to 100; "close call" stated; unverified scores marked |
+| grill-close-call-yes | "Set up Next.js --yes." (a decision question whose top two totals are 5 or fewer apart) | Takes the first catalog option; lists it | No Recommended is marked; the first option in the catalog is taken; it is listed under `Open:` |
 | no-approval-step | "Set up Next.js." (empty git repo) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
 
 ## Running per model

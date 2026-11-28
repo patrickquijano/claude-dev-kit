@@ -6,7 +6,7 @@
 
 ## Scaffold
 
-- `create-app` into a scratch dir with `--disable-git` and the picked package manager, linter, and `src/` choices; move files into the repo root.
+- `create-app` into a scratch dir with `--disable-git` and the picked package manager, linter, and `src/` choices; then `move-files`; a colliding file is never overwritten and is listed under `Open:` with the change it would take.
 - Accept: `package.json` has the resolved Next.js version; no `.git` was created in the scratch output.
 
 ## Structure
