@@ -634,12 +634,20 @@ describe('render', () => {
     assert.equal(line, '4.00k / 200k (2%)');
   });
 
-  test('prints nothing for the context when only the limit is known', () => {
+  test('prints the zero-token context and the limit when only the limit is known', () => {
     // Act
     const line = renderWith(null, {}, PLAIN, () => 200_000);
 
     // Assert
-    assert.equal(line, '');
+    assert.equal(line, '0 / 200k (0%)');
+  });
+
+  test('prints a zero limit without a percentage', () => {
+    // Act
+    const line = renderWith(null, {}, PLAIN, () => 0);
+
+    // Assert
+    assert.equal(line, '0 / 0');
   });
 
   test('prints nothing for the context when no context data exists', () => {
@@ -738,9 +746,20 @@ describe('render', () => {
     assert.equal(line, '');
   });
 
-  test('falls back to cwd when current_dir is empty', () => {
+  test('prints no directory when current_dir is empty', () => {
     // Arrange
     const input = { cwd: '/work/app', workspace: { current_dir: '' } };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, '');
+  });
+
+  test('falls back to cwd when current_dir is absent', () => {
+    // Arrange
+    const input = { cwd: '/work/app', workspace: {} };
 
     // Act
     const line = renderWith(null, input, PLAIN);

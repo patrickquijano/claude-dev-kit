@@ -427,9 +427,8 @@ export function render(
   const payload = isObject(input) ? input : {};
   const segments = [];
   const color = (text, ...styles) => paint(text, styles, env);
-  const directory = [payload.workspace?.current_dir, payload.cwd].find(
-    (candidate) => typeof candidate === 'string' && candidate !== ''
-  );
+  const reportedDirectory = payload.workspace?.current_dir ?? payload.cwd;
+  const directory = typeof reportedDirectory === 'string' ? reportedDirectory : undefined;
 
   if (directory) {
     segments.push(color(clean(basename(directory)), COLOR.bold, COLOR.cyan));
@@ -453,7 +452,7 @@ export function render(
     contextPercentage = (tokens / windowSize) * 100;
   }
 
-  if (isNumber(tokens) || isNumber(windowSize) || isNumber(contextPercentage)) {
+  if (isNumber(tokens) || isNumber(windowSize) || isNumber(contextPercentage) || isNumber(compactLimit)) {
     const used = isNumber(tokens) ? tokens : 0;
     const contextColor = isNumber(contextPercentage) ? gradientColor(contextPercentage) : tokenColor(used);
     let text = formatTokens(used);
@@ -464,10 +463,13 @@ export function render(
       text += ` (${Math.round(contextPercentage)}%)`;
     }
     let contextSegment = color(text, COLOR.bold, contextColor);
-    if (isNumber(compactLimit) && compactLimit > 0) {
-      const compactPercentage = (used / compactLimit) * 100;
-      const compactText = `${formatTokens(compactLimit)} (${Math.round(compactPercentage)}%)`;
-      contextSegment += ` ${color('/', COLOR.dim)} ${color(compactText, COLOR.bold, gradientColor(compactPercentage))}`;
+    if (isNumber(compactLimit)) {
+      let compactText = formatTokens(compactLimit);
+      if (compactLimit > 0) {
+        compactText += ` (${Math.round((used / compactLimit) * 100)}%)`;
+      }
+      const compactColor = compactLimit > 0 ? gradientColor((used / compactLimit) * 100) : contextColor;
+      contextSegment += ` ${color('/', COLOR.dim)} ${color(compactText, COLOR.bold, compactColor)}`;
     }
     segments.push(contextSegment);
   }

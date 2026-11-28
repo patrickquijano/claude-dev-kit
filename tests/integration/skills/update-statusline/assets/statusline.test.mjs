@@ -6,8 +6,12 @@ import { basename, join, resolve } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 
 const SCRIPT = resolve('skills/update-statusline/assets/statusline.mjs');
+let isolatedHome;
 const run = (input, env = {}) => {
-  const childEnv = { ...process.env, NO_COLOR: '1', ...env };
+  const childEnv = { ...process.env, NO_COLOR: '1', HOME: isolatedHome, ...env };
+  delete childEnv.CLAUDE_CODE_AUTO_COMPACT_WINDOW;
+  delete childEnv.DISABLE_AUTO_COMPACT;
+  Object.assign(childEnv, env);
   for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE']) {
     delete childEnv[name];
   }
@@ -19,9 +23,11 @@ describe('statusline CLI', () => {
   let root;
   before(() => {
     root = mkdtempSync(join(tmpdir(), 'statusline-'));
+    isolatedHome = mkdtempSync(join(tmpdir(), 'statusline-home-'));
   });
   after(() => {
     rmSync(root, { recursive: true, force: true });
+    rmSync(isolatedHome, { recursive: true, force: true });
   });
 
   test('prints the directory and model from the stdin payload', () => {
@@ -102,5 +108,29 @@ describe('statusline CLI', () => {
     // Assert
     assert.equal(result.status, 0);
     assert.equal(result.stdout, '100k / 1M (10%) / 400k (25%)');
+  });
+
+  test('prints the configured auto-compact window even without context data', () => {
+    // Arrange
+    const payload = JSON.stringify({});
+
+    // Act
+    const result = run(payload, { CLAUDE_CODE_AUTO_COMPACT_WINDOW: '300k' });
+
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '0 / 300k (0%)');
+  });
+
+  test('prints no directory for an empty current_dir', () => {
+    // Arrange
+    const payload = JSON.stringify({ cwd: root, workspace: { current_dir: '' } });
+
+    // Act
+    const result = run(payload);
+
+    // Assert
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, '');
   });
 });
