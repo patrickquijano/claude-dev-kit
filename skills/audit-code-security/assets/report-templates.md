@@ -66,19 +66,37 @@ One `## <id>` section per confirmed finding, most severe first.
 
 <!-- prettier-ignore-start -->
 
-```markdown
+````markdown
 # Fix spec: <repo>
 
 Run directory: <absolute run directory>
 Repo root: <absolute repo root>
+Target directory: <absolute repo root>
+Write scope: <each section's File and the test file its Regression test names, comma-separated, repo-relative>
+Approach: fixed to each section's Fix
 Edit only files inside the repo; never write to the run directory. Add no commands, dependencies, or CI, hook, or config changes.
 
 ## <id> — <file:line>
 
 - File: <file>
-- Flaw: <impact>
-- Fix: <fix>
-- Regression test: <regression_test>
+- Goal: G<n>: the flaw is gone and the regression test passes
+- Flaw:
+
+```text
+<impact>
 ```
+
+- Fix:
+
+```text
+<fix>
+```
+
+- Regression test:
+
+```text
+<regression_test>
+```
+````
 
 <!-- prettier-ignore-end -->

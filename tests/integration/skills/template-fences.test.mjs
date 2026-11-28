@@ -9,7 +9,15 @@ const reportTemplates = join(root, 'skills', 'audit-code-security', 'assets', 'r
 const changelogFormat = join(root, 'skills', 'update-changelog', 'references', 'format.md');
 
 describe('template fences keep their line breaks under proseWrap never', () => {
-  for (const pattern of [/^Open: /m, /^Not hunted: /m, /^Repo root: /m, /^Edit only files inside the repo/m]) {
+  for (const pattern of [
+    /^Open: /m,
+    /^Not hunted: /m,
+    /^Repo root: /m,
+    /^Edit only files inside the repo/m,
+    /^Target directory: /m,
+    /^Write scope: /m,
+    /^Approach: fixed to each section/m
+  ]) {
     test(`report-templates.md has a line matching ${pattern}`, () => {
       // Arrange
       const text = readFileSync(reportTemplates, 'utf8');
