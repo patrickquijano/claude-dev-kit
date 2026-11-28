@@ -53,7 +53,10 @@ const requiredInputs = {
     facts: [/root/, /facts/],
     triage: [/root/, /finding id/, /scanner evidence/]
   },
-  'practices-reviewer': { dockerfile: [/dockerfile/, /\.dockerignore/, /build context/] },
+  'practices-reviewer': {
+    dockerfile: [/dockerfile/, /\.dockerignore/, /build context/],
+    compose: [/compose/, /target/]
+  },
   'repo-analyzer': {
     devcontainer: [/root/],
     gitignore: [/root/, /signals/],
