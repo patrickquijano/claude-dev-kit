@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - A `SubagentStop` hook blocks `cdk:plan-implementer` from finishing until its report lists `Proof:` exit codes and none is nonzero (breaking); it lets the agent go on a second stop so it never loops.
+- `/cdk:address-github-pull-request-review` and `/cdk:address-gitlab-merge-request-review` take `--nits-only`, which fixes only `nit` and fix-bearing `question` items with no ask; the review skills pass it in one post-approval pass.
 - `/cdk:address-open-items` works through the Open items a run reported: it fixes the clear ones, asks the rest in one batch, then commits through `/cdk:commit-changes` and pushes once through `/cdk:push-commits`.
 - `/cdk:release-plugin` keeps per-step state in `.release/state.json`, takes `--resume`, and runs failure handlers (retry, lint, network backoff) before it stops.
 - Every skill follows the running project's own instructions (`CLAUDE.md`, `AGENTS.md`, `.claude/rules/`) over its defaults, and never lowers a safety stop; `/cdk:build-skill` requires the same of the skills it builds.
@@ -24,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `cdk:plan-implementer` can run `node --test` and lint on its own files, lists the test assertions that pin what it edits, and reports `Proof:`, `Pinned:`, and `REQUIRES_REVIEW:` for any weakened assertion (breaking); `/cdk:implement-spec` callers that parse its return must read the new fields.
 - `cdk:change-verifier` flags a diff that adds a write permission, a weakened or skipped assertion, a missing `REQUIRES_REVIEW:`, and a missing or failing `Proof:` exit code.
-- The GitHub and GitLab review and address skills, and `/cdk:review-code-changes`, gate on critical and major findings only and re-review just the delta since the last review (breaking).
+- The GitHub and GitLab review and address skills, and `/cdk:review-code-changes`, gate on `critical`, `major`, and `minor` findings (`nit` and `question` never gate) and re-review just the delta since the last review (breaking).
 - `/cdk:run-spec-kit`, `/cdk:fix-spec-kit-bug`, and `/cdk:build-subagent` end a user Stop with `Result: stopped` (breaking).
 - `cdk:change-analyzer` makes its `Groups:` line unambiguous, and `cdk:format-lint-analyzer` returns Bats files in their own list (breaking).
 - `/cdk:setup-local-sonarqube` keeps an existing compose file and shows a diff, and `/cdk:setup-husky` skips the commitlint config when the message check is skipped (breaking).
@@ -35,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Skills print `Open:` before `Next:`, and several skills' `allowed-tools` are trimmed to the tools they use.
 - The analyzer subagents run on Sonnet instead of Haiku.
 - `cdk:change-verifier`, `cdk:code-reviewer`, `cdk:conflict-analyzer`, and `cdk:security-reviewer` run on Sonnet instead of Opus; `cdk:implementation-planner` stays on Opus.
-- `/cdk:review-code-changes` fixes `critical` and `major` findings right after the review and re-judges only the reported items on later rounds; with no file changed by the fix it stops with `no fix applied` instead of re-reviewing, and it no longer keeps fix memory.
+- `/cdk:review-code-changes` fixes `critical`, `major`, and `minor` findings right after the review and re-judges only the reported items on later rounds; with no file changed by the fix it stops with `no fix applied` instead of re-reviewing, and it no longer keeps fix memory. After approval it fixes open `nit` and `question` findings once, with no further review; a `question` is fixed only when its evidence still matches and it names a concrete fix.
 - `/cdk:review-github-pull-request` and `/cdk:review-gitlab-merge-request` now invoke the matching address skill after posting, so a checkout of the PR head or MR source branch gets fix commits pushed (up to 3 rounds), then re-judge only their own threads and resolve the fixed ones; a fork, a wrong branch, a dirty tree, or a protected head skips the fix and lists the open threads.
 - `/cdk:update-statusline` installs a status line that also shows context window and auto-compact usage, with model and effort colors.
 - `/cdk:setup-dotnet-api` no longer runs `dotnet format --verify-no-changes`; it verifies with `dotnet build -warnaserror` and `dotnet test`.
