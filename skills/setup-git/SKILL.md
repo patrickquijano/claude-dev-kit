@@ -42,7 +42,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 2. **Repository.** Root `<none>` → print the `init` command and `<cwd>`, then run it with no wait; a headless run with no user to reply and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Root is not cwd → use `<root>` (git writes local config there). Work from the root.
 3. **Detect.** `config-get` each key: `user.name`, `user.email`, `gpg.format`, `user.signingkey`, `commit.gpgsign`, `tag.gpgsign`, `gpg.ssh.allowedSignersFile`, `gpg.program`, `gpg.ssh.program`, `gpg.x509.program`; `config-local` to see local ones. Unset `gpg.format` = `openpgp`.
 4. **Identity.** Unset `user.name` or `user.email` → ask in plain text (cap in Rules). Only when `user.name` or `user.email` is unset and a commit exists, show `last-author` and ask whether it is the user (`--yes`: skip this question).
-5. **Signing format.** Set in any scope → keep. Else set `ssh`; git < 2.34 → `openpgp`.
+5. **Signing format.** Set in any scope → keep. Else an existing `user.signingkey` that is a valid OpenPGP key → keep `openpgp` and that key (never switch to `ssh` or overwrite it); `x509` has no key-selection path → list it under `Open:` as out of scope. Else set `ssh`; git < 2.34 → `openpgp`.
 6. **Signing key.** Keep `user.signingkey` when valid for the format; else pick a candidate; write steps 4-6 values. Detail: `${CLAUDE_SKILL_DIR}/references/signing-key.md`.
 7. **Sign by default.** Set `commit.gpgsign` and `tag.gpgsign` to `true` when not already (every `git tag <name>` becomes a signed annotated tag and asks for a message).
 8. **Allowed signers.** SSH only; file set and lists `<email>` with the key → skip. Else ask where to store it and append (`--yes`: `.git/allowed_signers`, or skip and list under `Open:`). Detail: `${CLAUDE_SKILL_DIR}/references/allowed-signers.md`.
@@ -75,7 +75,7 @@ Repaired: <key old -> new (reason), ... | none>
 Signing: format <ssh | openpgp | x509> (<...>), key <path | key:: | key id> (<...>), commit.gpgsign <...>, tag.gpgsign <...>
 Allowed signers: <file> (<added | up to date | skipped | n/a>)
 Verify: <consistent | inconsistent: <check>>
-Smoke test: ✅ Signed | ✅ Signed (not verifiable locally) | ❌ Signed: <error line>
+Smoke test: ✅ Signed | ✅ Signed (not verifiable locally: no allowed signers) | ❌ Signed: <error line> | skipped (<reason>)
 Ignores: <file: added paths>, ... | up to date | none needed
 Tracked but ignored: <files> (<kept | untracked>) | none
 Open: <item: reason; recommended fix>, ... | none

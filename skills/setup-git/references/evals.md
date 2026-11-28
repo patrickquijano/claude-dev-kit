@@ -19,6 +19,8 @@ pass: <observable criteria, one per line>
 | fresh-ssh | "Set up git for signed commits." (identity set, an SSH key found, nothing else configured) | SSH format, local writes, smoke test | `gpg.format ssh` and the key are written with `git config --local`; allowed signers line added; `Smoke test: ✅ Signed` |
 | already-set | "Set up git for signed commits." (everything valid) | Skips every write, still tests | `Result: nothing-to-do`; no config or file write; the smoke test still runs |
 | no-key | "Set up git signing." (no usable key exists) | Never generates a key | No key generated, no passphrase set, no private key read; the `! <command>` for the user is shown; re-detect at most twice |
+| existing-openpgp | "Set up git signing." (`gpg.format` unset, `user.signingkey` is a valid OpenPGP key, an SSH key also exists) | Keeps OpenPGP and the key | `gpg.format` stays `openpgp`; `user.signingkey` unchanged; no SSH key chosen; no allowed-signers step |
+| x509-out-of-scope | "Set up git signing." (`gpg.format x509`) | Lists it, picks no key | `Open:` names x509 as out of scope; no key selected or written |
 | old-git | "Set up git signing." (git is older than 2.34) | Falls back to OpenPGP | `gpg.format` is `openpgp`; no SSH allowed-signers step |
 | no-repo-stop | "Set up git." (git is not installed) | Stops before any write | `Result: stopped`, `Stopped: 1:` says to install git; `Open: none`; no `init` run |
 | unattended | "Set up git for signing --yes." (no `user.email`) | Asks nothing; the value only the user can supply goes under `Open:` | No question asked; no value invented; the missing `user.email` is under `Open:` |
