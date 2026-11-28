@@ -20,7 +20,7 @@ Each option shows one evidence line and one trade-off. Evidence is cited (user m
 
 ## Recommendation
 
-The highest weight is Recommended, one option only, listed first and ending with `(Recommended)`. The top two within 5 points → say "close call" and recommend none. Under `--yes`, a question with a Recommended option takes it; a close call, or a required field with no source, stops the run.
+The highest weight is Recommended, one option only, listed first and ending with `(Recommended)`. The top two within 5 points → say "close call" and recommend none. Under `--yes`, a question with a Recommended option takes it; a close call stops the run with `Result: stopped`, `Stopped: <step>: close call` (`<step>` is the step that asked: 3, 4, 5, or 6), and a required field with no source stops it the same way with its own reason.
 
 ## Option line
 

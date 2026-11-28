@@ -32,7 +32,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 4. **Template.** Pick per `${CLAUDE_SKILL_DIR}/references/template.md`: repo `.github/ISSUE_TEMPLATE/`, legacy single file, owner `.github` repo, then the bundled set. One clear fit → use it; several plausible → ask. Update keeps the body's existing structure.
 5. **Fill.** Fill every field from cited sources. Each missing or ambiguous item → ask, one question per round.
 6. **Labels.** Candidates are the template's `labels:` plus a fit from `label-list`; every candidate must exist in the repo. A fitting label that is missing → ask `Create` | `Skip` (`--yes`: skip and list it under `Open:`). Update keeps the existing labels unless the user's change removes one. Set the issue type only when the template names it or the user asks, and only if it is in `list-issue-types`.
-7. **Submit.** Run `create` or `update`; report the URL.
+7. **Submit.** Print the title, labels, type, and body (update: a diff of the title and body against the existing issue), then run `create` or `update` with no wait; report the URL.
 8. **Report.** Print the Output.
 
 ## Files

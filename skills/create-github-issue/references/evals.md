@@ -35,7 +35,9 @@ pass: <observable criteria>
 | duplicate-owner | "/cdk:create-github-issue --yes Open an issue: dark mode flickers." (an open issue has the same title and a different author than `self`) | Stops, never updates another author's issue | `Result: stopped`; `Stopped: 3: duplicate #<n> not owned`; no create or update call |
 | neither-tool-stops | "Open an issue." (no MCP, no `gh` auth) | Stops before any write | `Result: stopped`; `Stopped: 1` |
 | auto-invoke | A natural request to file an issue, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the issue is created or updated after the decision questions |
+| print-before-write | "Update #7: retitle to ..." | Prints the diff, then writes with no wait | Title, labels, type, and body diff printed before `update`; no question between print and write; URL reported |
 | no-approval-step | "File an issue: login fails on Safari." | Runs end to end; every write follows the last decision answer directly | No question to approve, confirm, or proceed; `create` runs right after the fill and label steps; `Result: done` |
+| yes-close-call | "Open an issue --yes: <request where two options score within 5 points>" | Stops without asking | No question asked; `Result: stopped`; `Stopped: <step>: close call` (step is 3, 4, 5 or 6, whichever asked); no write |
 
 ## Running per model
 
