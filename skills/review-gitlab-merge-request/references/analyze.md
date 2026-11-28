@@ -22,7 +22,7 @@ Write with the Write tool; fetch with `mr-view`, `mr-diff`, `file-at-sha`, `mr-i
 
 ## Areas
 
-Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Severity` (identical to `SKILL.md`, the verdict rule `BLOCK` only for `critical` or `major` too), and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
+Four `cdk:code-reviewer` subagents per batch in one turn, one per kind: `intent`, `correctness`, `security`, `quality`; `intent` is always spawned here because `description.md` always holds the title and body. The checklists live in `agents/code-reviewer.md` `## Kinds`, the severity definitions in its `## Severity` (identical to `SKILL.md`, the verdict rule `BLOCK` only for `critical` or `major` too), and the `Findings:` format in its `## Return`. An inline fallback walks this short list against every hunk:
 
 1. **intent:** goals and issue items met; nothing unrelated; docs, migrations, config, or changelog present where the conventions require; the design fits the codebase.
 2. **correctness:** null or empty input, boundaries, error paths, unhandled return values, concurrency, retries, cleanup, state, time and locale, callers and callees, backward compatibility.

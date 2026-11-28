@@ -45,10 +45,11 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Gating threads are the own `[critical]` and `[major]` threads, cleared only when resolved. `[minor]`, `[nit]`, and `[question]` threads never gate (an own `[minor]` thread from an earlier run is non-gating too); this skill neither requires nor resolves them.
 - The only GitHub writes, all in step 8: resolves of own threads, one summary conversation comment (created once, then edited in place), and one state review (`REQUEST_CHANGES`, `COMMENT`, or `APPROVE`) pinned to the head SHA. A missing PR, authentication, or permission → stop with the exact error.
 - Cannot resolve an own thread or edit the summary → stop and tell the user; never work around it by posting another comment or summary.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`.
 - One pass per invocation: never poll, re-trigger this skill, or invoke the address skills.
 - A PR path used in a shell argument or scratch path must match `[A-Za-z0-9._/@+-]+` with no `..` segment and no leading `/` or `-`, and goes in single quotes; any other path is skipped and listed under `Skipped:`.
 - Orchestrator vs subagents: only this skill talks to the user and the host; at most 4 read-only subagents per parallel turn, over scratch copies, spawned per `## Spawn briefs` in the reference of the step, each with an inline fallback.
-- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. Of the `gh api` rows, only the `gh-get.mjs` reads (including the `review-threads` GraphQL read) are granted; every write row is not in `allowed-tools` and prompts.
+- Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags. The thread classifier `filter-threads.mjs` is the exception: run it as `${CLAUDE_SKILL_DIR}/references/threads.md` shows. Of the `gh api` rows, only the `gh-get.mjs` reads (including the `review-threads` GraphQL read) are granted; every write row is not in `allowed-tools` and prompts.
 - Host ops: call the row's MCP tool first; server not connected, error, or `—` → run the Command unchanged.
 - Caps: head-SHA-change redo 1, verdict-rejection resubmit 1, one respawn per area per batch for each trigger (`Need:`, missing coverage, malformed return), sweep 1 per batch. Caps keep one run from looping on a moving head or a failing subagent. A cap hit → report it under `Errors:` and continue or stop as the reference says.
 
