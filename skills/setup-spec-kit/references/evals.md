@@ -24,6 +24,7 @@ pass: <observable criteria, one per line>
 | extension-fails | "Set up Spec Kit." (`extension-add` fails once) | No retry | The command ran once; `Extensions: ... failed`; leftover under `Open:` |
 | config-ignores | "Set up Spec Kit." (a Prettier ignore file exists, no ESLint config) | Edits only existing configs | `.specify/` and `.claude/skills/speckit-*/` added to an existing ignore file; no ESLint config created; `specs/` stays linted |
 | plan-before-write | "Set up Spec Kit in this repo." (CLI present, no `.specify/`) | Prints the plan, then writes | The plan names init, each extension add, and the ignore edits, and prints before the first write |
+| headless-no-ask | "Set up Spec Kit." (run headless, no one to reply, no `--yes`) | Runs end to end: the skill asks nothing, so the no-ask stop never applies | No `Stopped: <step>: cannot interact`; the plan is printed and applied with no wait |
 | no-approval-step | "Set up Spec Kit in this repo." (CLI present, no `.specify/`) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the printed plan |
 | plan-extensions-fails | "Set up Spec Kit." (`plan-extensions` returns `ok: false`) | Skips the adds and the `.gitignore` edit | The `error` is quoted under `Open:`; no `extension-add` or `.gitignore` write; step 5 still runs |
 
