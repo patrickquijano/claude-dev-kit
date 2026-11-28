@@ -10,7 +10,7 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 
 - Prettier — `.prettierrc.json` (Prettier reads no `.jsonc`) — `{ "printWidth": 120, "proseWrap": "never", "singleQuote": true, "trailingComma": "none" }`, plus `"plugins"` with `@prettier/plugin-xml` when Prettier formats XML and `@prettier/plugin-php` when it formats PHP — `<x> prettier --check .`.
 - yamlfmt — `.yamlfmt.yaml` (YAML only) — the `## YAML alignment` `formatter` block, no `max_line_length` — `yamlfmt -lint .`.
-- shfmt — `.editorconfig` — none — `shfmt -d <shell files>`; Bats files in their own run: `shfmt -d -ln bats <Bats files>`.
+- shfmt — `.editorconfig` — none — `shfmt -d <shell files>` (the `shell` list, no Bats paths); Bats files in their own run from the `bats` list: `shfmt -d -ln bats <Bats files>`.
 - Ruff (format) — `ruff.toml`, or `[tool.ruff]` in `pyproject.toml` — none — `ruff format --check .`.
 - Black — `[tool.black]` in `pyproject.toml` — none — `black --check .`.
 - Pint — `pint.json` — none — `vendor/bin/pint --test`.

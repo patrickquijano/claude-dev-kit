@@ -20,7 +20,7 @@ Format: file type (keys) — formatters. `—` = no formatter; skip the type. A 
 - YAML (`yaml yml`) — yamlfmt | Prettier.
 - Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`) — no formatter.
 - Shell (`sh bash`, and extensionless files whose first line is a `#!` line ending in `sh` or `bash`) — shfmt.
-- Bats (`bats`, and extensionless files whose first line is a `#!` line ending in `bats`) — shfmt (`-ln bats`). The files join the shell file list of the detect step.
+- Bats (`bats`, and extensionless files whose first line is a `#!` line ending in `bats`) — shfmt (`-ln bats`). The files go in the `bats` list of the detect step's `Lists:` line, not in the `shell` list.
 - Python (`py`) — Ruff | Black.
 - PHP (`php`) — Pint (first when `composer.json` requires `laravel/framework`) | PHP-CS-Fixer (first otherwise) | Prettier with `@prettier/plugin-php` (fallback; repos with `*.blade.php` files → not offered, the plugin cannot format mixed PHP/HTML).
 - C# (`cs`) — CSharpier.

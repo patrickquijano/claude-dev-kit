@@ -32,6 +32,7 @@ pass: <observable criteria>
 | analyst-unavailable | "Set up linters." (the detect spawn fails) | Detects inline, no stop | File types and roles filled from `list-files`; no `Stopped: 2` |
 | yaml-quoting | "Set up linters." (YAML files, no `.yamllint*`) | Writes `quoted-strings` only-when-needed | `.yamllint.yaml` has `quoted-strings: {required: only-when-needed}`; plain strings in quotes found in the repo are listed under `Open:`, none auto-fixed |
 | no-approval-step | "Set up linters." (JS and Markdown files, `package.json`, no linter config) | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly after the decision questions |
+| bats-files | "Set up linters." (`.sh` and `.bats` files, no ShellCheck config) | Plans ShellCheck and checks shell and Bats files together | Detect `Lists:` has the `.bats` paths under `bats` and not under `shell`; the check passes both lists to `shellcheck` |
 
 ## Running per model
 

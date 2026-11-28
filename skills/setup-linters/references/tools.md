@@ -20,7 +20,7 @@ Format: file type (keys) — linters. `—` = no linter; skip the type. A type g
 - YAML (`yaml yml`) — yamllint.
 - Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`) — hadolint.
 - Shell (`sh bash`, and extensionless files whose first line is a `#!` line ending in `sh` or `bash`) — ShellCheck.
-- Bats (`bats`, and extensionless files whose first line is a `#!` line ending in `bats`) — ShellCheck. The files join the shell file list of the detect step.
+- Bats (`bats`, and extensionless files whose first line is a `#!` line ending in `bats`) — ShellCheck. The files go in the `bats` list of the detect step's `Lists:` line, not in the `shell` list; ShellCheck gets the shell and `bats` lists.
 - Python (`py`) — Ruff | Flake8, plus mypy as an optional extra linter.
 - PHP (`php`) — PHPStan | PHP_CodeSniffer.
 - C# (`cs`) — `dotnet format` (`style` and `analyzers`; ships with the .NET 6+ SDK).

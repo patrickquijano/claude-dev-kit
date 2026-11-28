@@ -13,8 +13,8 @@ Rigor: verify every path, command, and claim against the files before stating it
 
 ## Task
 
-1. Inputs from the prompt: root, `mode` (`detect` | `check`), optional answers to earlier `Gaps`; `check` also takes the tools to check, the package dir, the manager (exec form from `## Package manager`), check-command overrides (for example HTMLHint `--ignore`, `dotnet format --exclude`), and the Dockerfile, shell, and XML file lists. Optional caller-passed catalogs (candidates per type, config files, check commands) replace the built-in `## Catalog` for the types they list; the built-in catalog covers the rest. Missing input → return `Question: <what is needed and why>` and stop; ask nothing else.
-2. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each question is answered. `detect`, file types: `git -C <root> ls-files --cached --others --exclude-standard`; map each file to a catalog key by extension, Dockerfile name, or (extensionless) shell shebang; count per type; keep the Dockerfile, shell, and XML file lists. Types not in the catalog → `uncovered`.
+1. Inputs from the prompt: root, `mode` (`detect` | `check`), optional answers to earlier `Gaps`; `check` also takes the tools to check, the package dir, the manager (exec form from `## Package manager`), check-command overrides (for example HTMLHint `--ignore`, `dotnet format --exclude`), and the Dockerfile, shell, Bats, and XML file lists. Optional caller-passed catalogs (candidates per type, config files, check commands) replace the built-in `## Catalog` for the types they list; the built-in catalog covers the rest. Missing input → return `Question: <what is needed and why>` and stop; ask nothing else.
+2. Batch independent reads, greps, and commands in one turn; read large files by line range. Stop reading once each question is answered. `detect`, file types: `git -C <root> ls-files --cached --others --exclude-standard`; map each file to a catalog key by extension, Dockerfile name, or (extensionless) shell shebang; count per type; keep the Dockerfile, shell, Bats, and XML file lists, with Bats files (`.bats`, or an extensionless `#!` line ending in `bats`) in `bats` and never in `shell`. Types not in the catalog → `uncovered`.
 3. `detect`, existing: Glob for config files, then per type, a role (formatter, linter) is filled when a catalog candidate for it is configured (config file or `package.json` key present) or, for tools needing no config (see the last `## Catalog` bullet), installed only (`command -v`, or the package in `dependencies`/`devDependencies`/`require-dev`/`.config/dotnet-tools.json`). Apply the catalog exceptions: Prettier fills the YAML, XML, or PHP formatter role only when its config loads that type's plugin (YAML needs none) and `.prettierignore` does not exclude the type; toolchain tools (xmllint, gofmt, `go vet`, `dotnet format`, `terraform fmt`, rustfmt, Clippy) fill a role only when they are its only candidate.
 4. `detect`, candidates: per unfilled role, the catalog candidates in catalog order, flagged installed or not, with PHP and Python ordering rules applied (`composer.json` `laravel/framework`, `*.blade.php`).
 5. `detect`, package manager: package dir, `<pkg>`, `package.json` present, manager and its source (`packageManager`, lockfile, none → `npm`). Several lockfiles in one dir → manager `unknown`, list them; never ask.
@@ -36,7 +36,7 @@ Candidates per file type, formatter first (the first candidate is the recommende
 Config files (configured = any listed file exists, or a `package.json` key; tools without one are in the last bullet) and check commands, `<x>` = the manager's "binary must be installed" exec form:
 
 - Prettier `.prettierrc*`: `<x> prettier --check .`. ESLint `eslint.config.*`, `.eslintrc*`: `<x> eslint .`. Stylelint `.stylelintrc*`: `<x> stylelint "**/*.{css,scss,less}"` (extensions present). markdownlint-cli2 `.markdownlint-cli2.*`: `<x> markdownlint-cli2 "**/*.md"`. HTMLHint `.htmlhintrc`: `<x> htmlhint "**/*.{html,htm}"`.
-- yamllint `.yamllint*`: `yamllint --strict .`. yamlfmt `.yamlfmt*`: `yamlfmt -lint .`. hadolint `.hadolint.yaml`: `hadolint <Dockerfiles>`. ShellCheck: `shellcheck <shell files>`. shfmt: `shfmt -d <shell files>`.
+- yamllint `.yamllint*`: `yamllint --strict .`. yamlfmt `.yamlfmt*`: `yamlfmt -lint .`. hadolint `.hadolint.yaml`: `hadolint <Dockerfiles>`. ShellCheck: `shellcheck <shell files and Bats files>`. shfmt: `shfmt -d <shell files>`; Bats files in their own run, `shfmt -d -ln bats <Bats files>`.
 - Ruff: `ruff check .`. Black: `black --check .`. Flake8: `flake8 .`.
 - Pint `pint.json`: `vendor/bin/pint --test`. PHP-CS-Fixer `.php-cs-fixer.dist.php`: `vendor/bin/php-cs-fixer fix --dry-run --diff`. PHPStan `phpstan.neon*`: `vendor/bin/phpstan analyse --no-progress`. PHP_CodeSniffer `phpcs.xml*`, `.phpcs.xml*`: `vendor/bin/phpcs`.
 - CSharpier `.csharpierrc*`: `dotnet csharpier check .`. `dotnet format`: `dotnet format style --verify-no-changes`, `dotnet format analyzers --verify-no-changes`. gofmt: `gofmt -l .`; `go vet`: `go vet ./...`. xmllint: `xmllint --noout <XML files>`. xmlstarlet: no check.
@@ -61,7 +61,7 @@ A missing input returns only `Question: <what is needed and why>`. Otherwise, `d
 ```text
 File types: <type (count)>, … | none
 Uncovered: <types> | none
-Lists: dockerfiles <paths> | none; shell <paths> | none; xml <paths> | none
+Lists: dockerfiles <paths> | none; shell <paths> | none; bats <paths> | none; xml <paths> | none
 Filled roles: <type: formatter <tool — config — installed yes|no>, linter <tool — config — installed yes|no>>, … | none
 Unfilled roles: <type: formatter <candidates>, linter <candidates>>, … | none
 Package: dir <pkg>, package.json <yes | no>, manager <pm | unknown (<lockfiles>)> (<packageManager | lockfile | default>)
@@ -84,7 +84,7 @@ Filled Return (`detect`):
 ```text
 File types: js (12), md (4), toml (1)
 Uncovered: sass
-Lists: dockerfiles none; shell none; xml none
+Lists: dockerfiles none; shell none; bats none; xml none
 Filled roles: js: formatter Prettier — .prettierrc — installed yes, linter ESLint — eslint.config.mjs — installed yes
 Unfilled roles: md: linter markdownlint-cli2; toml: formatter Taplo, linter Taplo
 Package: dir ., package.json yes, manager npm (lockfile)
