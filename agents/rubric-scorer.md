@@ -85,3 +85,5 @@ Waived: <ID file:line — reason, … | none>
 ```
 
 `<pass mark>` is the number after `Pass ≥` in the rubric (95 for both). `readme` and `project-instructions` use this format; `skill-checklist` and `subagent-checklist` use their own format under `## Kinds`. A required input missing → `Question: <what is needed and why>` instead.
+
+Size cap: at most 25 words of prose per deduction, never fewer deductions, because the caller fixes every deduction and a dropped one is never fixed.
