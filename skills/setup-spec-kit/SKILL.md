@@ -33,7 +33,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 ## Workflow
 
 1. **CLI.** Print the plan (Rules). `has-specify` succeeds → skip, else run `install-specify`; record `version`. Missing uv or failed install: `${CLAUDE_SKILL_DIR}/references/cli.md`.
-2. **Init.** Skip when `.specify/` and every required skill dir exist; else run `integration-install` or `init-here`. A non-empty project with speckit files it did not create stops. Cases and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
+2. **Init.** Skip when `.specify/` and every core skill dir (extension dirs are step 3's) exist; else run `integration-install` or `init-here`. A non-empty project with speckit files it did not create stops. Cases and failures: `${CLAUDE_SKILL_DIR}/references/init.md`.
 3. **Extensions.** Run `plan-extensions`; per `extensions.adds` run `extension-add`, per `priorityFixes` run `extension-set-priority`. Then read `skills.missing` from the plan for the missing required skill dirs. Failures and missing dirs: `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 4. **Git ignore.** Append the `gitignore.missing` lines from step 3's plan to root `.gitignore`. No `.gitignore` → create it only when `inside-work-tree` prints `true`; else skip. Leave `.specify/.gitignore` alone; `specify init` manages it.
 5. **Lint and format ignores.** Spec Kit overwrites generated files on upgrade, so linting them is noise. Add `.specify/` and `.claude/skills/speckit-*/` to each existing config in that tool's syntax; keep `specs/` linted. Forms per tool: `${CLAUDE_SKILL_DIR}/references/ignores.md`.
@@ -46,7 +46,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - For the CLI install branches (step 1), see `${CLAUDE_SKILL_DIR}/references/cli.md`.
 - For the init cases (step 2), see `${CLAUDE_SKILL_DIR}/references/init.md`.
 - For the core and extension skill dirs to verify (steps 2-3), see `${CLAUDE_SKILL_DIR}/references/required-skills.md`.
-- For extension failures, reinstall, and the stop path (step 3), see `${CLAUDE_SKILL_DIR}/references/extensions.md`.
+- For extension failures and reinstall (step 3), see `${CLAUDE_SKILL_DIR}/references/extensions.md`.
 - For the latest tag, extension, missing skill dir, and `.gitignore` plan (steps 1, 3-4; run, never read), see `${CLAUDE_SKILL_DIR}/scripts/plan-extensions.mjs`.
 - For each linter and formatter ignore syntax (step 5), see `${CLAUDE_SKILL_DIR}/references/ignores.md`.
 - For test prompts and pass criteria, see `${CLAUDE_SKILL_DIR}/references/evals.md`.
