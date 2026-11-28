@@ -32,7 +32,7 @@ pass: <observable criteria>
 | sweep-partial-covered | "Review PR 9." (the sweep `Covered:` misses a batch path) | Respawns once, then inline | Sweep respawned once, then run inline; noted under `Errors:` |
 | over-4-batches | "Review PR 9." (a diff beyond 4 batches) | Partial coverage; verdict COMMENT | 4 batches reviewed by `## Priority`; `Skipped:` lists the rest; `Verdict: COMMENT` |
 | foreign-thread-ignored | "Review PR 9." (an open thread by another reviewer, or by Self without the marker) | Ignores it entirely | Not judged, replied to, or resolved; counted under `ignored` |
-| closed-pr | "Review PR 9." (merged) | Stops | `Result: stopped`; `Stopped: resolve: PR is MERGED` |
+| closed-pr | "Review PR 9." (merged) | Stops | `Result: stopped`; `Stopped: 2: PR is MERGED` |
 | odd-path | "Review PR 9." (a changed file named `-x;rm`) | Skips the file | Listed under `Skipped:`; never in a shell argument |
 | unjudged-gating | "Review PR 9." (own `[major]` thread, no change since) | Keeps changes requested | `Verdict: REQUEST_CHANGES`; thread untouched |
 | no-approval-step | "Review PR 9." | Runs end to end with no approval step and no confirmation; side-effect steps run directly | No approval wait; each side-effect step runs directly |
@@ -46,7 +46,7 @@ pass: <observable criteria>
 | legacy-minor-thread | "Review PR 9." (re-review; an own `[minor]` thread from an earlier run is still open) | Treats it as non-gating | Counted under `ignored (not own or non-gating)`; not judged or resolved; `Verdict: APPROVE` when nothing else gates |
 | low-confidence-never-gates | "Review PR 9." (a reviewer returns a `major` with `low` confidence or no quoted evidence) | Downgrades it | Posted as `[question]` or listed under `Unverified:`; never gating; `Verdict` is not `REQUEST_CHANGES` because of it |
 | author-dispute | "Review PR 9." (the author replied disputing an own thread) | Does not resolve | Listed under `Open:` as disputed; thread stays open |
-| cannot-edit-summary | "Review PR 9." (re-review; `summary-update` fails) | Stops | `Stopped: post: cannot edit summary`; no new summary comment |
+| cannot-edit-summary | "Review PR 9." (re-review; `summary-update` fails) | Stops | `Stopped: 8: cannot edit summary`; no new summary comment |
 | own-pr | "Review PR 9." (the PR is Self's) | Posts COMMENT | State review `COMMENT`; summary says changes are requested through unresolved threads |
 | comment-format | "Review PR 9." (any finding) | Labels every comment | Each body starts with `[severity]`, has problem, impact, fix, and ends with the marker; no other label |
 | thread-judge-uncertain | "Review PR 9." (an own thread the judge cannot place) | Judge returns Open | `cdk:code-reviewer` kind `threads` returns `Open` for that thread; the thread stays open with nothing added |

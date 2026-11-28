@@ -20,7 +20,7 @@ Run in order:
 
 ## State rules
 
-- `merged`, `closed`, or `locked` → `Result: stopped`, `Stopped: resolve: MR is <state>`; post nothing.
+- `merged`, `closed`, or `locked` → `Result: stopped`, `Stopped: 2: MR is <state>`; post nothing.
 - `draft` true → continue; the verdict is never `APPROVE`: `COMMENT`, or `REQUEST_CHANGES` when the rules require it (`analyze.md` `## Verdict`).
 - Keep: host, project path, IID, URL, title, author username, head SHA (the full 40 characters: `diff_refs.head_sha`), `diff_refs.base_sha` and `diff_refs.start_sha`, target and source branch, and whether the source project differs from the target project. A fork MR is read-only and reviewed the same way, since nothing is checked out.
 - Own MR = author username equals Self; `post.md` `## Own MR` covers it.

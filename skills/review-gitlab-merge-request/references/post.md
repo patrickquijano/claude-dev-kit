@@ -12,20 +12,20 @@ Before any write, print the mode, the verdict, the coverage, the finding counts,
 
 ## Head check
 
-Run `head-sha`. State not `opened` → `Result: stopped`, `Stopped: post: MR is <state>`. The head differs from the reviewed SHA → redo steps 3–7 once at the new head and use it for this post; it changes again → `Result: stopped`, `Stopped: post: head moved twice`, nothing posted.
+Run `head-sha`. State not `opened` → `Result: stopped`, `Stopped: 8: MR is <state>`. The head differs from the reviewed SHA → redo steps 3–7 once at the new head and use it for this post; it changes again → `Result: stopped`, `Stopped: 8: head moved twice`, nothing posted.
 
 Then run `approvals`. `REQUEST_CHANGES` with an own approval present → `unapprove`. `COMMENT` (a hold) with an own approval present → `unapprove` too; with none, no approval write. The revoke runs before any other write, so a later stop never leaves a stale approval on an MR with new gating discussions.
 
 ## Threads
 
-Right after the head check and revoke: `thread-resolve` for each own gating discussion judged Fixed or Obsolete, with no reply. Open and unjudged discussions get nothing added; disputed discussions are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: post: cannot resolve discussion <id>` with the exact error; never post a replacement note. Re-run `review-threads` once; each resolved discussion must show `resolved` true, else stop the same way.
+Right after the head check and revoke: `thread-resolve` for each own gating discussion judged Fixed or Obsolete, with no reply. Open and unjudged discussions get nothing added; disputed discussions are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: 8: cannot resolve discussion <id>` with the exact error; never post a replacement note. Re-run `review-threads` once; each resolved discussion must show `resolved` true, else stop the same way.
 
 ## Summary note
 
 Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating discussions with URLs, summary-level findings, the re-review `Dropped:` items, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution, and no line starting with `/`. When the verdict is `REQUEST_CHANGES`, it states that changes are requested through the unresolved discussions, because GitLab has no request-changes review. When the verdict is `APPROVE` and the author is Self, it states that approval is not possible.
 
 - First review: `summary-post` once, after the new discussions are posted (see below).
-- Re-review: `summary-update` on the own summary note's id (counts, verdict, last reviewed SHA). Never `summary-post`. No `glab`, or an update that fails → `Result: stopped`, `Stopped: post: cannot edit summary` with the exact error; post nothing further.
+- Re-review: `summary-update` on the own summary note's id (counts, verdict, last reviewed SHA). Never `summary-post`. No `glab`, or an update that fails → `Result: stopped`, `Stopped: 8: cannot edit summary` with the exact error; post nothing further.
 
 ## State
 

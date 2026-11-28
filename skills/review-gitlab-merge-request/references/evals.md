@@ -29,7 +29,7 @@ pass: <observable criteria>
 | sweep-unfinished | "Review MR 9." (the sweep and its inline fallback both fail) | Partial sweep; verdict COMMENT | Failure noted under `Errors:`; `Verdict: COMMENT` |
 | sweep-partial-covered | "Review MR 9." (the sweep `Covered:` misses a batch path) | Respawns once, then inline | Sweep respawned once, then run inline; noted under `Errors:` |
 | over-4-batches | "Review MR 9." (a diff beyond 4 batches) | Partial coverage; verdict COMMENT | 4 batches reviewed by `## Priority`; `Skipped:` lists the rest; `Verdict: COMMENT` |
-| closed-mr | "Review MR 9." (merged) | Stops | `Result: stopped`; `Stopped: resolve: MR is merged` |
+| closed-mr | "Review MR 9." (merged) | Stops | `Result: stopped`; `Stopped: 2: MR is merged` |
 | odd-path | "Review MR 9." (a changed file named `-x;rm`) | Skips the file | Listed under `Skipped:`; never in a shell argument |
 | github-remote-stops | "Review MR 9." (`origin` is `git@github.com:o/r.git`) | Stops at pre-flight | `Result: stopped`; `Stopped: 1: no GitLab remote`; no write |
 | nested-group-self-hosted | "Review !9." (`origin` is `git@gitlab.example.com:a/b/c.git`) | Resolves host and the full path | Host `gitlab.example.com`, path `a/b/c`, `<enc>` `a%2Fb%2Fc`; no `a/b` truncation |
@@ -49,7 +49,7 @@ pass: <observable criteria>
 | legacy-minor-thread | "Review MR 9." (re-review; an own `[minor]` discussion from an earlier run is still open) | Treats it as non-gating | Counted under `ignored (not own or non-gating)`; not judged or resolved; `Verdict: APPROVE` when nothing else gates |
 | low-confidence-never-gates | "Review MR 9." (a reviewer returns a `major` with `low` confidence or no quoted evidence) | Downgrades it | Posted as `[question]` or listed under `Unverified:`; never gating; `Verdict` is not `REQUEST_CHANGES` because of it |
 | author-dispute | "Review MR 9." (the author replied disputing an own discussion) | Does not resolve | Listed under `Open:` as disputed; discussion stays open |
-| cannot-edit-summary | "Review MR 9." (re-review; no `glab`, or `summary-update` fails) | Stops | `Stopped: post: cannot edit summary`; no new summary note |
+| cannot-edit-summary | "Review MR 9." (re-review; no `glab`, or `summary-update` fails) | Stops | `Stopped: 8: cannot edit summary`; no new summary note |
 | own-mr | "Review MR 9." (the MR is Self's, approval refused) | Posts no approval | Summary states changes are requested through the unresolved discussions or the approval refusal; no approval write; discussions untouched |
 | no-request-changes | "Review MR 9." (a kept `[critical]` finding, own approval present) | Expresses changes requested without a review state | Own approval removed (`unapprove`); the summary says changes are requested through the unresolved discussions |
 | comment-format | "Review MR 9." (any finding) | Labels every comment | Each body starts with `[severity]`, has problem, impact, fix, ends with the marker, and has no line starting with `/`; no other label |

@@ -12,18 +12,18 @@ Before any write, print the mode, the verdict, the coverage, the finding counts,
 
 ## Head check
 
-Run `head-sha`. State not `OPEN` → `Result: stopped`, `Stopped: post: PR is <state>`. The head differs from the reviewed SHA → redo steps 3–7 once at the new head and use it for this post; it changes again → `Result: stopped`, `Stopped: post: head moved twice`, nothing posted.
+Run `head-sha`. State not `OPEN` → `Result: stopped`, `Stopped: 8: PR is <state>`. The head differs from the reviewed SHA → redo steps 3–7 once at the new head and use it for this post; it changes again → `Result: stopped`, `Stopped: 8: head moved twice`, nothing posted.
 
 ## Threads
 
-Right after the head check: `thread-resolve` for each own gating thread judged Fixed or Obsolete, with no reply. Open and unjudged threads get nothing added; disputed threads are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: post: cannot resolve thread <id>` with the exact error; never post a replacement comment. Re-run `review-threads` once; each resolved thread must show `isResolved` true, else stop the same way.
+Right after the head check: `thread-resolve` for each own gating thread judged Fixed or Obsolete, with no reply. Open and unjudged threads get nothing added; disputed threads are listed under `Open:` and never resolved. A failing resolve → `Result: stopped`, `Stopped: 8: cannot resolve thread <id>` with the exact error; never post a replacement comment. Re-run `review-threads` once; each resolved thread must show `isResolved` true, else stop the same way.
 
 ## Summary comment
 
 Write `<Scratch>/summary.md` with the verdict line, the `Coverage:` line, counts per severity, the unresolved own gating threads with URLs, summary-level findings, the re-review `Dropped:` items, `Skipped:` and `Unverified:` items, a `Last reviewed SHA: <full head SHA>` line, and the marker. No attribution.
 
 - First review: `summary-post` once, after the new threads are queued (see below) and before the state review is submitted.
-- Re-review: `summary-update` on the own summary's comment id (counts, verdict, last reviewed SHA). Never `summary-post`. An update that fails → `Result: stopped`, `Stopped: post: cannot edit summary` with the exact error; submit nothing further.
+- Re-review: `summary-update` on the own summary's comment id (counts, verdict, last reviewed SHA). Never `summary-post`. An update that fails → `Result: stopped`, `Stopped: 8: cannot edit summary` with the exact error; submit nothing further.
 
 ## State review
 
