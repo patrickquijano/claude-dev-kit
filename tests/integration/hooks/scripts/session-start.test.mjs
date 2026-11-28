@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { after, test } from 'node:test';
@@ -29,6 +29,38 @@ test('startup input prints one SessionStart JSON object with the date line', () 
   const out = JSON.parse(result.stdout);
   assert.equal(out.hookSpecificOutput.hookEventName, 'SessionStart');
   assert.match(out.hookSpecificOutput.additionalContext, /^Today is /);
+});
+
+test('a project with CLAUDE.md gets the instructions notice', () => {
+  // Arrange
+  const dir = project();
+  writeFileSync(path.join(dir, 'CLAUDE.md'), '# rules\n');
+  // Act
+  const result = run(dir, JSON.stringify({ source: 'startup' }));
+  // Assert
+  const out = JSON.parse(result.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /\nProject instructions found; cdk skills defer to them\.$/);
+});
+
+test('a project with .claude/rules gets the instructions notice', () => {
+  // Arrange
+  const dir = project();
+  mkdirSync(path.join(dir, '.claude', 'rules'), { recursive: true });
+  // Act
+  const result = run(dir, JSON.stringify({ source: 'startup' }));
+  // Assert
+  const out = JSON.parse(result.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /Project instructions found/);
+});
+
+test('an empty project gets no instructions notice', () => {
+  // Arrange
+  const dir = project();
+  // Act
+  const result = run(dir, JSON.stringify({ source: 'startup' }));
+  // Assert
+  const out = JSON.parse(result.stdout);
+  assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /Project instructions/);
 });
 
 test('invalid stdin prints one stderr line, nothing on stdout, and exits 1', () => {
