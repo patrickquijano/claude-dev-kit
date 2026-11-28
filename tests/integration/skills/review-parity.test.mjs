@@ -181,6 +181,18 @@ describe('review PR and MR twins stay symmetric', () => {
     });
   }
 
+  test('both twins print a Tool line in the Output', () => {
+    // Arrange
+    const lines = {
+      'review-github-pull-request': 'mcp | gh | mcp+gh',
+      'review-gitlab-merge-request': 'mcp | glab | mcp+glab'
+    };
+    // Act
+    const results = twins.map(({ skill }) => read('skills', skill, 'SKILL.md').includes(`\nTool: ${lines[skill]}\n`));
+    // Assert
+    assert.deepEqual(results, [true, true]);
+  });
+
   test('both skill descriptions stay within 400 chars and the MR one no longer says "in full"', () => {
     // Arrange
     const descriptions = twins.map(

@@ -107,6 +107,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 ```text
 PR: #<n> <url> (<head ref> → <base ref>) @ <full head SHA>
 Path: argument url | argument number | branch match
+Tool: mcp | gh | mcp+gh
 Mode: first review | re-review (last reviewed <short SHA>) | already approved
 Threads: <r> resolved (<f> fixed, <o> obsolete), <k> left open, <d> disputed, <u> unjudged, <i> ignored (not own or non-gating)
 Coverage: <files reviewed>/<files changed> files, <batches> batches
@@ -129,6 +130,7 @@ Example:
 ```text
 PR: #9 https://github.com/acme/app/pull/9 (fix/null-guard → main) @ 3f2c9a1b7d4e5f60718293a4b5c6d7e8f9012345
 Path: argument number
+Tool: mcp
 Mode: first review
 Threads: 0 resolved (0 fixed, 0 obsolete), 0 left open, 0 disputed, 0 unjudged, 0 ignored (not own or non-gating)
 Coverage: 4/4 files, 1 batches

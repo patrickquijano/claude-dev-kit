@@ -102,6 +102,7 @@ Items: <t> threads, <v> review-body items, <k> failing checks
 Severity: <c> critical, <m> major, <n> minor, <z> nit, <q> question (<x> inferred)
 Fixed: <item: short sha> | none
 Replied: <r> posted | dry run: <r> printed | none
+Tool: mcp | gh | mcp+gh
 Skipped: <item: reason> | none
 Inferred: <item: severity, reason> | none
 Verification: pass | skipped (<reason>) | failed (<reason>) | not run
@@ -123,6 +124,7 @@ Items: 4 threads, 0 review-body items, 0 failing checks
 Severity: 2 critical, 0 minor, 1 nit, 1 question (0 inferred)
 Fixed: src/a.mjs:12: a1b2c3d, src/b.mjs:8: a1b2c3d
 Replied: 3 posted
+Tool: gh
 Skipped: src/c.mjs:3: nit not fixed (no opt-in)
 Inferred: none
 Verification: pass

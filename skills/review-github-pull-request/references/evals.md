@@ -52,6 +52,8 @@ pass: <observable criteria>
 | thread-judge-uncertain | "Review PR 9." (an own thread the judge cannot place) | Judge returns Open | `cdk:code-reviewer` kind `threads` returns `Open` for that thread; the thread stays open with nothing added |
 | gitlab-mr-no-trigger | "Review MR !12 on GitLab." | Does not trigger | This skill not invoked |
 | local-diff-no-trigger | "Review my uncommitted changes." | Does not trigger | This skill not invoked |
+| tool-mcp | "Review PR 9." (GitHub MCP connected; every host op succeeds) | Uses MCP only | `Tool: mcp`; no `gh` command ran |
+| tool-gh-fallback | "Review PR 9." (MCP not connected or its calls error) | Falls back to `gh` | `Tool: gh`; each row's Command ran unchanged; `Tool: mcp+gh` when only some calls fell back |
 
 ## Running per model
 

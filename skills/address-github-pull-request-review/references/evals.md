@@ -66,6 +66,8 @@ pass: <observable criteria>
 | reply-carries-no-marker | "Address PR 5." (any reply or summary posted) | Replies are marker-free | No posted body contains `<!-- cdk-review -->`; each starts `**note:**` |
 | one-pass-snapshot | "Address PR 5." (a new comment is posted while the skill runs) | Ignores it | Only the items collected at Identify are processed; no re-fetch, no polling, no review skill invoked, no second pass |
 | severity-block-verbatim | Read `SKILL.md` | Holds the shared severity block | The `## Severity` block and the `Marker` line match the other five files word for word |
+| tool-mcp | "Address PR 9." (GitHub MCP connected; every host op succeeds) | Uses MCP only | `Tool: mcp`; no `gh` command ran |
+| tool-gh-fallback | "Address PR 9." (MCP not connected or its calls error) | Falls back to `gh` | `Tool: gh`; each row's Command ran unchanged; `Tool: mcp+gh` when only some calls fell back |
 
 ## Running per model
 
