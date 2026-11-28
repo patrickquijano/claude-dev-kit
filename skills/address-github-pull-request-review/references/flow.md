@@ -98,7 +98,7 @@ This skill never stages or commits; the `cdk:commit-changes` skill makes every c
 
 ## Ledger
 
-Run before step 8, right after Commit: every identified item must end as exactly one of: fixed `<sha>`, already fixed at `<path:line>`, disputed (reply planned), answer-only (reply planned), needs-clarification (reply planned), nit not fixed (listed), or Open (with the reason). The item count must equal the outcome count; a mismatch → `Result: stopped`, `Stopped: 7: ledger mismatch`, the missing item under `Open:`; no push and no replies.
+Run before step 8, right after Commit: every identified item must end as exactly one of: fixed `<sha>`, already fixed at `<path:line>`, disputed (reply planned), answer-only (reply planned), needs-clarification (reply planned), minor or nit not fixed (listed), or Open (with the reason). The item count must equal the outcome count; a mismatch → `Result: stopped`, `Stopped: 7: ledger mismatch`, the missing item under `Open:`; no push and no replies.
 
 ## Push
 
@@ -108,7 +108,7 @@ No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `thread-re
 
 Write each body to a scratch file. Replies post only after the push succeeded, because a reply names a SHA that must exist on the remote, or, when no commit was made, as `## Commit` says. Every reply starts with `**note:**` and never carries the marker. Fixed replies cite the post-push `log-paths` SHA; `--dry-run` prints the provisional one. Never resolve a thread: the review skill verifies each reply against the fix and resolves.
 
-- Threads: run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed outdated one → `Already fixed at <path:line>.` Disputed → `Not changed: <justification, evidence path:line>.` Question → `Answer: <answer>.`, plus `Addressed in <short sha>: <what changed>.` when the answer led to a fix. Needs-clarification → `Question: <one question>`. An unfixed nit gets no reply.
+- Threads: run `thread-reply` with the thread's `id` (MCP: the first comment's `databaseId`). Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed outdated one → `Already fixed at <path:line>.` Disputed → `Not changed: <justification, evidence path:line>.` Question → `Answer: <answer>.`, plus `Addressed in <short sha>: <what changed>.` when the answer led to a fix. Needs-clarification → `Question: <one question>`. An unfixed minor or nit gets no reply.
 - Review-body items: one PR comment starting `**note:** Review feedback summary:` and listing each item and its outcome, run `pr-comment`.
 
 ## Delivery

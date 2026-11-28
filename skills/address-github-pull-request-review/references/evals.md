@@ -65,6 +65,8 @@ pass: <observable criteria>
 | marker-only-summary-skipped | "Address PR 5." (a top-level summary note with the marker and no severity prefix) | Not an item | Not counted under `Items:`; no reply to it |
 | reply-carries-no-marker | "Address PR 5." (any reply or summary posted) | Replies are marker-free | No posted body contains `<!-- cdk-review -->`; each starts `**note:**` |
 | one-pass-snapshot | "Address PR 5." (a new comment is posted while the skill runs) | Ignores it | Only the items collected at Identify are processed; no re-fetch, no polling, no review skill invoked, no second pass |
+| every-stop-prints-output | "Address PR 5." (any stop, such as a dirty tree at step 0d) | Prints the Output block, not a bare message | `Result: stopped` and `Stopped: 0: <reason>` in the Output; nothing pushed |
+| unfixed-minor-no-reply | "Address PR 5." (a `[minor]` item, the opt-in answered No) | Lists it, never replies | Listed under `Skipped:` as a minor or nit not fixed; no reply posted to it |
 | severity-block-verbatim | Read `SKILL.md` | Holds the shared severity block | The `## Severity` block and the `Marker` line match the other five files word for word |
 | tool-mcp | "Address PR 9." (GitHub MCP connected; every host op succeeds) | Uses MCP only | `Tool: mcp`; no `gh` command ran |
 | tool-gh-fallback | "Address PR 9." (MCP not connected or its calls error) | Falls back to `gh` | `Tool: gh`; each row's Command ran unchanged; `Tool: mcp+gh` when only some calls fell back |

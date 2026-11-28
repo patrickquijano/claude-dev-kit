@@ -100,7 +100,7 @@ This skill never stages or commits; the `cdk:commit-changes` skill makes every c
 
 ## Ledger
 
-Run before step 8, right after Commit: every identified item must end as exactly one of: fixed `<sha>`, already fixed at `<path:line>`, disputed (reply planned), answer-only (reply planned), needs-clarification (reply planned), nit not fixed (listed), or Open (with the reason). The item count must equal the outcome count; a mismatch → `Result: stopped`, `Stopped: 7: ledger mismatch`, the missing item under `Open:`; no push and no replies.
+Run before step 8, right after Commit: every identified item must end as exactly one of: fixed `<sha>`, already fixed at `<path:line>`, disputed (reply planned), answer-only (reply planned), needs-clarification (reply planned), minor or nit not fixed (listed), or Open (with the reason). The item count must equal the outcome count; a mismatch → `Result: stopped`, `Stopped: 7: ledger mismatch`, the missing item under `Open:`; no push and no replies.
 
 ## Push
 
@@ -110,7 +110,7 @@ No commits → skip. `--dry-run` → print the `pull-rebase`, `push`, `discussio
 
 Write each body to a scratch file. Replies post only after the push succeeded, because a reply names a SHA that must exist on the remote, or, when no commit was made, as `## Commit` says. Every reply starts with `**note:**` and never carries the marker. Fixed replies cite the post-push `log-paths` SHA; `--dry-run` prints the provisional one. Never resolve a discussion: the review skill verifies each reply against the fix and resolves. A 403 on any reply → stop with the fix from `gitlab-mapping.md`.
 
-- Discussions: run `discussion-reply` with the discussion's `id`. Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed one (line gone at the source head) → `Already fixed at <path:line>.` Disputed → `Not changed: <justification, evidence path:line>.` Question → `Answer: <answer>.`, plus `Addressed in <short sha>: <what changed>.` when the answer led to a fix. Needs-clarification → `Question: <one question>`. An unfixed nit gets no reply.
+- Discussions: run `discussion-reply` with the discussion's `id`. Fixed → `Addressed in <short sha>: <what changed>.` An already-fixed one (line gone at the source head) → `Already fixed at <path:line>.` Disputed → `Not changed: <justification, evidence path:line>.` Question → `Answer: <answer>.`, plus `Addressed in <short sha>: <what changed>.` when the answer led to a fix. Needs-clarification → `Question: <one question>`. An unfixed minor or nit gets no reply.
 - Review-body items: one MR summary note starting `**note:** Review feedback summary:` and listing each item and its outcome, run `mr-note`.
 - `--dry-run` → print the reply commands (see `## Push`).
 

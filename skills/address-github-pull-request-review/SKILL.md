@@ -34,6 +34,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
 - Never weaken or delete a test, add a dependency, or change a public interface without asking.
 - Fixes: one `cdk:implement-spec` call per pass carries every fixable item; this skill edits nothing itself and runs no lint, type-check, or test command, because `cdk:implement-spec` verifies and its reported outcome is the verification result (`${CLAUDE_SKILL_DIR}/references/flow.md` `## Outcome`). A verification failure stops the run: no retry, no checks of its own, no reply that a thread is fixed.
 - Loop safety: one pass per invocation. Process only the items collected in step 1; never poll for new comments, re-request review, or invoke a review skill.
+- Every stop prints the Output with `Result: stopped` and `Stopped: <step>: <reason>`, because a caller reads the result from that block.
 - Marker: replies and the summary comment never carry the marker; this skill only reads it (`## Identify` in flow.md).
 - `--dry-run`: commits stay local; print the write commands instead of running them (`## Push`), including the write-gate rows.
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags; a command outside `allowed-tools` prompts for permission. `whoami`, `pr-files`, and `review-threads` run through `gh-get.mjs`, which is granted and read-only (the two GraphQL rows send a fixed query, never a mutation); every write row stays ungranted and prompts.
