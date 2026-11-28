@@ -21,7 +21,7 @@ pass: <observable criteria>
 | --- | --- | --- | --- |
 | create-js-repo | "Set up linters." (JS and Markdown files, `package.json`, no linter config) | Creates ESLint and markdownlint-cli2 and their configs | Plan lists both at resolved versions and their configs; printed before the first write; `Linters:` names them |
 | update-with-diff | "Set up linters." (an `eslint.config.mjs` that differs from the catalog) | Shows a diff and asks Overwrite or Keep | The diff is shown; one question, Keep first; `Configs:` says `kept` or `overwritten` per the answer |
-| rerun-no-duplicates | "Set up linters." (run twice on the same repo) | Second run adds nothing | `Installed: already present`; `Ignores: up to date`; no duplicate config element or ignore entry; `Disabled rules:` adds nothing the second time |
+| rerun-no-duplicates | "Set up linters." (run twice on the same repo) | Second run adds nothing | `Result: nothing-to-do`; `Installed: already present`; `Ignores: up to date`; no duplicate config element or ignore entry; `Disabled rules:` adds nothing the second time |
 | one-formatter | "Set up linters." (JS files and a `.prettierrc.json`) | Adds `eslint-config-prettier/flat` last and runs the conflict check | Plan lists the disable; the element is last in the config array; `npx eslint-config-prettier <file>` runs; `Disabled rules:` names it |
 | several-formatters | "Set up linters." (Python files with `[tool.black]` and `ruff.toml`) | Asks which formatter applies | One question, one option per formatter; only that formatter's entry from `formatter-conflicts.md` is planned |
 | no-formatter | "Set up linters." (JS files, no formatter config) | Disables nothing | No formatter question; `Disabled rules: none`; no `eslint-config-prettier` installed |

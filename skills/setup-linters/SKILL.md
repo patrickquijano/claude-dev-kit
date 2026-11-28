@@ -47,13 +47,13 @@ Input: $ARGUMENTS (strip `--yes` first)
 3. **Formatters present.** Glob the formatter configs (`flow.md` `## Formatters present`). One → load `formatter-conflicts.md` and plan its disables; several → ask which applies; none → disable nothing.
 4. **Choose linters.** One candidate → use it; several → `multiSelect` question (`flow.md` `## Choose tools`).
 5. **Package manager.** Only when an npm tool is installed or checked; run `pm-detect` (`commands.md`), ask on `unknown`, exec forms per `flow.md` `## Package manager`; a missing `package.json` is created at step 7.
-6. **Versions.** Only for tools to install or version-dependent configs; spawn the version resolver; `Unverified` → skip that tool. Unavailable or malformed → resolve inline (`flow.md` `## Spawn briefs`). At its end print the plan and go to step 7 with no wait (`flow.md` `## Plan`).
+6. **Versions.** Only for tools to install or version-dependent configs; spawn the version resolver; `Unverified` → skip that tool. Unavailable or malformed → resolve inline (`flow.md` `## Spawn briefs`). At its end, even when the version spawn is skipped, print the plan and go to step 7 with no wait (`flow.md` `## Plan`).
 7. **Install.** Create a missing `package.json`, then install missing linters only, each at its resolved version (`flow.md` `## Install`); native tools run the command the plan names.
 8. **Configure.** Create each missing config with the catalog's non-default keys plus the conflict disables, each rule listed; an existing config → diff and ask `Overwrite` | `Keep` (`configs.md` `## Config files and defaults`, `## YAML alignment`).
 9. **Ignores.** Append every ignore candidate that exists and is missing, in each tool's syntax (`ignores.md`).
 10. **Check.** Spawn the analyst (check) for the installed and kept linters, then the conflict check for the chosen formatter (`flow.md` `## Check`); report counts and first `Problems` lines; never auto-fix user code.
 11. **Resolve.** One pass, capped, each round printing its items first (`flow.md` `## Resolve`): fix a config this run wrote only when itself invalid; re-run the check once; list leftovers in `Open:`.
-12. **Report.** Print the Output.
+12. **Report.** Print the Output; `Result: nothing-to-do` when steps 7 to 9 installed and wrote nothing.
 
 ## Files
 
