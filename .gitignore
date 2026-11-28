@@ -26,7 +26,11 @@ graphify-out/
 evals/results/
 
 # Release resume state
+.release/
 .release-state.json
+
+# Whole-plugin audit ledger
+.audit/
 
 # Husky generated hooks
 .husky/_/
