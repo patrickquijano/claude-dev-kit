@@ -3,12 +3,12 @@ name: build-github-action
 description: Creates or updates a custom GitHub Action (composite, JavaScript, Docker) with action.yml, test workflow, and README. Use when asked to build or change a reusable action. Not for workflows.
 argument-hint: '[--yes] <request> [target repo path]'
 compatibility: Claude Code only. Uses argument-hint and CLAUDE_SKILL_DIR; claude.ai and API uploads reject unknown frontmatter keys.
-allowed-tools: "Read Glob Grep WebFetch(domain:hub.docker.com) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-action.mjs *) Bash(git ls-remote --tags --refs https://github.com/*) Bash(git ls-remote --tags https://github.com/*) Bash(git ls-remote --tags --refs origin) Bash(command -v *) Bash(npm view *) Bash(docker buildx imagetools inspect *) Bash(actionlint *) Bash(gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/setup-node/contents/action.yml) Bash(gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/runner-images/contents/README.md)"
+allowed-tools: "Read Glob Grep WebFetch(domain:hub.docker.com) Bash(node ${CLAUDE_SKILL_DIR}/scripts/check-action.mjs *) Bash(git ls-remote --tags --refs https://github.com/*) Bash(git ls-remote --tags https://github.com/*) Bash(git ls-remote --tags --refs origin) Bash(git rev-parse --show-toplevel) Bash(command -v *) Bash(npm view *) Bash(docker buildx imagetools inspect *) Bash(actionlint *) Bash(gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/setup-node/contents/action.yml) Bash(gh api -H 'Accept: application/vnd.github.raw+json' repos/actions/runner-images/contents/README.md)"
 ---
 
 # Build GitHub action
 
-Input: $ARGUMENTS (strip `--yes` first). No request → ask what the action does; with `--yes`, `Result: stopped`, `Stopped: 1: no request`.
+Input: $ARGUMENTS (strip `--yes` first). No request → ask what the action does; with `--yes`, `Result: stopped`, `Stopped: 1: no input`.
 
 ## Rules
 
@@ -22,11 +22,10 @@ Input: $ARGUMENTS (strip `--yes` first). No request → ask what the action does
 - Every write in steps 6 and 7 (including fix rounds) goes through ``Invoke the `cdk:implement-spec` skill (fallback: run the implement-spec skill)`` with the Spec brief in `${CLAUDE_SKILL_DIR}/references/briefs.md`, only to the action directory, its test workflow, README, and CHANGELOG. The JavaScript `dist/` rebuild command stays in this skill, because implement-spec's writer has no shell. Print the files (a diff when existing) first and do not wait, because a question that only approves the next step is a gate. Pass `--yes` only when the user passed it. A `Stopped:` whose reason is `needs input`, `no input`, `cannot interact`, or `write outside scope`, or a `Result: cancelled`, becomes `Result: stopped` with the same reason, and a cancel keeps implement-spec's reason, `Stopped: <step>: user cancelled` (no inline write fallback). Any other `Stopped:` is a cap stop: its `Open:` items go to `Open:`, and the run continues to the validate step.
 - Validate → fix loop: at most 3 rounds (one implement-spec call each, with the Fix-round variant), then report what is left under `Open:` with `Result: stopped` and `Stopped: 7: fix cap`.
 - AskUserQuestion unavailable but a user can reply → ask as a numbered inline list and stop for the answer. No user to reply (headless, such as a subagent) and no `--yes` → write nothing, `Result: stopped`, `Stopped: <step>: cannot interact`. Only `--yes` takes the Recommended option.
-- A target repo outside the working directory → `Result: stopped`, `Stopped: 1: target outside working directory`, because `check-action.mjs` refuses such paths.
 
 ## Workflow
 
-1. **Discover.** List existing actions and workflows; find logic the new action would replace (steps repeated 3+ times). Decide local (`.github/actions/<name>/`) vs standalone repo; an existing action → update mode. Grep `.github/workflows/` for `uses:` lines that reference this action; they fill `Callers:`.
+1. **Discover.** Resolve the repo root: the target path argument when given, else `git rev-parse --show-toplevel`; a root outside the working directory → `Result: stopped`, `Stopped: 1: target outside working directory` (`check-action.mjs` refuses such paths); a missing target path or a failed `git rev-parse` → ask for the repo path (`--yes`: `Result: stopped`, `Stopped: 1: no repo root`). List existing actions and workflows; find logic the new action would replace (steps repeated 3+ times). Decide local (`.github/actions/<name>/`) vs standalone repo; an existing action → update mode. Grep `.github/workflows/` for `uses:` lines that reference this action; they fill `Callers:`.
 2. **Ask.** Only blocking choices: type, input/output contract, supported runners, publishing. Record every default taken.
 3. **Pick the type.** Per `${CLAUDE_SKILL_DIR}/references/action-types.md`; state the choice and reason in one line.
 4. **Resolve versions.** Per `${CLAUDE_SKILL_DIR}/references/version-resolution.md`.
@@ -35,7 +34,7 @@ Input: $ARGUMENTS (strip `--yes` first). No request → ask what the action does
 7. **Validate.**
    - Run `node ${CLAUDE_SKILL_DIR}/scripts/check-action.mjs <action dir>` (run, never read) and read its JSON; `yaml: "unverified"` means no yq, python3 with PyYAML, or ruby is installed: list it under `Unverified:`, not as a fix round.
    - When installed: `actionlint` on the test workflow.
-   - JavaScript: the repo's lint and test commands (they go through the normal permission prompt), then its build command once, which is this skill's `dist/` rebuild: first print the build command and the `dist/` paths it rewrites, then run it, and list each changed `dist/` file under `Files:`. A build failure is fixed in `src/` through implement-spec.
+   - JavaScript: the repo's test command (it goes through the normal permission prompt), then its build command once, which is this skill's `dist/` rebuild: first print the build command and the `dist/` paths it rewrites, then run it, and list each changed `dist/` file under `Files:`. A build failure is fixed in `src/` through implement-spec.
    - Docker: `docker build <dir>` (through the normal permission prompt, because a build runs the Dockerfile's commands).
    - Fix each failure through implement-spec and re-run. A skipped tool → `Unverified:`.
 8. **Report.** Print the Output block, including a usage snippet, and for a standalone action the release steps (tag `vX.Y.Z`, then move the major tag `vX`) as plain words; never run them. `Result: nothing-to-do` when no file needed a change (update mode with nothing to change).
