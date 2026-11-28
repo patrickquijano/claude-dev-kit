@@ -21,7 +21,7 @@ Strong Swarm signals: `docker stack` in the input; `swarm-state` prints `active`
   - `ports`: `target`, plus `published` when published, `host_ip` when bound to an interface.
   - `volumes`: `type`, `source`, `target`; `read_only` only when `true`.
   - `secrets` and `configs`: `source`; `target`, `uid`, `gid`, `mode` only when set.
-  - `depends_on`: per service a `condition`, which the long form requires; `required` and `restart` only when non-default.
+  - `depends_on`: per service a `condition`, which the long form requires; `required` and `restart` only when non-default (Compose / DevContainer only; Compose Deploy keeps an existing `depends_on` unchanged per `flow.md` `## Draft`).
   - `env_file`: list items of `path`; `required` only when `false`.
   - `networks`: a mapping per network, `{}` when it has no attributes; `aliases` and similar only when asked.
   - `build`: a mapping with `context`; `dockerfile` and `args` only when stated.
