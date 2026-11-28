@@ -22,6 +22,7 @@ Read the section whose heading starts with `## If go`, up to the next `##` headi
 ## Clarify
 
 - 2 re-runs done → `Result: stopped`, `Stopped: 7: 2 re-runs, blocking questions open`; list the blocking questions in `Open:`, print the Output, stop.
+- `--yes` → ask nothing: `Result: stopped`, `Stopped: 7: blocking questions open`; list the blocking questions in `Open:`, print the Output, stop.
 - Else show `**Blocking questions**` and `**Revisit stage**` from `decision.md`. AskUserQuestion, one question per blocking question, each with a Stop option (free text via Other).
 - Answers → run the third-party `speckit-assess-<revisit stage> slug=<slug> <answers>` (intake also gets the idea from step 2), then every later stage through decide with `slug=<slug>`, then read the verdict as in `## Verdict`.
 - Any Stop → `Result: stopped`, `Stopped: 7: user stopped`; list the unanswered questions in `Open:`, print the Output, end. Never re-ask.
