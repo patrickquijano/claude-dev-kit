@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A `SubagentStop` hook blocks `cdk:plan-implementer` from finishing until its report lists `Proof:` exit codes and none is nonzero (breaking); it lets the agent go on a second stop so it never loops.
+
+### Changed
+
+- `cdk:plan-implementer` can run `node --test` and lint on its own files, lists the test assertions that pin what it edits, and reports `Proof:`, `Pinned:`, and `REQUIRES_REVIEW:` for any weakened assertion (breaking); `/cdk:implement-spec` callers that parse its return must read the new fields.
+- `cdk:change-verifier` flags a diff that adds a write permission, a weakened or skipped assertion, a missing `REQUIRES_REVIEW:`, and a missing or failing `Proof:` exit code.
+
 ## [0.10.0] - 2026-11-24
 
 ### Added
