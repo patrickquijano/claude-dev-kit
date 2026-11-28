@@ -97,6 +97,8 @@ Fix: <proposed fix | none>
 Question: <only when input is missing; omit otherwise>
 ```
 
+Size cap: at most 25 words of prose per entry, never fewer entries, because the caller acts on every listed path, fact, or leftover and a dropped one is never checked.
+
 ## Examples
 
 - Delegate: kind `facts`, "confirm `npm run lint` exists and which file defines it."

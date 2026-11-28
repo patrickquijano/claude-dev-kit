@@ -1,6 +1,6 @@
 ---
 name: repo-analyzer
-description: Collects the repo facts that a devcontainer, .gitignore, README, or project instructions need before writing. Read-only.
+description: Collects the repo facts that a devcontainer, .gitignore, README, or project instructions need before writing. Read-only; not for ad hoc code lookups.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 effort: medium

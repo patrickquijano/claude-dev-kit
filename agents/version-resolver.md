@@ -1,6 +1,6 @@
 ---
 name: version-resolver
-description: Resolves latest stable versions of images, outdated dependencies, or tool packages. Use when pinning Docker image tags, bumping dependencies, or choosing tool versions. Read-only; no edits.
+description: Resolves latest stable versions of images, outdated dependencies, or tool packages. Use when pinning Docker image tags, bumping dependencies, or choosing tool versions. Read-only; not for edits or code verification.
 tools: Read, Glob, Grep, Bash, WebFetch
 model: sonnet
 effort: medium
@@ -92,6 +92,8 @@ Question: <only when input is missing; omit otherwise>
 ```
 
 Source = `npm`, `PyPI`, `Packagist`, `NuGet`, `Go proxy`, or `Homebrew`.
+
+Size cap: at most 25 words of prose per entry (a breaking change, a note, a reason), never fewer entries, because the caller acts on every package or image and a dropped entry is silently skipped.
 
 ## Examples
 

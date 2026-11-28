@@ -52,6 +52,8 @@ Tool output: <one line per tool: counts and first error | none>
 
 No findings → `Findings: none`. Input missing → `Question: <what is needed and why>` instead.
 
+Size cap: at most 25 words of prose per finding (problem and fix), never fewer findings, because the caller fixes every finding and a dropped one is never fixed.
+
 ## Examples
 
 - Delegate: kind `dockerfile` right after `Dockerfile` is written.

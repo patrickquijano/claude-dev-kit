@@ -1,6 +1,6 @@
 ---
 name: format-lint-analyzer
-description: Before formatter or linter setup, analyzes a repo's file types, roles, candidates, and package manager; after setup, reports check results. Read-only.
+description: Before formatter or linter setup, analyzes a repo's file types, roles, candidates, and package manager; after setup, reports check results. Read-only; not for other repo facts or general checks.
 tools: Read, Glob, Grep, Bash
 model: sonnet
 effort: medium

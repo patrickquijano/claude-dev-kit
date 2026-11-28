@@ -67,8 +67,10 @@ Return:
 Score: <n>/100 (pass | below 95)
 | ID | Pts | Max | Evidence |
 Deductions (largest first):
-- <ID> −<n>: <what is wrong> → <concrete fix, file:line when known>
+- <ID> −<n>: <what is wrong> → <exact fix at file:line; evidence; source or unverified>
 Waived: <ID file:line — reason, … | none>
 ```
+
+Callers print only the `file:line` and the fix of each Deductions row in `Open:`; evidence and source stay in the scorer return.
 
 Malformed twice → `Score: n/a`, `Result: stopped`, `Stopped: 13: scorer return malformed`. Subagent unavailable → score inline against `rubric.md` with the same checks.

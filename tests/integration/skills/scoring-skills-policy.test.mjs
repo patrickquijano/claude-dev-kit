@@ -63,7 +63,7 @@ describe('scoring skills share one policy', () => {
         const openLines = {
           'audit-skill': /^Open: <skill check file:line: proposed fix>, … \| none$/m,
           'audit-subagent': /^Open: <subagent check file:line: proposed fix>, … \| none$/m,
-          'build-skill': /^Open: <check ID file:line: fix, … \| none>$/m,
+          'build-skill': /^Open: <source check ID file:line: fix, … \| none>$/m,
           'build-subagent': /^Open: <check ID file:line: fix, … \| none>$/m
         };
         const open = (openLines[skill] ?? /^Open: <ID \(lost pts\) file:line: fix, … \| none>$/m).test(output);
@@ -209,7 +209,7 @@ describe('rubrics waive negligible items', () => {
     assert.deepEqual(kinds, ['skill-checklist', 'subagent-checklist', 'readme', 'project-instructions']);
     assert.match(
       text,
-      /^description: Use when an audit or update skill needs a checklist report scored 1–5 per category, or README\.md or CLAUDE\.md and rules scored against its 100-point rubric, verifying commands, paths, and links\. Read-only\.$/m
+      /^description: Use when an audit or update skill needs a checklist report scored 1–5 per category, or README\.md or CLAUDE\.md and rules scored against its 100-point rubric, verifying commands, paths, and links\. Read-only; not for reviewing a diff\.$/m
     );
     assert.doesNotMatch(text, /^### agent$/m);
     assert.doesNotMatch(text, /^### skill$/m);
