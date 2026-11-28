@@ -16,7 +16,7 @@ Format: file type (keys) — formatters. `—` = no formatter; skip the type. A 
 - SCSS (`scss`) — Prettier.
 - Less (`less`) — Prettier.
 - HTML (`html htm`) — Prettier.
-- Markdown (`md markdown`) — no formatter.
+- Markdown (`md markdown`) — Prettier when no Markdown linter exists, else no formatter.
 - YAML (`yaml yml`) — yamlfmt | Prettier.
 - Dockerfile (`Dockerfile`, `Dockerfile.*` except `*.dockerignore`, `*.dockerfile`) — no formatter.
 - Shell (`sh bash`, and extensionless files whose first line is a `#!` line ending in `sh` or `bash`) — shfmt.

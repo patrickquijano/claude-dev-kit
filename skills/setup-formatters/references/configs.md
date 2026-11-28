@@ -13,7 +13,7 @@ Format: tool — config file — recommended defaults — check command. `<x>` =
 - shfmt — `.editorconfig` — none — `shfmt -d <shell files>`; Bats files in their own run: `shfmt -d -ln bats <Bats files>`.
 - Ruff (format) — `ruff.toml`, or `[tool.ruff]` in `pyproject.toml` — none — `ruff format --check .`.
 - Black — `[tool.black]` in `pyproject.toml` — none — `black --check .`.
-- Pint — `pint.json` — `{ "preset": "laravel" }` — `vendor/bin/pint --test`.
+- Pint — `pint.json` — none — `vendor/bin/pint --test`.
 - PHP-CS-Fixer — `.php-cs-fixer.dist.php` (PHP only) — `(new PhpCsFixer\Config())->setRules(['@PSR12' => true])->setFinder(PhpCsFixer\Finder::create()->in(__DIR__)->exclude('vendor'))` — `vendor/bin/php-cs-fixer fix --dry-run --diff`.
 - CSharpier — `.csharpierrc.json` (CSharpier also reads `.csharpierrc`, `.csharpierrc.yaml`, `.editorconfig`) — `{ "printWidth": 120 }` — `dotnet csharpier check .`.
 - gofmt — no config — `gofmt -l .`.
