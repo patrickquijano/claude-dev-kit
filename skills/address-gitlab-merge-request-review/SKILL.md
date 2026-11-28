@@ -121,7 +121,7 @@ Example:
 ```text
 MR: !5 https://gitlab.example.com/a/b/-/merge_requests/5 (fix/x → main)
 Items: 4 discussions, 0 review-body items, 0 failing jobs
-Severity: 2 critical, 0 minor, 1 nit, 1 question (0 inferred)
+Severity: 2 critical, 0 major, 0 minor, 1 nit, 1 question (0 inferred)
 Fixed: src/a.mjs:12: a1b2c3d, src/b.mjs:8: a1b2c3d
 Replied: 3 posted
 Tool: glab
