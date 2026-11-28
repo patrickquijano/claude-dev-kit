@@ -64,6 +64,7 @@ A behavior eval for a build: the skill asks the name and complexity (create) que
 | scripts-fail-open | "Improve my deploy skill." (report-only audit returns only a `scripts/` Fail) | Runs no fix round for it | No cdk:implement-spec call for the script; no `Extend 3 more rounds` ask; the Fail is listed under `Open:` |
 | scope-asked | "Build a skill that tidies logs." (no scope named) | Asks the scope (user, project, plugin) | One scope question before the spec; no scope guessed |
 | scope-unknown-yes-stops | "Build a skill that tidies logs." (`--yes`, no scope named) | Stops, never guesses | `Result: stopped`, `Stopped: 1: no scope`; nothing written |
+| plugin-dir-unknown-yes-stops | "Build a skill that tidies logs in ./nope-plugin." (`--yes`, the plugin dir is unknown) | Stops, never asks | `Result: stopped`, `Stopped: 1: unknown plugin dir`; no question; nothing written |
 | long-description-rewrite-ask | "Improve my deploy skill." (description plus `when_to_use` is 450 chars) | Shows the before/after rewrite and asks | `Apply` or `Keep` asked before the spec is built |
 | long-description-yes-keeps | "Improve my deploy skill." (`--yes`, description plus `when_to_use` is 450 chars) | Keeps it unchanged | Description unchanged; listed under `Open:` |
 | skills-ref-optional | "Build a skill that tidies logs." (no `skills-ref` on PATH) | Records the skip and continues | `skills-ref: skipped`; no block; `validate-skill` still runs |

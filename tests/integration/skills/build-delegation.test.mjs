@@ -482,12 +482,14 @@ describe('build-skill dependencies, backups, batch, and namespace', () => {
     const text = read('SKILL.md');
     const batch = read(join('references', 'batch.md'));
     // Act
-    const scope = /^- A plugin directory as input → scope is Plugin;/m.test(text);
+    const scope = /^- A plugin directory as input → scope is Plugin; step 1 routes it\./m.test(text);
+    const route = /^ +e\. A plugin directory as input with no new-skill purpose is a batch in improve mode/m.test(text);
     const linked = text.includes('${CLAUDE_SKILL_DIR}/references/batch.md');
     const steps = /one skill at a time; the spec's write scope is that one skill's directory/.test(batch);
     const isolated = /never stops the others, and nothing is fixed across skills/.test(batch);
     // Assert
     assert.ok(scope, 'plugin directory scope rule missing');
+    assert.ok(route, 'step 1 batch routing missing');
     assert.ok(linked, 'batch.md not linked');
     assert.ok(steps && isolated, 'batch rules missing');
   });

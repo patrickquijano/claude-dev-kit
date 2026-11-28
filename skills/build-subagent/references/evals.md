@@ -27,6 +27,7 @@ pass: <observable criteria, one per line>
 | route-several | "Build a subagent that reviews code and also writes the tests and updates the changelog." (hybrid: routing, then Several-jobs behavior) | Several jobs | Asks Split \| Narrow \| Skill \| Stop with each job's evidence; builds no multi-job agent |
 | route-not-subagent | "Build a skill that lints Markdown files." | Does not trigger; build-skill handles it | `build-subagent` is not loaded; no interview batch is asked |
 | grill-close-call | A decision question whose top two totals are ≤5 apart | Table before the question; no Recommended | Table before the question; integer weights sum to 100; no Recommended; "close call" stated; unverified scores marked |
+| name-close-call-yes-stops | "Build a subagent that lists TODOs." (`--yes`; the top two Name totals are ≤5 apart) | Stops, never picks | `Result: stopped`, `Stopped: <step>: close call`; no question; nothing written |
 
 ## Behavior cases
 

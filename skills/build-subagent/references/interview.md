@@ -108,7 +108,7 @@ Propose the name as a weighted question. Always in create (the user's name is a 
 | Short to @-mention                                                               | 10     |
 
 - Score each candidate 1–5 per criterion on the `grill.md` anchors, with evidence (`file:line`, a sibling name, a user quote, or a bundled fact); no evidence → mark it "unverified". The criteria above are the default criteria, weights fixed integers summing to 100. Total = Σ(weight × score) / 5; Recommended only on the highest total.
-- Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either). Close call (top two ≤5 apart) → no Recommended, say "close call", and the user picks; run the `grill.md` sensitivity check.
+- Unbiased: same criteria and evidence for every candidate; never raise a score for its source (the user's name gets no bonus, the skill's own pick none either). Close call (top two ≤5 apart) → no Recommended, say "close call", and the user picks; run the `grill.md` sensitivity check. `--yes` has no one to pick → `Result: stopped`, `Stopped: <step>: close call`, nothing written.
 - One question after the printed score table: the Recommended name first (none on a close call; options then alphabetical) with the option descriptions per `grill.md` and both top totals; each option's `preview` holds its breakdown (criterion, weight, score, evidence). Other → hard-rule check, scored the same way, shown once more. Record the name and its total.
 
 ## Model and effort
