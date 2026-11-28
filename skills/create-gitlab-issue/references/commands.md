@@ -15,7 +15,7 @@
 | `label-list` | `mcp__plugin_gitlab_gitlab__search_labels` (`full_path`, `is_project`) | `glab label list -R <url> -F json -P 100` | The project's own label set |
 | `work-item-types` | `mcp__plugin_gitlab_gitlab__get_work_item_types` | — | Valid types; no route → `Issue` |
 | `label-create` | — | `glab label create -R <url> -n '<label>'` | Write, asked: create a missing label (`glab` only) |
-| `create` | `mcp__plugin_gitlab_gitlab__save_work_item` (no `work_item_iid`; `type_name`, `title`, `description`, `labels`) | `glab issue create -R <url> -t '<title>' --description-file <file> [-l '<label>']... -y` | Write: open the issue |
-| `update` | `mcp__plugin_gitlab_gitlab__save_work_item` (with `work_item_iid`; `add_labels`, `remove_labels`) | `glab issue update <iid> -R <url> -t '<title>' --description-file <file> [-l '<label>']... [-u '<label>']...` | Write: replace title and description, change labels |
+| `create` | `mcp__plugin_gitlab_gitlab__save_work_item` (no `work_item_iid`; `type_name`, `title`, `description`, `labels`) | `glab issue create -R <url> -t '<title>' --description-file <file> [-l '<label>']... -y` | Write: open the issue; always type `Issue`, a requested other type goes under `Open:` |
+| `update` | `mcp__plugin_gitlab_gitlab__save_work_item` (with `work_item_iid`; `add_labels`, `remove_labels`) | `glab issue update <iid> -R <url> -t '<title>' --description-file <file> [-l '<label>']... [-u '<label>']...` | Write: replace title and description, change labels; the type is unchanged, a requested type change goes under `Open:` |
 
 Step 1 records, per operation, whether it runs on MCP or `glab`. `Tool:` reports `mcp`, `glab`, or `mcp+glab:<ops on glab>`.

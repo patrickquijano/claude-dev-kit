@@ -32,6 +32,7 @@ pass: <observable criteria>
 | github-remote-stops | "Open an issue." (`origin` is `github.com`) | Stops | `Stopped: 1: no GitLab remote`; no write |
 | mcp-host-mismatch-uses-glab | "Open an issue." (MCP `web_url` host differs from `origin`, `glab` authed) | Uses `glab` | `Tool: glab`; description passed with `--description-file`, never inline |
 | mcp-only-label-create-on-glab | "Open a bug issue." (MCP connected, `bug` label missing, user picks Create) | Creates the label with `glab` | `Tool: mcp+glab:label-create` |
+| glab-other-type-open | "Open a task for the login fix." (no MCP, `glab` auth ok; the user asks for type Task) | Creates an `Issue`, never a Task | The `glab` create runs; `Type: Issue`; the requested Task type is listed under `Open:` |
 | cannot-interact | "Open an issue: login fails on Safari." (no one to reply, no `--yes`, a field needs an answer) | Stops at the first question | `Result: stopped`; `Stopped: <step>: cannot interact`; no write |
 | neither-tool-stops | "Open an issue." (no MCP, no `glab` auth) | Stops before any write | `Result: stopped`; `Stopped: 1: no GitLab MCP and no glab auth` |
 | auto-invoke | A natural request to file a GitLab issue, no `/cdk:` command | Claude loads the skill on its own | The skill runs; the issue is created or updated after the decision questions |
