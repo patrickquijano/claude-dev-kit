@@ -39,9 +39,9 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Pre-flight.** Context Repo root → repo root; run every later step from it. `<none>` (not a git repo) → use the current directory, skip the git hooks in step 4 and creating `.gitignore` in step 7 (step 7 still adds to an existing one); the `.prettierignore` and other line-based ignore entries still apply. Then print the plan per `${CLAUDE_SKILL_DIR}/references/plan.md` `## Plan`.
 2. **CLI.** Install `graphifyy` unless `has-graphify` succeeds; record `version`. Flow and failures: `${CLAUDE_SKILL_DIR}/references/details.md`.
-3. **Skill.** Run `state` once (the run for the plan is only a pre-check); steps 4-9 read this JSON. `skill` is `project` or `user` → skip. Else run `install-skill` (also does the Claude half of step 4).
+3. **Skill.** Run `state` once (the run for the plan is only a pre-check); steps 4-9 read this JSON. `skill` is `project` or `user` → skip. Else run `install-skill` (also does the Claude half of step 4: re-run `state` after it so step 4 reads the new `claudeHooks`).
 4. **Hooks.**
-   - Claude: `claudeHooks` is `true` → skip. Else run `install-claude-hooks` (adds the `## graphify` section to `CLAUDE.md` and the PreToolUse hooks).
+   - Claude: `claudeHooks` is `true` (re-read after `install-skill`) → skip. Else run `install-claude-hooks` (adds the `## graphify` section to `CLAUDE.md` and the PreToolUse hooks).
    - Git: `hook-status` reports post-commit, post-checkout, and the merge driver installed → skip. Else run `install-git-hooks` (also adds `graphify-out/graph.json merge=graphify` to `.gitattributes`).
 5. **Graph.** `graph.present` is `true` → skip. Say docs and images spend session tokens (code is parsed free), then invoke the third-party `graphify` skill (installed by the graphify tool in step 3, not part of this plugin) via the Skill tool with `.`; a large repo makes it ask which folder to scan, let it. Skill unavailable → tell the user to run the third-party `/graphify .` after a restart; report the graph as pending.
 6. **Names.** Graph pending or `placeholders` is `0` → skip. Else run `label-missing` once and report how many remain. Detail: `${CLAUDE_SKILL_DIR}/references/details.md`.
