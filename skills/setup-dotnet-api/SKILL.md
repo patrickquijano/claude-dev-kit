@@ -85,7 +85,7 @@ Example:
 Mode: scaffold
 Versions: .NET SDK <version> (releases index), Scalar.AspNetCore <version> (NuGet)
 Choices: SQL: PostgreSQL (9), API style: controllers plus JsonApiDotNetCore (8)
-Written: Api.slnx, global.json, src/Api/Program.cs, src/Api/Api.csproj
+Written: Api.slnx, global.json, Directory.Build.props, src/Presentation/WebApi/Presentation.WebApi.csproj
 Verify: dotnet build -warnaserror: pass, dotnet test: pass, dotnet format --verify-no-changes: pass
 Red flags: D8: leave `/` unmapped (applied)
 Research: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/overview
