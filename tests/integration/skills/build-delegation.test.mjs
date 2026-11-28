@@ -367,7 +367,7 @@ describe('build-skill invocation flags and eval rows', () => {
     const evals = read(join('references', 'evals.md'));
     // Act
     const row =
-      /^\| no-invocation-question \|.*No invocation question; no `disable-model-invocation` or `user-invocable` in the built skill; no `Invocation:` line in the report; the description ends with "Use only when the user explicitly asks to push tags\." \|$/m.test(
+      /^\| no-invocation-question \|.*No invocation question; no `disable-model-invocation` or `user-invocable` in the built skill; no `Invocation:` line in the report; the description has "Use only when the user explicitly asks to push tags\." immediately before its final "Not for \.\.\." sentence \|$/m.test(
         evals
       );
     // Assert
@@ -426,7 +426,7 @@ describe('build-skill reference rules and briefs', () => {
     // Assert
     assert.match(
       templateLine,
-      /side effects that must never auto-load → end: Use only when the user explicitly asks to <action>\./
+      /side effects that must never auto-load → add Use only when the user explicitly asks to <action>\. just before Not for/
     );
     assert.match(
       rulesLine,
