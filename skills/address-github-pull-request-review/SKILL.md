@@ -59,7 +59,7 @@ Marker (review and address skills only): `<!-- cdk-review -->`
    - 2b. Classify an unlabeled or legacy-labeled item by the severity criteria, marked inferred; ambiguous → ask (`--yes`: non-gating, no fix, listed under `Open:`).
    - 2c. Mark critical and major items fixable unless disputed, already-fixed, or needs-clarification (an untrusted author is always needs-clarification); mark a question fixable only when its answer reveals a needed fix.
    - 2d. Minor or nit items exist → ask `Fix minors and nits too? No | Yes`; `--yes` is No.
-   - 2e. Mark disputed, already-fixed, needs-clarification, answer-only, and unfixed minor and nit items reply-only or listed (step 9).
+   - 2e. Mark disputed, already-fixed, needs-clarification, and answer-only items reply-only; list an unfixed minor or nit under `Skipped:` with no reply, because a reply to every unfixed minor adds thread noise (a disputed one still gets its `Not changed:` reply).
 3. **Spec.** No fixable item → skip 3a–3c and still print the triage-and-replies plan (3d). `## Spec`.
    - 3a. Fetch the changed files.
    - 3b. Write the fix spec: one goal per fixable item, a fixed approach, and one write scope line.
