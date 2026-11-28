@@ -2,13 +2,16 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import {
   autoCompactLimit,
+  effortColor,
   formatTimeLeft,
   formatTokens,
   gitBranch,
+  gitDirty,
+  gradientColor,
+  modelColor,
   paint,
   render,
-  tokenColor,
-  usageColor
+  tokenColor
 } from '../../../../../skills/update-statusline/assets/statusline.mjs';
 
 const ESC = String.fromCharCode(27);
@@ -28,8 +31,8 @@ const INPUT = { cwd: '/work/app', model: { display_name: 'Model' } };
 const NOW = 1_000;
 const PLAIN = { NO_COLOR: '1' };
 
-const renderWith = (name, input = INPUT, env = {}, limit = () => null) =>
-  render(input, { nowSeconds: NOW, branch: () => name, env, limit });
+const renderWith = (name, input = INPUT, env = {}, limit = () => null, dirty = () => false) =>
+  render(input, { nowSeconds: NOW, branch: () => name, dirty, env, limit });
 
 describe('paint', () => {
   test('wraps text in the styles and a reset', () => {
@@ -74,13 +77,35 @@ describe('render branch segment', () => {
     assert.ok(line.includes(`${BOLD}${BRANCH}feat/x${RESET}`));
   });
 
-  test('keeps the git( and ) wrapper in its own color', () => {
+  test('keeps the git:( and ) wrapper in its own color', () => {
     // Act
     const line = renderWith('main');
 
     // Assert
-    assert.ok(line.includes(`${MAGENTA}git(${RESET}`));
+    assert.ok(line.includes(`${MAGENTA}git:(${RESET}`));
     assert.ok(line.includes(`${MAGENTA})${RESET}`));
+  });
+
+  test('marks a dirty working tree with a yellow cross after the wrapper', () => {
+    // Act
+    const line = renderWith(
+      'main',
+      INPUT,
+      {},
+      () => null,
+      () => true
+    );
+
+    // Assert
+    assert.ok(line.includes(`${MAGENTA})${RESET} ${YELLOW}✗${RESET}`));
+  });
+
+  test('prints no cross for a clean working tree', () => {
+    // Act
+    const line = renderWith('main', INPUT, PLAIN);
+
+    // Assert
+    assert.equal(line.includes('✗'), false);
   });
 
   test('prints no escapes when NO_COLOR is set', () => {
@@ -89,7 +114,7 @@ describe('render branch segment', () => {
 
     // Assert
     assert.equal(line.includes(ESC), false);
-    assert.ok(line.includes('git(main)'));
+    assert.ok(line.includes('git:(main)'));
   });
 
   test('omits the branch segment without a branch', () => {
@@ -97,7 +122,7 @@ describe('render branch segment', () => {
     const line = renderWith(null);
 
     // Assert
-    assert.equal(line.includes('git('), false);
+    assert.equal(line.includes('git:('), false);
   });
 
   test('leaves the other segments unchanged', () => {
@@ -127,12 +152,12 @@ describe('formatTokens', () => {
     assert.deepEqual(texts, ['1.23k', '12.3k', '123k']);
   });
 
-  test('prints millions with two or one decimals', () => {
+  test('prints millions with two or one decimals and trims trailing zeros', () => {
     // Act
     const texts = [formatTokens(1_234_567), formatTokens(12_345_678)];
 
     // Assert
-    assert.deepEqual(texts, ['1.23m', '12.3m']);
+    assert.deepEqual(texts, ['1.23M', '12.3M']);
   });
 
   test('chooses the tier on the rounded value', () => {
@@ -140,7 +165,7 @@ describe('formatTokens', () => {
     const texts = [formatTokens(9_999), formatTokens(999_999)];
 
     // Assert
-    assert.deepEqual(texts, ['10.0k', '1.00m']);
+    assert.deepEqual(texts, ['10.0k', '1M']);
   });
 
   test('rounds fractional counts below a thousand', () => {
@@ -170,55 +195,107 @@ describe('tokenColor', () => {
   });
 });
 
-describe('usageColor', () => {
-  test('maps each tier to its color', () => {
+describe('gradientColor', () => {
+  test('returns the green and red end stops at 0 and 100', () => {
     // Act
-    const colors = [usageColor(0), usageColor(35), usageColor(70)];
+    const colors = [gradientColor(0), gradientColor(100)];
 
     // Assert
-    assert.deepEqual(colors, [GREEN, YELLOW, RED]);
+    assert.deepEqual(colors, [`${ESC}[38;2;64;192;87m`, `${ESC}[38;2;225;70;60m`]);
   });
 
-  test('keeps a tier just under its boundary', () => {
+  test('returns the yellow and orange stops at a third and two thirds', () => {
     // Act
-    const colors = [usageColor(34.9), usageColor(69.9), usageColor(100)];
+    const colors = [gradientColor(100 / 3), gradientColor(200 / 3)];
 
     // Assert
-    assert.deepEqual(colors, [GREEN, YELLOW, RED]);
+    assert.deepEqual(colors, [`${ESC}[38;2;232;190;40m`, `${ESC}[38;2;240;130;40m`]);
+  });
+
+  test('blends between two stops', () => {
+    // Act
+    const color = gradientColor(100 / 6);
+
+    // Assert
+    assert.equal(color, `${ESC}[38;2;148;191;64m`);
+  });
+
+  test('clamps values outside 0..100', () => {
+    // Act
+    const colors = [gradientColor(-20), gradientColor(250)];
+
+    // Assert
+    assert.deepEqual(colors, [gradientColor(0), gradientColor(100)]);
+  });
+});
+
+describe('modelColor', () => {
+  test('maps each known family to its color regardless of case', () => {
+    // Act
+    const colors = [modelColor('Opus 5.5'), modelColor('claude-SONNET'), modelColor('Haiku')];
+
+    // Assert
+    assert.deepEqual(colors, [`${ESC}[38;2;167;139;250m`, `${ESC}[38;2;96;165;250m`, `${ESC}[38;2;45;212;191m`]);
+  });
+
+  test('keeps an unknown family blue', () => {
+    // Act
+    const colors = [modelColor('Model'), modelColor('')];
+
+    // Assert
+    assert.deepEqual(colors, [BLUE, BLUE]);
+  });
+});
+
+describe('effortColor', () => {
+  test('maps each known level to a distinct gradient color', () => {
+    // Act
+    const colors = ['low', 'medium', 'high', 'xhigh', 'max'].map(effortColor);
+
+    // Assert
+    assert.deepEqual(colors, [0, 25, 50, 75, 100].map(gradientColor));
+  });
+
+  test('falls back to dim for an unknown level, including inherited property names', () => {
+    // Act
+    const colors = [effortColor('turbo'), effortColor('toString')];
+
+    // Assert
+    assert.deepEqual(colors, [`${ESC}[2m`, `${ESC}[2m`]);
   });
 });
 
 describe('formatTimeLeft', () => {
-  test('prints minutes only under an hour, rounding partial minutes up', () => {
+  test('prints minutes only under an hour, flooring partial minutes', () => {
     // Act
-    const texts = [formatTimeLeft(30, false), formatTimeLeft(61, false), formatTimeLeft(3_600, false)];
+    const texts = [formatTimeLeft(59, false), formatTimeLeft(61, false), formatTimeLeft(3_599, false)];
 
     // Assert
-    assert.deepEqual(texts, ['1m', '2m', '60m']);
+    assert.deepEqual(texts, ['0m left', '1m left', '59m left']);
   });
 
-  test('prints hours and minutes over an hour', () => {
+  test('prints hours and minutes from an hour', () => {
     // Act
-    const text = formatTimeLeft(3_660, false);
+    const texts = [formatTimeLeft(3_600, false), formatTimeLeft(3_660, false)];
 
     // Assert
-    assert.equal(text, '1h 1m');
+    assert.deepEqual(texts, ['1h 0m left', '1h 1m left']);
   });
 
-  test('prints days only when allowed and more than a day remains', () => {
+  test('prints days only when allowed and at least a day remains', () => {
     // Act
-    const texts = [formatTimeLeft(90_060, true), formatTimeLeft(90_060, false), formatTimeLeft(86_400, true)];
+    const texts = [formatTimeLeft(90_060, true), formatTimeLeft(90_060, false), formatTimeLeft(86_399, true)];
 
     // Assert
-    assert.deepEqual(texts, ['1d 1h 1m', '25h 1m', '24h 0m']);
+    assert.deepEqual(texts, ['1d 1h 1m left', '25h 1m left', '23h 59m left']);
   });
 
-  test('never prints under one minute', () => {
+  test('clamps a negative or zero time to zero minutes', () => {
     // Act
     const texts = [formatTimeLeft(0, false), formatTimeLeft(-50, true)];
 
     // Assert
-    assert.deepEqual(texts, ['1m', '1m']);
+    assert.deepEqual(texts, ['0m left', '0m left']);
   });
 });
 
@@ -310,6 +387,73 @@ describe('gitBranch', () => {
 
     // Act
     const act = () => gitBranch('/work/app', run);
+
+    // Assert
+    assert.throws(act, { code: 'EACCES' });
+  });
+});
+
+describe('gitDirty', () => {
+  test('returns true when git status lists changes', () => {
+    // Arrange
+    const run = () => ' M file.txt\n';
+
+    // Act
+    const dirty = gitDirty('/work/app', run);
+
+    // Assert
+    assert.equal(dirty, true);
+  });
+
+  test('returns false for a clean tree', () => {
+    // Arrange
+    const run = () => '\n';
+
+    // Act
+    const dirty = gitDirty('/work/app', run);
+
+    // Assert
+    assert.equal(dirty, false);
+  });
+
+  test('returns false without a directory', () => {
+    // Arrange
+    const run = () => {
+      throw new Error('must not run');
+    };
+
+    // Act
+    const dirty = gitDirty(undefined, run);
+
+    // Assert
+    assert.equal(dirty, false);
+  });
+
+  test('returns false when git is missing, times out, or exits non-zero', () => {
+    // Arrange
+    const failing = (error) => () => {
+      throw Object.assign(new Error('git failed'), error);
+    };
+
+    // Act
+    const results = [
+      gitDirty('/work/app', failing({ code: 'ENOENT' })),
+      gitDirty('/work/app', failing({ code: 'ETIMEDOUT' })),
+      gitDirty('/work/app', failing({ status: 128 }))
+    ];
+
+    // Assert
+    assert.deepEqual(results, [false, false, false]);
+  });
+
+  test('rethrows an unexpected error', () => {
+    // Arrange
+    const run = () => {
+      throw Object.assign(new Error('denied'), { code: 'EACCES' });
+    };
+
+    // Act
+    const act = () => gitDirty('/work/app', run);
 
     // Assert
     assert.throws(act, { code: 'EACCES' });
@@ -452,22 +596,31 @@ describe('render', () => {
     const line = renderWith(null, input, PLAIN, () => 200_000);
 
     // Assert
-    assert.equal(line, '120k / 1.00m (12%) / 200k (60%)');
+    assert.equal(line, '120k / 1M (12%) / 200k (60%)');
   });
 
-  test('colors the auto-compact percentage by how close the context is to it', () => {
+  test('colors the auto-compact percentage with the gradient at its own percentage', () => {
     // Arrange
     const at = (tokens) => ({ context_window: { total_input_tokens: tokens, context_window_size: 1_000_000 } });
 
     // Act
-    const green = renderWith(null, at(20_000), {}, () => 200_000);
-    const yellow = renderWith(null, at(100_000), {}, () => 200_000);
-    const red = renderWith(null, at(180_000), {}, () => 200_000);
+    const low = renderWith(null, at(20_000), {}, () => 200_000);
+    const high = renderWith(null, at(180_000), {}, () => 200_000);
 
     // Assert
-    assert.ok(green.endsWith(`${BOLD}${GREEN}200k (10%)${RESET}`));
-    assert.ok(yellow.endsWith(`${BOLD}${YELLOW}200k (50%)${RESET}`));
-    assert.ok(red.endsWith(`${BOLD}${RED}200k (90%)${RESET}`));
+    assert.ok(low.endsWith(`${BOLD}${gradientColor(10)}200k (10%)${RESET}`));
+    assert.ok(high.endsWith(`${BOLD}${gradientColor(90)}200k (90%)${RESET}`));
+  });
+
+  test('colors the context part with the gradient at the context percentage', () => {
+    // Arrange
+    const input = { context_window: { total_input_tokens: 500_000, context_window_size: 1_000_000 } };
+
+    // Act
+    const line = renderWith(null, input);
+
+    // Assert
+    assert.equal(line, `${BOLD}${gradientColor(50)}500k / 1M (50%)${RESET}`);
   });
 
   test('omits the auto-compact part when the limit is unavailable', () => {
@@ -516,7 +669,46 @@ describe('render', () => {
     const line = renderWith(null, input, PLAIN);
 
     // Assert
-    assert.equal(line, '5h 50% 1h 1m');
+    assert.equal(line, '5h - 50% - 1h 1m left');
+  });
+
+  test('prints both rate-limit windows separated by a bar', () => {
+    // Arrange
+    const input = {
+      rate_limits: {
+        five_hour: { used_percentage: 10, resets_at: NOW + 600 },
+        seven_day: { used_percentage: 20, resets_at: NOW + 90_000 }
+      }
+    };
+
+    // Act
+    const line = renderWith(null, input, PLAIN);
+
+    // Assert
+    assert.equal(line, '5h - 10% - 10m left │ 7d - 20% - 1d 1h 0m left');
+  });
+
+  test('colors the time left by the share of the window that remains', () => {
+    // Arrange
+    const input = { rate_limits: { five_hour: { used_percentage: 50, resets_at: NOW + 9_000 } } };
+
+    // Act
+    const line = renderWith(null, input);
+
+    // Assert
+    assert.ok(line.includes(`${BOLD}${gradientColor(50)}50%${RESET}`));
+    assert.ok(line.includes(`${gradientColor(50)}2h 30m left${RESET}`));
+  });
+
+  test('colors the model by family and the effort by level', () => {
+    // Arrange
+    const input = { model: { display_name: 'Opus 5.5' }, effort: { level: 'max' } };
+
+    // Act
+    const line = renderWith(null, input);
+
+    // Assert
+    assert.equal(line, `${BOLD}${modelColor('Opus 5.5')}Opus 5.5${RESET} ${gradientColor(100)}max${RESET}`);
   });
 
   test('drops a rate-limit window past its reset', () => {
@@ -577,7 +769,7 @@ describe('render', () => {
 
     // Assert
     assert.equal(line.includes(ESC), false);
-    assert.ok(line.includes('git(main)'));
+    assert.ok(line.includes('git:(main)'));
     assert.ok(line.includes('Mo[2Jdel'));
   });
 

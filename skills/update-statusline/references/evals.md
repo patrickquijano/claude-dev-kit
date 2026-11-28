@@ -25,7 +25,7 @@ pass: <observable criteria, one per line>
 | yes-close-call | "Update the status line --yes." (a color question whose top two totals are 5 or fewer apart) | No question; first-listed option taken | Table printed; no question asked; the first-listed option is applied; the close call is noted under `Open:` |
 | no-node | "Update the status line." (Node version is `<none>`) | Stops at pre-flight | `Result: stopped`, `Stopped: 1:` with "install Node.js"; no backup or write |
 | not-command-type | "Update the status line." (`statusLine` is not `type: command`) | Stops and reports | `Result: stopped`, `Stopped: 2:`; nothing written |
-| no-branch-seg | "Update the status line." (script has no `git(<name>)` styled call) | Stops without guessing another segment | `Result: stopped`, `Stopped: 3:`; no other segment edited; no write |
+| no-branch-seg | "Update the status line." (script has no `git:(<name>)` styled call) | Stops without guessing another segment | `Result: stopped`, `Stopped: 3:`; no other segment edited; no write |
 | cannot-interact | "Update the status line." (no way to ask, no `--yes`) | Writes nothing | `Result: stopped`, `Stopped: 4: cannot interact`; no backup or write |
 | smoke-fix-loop | "Update the status line." (smoke test fails after the write) | At most 3 fix rounds | Each round applies its fix directly; leftovers under `Open:`; backup path reported |
 | no-approval-step | "Make my branch name stand out in the status line." (script exists) | Runs end to end; every write follows the last decision answer directly | Only the color question is asked; the backup and write run right after it with no confirm question; `Result: done` |

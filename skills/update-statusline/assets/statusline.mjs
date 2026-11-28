@@ -2,7 +2,7 @@
  * Claude Code status line.
  *
  * Reads the session JSON from stdin and prints one line:
- *   dir | branch | tokens / window (ctx%) / auto-compact (compact%) | model | effort | 5h % | 5h reset | 7d % | 7d reset
+ *   dir │ git:(branch) ✗ │ tokens / window (ctx%) / auto-compact (compact%) │ model effort │ 5h - pct - time left │ 7d - pct - time left
  * Segments whose data is unavailable are omitted.
  */
 import { execFileSync } from 'node:child_process';
@@ -24,8 +24,9 @@ const COLOR = {
   reset: '\x1b[0m'
 };
 
-const MINUTES_PER_HOUR = 60;
-const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+const SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
 const MIN_COMPACT_WINDOW = 100_000;
 
 /**
@@ -85,7 +86,7 @@ function clean(value) {
 }
 
 /**
- * Formats a token count: 999, 1.23k, 12.3k, 123k, 1.23m, 12.3m.
+ * Formats a token count: 999, 1.23k, 12.3k, 123k, 1M, 1.23M, 12.3M.
  * Each tier is chosen on the rounded value so 9_999 renders as 10.0k, not 10.00k.
  *
  * @param {number} tokens
@@ -109,11 +110,9 @@ export function formatTokens(tokens) {
   }
 
   const millions = count / 1_000_000;
-  if (Number(millions.toFixed(2)) < 10) {
-    return `${millions.toFixed(2)}m`;
-  }
+  const digits = Number(millions.toFixed(2)) < 10 ? 2 : 1;
 
-  return `${millions.toFixed(1)}m`;
+  return `${Number(millions.toFixed(digits))}M`;
 }
 
 /**
@@ -134,48 +133,101 @@ export function tokenColor(tokens) {
   return COLOR.red;
 }
 
+const GRADIENT_STOPS = [
+  [64, 192, 87], // green
+  [232, 190, 40], // yellow
+  [240, 130, 40], // orange
+  [225, 70, 60] // red
+];
+
 /**
+ * Smooth green -> yellow -> orange -> red truecolor escape for 0..100 (input is clamped).
+ *
  * @param {number} percentage
  * @returns {string}
  */
-export function usageColor(percentage) {
-  if (percentage < 35) {
-    return COLOR.green;
-  }
-  if (percentage < 70) {
-    return COLOR.yellow;
+export function gradientColor(percentage) {
+  const clamped = Math.min(100, Math.max(0, percentage));
+  const position = (clamped / 100) * (GRADIENT_STOPS.length - 1);
+  const index = Math.min(Math.floor(position), GRADIENT_STOPS.length - 2);
+  const fraction = position - index;
+  const [r, g, b] = GRADIENT_STOPS[index].map((from, channel) =>
+    Math.round(from + (GRADIENT_STOPS[index + 1][channel] - from) * fraction)
+  );
+
+  return `\x1b[38;2;${r};${g};${b}m`;
+}
+
+const MODEL_FAMILY_RGB = {
+  opus: [167, 139, 250], // violet
+  sonnet: [96, 165, 250], // blue
+  haiku: [45, 212, 191] // teal
+};
+
+const EFFORT_GRADIENT_PERCENTAGE = {
+  low: 0,
+  medium: 25,
+  high: 50,
+  xhigh: 75,
+  max: 100
+};
+
+/**
+ * Truecolor escape for the model family in the display name; unknown families stay blue.
+ *
+ * @param {string} displayName
+ * @returns {string}
+ */
+export function modelColor(displayName) {
+  const name = String(displayName).toLowerCase();
+  const family = Object.keys(MODEL_FAMILY_RGB).find((candidate) => name.includes(candidate));
+  if (!family) {
+    return COLOR.blue;
   }
 
-  return COLOR.red;
+  return `\x1b[38;2;${MODEL_FAMILY_RGB[family].join(';')}m`;
 }
 
 /**
- * Formats time left until a reset as "Xd Yh Zm", "Yh Zm" or "Zm".
- * Days are only used when `allowDays` is set and more than a day remains.
- * Partial minutes round up so the countdown never shows 0m before the reset.
+ * Gradient color for a known effort level; unknown levels fall back to dim.
+ *
+ * @param {string} level
+ * @returns {string}
+ */
+export function effortColor(level) {
+  if (!Object.hasOwn(EFFORT_GRADIENT_PERCENTAGE, level)) {
+    return COLOR.dim;
+  }
+
+  return gradientColor(EFFORT_GRADIENT_PERCENTAGE[level]);
+}
+
+/**
+ * Formats time left until a reset, floored to whole minutes, as "{d}d {h}h {m}m left",
+ * "{h}h {m}m left" or "{m}m left", with no padding. Days are only used when `allowDays` is set
+ * and at least a day remains.
  *
  * @param {number} secondsLeft
  * @param {boolean} allowDays
  * @returns {string}
  */
 export function formatTimeLeft(secondsLeft, allowDays) {
-  const totalMinutes = Math.max(1, Math.ceil(secondsLeft / 60));
+  const total = Math.max(0, Math.floor(secondsLeft));
+  const minutes = Math.floor((total % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
 
-  if (allowDays && totalMinutes > MINUTES_PER_DAY) {
-    const days = Math.floor(totalMinutes / MINUTES_PER_DAY);
-    const hours = Math.floor((totalMinutes % MINUTES_PER_DAY) / MINUTES_PER_HOUR);
-    const minutes = totalMinutes % MINUTES_PER_HOUR;
+  if (allowDays && total >= SECONDS_PER_DAY) {
+    const days = Math.floor(total / SECONDS_PER_DAY);
+    const hours = Math.floor((total % SECONDS_PER_DAY) / SECONDS_PER_HOUR);
 
-    return `${days}d ${hours}h ${minutes}m`;
+    return `${days}d ${hours}h ${minutes}m left`;
   }
-  if (totalMinutes > MINUTES_PER_HOUR) {
-    const hours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
-    const minutes = totalMinutes % MINUTES_PER_HOUR;
+  if (total >= SECONDS_PER_HOUR) {
+    const hours = Math.floor(total / SECONDS_PER_HOUR);
 
-    return `${hours}h ${minutes}m`;
+    return `${hours}h ${minutes}m left`;
   }
 
-  return `${totalMinutes}m`;
+  return `${minutes}m left`;
 }
 
 /**
@@ -221,6 +273,35 @@ export function gitBranch(directory, run = execFileSync) {
     }
 
     return null;
+  }
+}
+
+/**
+ * True when the working tree has uncommitted changes; a missing git or a timeout means "clean".
+ *
+ * @param {string | undefined} directory
+ * @param {typeof execFileSync} [run]
+ * @returns {boolean}
+ */
+export function gitDirty(directory, run = execFileSync) {
+  if (!directory) {
+    return false;
+  }
+
+  try {
+    return (
+      run('git', ['-C', directory, '--no-optional-locks', 'status', '--porcelain'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 1_000
+      }).trim() !== ''
+    );
+  } catch (error) {
+    if (!isGitUnavailable(error)) {
+      throw error;
+    }
+
+    return false;
   }
 }
 
@@ -304,30 +385,33 @@ export function autoCompactLimit(windowSize, env = process.env, run = readFileSy
  * @param {string} label
  * @param {boolean} allowDays
  * @param {number} nowSeconds
+ * @param {number} windowSeconds
  * @param {(text: string, ...styles: string[]) => string} color
  * @returns {string[]}
  */
-function rateLimitSegments(window, label, allowDays, nowSeconds, color) {
-  const segments = [];
+function rateLimitSegments(window, label, allowDays, nowSeconds, windowSeconds, color) {
+  const parts = [];
 
   // A window past its reset carries a stale percentage, so drop it entirely.
   if (isNumber(window?.resets_at) && window.resets_at <= nowSeconds) {
-    return segments;
+    return [];
   }
   if (isNumber(window?.used_percentage)) {
     const percentage = window.used_percentage;
-    segments.push(color(`${label} ${Math.round(percentage)}%`, COLOR.bold, usageColor(percentage)));
+    parts.push(color(`${Math.round(percentage)}%`, COLOR.bold, gradientColor(percentage)));
   }
   if (isNumber(window?.resets_at)) {
-    segments.push(color(formatTimeLeft(window.resets_at - nowSeconds, allowDays), COLOR.dim));
+    const secondsLeft = window.resets_at - nowSeconds;
+    const remaining = Math.min(1, Math.max(0, secondsLeft / windowSeconds)) * 100;
+    parts.push(color(formatTimeLeft(secondsLeft, allowDays), gradientColor(remaining)));
   }
 
-  return segments.length > 0 ? [segments.join(' ')] : segments;
+  return parts.length > 0 ? [[color(label, COLOR.dim), ...parts].join(color(' - ', COLOR.dim))] : [];
 }
 
 /**
  * @param {Record<string, any>} input
- * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null, env?: Record<string, string | undefined>, limit?: (windowSize: number | undefined) => number | null }} [options]
+ * @param {{ nowSeconds?: number, branch?: (directory: string | undefined) => string | null, dirty?: (directory: string | undefined) => boolean, env?: Record<string, string | undefined>, limit?: (windowSize: number | undefined) => number | null }} [options]
  * @returns {string}
  */
 export function render(
@@ -335,6 +419,7 @@ export function render(
   {
     nowSeconds = Date.now() / 1_000,
     branch = gitBranch,
+    dirty = gitDirty,
     env = process.env,
     limit = (size) => autoCompactLimit(size, env)
   } = {}
@@ -352,8 +437,9 @@ export function render(
 
   const branchName = branch(directory);
   if (branchName) {
+    const dirtyMark = dirty(directory) ? ` ${color('✗', COLOR.yellow)}` : '';
     segments.push(
-      `${color('git(', COLOR.magenta)}${color(clean(branchName), COLOR.bold, COLOR.branch)}${color(')', COLOR.magenta)}`
+      `${color('git:(', COLOR.magenta)}${color(clean(branchName), COLOR.bold, COLOR.branch)}${color(')', COLOR.magenta)}${dirtyMark}`
     );
   }
 
@@ -369,6 +455,7 @@ export function render(
 
   if (isNumber(tokens) || isNumber(windowSize) || isNumber(contextPercentage)) {
     const used = isNumber(tokens) ? tokens : 0;
+    const contextColor = isNumber(contextPercentage) ? gradientColor(contextPercentage) : tokenColor(used);
     let text = formatTokens(used);
     if (isNumber(windowSize)) {
       text += ` / ${formatTokens(windowSize)}`;
@@ -376,31 +463,38 @@ export function render(
     if (isNumber(contextPercentage)) {
       text += ` (${Math.round(contextPercentage)}%)`;
     }
-    let contextSegment = color(text, COLOR.bold, tokenColor(used));
+    let contextSegment = color(text, COLOR.bold, contextColor);
     if (isNumber(compactLimit) && compactLimit > 0) {
       const compactPercentage = (used / compactLimit) * 100;
       const compactText = `${formatTokens(compactLimit)} (${Math.round(compactPercentage)}%)`;
-      contextSegment += ` ${color('/', COLOR.dim)} ${color(compactText, COLOR.bold, usageColor(compactPercentage))}`;
+      contextSegment += ` ${color('/', COLOR.dim)} ${color(compactText, COLOR.bold, gradientColor(compactPercentage))}`;
     }
     segments.push(contextSegment);
   }
 
+  const modelParts = [];
   if (payload.model?.display_name) {
-    segments.push(color(clean(payload.model.display_name), COLOR.bold, COLOR.blue));
+    const name = clean(payload.model.display_name);
+    modelParts.push(color(name, COLOR.bold, modelColor(name)));
   }
   if (payload.effort?.level) {
-    segments.push(color(clean(payload.effort.level), COLOR.dim));
+    const level = clean(payload.effort.level);
+    modelParts.push(color(level, effortColor(level)));
+  }
+  if (modelParts.length > 0) {
+    segments.push(modelParts.join(' '));
   }
 
+  const separator = ` ${color('│', COLOR.dim)} `;
   const limits = [
-    ...rateLimitSegments(payload.rate_limits?.five_hour, '5h', false, nowSeconds, color),
-    ...rateLimitSegments(payload.rate_limits?.seven_day, '7d', true, nowSeconds, color)
+    ...rateLimitSegments(payload.rate_limits?.five_hour, '5h', false, nowSeconds, 5 * SECONDS_PER_HOUR, color),
+    ...rateLimitSegments(payload.rate_limits?.seven_day, '7d', true, nowSeconds, 7 * SECONDS_PER_DAY, color)
   ];
   if (limits.length > 0) {
-    segments.push(limits.join(' | '));
+    segments.push(limits.join(separator));
   }
 
-  return segments.join(` ${color('│', COLOR.dim)} `);
+  return segments.join(separator);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

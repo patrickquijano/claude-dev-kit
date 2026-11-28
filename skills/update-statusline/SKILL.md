@@ -25,7 +25,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 - Commands: run by name from `${CLAUDE_SKILL_DIR}/references/commands.md`; never alter flags.
 - Read `~/.claude/settings.json` only for its `statusLine` object; never print or quote any other key's value.
 - Back up every file before changing it (`<file>.bak-<timestamp>`); never delete a backup.
-- Change only the branch segment: the `git(` and `)` wrapper keeps its color, the name gets bold plus the chosen color, every other segment and `NO_COLOR` handling stay as they were.
+- Change only the branch segment: the `git:(` and `)` wrapper keeps its color, the name gets bold plus the chosen color, every other segment and `NO_COLOR` handling stay as they were.
 - Set `statusLine` only when none exists; never rewrite an existing `statusLine` command path.
 - Idempotent: a branch segment already using the chosen color is skipped.
 - Never branch or commit; the user scope is outside the repo.
@@ -37,7 +37,7 @@ Input: $ARGUMENTS (strip `--yes` first)
 
 1. **Pre-flight.** Node version `<none>` → stop ("install Node.js").
 2. **Classify.** Read `statusLine` from `~/.claude/settings.json`: a command naming a script file → update that file; an inline command → update the command string; none → create from `assets/statusline.mjs`. Not `type: command` → stop and report.
-3. **Locate** the branch segment (the styled call that prints `git(<name>)`). Not found → stop and report; never guess another segment.
+3. **Locate** the branch segment (the styled call that prints `git:(<name>)`). Not found → stop and report; never guess another segment.
 4. **Color.** Ask the color question per `color.md` with the grill table.
 5. **Print.** Show the diff, the backup path, and (create only) the `statusLine` object to add, per `plan.md`.
 6. **Write.** Back up, then edit per the Rules; create → copy the asset, set the chosen color, `chmod-exec`, add `statusLine`.

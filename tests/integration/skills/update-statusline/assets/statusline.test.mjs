@@ -85,7 +85,7 @@ describe('statusline CLI', () => {
 
     // Assert
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, '120k / 1.00m (12%) / 200k (60%)');
+    assert.equal(result.stdout, '120k / 1M (12%) / 200k (60%)');
   });
 
   test('reads the auto-compact window from settings.json under HOME', () => {
@@ -101,6 +101,6 @@ describe('statusline CLI', () => {
 
     // Assert
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, '100k / 1.00m (10%) / 400k (25%)');
+    assert.equal(result.stdout, '100k / 1M (10%) / 400k (25%)');
   });
 });
